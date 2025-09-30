@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@dcloudio/uni-ui": "^1.5.11",
+    "ali-oss": "^6.23.0",
+    "element-ui": "^2.15.14",
+    "html2canvas": "^1.4.1",
+    "nanoid": "^5.1.6",
+    "uview-ui": "^2.0.38"
+  }
+}
