@@ -1,11 +1,11 @@
 import {
   __commonJS,
   __require
-} from "./chunk-GFT2G5UO.js";
+} from "./chunk-TDUMLE5V.js";
 
-// ../../../../vue/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js
+// C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js
 var require_aliyun_oss_sdk = __commonJS({
-  "../../../../vue/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js"(exports, module) {
+  "C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js"(exports, module) {
     (function(global) {
       (function(f) {
         if (typeof exports === "object" && typeof module !== "undefined") {

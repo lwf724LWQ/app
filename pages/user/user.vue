@@ -46,32 +46,58 @@
 	    </view>
 	  </view>
 	
+	<!-- 退出登录按钮 -->
+	<view class="logout-container">
+	  <button class="logout-btn" @click="logout">退出登录</button>
+	</view>
+	
   </view>
 </template>
 
 <script setup>
+import { ref ,reactive, onMounted} from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import {getNavBarHeight} from "@/utils/system.js"
-import {apiUserInfo} from "@/api/apis.js"
-import { ref ,reactive} from "vue";
-
+import { getToken, removeToken } from "@/utils/request.js";
 
 const memberStore = reactive({
-  // profile:{
-  //   avatar:'../../static/images/xxmLogo.png',
-  //   nickname:'aaa',
-  // }
+  profile: null
 });
 
-const getUserInfo = ()=>{
+// 检查登录状态
+const checkLoginStatus = () => {
+  const token = getToken();
+  if (token) {
+    // 有token表示已登录，设置profile对象
+    memberStore.profile = {
+      avatar: '../../static/images/xxmLogo.png', // 默认头像
+      nickname: '欢迎您'
+    };
+  } else {
+    // 没有token表示未登录
+    memberStore.profile = null;
+  }
+}
 
-  apiUserInfo().then(res=>{
-    // 有接口的时候这里赋值
-    // 方式1：逐个属性赋值（推荐，保留默认结构）
-    // memberStore.name = res.data.name;
-    // 方式2：整体替换（适用于数据结构完全匹配的情况）;不要直接给 reactive 对象重新赋值（会丢失响应式），应使用 Object.assign 或逐个属性更新：
-
-    Object.assign(memberStore, res.data);
-  })
+// 退出登录
+const logout = () => {
+  uni.showModal({
+    title: '确认退出',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        // 清除token
+        removeToken();
+        // 更新登录状态
+        checkLoginStatus();
+        // 显示退出成功提示
+        uni.showToast({
+          title: '已退出登录',
+          icon: 'success'
+        });
+      }
+    }
+  });
 }
 //-------------------------------------------------------------------------
 const menuList = ref([
@@ -121,7 +147,15 @@ const handleMenuClick = (item) => {
   // }
 };
 
-// getUserInfo();
+// 页面加载时检查登录状态
+onMounted(() => {
+  checkLoginStatus();
+});
+
+// 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
+onShow(() => {
+  checkLoginStatus();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -190,5 +224,29 @@ const handleMenuClick = (item) => {
 /* 调整右侧箭头与文字区域的间距 */
 .menu-item > uni-icons:last-child {
   margin-left: 12rpx;
+}
+
+/* 退出登录按钮样式 */
+.logout-container {
+  padding: 40rpx 32rpx;
+  margin-top: 40rpx;
+}
+
+.logout-btn {
+  width: 100%;
+  height: 88rpx;
+  background-color: #ff4757;
+  color: #fff;
+  border: none;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn:active {
+  background-color: #ff3742;
 }
 </style>

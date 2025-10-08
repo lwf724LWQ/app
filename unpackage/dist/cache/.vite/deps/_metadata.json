@@ -1,43 +1,25 @@
 {
-  "hash": "fda2d495",
-  "configHash": "075c184c",
+  "hash": "ba9489a1",
+  "configHash": "d2e48b99",
   "lockfileHash": "03df085d",
-  "browserHash": "c6506b34",
+  "browserHash": "3482409b",
   "optimized": {
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "a96f3491",
+    "nanoid": {
+      "src": "../../../../../node_modules/nanoid/index.browser.js",
+      "file": "nanoid.js",
+      "fileHash": "4a0e3e07",
       "needsInterop": false
     },
     "ali-oss": {
       "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
       "file": "ali-oss.js",
-      "fileHash": "d38951fc",
-      "needsInterop": true
-    },
-    "nanoid": {
-      "src": "../../../../../node_modules/nanoid/index.browser.js",
-      "file": "nanoid.js",
-      "fileHash": "323fc371",
-      "needsInterop": false
-    },
-    "uview-ui": {
-      "src": "../../../../../node_modules/uview-ui/index.js",
-      "file": "uview-ui.js",
-      "fileHash": "210bd0a9",
-      "needsInterop": false
-    },
-    "element-ui": {
-      "src": "../../../../../node_modules/element-ui/lib/element-ui.common.js",
-      "file": "element-ui.js",
-      "fileHash": "eb8196cb",
+      "fileHash": "e42163ef",
       "needsInterop": true
     }
   },
   "chunks": {
-    "chunk-GFT2G5UO": {
-      "file": "chunk-GFT2G5UO.js"
+    "chunk-TDUMLE5V": {
+      "file": "chunk-TDUMLE5V.js"
     }
   }
 }

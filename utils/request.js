@@ -13,6 +13,12 @@ export function getToken() {
     return globalToken || uni.getStorageSync('token');
 }
 
+// 移除Token的方法
+export function removeToken() {
+    globalToken = '';
+    uni.removeStorageSync('token');
+}
+
 export function apiGetBanner(){
 	return request({
 		url:"/homeBanner"
