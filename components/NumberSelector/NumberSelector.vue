@@ -48,53 +48,73 @@
 			<!-- 效果预览区域 -->
 			<div class="section preview-section">
 				<div class="section-title">效果预览</div>
-
 				<div class="preview-options">
 					<div class="preview-option" @click="previewType = 'solid'">
 						<div class="option-checkbox" :class="{selected: previewType === 'solid'}"></div>
 						<span>实心</span>
 					</div>
-					<div class="preview-option" @click="previewType = 'hollow'">
-						<div class="option-checkbox" :class="{selected: previewType === 'hollow'}"></div>
-						<span>空心</span>
-					</div>
+	
 				</div>
 
 				<div class="digits-container">
-					<div class="digit-box" v-if="selectedCondition !== '稳码'">
-						<div class="digit-display solid">
-							<div>{{selectedCondition}}</div>
-							{{selectedNumbers2}}
-							{{selecteddoubNumber}}
-						</div>
-						<div class="digit-label">千A</div>
-					</div>
-					<div class="digit-box" v-if="selectedCondition !== '稳码'">
-						<div class="digit-display" :class="selectedCondition === '千百合' ? 'solid' : 'hollow'">
-							<div v-if="selectedCondition === '千百合'">{{selectedCondition}}</div>
-							<div v-if="selectedCondition === '千百合'">{{selectedNumbers2}}</div>
-						</div>
-						<div class="digit-label">百B</div>
-					</div>
-					<div class="digit-box" v-if="selectedCondition !== '稳码'">
-						<div class="digit-display" :class="selectedCondition === '千十合' ? 'solid' : 'hollow'">
-							<div v-if="selectedCondition === '千十合'">{{selectedCondition}}</div>
-							<div v-if="selectedCondition === '千十合'">{{selectedNumbers2}}</div>
-						</div>
-						<div class="digit-label">十C</div>
-					</div>
-					<div class="digit-box" v-if="selectedCondition !== '稳码'">
-						<div class="digit-display" :class="selectedCondition === '头尾合' ? 'solid' : 'hollow'">
-							<div v-if="selectedCondition === '头尾合'">{{selectedCondition}}</div>
-							<div v-if="selectedCondition === '头尾合'">{{selectedNumbers2}}</div>
-						</div>
-						<div class="digit-label">个D</div>
-					</div>
-					<div class="digit-box" v-if="selectedCondition === '稳码'">
-						<div class="wenma">
-							<div class='firstsize'>稳上一码：{{selectedNumbers2}}</div>
-						</div>
-					</div>
+				  <!-- 第一个 digit-box -->
+				  <div class="digit-box" v-if="selectedCondition !== '稳码'">
+				    <div class="digit-display" :class="{
+				        solid: numIndex === 1,
+				        hollow: numIndex !== 1
+				      }">
+				      <div v-if="numIndex === 1">{{selectedCondition}}</div>
+				      <div v-if="numIndex === 1">{{selectedNumbers2}}</div>
+				      <div v-if="numIndex === 1">{{selecteddoubNumber}}</div>
+				    </div>
+				    <div class="digit-label">千A</div>
+				  </div>
+				  
+				  <!-- 第二个 digit-box -->
+				  <div class="digit-box" v-if="selectedCondition !== '稳码'">
+				    <div class="digit-display" :class="{
+				        solid: numIndex === 2,
+				        hollow: numIndex !== 2
+				      }">
+				      <div v-if="numIndex === 2">{{selectedCondition}}</div>
+				      <div v-if="numIndex === 2">{{selectedNumbers2}}</div>
+				      <div v-if="numIndex === 2">{{selecteddoubNumber}}</div>
+				    </div>
+				    <div class="digit-label">百B</div>
+				  </div>
+				  
+				  <!-- 第三个 digit-box -->
+				  <div class="digit-box" v-if="selectedCondition !== '稳码'">
+				    <div class="digit-display" :class="{
+				        solid: numIndex === 3,
+				        hollow: numIndex !== 3
+				      }">
+				      <div v-if="numIndex === 3">{{selectedCondition}}</div>
+				      <div v-if="numIndex === 3">{{selectedNumbers2}}</div>
+				      <div v-if="numIndex === 3">{{selecteddoubNumber}}</div>
+				    </div>
+				    <div class="digit-label">十C</div>
+				  </div>
+				  
+				  <!-- 第四个 digit-box -->
+				  <div class="digit-box" v-if="selectedCondition !== '稳码'">
+				    <div class="digit-display" :class="{
+				        solid: numIndex === 4,
+				        hollow: numIndex !== 4
+				      }">
+				      <div v-if="numIndex === 4">{{selectedCondition}}</div>
+				      <div v-if="numIndex === 4">{{selectedNumbers2}}</div>
+				      <div v-if="numIndex === 4">{{selecteddoubNumber}}</div>
+				    </div>
+				    <div class="digit-label">个D</div>
+				  </div>
+					
+				  <!-- 稳码样式 -->
+				  <div class="digit-box" v-if="selectedCondition === '稳码'">
+				    <div class="wenma">
+				      <div class='firstsize'>稳上一码：{{selectedNumbers2}}</div>
+				    </div>
+				  </div>
 				</div>
 			</div>
 

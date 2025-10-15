@@ -1,4 +1,5 @@
 import {
+	getAccount,
 	request
 } from "@/utils/request.js"
 
@@ -67,6 +68,27 @@ export function apiGetVideo(data = {}) {
 		data
 	})
 }
+//点赞接口（用户针对某个视频是否点赞）
+export function apiGetIsLike(data = {}) {
+	console.log(data)
+	return request({
+		url: "/web/video/like_count",
+		method: "POST",
+		data: {
+			id: data.id,
+			account: getAccount(), 
+			type: data.isLiked ? 0 : 1 // 0点赞，1取消点赞
+		}
+	})
+}
+//获取用户点赞列表
+export function apiGetLikelist(account) {
+	return request({
+		url: "/web/video/query_like_count",
+		data:{account}
+	})
+}
+
 export function apiGetClassList() {
 	return request({
 		url: "/wallList",

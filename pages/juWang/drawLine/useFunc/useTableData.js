@@ -181,7 +181,6 @@ export default function useTableData(child, NumberGroups = null) {
 
 	// 切换数字高亮状态
 	function toggleHighlight(groupIndex, numIndex) {
-		// console.log('1123456');
 		const highlightIndex = highlighted.value.findIndex(item =>
 			item.groupIndex === groupIndex && item.numIndex === numIndex
 		);

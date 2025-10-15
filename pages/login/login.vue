@@ -61,16 +61,12 @@ const gologin=async ()=>{
 	    if (success) {
 	      alert('登录成功');
 	      console.log(success, '11111111111');
-	      
 	      // 设置全局token
 	      setToken(success.data.token);
-	      
 	      // 调用apigetsts，由于request中已经自动添加token，所以这里不需要传递headers
-	      const sts = await apigetsts({});
 		  uni.switchTab({
 			   url: '/pages/user/user',
 		  })
-	      console.log('STS响应:', sts);
 	    }
 	  } catch (error) {
 	    alert('登录过程中发生错误');
@@ -79,18 +75,6 @@ const gologin=async ()=>{
 
 //-------------------------------------------------------------
 //上传文件
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

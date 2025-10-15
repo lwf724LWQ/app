@@ -607,10 +607,10 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 	 * 画布移动操作
 	 */
 	const onCanvasMove = (e) => {
-		if (!canvasCtx.value || (!isDrawing.value && !isErasing.value)) {
-			console.log('Canvas 上下文未初始化或未处于绘制状态',canvasCtx.value);
-			return;
-		}
+		// if (!canvasCtx.value || (!isDrawing.value && !isErasing.value)) {
+		// 	console.log('Canvas 上下文未初始化或未处于绘制状态',canvasCtx.value);
+		// 	return;
+		// }
 
 		// 取消之前的动画帧
 		if (animationFrameId) {
@@ -793,28 +793,28 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 				numIndex
 			} = numberPos;
 			// 如果是智能模式，并且终点在46-49行，1-4列
-			if (currentMode.value === 'smart' && groupIndex >= 46 && groupIndex <= 49 && numIndex == 1) {
+			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 1) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 46 && groupIndex <= 49 && numIndex == 2) {
+			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 2) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 46 && groupIndex <= 49 && numIndex == 3) {
+			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 3) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 46 && groupIndex <= 49 && numIndex == 4) {
+			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 4) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 46 && groupIndex <= 49 && numIndex == 5) {
+			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 5) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}

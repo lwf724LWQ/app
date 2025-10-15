@@ -1,7 +1,7 @@
 <template>
 	<view class="container">
 		<!-- 自定义导航栏 -->
-   <custom-juwang-nav-bar title="drawLine"
+  <custom-juwang-nav-bar title="drawLine"
                            :onSubmit="handleSubmit"
                            @child-event="handleChildEvent"
                            @share-event="handleShareEvent"

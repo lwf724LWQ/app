@@ -1,13 +1,13 @@
 <template>
   <view class="container">
     <!-- 自定义导航栏 -->
-    <view class="navbar">
+   <view class="navbar">
       <!-- 返回按钮 -->
-      <view class="navbar-left" @click="goBack">
+     <view class="navbar-left" @click="goBack">
         <uni-icons type="left" size="30"></uni-icons>
       </view>
       <!-- 标题 -->
-      <view class="navbar-title">{{pageName}}</view>
+      <view class="navbar-title"></view>
       <!--      -{{ counter.count }}-->
       <!-- 右侧菜单按钮 -->
       <view class="navbar-right" @click.stop="togglePopover">

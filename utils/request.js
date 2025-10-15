@@ -12,7 +12,6 @@ export function setToken(token) {
 export function getToken() {
     return globalToken || uni.getStorageSync('token');
 }
-
 // 移除Token的方法
 export function removeToken() {
     globalToken = '';
@@ -23,6 +22,18 @@ export function apiGetBanner(){
 	return request({
 		url:"/homeBanner"
 	})	
+}
+
+//设置账号
+let globalAccount = '';
+// 设置账号的方法
+export function setAccount(account) {
+  globalAccount = account;
+  uni.setStorageSync('account', account);//保存到本地
+}
+// 获取账号的方法
+export function getAccount() {
+    return globalAccount || uni.getStorageSync('account');
 }
 
 export function request(config={}){	
@@ -43,7 +54,7 @@ export function request(config={}){
 	        header.Authorization = `${token}`;
 	    }
 	
-	console.log('请求参数：',  {url, data, method, header});
+	console.log('请求参数：',  {url, data, method, header},"-----------------------------------------");
 	return new Promise((resolve,reject)=>{		
 		uni.request({
 			url,
@@ -56,7 +67,7 @@ export function request(config={}){
 				}else{
 					uni.showModal({
 						title:"错误提示",
-						content:res.data.errMsg,
+						content:res.data.msg,
 						showCancel:false
 					})
 					reject(res.data)

@@ -1,9 +1,9 @@
 import "./chunk-TDUMLE5V.js";
 
-// C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/nanoid/url-alphabet/index.js
+// ../../../../vue/wodexmu2/my-painting-rules-project/node_modules/nanoid/url-alphabet/index.js
 var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 
-// C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/nanoid/index.browser.js
+// ../../../../vue/wodexmu2/my-painting-rules-project/node_modules/nanoid/index.browser.js
 var random = (bytes) => crypto.getRandomValues(new Uint8Array(bytes));
 var customRandom = (alphabet, defaultSize, getRandom) => {
   let mask = (2 << Math.log2(alphabet.length - 1)) - 1;

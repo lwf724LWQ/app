@@ -3,9 +3,9 @@ import {
   __require
 } from "./chunk-TDUMLE5V.js";
 
-// C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js
+// ../../../../vue/wodexmu2/my-painting-rules-project/node_modules/ali-oss/dist/aliyun-oss-sdk.js
 var require_aliyun_oss_sdk = __commonJS({
-  "C:/Users/张心怡/Documents/xwechat_files/wxid_0dlokvifhy6222_a957/msg/file/2025-10/wodexmu/wodexmu/node_modules/ali-oss/dist/aliyun-oss-sdk.js"(exports, module) {
+  "../../../../vue/wodexmu2/my-painting-rules-project/node_modules/ali-oss/dist/aliyun-oss-sdk.js"(exports, module) {
     (function(global) {
       (function(f) {
         if (typeof exports === "object" && typeof module !== "undefined") {
