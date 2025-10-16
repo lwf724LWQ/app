@@ -173,6 +173,7 @@
               <!-- 芝麻预测 -->
               <view class="predict-section">
                 <text class="section-title">[芝麻] {{ predict.sesame.hitRate }}</text>
+				
                 <view class="number-predict">
                   <text class="predict-text">千位: {{ predict.sesame.thousands }} 主攻{{ predict.sesame.mainThousands }} 重点{{ predict.sesame.keyThousands }}</text>
                   <text class="predict-text">百位: {{ predict.sesame.hundreds }} 主攻{{ predict.sesame.mainHundreds }} 重点{{ predict.sesame.keyHundreds }}</text>

@@ -1,31 +1,8 @@
 {
-  "hash": "09169ec4",
-  "configHash": "9f660784",
+  "hash": "ebc01814",
+  "configHash": "ee42b066",
   "lockfileHash": "00a183ec",
-  "browserHash": "e5d40e1c",
-  "optimized": {
-    "nanoid": {
-      "src": "../../../../../node_modules/nanoid/index.browser.js",
-      "file": "nanoid.js",
-      "fileHash": "fd5ba8e2",
-      "needsInterop": false
-    },
-    "ali-oss": {
-      "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
-      "file": "ali-oss.js",
-      "fileHash": "be29fa2e",
-      "needsInterop": true
-    },
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "312965cc",
-      "needsInterop": false
-    }
-  },
-  "chunks": {
-    "chunk-TDUMLE5V": {
-      "file": "chunk-TDUMLE5V.js"
-    }
-  }
+  "browserHash": "990657ce",
+  "optimized": {},
+  "chunks": {}
 }
