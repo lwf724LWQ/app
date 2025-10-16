@@ -1,257 +1,644 @@
 <template>
-	<view class="userLayout pageBg">
-		<view :style="{height:getNavBarHeight()+'px'}"></view>
-		<view class="userInfo" v-if="memberStore.profile">
-			<view class="avatar">
-				<image :src="memberStore.profile.avatar" mode="aspectFill"></image>
-			</view>
-			<view class="ip">{{memberStore.profile.nickname}}</view>
-		</view>
-		<!-- 情况2：未登录 -->
-		<view class="userInfo" v-else>
-			<view class="avatar gray">
-				<image src="../../static/images/defaultAvatar.png" mode="aspectFill"></image>
-			</view>
-			<view class="ip">
-				<navigator url="/pages/login/login" hover-class="none" class="nickname">
-					未登录
-				</navigator>
-			</view>
-		</view>
-
-		<view class="menu-container">
-			<!-- 循环渲染菜单列表 -->
-			<view v-for="(item, index) in menuList" :key="index" class="menu-item" @click="handleMenuClick(item)">
-				<!-- 左侧图标（使用 Uniapp 内置 uni-icons 组件） -->
-				<uni-icons :type="item.icon" size="24" color="#333"></uni-icons>
-				<!-- 中间文字区域（主标题 + 可选副标题） -->
-				<view class="text-area">
-					<text class="title">{{ item.title }}</text>
-					<text class="sub-title" v-if="item.subTitle">{{ item.subTitle }}</text>
-				</view>
-				<!-- 右侧箭头（可选，通过 hasArrow 控制显示） -->
-				<uni-icons v-if="item.hasArrow" type="arrowright" size="16" color="#999"></uni-icons>
-			</view>
-		</view>
-
-		<!-- 退出登录按钮 -->
-		<view class="logout-container" v-if="getToken()">
-			<button class="logout-btn" @click="logout">退出登录</button>
-		</view>
+  <view class="userLayout">
+    <view class="userInfo" v-if="memberStore.profile">
+      <view class="user-header">
+        <view class="avatar-section">
+          <view class="avatar">
+            <image :src="memberStore.profile.avatar" mode="aspectFill"></image>
+          </view>
+          <view class="user-details">
+            <text class="username">欢迎您</text>
+           
+          </view>
+        </view>
+        <view class="edit-btn">
+          <text class="edit-text">点击编辑资料</text>
+        </view>
+      </view>
+      <view class="user-stats">
+        <view class="stat-item">
+          <text class="stat-label">关注</text>
+          <text class="stat-value">128</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">粉丝</text>
+          <text class="stat-value">256</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">帖子</text>
+          <text class="stat-value">89</text>
+        </view>
+      </view>
+    </view>
+    <!-- 情况2：未登录 -->
+    <view class="userInfo" v-if="!memberStore.profile">
+      <view class="user-header">
+        <view class="avatar-section">
+          <view class="avatar gray">
+            <image src="../../static/images/defaultAvatar.png" mode="aspectFill"></image>
+          </view>
+          <view class="user-details">
+            <text class="username">未登录</text>
+            <view class="login-btn">
+              <navigator url="/pages/login/login" hover-class="none">
+                <text class="login-text">点击登录</text>
+              </navigator>
+            </view>
+          </view>
+        </view>
+        <view class="edit-btn">
+          <text class="edit-text">点击编辑资料</text>
+        </view>
+      </view>
+      <view class="user-stats">
+        <view class="stat-item">
+          <text class="stat-label">关注</text>
+          <text class="stat-value">0</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">粉丝</text>
+          <text class="stat-value">0</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">帖子</text>
+          <text class="stat-value">0</text>
+        </view>
+      </view>
+    </view>
+	
+	
+	
+	<!-- 数据展示区域 -->
+	<view class="data-section">
+	  <view class="data-card" @click="toggleBalanceVisibility">
+	    <text class="data-number">{{ isBalanceVisible ? '0.00' : '****' }}</text>
+	    <text class="data-label">我的收益</text>
+	    <view class="eye-icon" @click="toggleBalanceVisibility">
+	      <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+	    </view>
+	  </view>
+	  <view class="data-card" @click="goToRecharge">
+	    <text class="data-number">{{ isBalanceVisible ? '0' : '****' }}</text>
+	    <text class="data-label">我的金币</text>
+	    <view class="eye-icon" @click="toggleBalanceVisibility">
+	      <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+	    </view>
+	  </view>
 	</view>
+	
+	<!-- 我的充值区域 -->
+	<view class="recharge-section">
+	  <text class="section-title"></text>
+	  <view class="recharge-items">
+	    <view class="recharge-item">
+	      <view class="recharge-icon purple">💳</view>
+	      <text class="recharge-text">大师包月</text>
+	    </view>
+	    <!-- <view class="recharge-item">
+	      <view class="recharge-icon blue">💬</view>
+	      <text class="recharge-text">待评价</text>
+	    </view> -->
+	    <view class="recharge-item" @click="goToTransaction">
+	      <view class="recharge-icon yellow">¥</view>
+	      <text class="recharge-text">消费明细</text>
+	    </view>
+	    <view class="recharge-item">
+	      <view class="recharge-icon red">🎁</view>
+	      <text class="recharge-text">收藏</text>
+	    </view>
+	  </view>
+	</view>
+	
+	<!-- 其他服务区域 -->
+	<view class="services-section">
+	  <text class="section-title">其它服务</text>
+	  <view class="services-grid">
+	    <view class="service-item">
+	      <uni-icons type="headphones" size="24" color="#222"></uni-icons>
+	      <text class="service-text">联系客服</text>
+	    </view>
+	    <view class="service-item">
+	      <uni-icons type="compose" size="24" color="#222"></uni-icons>
+	      <text class="service-text">意见反馈</text>
+	    </view>
+	    <view class="service-item" @click="logout">
+	      <uni-icons type="settings" size="24" color="#222"></uni-icons>
+	      <text class="service-text">设置</text>
+	    </view>
+	    <view class="service-item">
+	      <uni-icons type="locked" size="24" color="#222"></uni-icons>
+	      <text class="service-text">隐私政策</text>
+	    </view>
+	    <view class="service-item">
+	      <uni-icons type="gift" size="24" color="#222"></uni-icons>
+	      <text class="service-text">每日福利</text>
+	    </view>
+	    <view class="service-item">
+	      <uni-icons type="help" size="24" color="#222"></uni-icons>
+	      <text class="service-text">常见问题</text>
+	    </view>
+	    <view class="service-item">
+	      <uni-icons type="link" size="24" color="#222"></uni-icons>
+	      <text class="service-text">关于我们</text>
+	    </view>
+	  </view>
+	</view>
+	
+  </view>
 </template>
 
 <script setup>
-	import {
-		ref,
-		reactive,
-		onMounted
-	} from "vue";
-	import {
-		onShow
-	} from "@dcloudio/uni-app";
-	import {
-		getNavBarHeight
-	} from "@/utils/system.js"
-	import {
-		getToken,
-		removeToken
-	} from "@/utils/request.js";
+import { ref ,reactive, onMounted} from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import {getNavBarHeight} from "@/utils/system.js"
+import { getToken, removeToken } from "@/utils/request.js";
 
-	const memberStore = reactive({
-		profile: null
-	});
+const memberStore = reactive({
+  profile: null
+});
 
-	// 检查登录状态
-	const checkLoginStatus = () => {
-		const token = getToken();
-		if (token) {
-			// 有token表示已登录，设置profile对象
-			memberStore.profile = {
-				avatar: '../../static/images/xxmLogo.png', // 默认头像
-				nickname: '欢迎您'
-			};
-		} else {
-			// 没有token表示未登录
-			memberStore.profile = null;
-		}
-	}
+// 金币显示状态
+const isBalanceVisible = ref(false)
 
-	// 退出登录
-	const logout = () => {
-		uni.showModal({
-			title: '确认退出',
-			content: '确定要退出登录吗？',
-			success: (res) => {
-				if (res.confirm) {
-					// 清除token
-					removeToken();
-					// 更新登录状态
-					checkLoginStatus();
-					// 显示退出成功提示
-					uni.showToast({
-						title: '已退出登录',
-						icon: 'success'
-					});
-				}
-			}
-		});
-	}
-	//-------------------------------------------------------------------------
-	const menuList = ref([
-		{
-			icon: 'videocam-filled', // uni-icons 内置图标名（软件分享）
-			title: '上传视频',
-			hasArrow: true
-		},
-		{
-			icon: 'contact', // uni-icons 内置图标名（联系客服）
-			title: '联系客服',
-			subTitle: '',
-			hasArrow: true
-		},
-		{
-			icon: 'paperplane-filled', // uni-icons 内置图标名（软件分享）
-			title: '软件分享',
-			subTitle: '分享给朋友',
-			hasArrow: true
-		},
-		{
-			icon: 'email-filled', // uni-icons 内置图标名（建议反馈）
-			title: '建议反馈',
-			subTitle: '',
-			hasArrow: true
-		},
-		{
-			icon: 'upload-filled', // uni-icons 内置图标名（版本箭头示意）
-			title: '版本',
-			subTitle: '已是最新版V3.4.0.2',
-			hasArrow: true
-		},
-		{
-			icon: 'settings', // uni-icons 内置图标名（设置）
-			title: '设置',
-			subTitle: '',
-			hasArrow: true
-		},
-	]);
+// 检查登录状态
+const checkLoginStatus = () => {
+  const token = getToken();
+  if (token) {
+    // 有token表示已登录，设置profile对象
+    memberStore.profile = {
+      avatar: '../../static/images/xxmLogo.png', // 默认头像
+      nickname: '欢迎您'
+    };
+  } else {
+    // 没有token表示未登录
+    memberStore.profile = null;
+  }
+}
 
-	// 菜单项点击事件
-	const handleMenuClick = (item) => {
-		// 示例：跳转页面（需提前配置 pages.json 路由）
-		if (item.title === '上传视频') {
-			console.log(item.title)
-		  uni.navigateTo({ url: "oss"});
-		}
-	};
+// 退出登录
+const logout = () => {
+  uni.showModal({
+    title: '确认退出',
+    content: '确定要退出登录吗？',
+    success: (res) => {
+      if (res.confirm) {
+        // 清除token
+        removeToken();
+        // 更新登录状态
+        checkLoginStatus();
+        // 显示退出成功提示
+        uni.showToast({
+          title: '已退出登录',
+          icon: 'success'
+        });
+      }
+    }
+  });
+}
+//-------------------------------------------------------------------------
+const menuList = ref([
+  { 
+    icon: 'contact',     // uni-icons 内置图标名（联系客服）
+    title: '联系客服', 
+    subTitle: '', 
+    hasArrow: true 
+  },
+  { 
+    icon: 'paperplane-filled',       // uni-icons 内置图标名（软件分享）
+    title: '软件分享', 
+    subTitle: '分享给朋友', 
+    hasArrow: true 
+  },
+  { 
+    icon: 'email-filled',    // uni-icons 内置图标名（建议反馈）
+    title: '建议反馈', 
+    subTitle: '', 
+    hasArrow: true 
+  },
+  { 
+    icon: 'upload-filled',    // uni-icons 内置图标名（版本箭头示意）
+    title: '版本', 
+    subTitle: '已是最新版V3.4.0.2', 
+    hasArrow: true 
+  },
+  { 
+    icon: 'settings',    // uni-icons 内置图标名（设置）
+    title: '设置', 
+    subTitle: '', 
+    hasArrow: true 
+  },
+]);
 
-	// 页面加载时检查登录状态
-	onMounted(() => {
-		checkLoginStatus();
-	});
+// 跳转到充值页面
+const goToRecharge = () => {
+  uni.navigateTo({ url: '/pages/recharge/recharge' });
+};
 
-	// 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
-	onShow(() => {
-		checkLoginStatus();
-	});
+// 跳转到交易记录页面
+const goToTransaction = () => {
+  uni.navigateTo({ url: '/pages/transaction/transaction' });
+};
+
+// 切换金币显示状态
+const toggleBalanceVisibility = (e) => {
+  e.stopPropagation(); // 阻止事件冒泡
+  isBalanceVisible.value = !isBalanceVisible.value;
+};
+
+// 功能栏点击事件
+const handleFeatureClick = (featureName) => {
+  if (featureName === '充值') {
+    uni.showToast({
+      title: '请点击上方的"我的金币"进行充值',
+      icon: 'none',
+    });
+  } else {
+    uni.showToast({
+      title: `点击了「${featureName}」`,
+      icon: 'none',
+    });
+  }
+};
+
+// 菜单项点击事件
+const handleMenuClick = (item) => {
+  if (item.title === '设置') {
+    // 设置菜单项直接调用退出登录功能
+    logout();
+  } else {
+    // 其他菜单项显示提示
+    uni.showToast({
+      title: `点击了「${item.title}」`,
+      icon: 'none',
+    });
+  }
+  
+  // 示例：跳转页面（需提前配置 pages.json 路由）
+  // if (item.title === '联系客服') {
+  //   uni.navigateTo({ url: '/pages/customer-service/index' });
+  // }
+};
+
+// 页面加载时检查登录状态
+onMounted(() => {
+  checkLoginStatus();
+});
+// 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
+onShow(() => {
+  checkLoginStatus();
+});
 </script>
 
 <style lang="scss" scoped>
-	.userLayout {
-		.userInfo {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			flex-direction: column;
-			padding: 50rpx 0;
+.userLayout{
+  background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
+  min-height: 100vh;
+  overflow-y: auto;
+  
+  .userInfo{
+    background: transparent;
+    padding: 60rpx 32rpx 40rpx;
+    margin-top: 0;
+    .user-header{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30rpx;
+      .avatar-section{
+        display: flex;
+        align-items: center;
+        .avatar{
+          width: 120rpx;
+          height: 120rpx;
+          border-radius: 50%;
+          overflow: hidden;
+          margin-right: 20rpx;
+          image{
+            width: 100%;
+            height: 100%;
+          }
+        }
+        .user-details{
+          .username{
+            font-size: 36rpx;
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 8rpx;
+          }
+          .vip-tag{
+            background-color: #ffa726;
+            padding: 4rpx 12rpx;
+            border-radius: 12rpx;
+            .vip-text{
+              font-size: 20rpx;
+              color: #fff;
+              font-weight: 500;
+            }
+          }
+          .login-btn{
+            background-color: #ffa726;
+            padding: 4rpx 12rpx;
+            border-radius: 12rpx;
+            .login-text{
+              font-size: 20rpx;
+              color: #fff;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+      .edit-btn{
+        background-color: #ffa726;
+        padding: 12rpx 20rpx;
+        border-radius: 20rpx;
+        .edit-text{
+          font-size: 24rpx;
+          color: #fff;
+        }
+      }
+    }
+    .user-stats{
+      display: flex;
+      justify-content: space-between;
+      .stat-item{
+        text-align: center;
+        .stat-label{
+          font-size: 24rpx;
+          color: #999;
+          display: block;
+          margin-bottom: 8rpx;
+        }
+        .stat-value{
+          font-size: 32rpx;
+          color: #333;
+          font-weight: 600;
+        }
+      }
+    }
+    .gray {
+      filter: grayscale(100%);
+    }
+  }
+}
 
-			.avatar {
-				width: 160rpx;
-				height: 160rpx;
-				border-radius: 50%;
-				overflow: hidden;
+/* 邀请好友横幅 */
+.invite-banner {
+  margin: 20rpx 32rpx;
+  background: linear-gradient(135deg, #ffa726 0%, #ffeb3b 100%);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  .banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .banner-text {
+      .banner-title {
+        font-size: 32rpx;
+        color: #fff;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 8rpx;
+      }
+      .banner-subtitle {
+        font-size: 24rpx;
+        color: #fff;
+        opacity: 0.9;
+      }
+    }
+    .invite-btn {
+      background-color: #fff;
+      border: 2rpx solid #ffa726;
+      padding: 16rpx 24rpx;
+      border-radius: 20rpx;
+      .invite-btn-text {
+        font-size: 24rpx;
+        color: #ffa726;
+        font-weight: 500;
+      }
+    }
+  }
+}
 
-				image {
-					width: 100%;
-					height: 100%;
-				}
-			}
+/* 数据展示区域样式 */
+.data-section {
+  display: flex;
+  gap: 20rpx;
+  margin: 20rpx 32rpx;
+}
 
-			.ip {
-				font-size: 44rpx;
-				color: #333;
-				padding: 20rpx 0 5rpx;
-			}
+.data-card {
+  flex: 1;
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
+}
 
-			.gray {
-				filter: grayscale(100%);
-			}
-		}
+.data-card:active {
+  transform: scale(0.95);
+  background-color: #f8f9fa;
+}
 
-	}
+.data-number {
+  font-size: 48rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
 
-	.menu-container {
-		background-color: #fff;
-		padding: 0 16rpx;
-	}
+.data-label {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 400;
+}
 
-	/* 单个菜单项布局 */
-	.menu-item {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 20rpx 0;
-		border-bottom: 1px solid #f5f5f5;
-		/* 分隔线 */
-	}
+.eye-icon {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  padding: 8rpx;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+}
 
-	/* 文字区域（主标题 + 副标题） */
-	.text-area {
-		display: flex;
-		flex-direction: column;
-		margin-left: 12rpx;
-		flex: 1;
-		/* 让文字区域占满中间空间 */
-	}
+/* 功能栏样式 */
+.feature-bar {
+  background-color: #fff;
+  margin: 20rpx 32rpx;
+  border-radius: 16rpx;
+  padding: 30rpx 20rpx;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
 
-	.title {
-		font-size: 32rpx;
-		color: #333;
-		font-weight: 400;
-	}
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 10rpx;
+  transition: all 0.3s ease;
+}
 
-	.sub-title {
-		font-size: 28rpx;
-		color: #999;
-		margin-top: 4rpx;
-	}
+.feature-item:active {
+  transform: scale(0.95);
+}
 
-	/* 调整右侧箭头与文字区域的间距 */
-	.menu-item>uni-icons:last-child {
-		margin-left: 12rpx;
-	}
+.feature-icon {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-bottom: 12rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
 
-	/* 退出登录按钮样式 */
-	.logout-container {
-		padding: 40rpx 32rpx;
-		margin-top: 40rpx;
-	}
+.feature-icon.trophy {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: #fff;
+}
 
-	.logout-btn {
-		width: 100%;
-		height: 88rpx;
-		background-color: #ff4757;
-		color: #fff;
-		border: none;
-		border-radius: 44rpx;
-		font-size: 32rpx;
-		font-weight: 500;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+.feature-icon.diamond {
+  background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+  color: #fff;
+}
 
-	.logout-btn:active {
-		background-color: #ff3742;
-	}
+.feature-icon.star {
+  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
+  color: #fff;
+}
+
+.feature-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  text-align: center;
+}
+
+.menu-container {
+  background-color: #fff;
+  padding: 0 16rpx;
+}
+
+/* 单个菜单项布局 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1px solid #f5f5f5; /* 分隔线 */
+}
+
+/* 文字区域（主标题 + 副标题） */
+.text-area {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12rpx;
+  flex: 1; /* 让文字区域占满中间空间 */
+}
+
+.title {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 400;
+}
+
+.sub-title {
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+/* 我的充值区域 */
+.recharge-section {
+  margin: 20rpx 32rpx;
+  .section-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20rpx;
+  }
+  .recharge-items {
+    display: flex;
+    justify-content: space-between;
+    .recharge-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      .recharge-icon {
+        width: 60rpx;
+        height: 60rpx;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32rpx;
+        margin-bottom: 12rpx;
+        &.purple {
+          background-color: #9c27b0;
+          color: #fff;
+        }
+        &.blue {
+          background-color: #2196f3;
+          color: #fff;
+        }
+        &.yellow {
+          background-color: #ffeb3b;
+          color: #333;
+        }
+        &.red {
+          background-color: #f44336;
+          color: #fff;
+        }
+      }
+      .recharge-text {
+        font-size: 24rpx;
+        color: #333;
+        text-align: center;
+      }
+    }
+  }
+}
+
+/* 其他服务区域 */
+.services-section {
+  margin: 40rpx 32rpx 20rpx;
+  .section-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20rpx;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30rpx;
+    .service-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      .service-text {
+        font-size: 22rpx;
+        color: #333;
+        text-align: center;
+        margin-top: 12rpx;
+      }
+    }
+  }
+}
 </style>
