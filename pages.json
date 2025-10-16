@@ -1,10 +1,9 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path" : "pages/login/login",
-			"style" : 
-			{
-				"navigationBarTitleText" : "登录页"
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录页"
 			}
 		},
 		{
@@ -29,7 +28,7 @@
 						}]
 					}
 				},
-				"enablePullDownRefresh" : true,
+				"enablePullDownRefresh": true,
 				"navigationStyle": "custom"
 			}
 		},
@@ -49,84 +48,75 @@
 						}]
 					}
 				},
-				"enablePullDownRefresh" : false
+				"enablePullDownRefresh": false
 			}
 		},
 		{
-			"path" : "pages/classify/classify",
-			"style" : 
-			{
-				"navigationBarTitleText" : "分类",
-				"enablePullDownRefresh" : false,
+			"path": "pages/classify/classify",
+			"style": {
+				"navigationBarTitleText": "分类",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/user/user",
-			"style" : 
-			{
-				"navigationBarTitleText" : "我的",
-				"enablePullDownRefresh" : false,
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "components/NumberSelector/NumberSelector",
-			"style" : 
-			{
-				"navigationBarTitleText" : "数字digit-display",
-				"enablePullDownRefresh" : false,
+			"path": "components/NumberSelector/NumberSelector",
+			"style": {
+				"navigationBarTitleText": "数字digit-display",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/classlist/classlist",
-			"style" : 
-			{
-				"navigationBarTitleText" : "分类列表",
-				"enablePullDownRefresh" : false
+			"path": "pages/classlist/classlist",
+			"style": {
+				"navigationBarTitleText": "分类列表",
+				"enablePullDownRefresh": false
 			}
 		},
 		{
-			"path" : "pages/user/oss",
-			"style" : 
-			{
-				"navigationBarTitleText" : "上传视频",
-				"enablePullDownRefresh" : false,
+			"path": "pages/user/oss",
+			"style": {
+				"navigationBarTitleText": "上传视频",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/preview/preview",
-			"style" : 
-			{
-				"navigationBarTitleText" : "预览",
-				"enablePullDownRefresh" : false,
+			"path": "pages/preview/preview",
+			"style": {
+				"navigationBarTitleText": "预览",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path" : "pages/notice/notice",
-			"style" : 
-			{
-				"navigationBarTitleText" : "公告",
-				"enablePullDownRefresh" : false
+			"path": "pages/notice/notice",
+			"style": {
+				"navigationBarTitleText": "公告",
+				"enablePullDownRefresh": false
 			}
 		},
 		{
-			"path" : "pages/notice/detail",
-			"style" : 
-			{
-				"navigationBarTitleText" : "公告详情",
-				"enablePullDownRefresh" : false
+			"path": "pages/notice/detail",
+			"style": {
+				"navigationBarTitleText": "公告详情",
+				"enablePullDownRefresh": false
 			}
 		},
 		{
-			"path" : "pages/search/search",
-			"style" : 
-			{
-				"navigationBarTitleText" : "搜索",
-				"enablePullDownRefresh" : false
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"enablePullDownRefresh": false
 			}
 		},
 		{
@@ -145,11 +135,58 @@
 			"path": "pages/video/video",
 			"style": {
 				"navigationBarTitleText": "视频",
-				"enablePullDownRefresh" : false,
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/forum/forum",
+			"style": {
+				"navigationBarTitleText": "彩友圈",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/predict-scheme/predict-scheme",
+			"style": {
+				"navigationBarTitleText": "设置方案",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/predict-publish/predict-publish",
+			"style": {
+				"navigationBarTitleText": "预测",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/dream-interpretation/dream-interpretation",
+			"style": {
+				"navigationBarTitleText": "解梦",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/recharge/recharge",
+			"style": {
+				"navigationBarTitleText": "我的金币",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/transaction/transaction",
+			"style": {
+				"navigationBarTitleText": "金币交易记录",
+				"enablePullDownRefresh": false,
 				"navigationStyle": "custom"
 			}
 		}
-		
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
@@ -160,16 +197,21 @@
 	"tabBar": {
 		"color": "#9799a5",
 		"selectedColor": "#28B389",
-		"list": [
-			{
+		"list": [{
 				"text": "推荐",
 				"pagePath": "pages/index/index",
 				"iconPath": "static/images/tabBar/home.png",
 				"selectedIconPath": "static/images/tabBar/user-h.png"
-			},{
+			}, {
 				"text": "视频",
 				"pagePath": "pages/video/video",
 				"iconPath": "/static/video/tabar.png"
+			},
+			{
+				"text": "彩友圈",
+				"pagePath": "pages/forum/forum",
+				"iconPath": "static/images/tabBar/forum.png",
+				"selectedIconPath": "static/images/tabBar/forum-active.png"
 			},
 			{
 				"text": "我的",
@@ -177,6 +219,7 @@
 				"iconPath": "static/images/tabBar/user.png",
 				"selectedIconPath": "static/images/tabBar/user-h.png"
 			}
+
 		]
 	}
 }

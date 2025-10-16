@@ -153,3 +153,11 @@ export function apiSearchData(data = {}) {
 		data
 	})
 }
+// 解梦查询接口
+export function apiDreamQuery(data = {}) {
+	return request({
+		url: "/web/dream/query",
+		method: "POST",
+		data
+	})
+}

@@ -56,7 +56,7 @@
 					<image src="/static/电视剧.png" mode="aspectFit"></image>
 					<text>开奖直播</text>
 				</view>
-				<view class="icon-item">
+				<view class="icon-item" @click="goToDreamInterpretation">
 					<image src="/static/月亮 (1) (1).png" mode="aspectFit"></image>
 					<text>解梦</text>
 				</view>
@@ -103,7 +103,7 @@
 					<image src="/static/电视剧 (1).png" mode="aspectFit"></image>
 					<text>开奖直播</text>
 				</view>
-				<view class="icon-item">
+				<view class="icon-item" @click="goToDreamInterpretation">
 					<image src="/static/月亮 (1) (2).png" mode="aspectFit"></image>
 					<text>解梦</text>
 				</view>
@@ -229,6 +229,12 @@
         uni.navigateTo({
           url: '/pages/juWang/drawLine/drawLineRead?tname=排列5' // 可携带参数
         });
+			},
+			// 跳转到解梦页面
+			goToDreamInterpretation(){
+				uni.navigateTo({
+					url: '/pages/dream-interpretation/dream-interpretation'
+				});
 			}
 		},
 		
