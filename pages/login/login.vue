@@ -1,34 +1,39 @@
 <template>
-  <view class="login-container">
-    <text class="login-title">欢迎登录</text>
-    <view class="login-form">
-      <view class="login-form-item">
-        <input type="text" placeholder="请输入手机号" placeholder-class="holder-class" v-model='account'/>
-        <view class="line"></view>
-      </view>
-      <view class="login-form-item">
-        <input type="password" placeholder="请输入密码" placeholder-class="holder-class" v-model='password'/>
-        <view class="line"></view>
-        <text style="float: right; margin-top: 4rpx" @tap="goForgetPwdPage1">忘记密码</text>
-      </view>
-      <view class="login-form-item">
-        <button type="primary" @click="gologin">登 录</button>
-      </view>
-      <view class="login-form-text">
-        <text class="code-login" @tap="goToCodeLogin">验证码登录</text>
-        <text class="h-line"></text>
-        <text class="reg" @tap="goToReg">注册</text>
+  <view class="login-wrapper">
+    <view class="login-container">
+      <text class="login-title">欢迎登录</text>
+      <view class="login-form">
+        <view class="login-form-item">
+          <input type="text" placeholder="请输入手机号" placeholder-class="holder-class" v-model='account'/>
+          <view class="line"></view>
+        </view>
+        <view class="login-form-item">
+          <input type="password" placeholder="请输入密码" placeholder-class="holder-class" v-model='password'/>
+          <view class="line"></view>
+          <text style="float: right; margin-top: 4rpx" @tap="goForgetPwdPage1">忘记密码</text>
+        </view>
+        <view class="login-form-item">
+          <button type="primary" @click="gologin">登 录</button>
+        </view>
+        <view class="login-form-text">
+          <text class="code-login" @tap="goToCodeLogin">验证码登录</text>
+          <text class="h-line"></text>
+          <text class="reg" @tap="goToReg">注册</text>
+        </view>
       </view>
     </view>
+    <oss></oss>
   </view>
-  <oss></oss>
 </template>
 
 <script lang="ts" setup>
 import { ref,reactive,watch } from 'vue'
-import {apilogin} from '@/api/apis.js'
-import { apigetsts } from '@/api/apis.js';
-import { setToken,getToken } from '@/utils/request.js'; // 导入setToken方法
+import {apilogin} from '../../api/apis.js'
+import { apigetsts } from '../../api/apis.js';
+import { setToken,getToken,setAccount,getAccount } from '../../utils/request.js'; // 导入setToken和setAccount方法
+
+// 声明uni类型
+declare const uni: any;
 
 
 //----------------------------------
@@ -49,9 +54,6 @@ watch([type, account, password, code], ([newtype, newaccount, newpassword]) => {
     Userinfo.type = newtype;
     Userinfo.account = newaccount;
     Userinfo.password = newpassword;
-    // Userinfo.code = newcode;
-	console.log(Userinfo);
-	console.log('登录：', {account: account.value, password: password.value});
 }, { immediate: true });
 
 // 点击登录从这里拿到tocken信息
@@ -59,17 +61,33 @@ const gologin=async ()=>{
 	try {
 	    const success = await apilogin(Userinfo);
 	    if (success) {
-	      alert('登录成功');
-	      console.log(success, '11111111111');
 	      // 设置全局token
-	      setToken(success.data.token);
-	      // 调用apigetsts，由于request中已经自动添加token，所以这里不需要传递headers
+	      if (success.data?.token) {
+	        setToken(success.data.token);
+	      } else {
+	        alert('登录失败：未获取到token');
+	        return;
+	      }
+	      
+	      // 设置全局account
+	      if (account.value) {
+	        setAccount(account.value);
+	      } else {
+	        alert('登录失败：账号信息异常');
+	        return;
+	      }
+	      
+	      alert('登录成功');
+	      
+	      // 跳转到用户页面
 		  uni.switchTab({
 			   url: '/pages/user/user',
 		  })
+	    } else {
+	      alert('登录失败');
 	    }
 	  } catch (error) {
-	    alert('登录过程中发生错误');
+	    alert('登录过程中发生错误: ' + (error.message || error));
 	  }
 }
 
@@ -113,6 +131,10 @@ const login = () => {
 }
 </style>
 <style lang="scss" scoped>
+.login-wrapper {
+  height: 100vh;
+}
+
 .login-container {
   padding: 80rpx 70rpx;
   height: 100vh; // 使容器的高度为视口高度

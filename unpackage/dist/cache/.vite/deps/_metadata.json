@@ -1,8 +1,15 @@
 {
-  "hash": "ebc01814",
+  "hash": "34929f1e",
   "configHash": "ee42b066",
-  "lockfileHash": "00a183ec",
-  "browserHash": "990657ce",
-  "optimized": {},
+  "lockfileHash": "a3570ea5",
+  "browserHash": "480fa21a",
+  "optimized": {
+    "qrcode": {
+      "src": "../../../../../node_modules/qrcode/lib/browser.js",
+      "file": "qrcode.js",
+      "fileHash": "5480cca1",
+      "needsInterop": true
+    }
+  },
   "chunks": {}
 }

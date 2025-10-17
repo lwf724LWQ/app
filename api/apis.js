@@ -70,7 +70,6 @@ export function apiGetVideo(data = {}) {
 }
 //点赞接口（用户针对某个视频是否点赞）
 export function apiGetIsLike(data = {}) {
-	console.log(data)
 	return request({
 		url: "/web/video/like_count",
 		method: "POST",
@@ -157,6 +156,42 @@ export function apiSearchData(data = {}) {
 export function apiDreamQuery(data = {}) {
 	return request({
 		url: "/web/dream/query",
+		method: "POST",
+		data
+	})
+}
+
+// 用户充值接口
+export function apiUserRecharge(data = {}) {
+	return request({
+		url: "/web/order/recharge",
+		method: "POST",
+		data
+	})
+}
+
+// 获取用户金币余额查询接口
+export function apiGetUserBalance(data = {}) {
+	return request({
+		url: "/web/user/find_gold",
+		method: "GET",
+		data
+	})
+}
+
+// 订单查询接口
+export function apiOrderQuery(data = {}) {
+	return request({
+		url: "/web/order/query",
+		method: "POST",
+		data
+	})
+}
+
+// 账单查询接口
+export function apiBillQuery(data = {}) {
+	return request({
+		url: "/web/bill/query",
 		method: "POST",
 		data
 	})

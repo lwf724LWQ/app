@@ -78,7 +78,10 @@
 	    </view>
 	  </view>
 	  <view class="data-card" @click="goToRecharge">
-	    <text class="data-number">{{ isBalanceVisible ? '0' : '****' }}</text>
+	    <text class="data-number">
+	      <text v-if="isBalanceVisible">{{ userBalance }}</text>
+	      <text v-else>****</text>
+	    </text>
 	    <text class="data-label">我的金币</text>
 	    <view class="eye-icon" @click="toggleBalanceVisibility">
 	      <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
@@ -94,10 +97,10 @@
 	      <view class="recharge-icon purple">💳</view>
 	      <text class="recharge-text">大师包月</text>
 	    </view>
-	    <!-- <view class="recharge-item">
-	      <view class="recharge-icon blue">💬</view>
-	      <text class="recharge-text">待评价</text>
-	    </view> -->
+	    <view class="recharge-item" @click="goToOrders">
+	      <view class="recharge-icon blue">📋</view>
+	      <text class="recharge-text">我的订单</text>
+	    </view>
 	    <view class="recharge-item" @click="goToTransaction">
 	      <view class="recharge-icon yellow">¥</view>
 	      <text class="recharge-text">消费明细</text>
@@ -151,7 +154,8 @@
 import { ref ,reactive, onMounted} from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import {getNavBarHeight} from "@/utils/system.js"
-import { getToken, removeToken } from "@/utils/request.js";
+import { getToken, removeToken, getAccount } from "@/utils/request.js";
+import { apiGetUserBalance } from "@/api/apis.js";
 
 const memberStore = reactive({
   profile: null
@@ -159,6 +163,33 @@ const memberStore = reactive({
 
 // 金币显示状态
 const isBalanceVisible = ref(false)
+// 用户金币余额
+const userBalance = ref(0)
+
+// 获取用户金币余额
+const getUserBalance = async () => {
+  try {
+    const account = getAccount()
+    
+    if (!account) {
+      userBalance.value = 0
+      return
+    }
+    
+    
+    const response = await apiGetUserBalance({ account })
+    
+    if (response.code === 200) {
+      userBalance.value = response.data || 0
+    } else {
+      console.error('获取余额失败:', response.msg)
+      userBalance.value = 0
+    }
+  } catch (error) {
+    console.error('获取用户余额失败:', error)
+    userBalance.value = 0
+  }
+}
 
 // 检查登录状态
 const checkLoginStatus = () => {
@@ -169,9 +200,12 @@ const checkLoginStatus = () => {
       avatar: '../../static/images/xxmLogo.png', // 默认头像
       nickname: '欢迎您'
     };
+    // 获取用户余额
+    getUserBalance()
   } else {
     // 没有token表示未登录
     memberStore.profile = null;
+    userBalance.value = 0
   }
 }
 
@@ -231,6 +265,10 @@ const menuList = ref([
 
 // 跳转到充值页面
 const goToRecharge = () => {
+  // 先刷新余额，然后跳转
+  if (memberStore.profile) {
+    getUserBalance();
+  }
   uni.navigateTo({ url: '/pages/recharge/recharge' });
 };
 
@@ -239,10 +277,20 @@ const goToTransaction = () => {
   uni.navigateTo({ url: '/pages/transaction/transaction' });
 };
 
+// 跳转到订单页面
+const goToOrders = () => {
+  uni.navigateTo({ url: '/pages/orders/orders' });
+};
+
 // 切换金币显示状态
 const toggleBalanceVisibility = (e) => {
   e.stopPropagation(); // 阻止事件冒泡
   isBalanceVisible.value = !isBalanceVisible.value;
+  
+  // 如果显示余额且已登录，刷新余额数据
+  if (isBalanceVisible.value && memberStore.profile) {
+    getUserBalance();
+  }
 };
 
 // 功能栏点击事件
@@ -286,6 +334,10 @@ onMounted(() => {
 // 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
 onShow(() => {
   checkLoginStatus();
+  // 如果已登录，刷新余额数据
+  if (memberStore.profile) {
+    getUserBalance();
+  }
 });
 </script>
 

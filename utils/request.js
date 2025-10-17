@@ -10,7 +10,8 @@ export function setToken(token) {
 }
 // 获取Token的方法
 export function getToken() {
-    return globalToken || uni.getStorageSync('token');
+    const localToken = uni.getStorageSync('token');
+    return globalToken || localToken;
 }
 // 移除Token的方法
 export function removeToken() {
@@ -33,7 +34,8 @@ export function setAccount(account) {
 }
 // 获取账号的方法
 export function getAccount() {
-    return globalAccount || uni.getStorageSync('account');
+    const localAccount = uni.getStorageSync('account');
+    return globalAccount || localAccount;
 }
 
 export function request(config={}){	
@@ -48,13 +50,9 @@ export function request(config={}){
 	// header['access-key'] = "xxxxxx"
 	//如果有令牌
 	const token = getToken();
-	console.log(token)
-	    if (token) {
-	        // 使用标准Authorization头
-	        header.Authorization = `${token}`;
-	    }
-	
-	console.log('请求参数：',  {url, data, method, header},"-----------------------------------------");
+	if (token) {
+	    header.Authorization = `${token}`;
+	}
 	return new Promise((resolve,reject)=>{		
 		uni.request({
 			url,
@@ -62,15 +60,18 @@ export function request(config={}){
 			method,
 			header,
 			success:res=>{
-				if(res.data.code===200){
-					resolve(res.data)
-				}else{
-					uni.showModal({
-						title:"错误提示",
-						content:res.data.msg,
-						showCancel:false
+				if (res.statusCode === 200) {
+					if(res.data && res.data.code === 200){
+						resolve(res.data)
+					} else {
+						reject(res.data)
+					}
+				} else {
+					reject({
+						code: res.statusCode,
+						msg: `HTTP错误: ${res.statusCode}`,
+						data: res.data
 					})
-					reject(res.data)
 				}
 			},
 			fail:err=>{
