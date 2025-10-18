@@ -22,20 +22,7 @@
             <text class="filter-text">全部账单</text>
             <text class="dropdown-arrow">▼</text>
           </view>
-          <view class="search-bar" @click="focusSearch">
-            <text class="search-icon">🔍</text>
-            <input 
-              v-if="isSearching"
-              v-model="searchKeyword"
-              class="search-input"
-              placeholder="查找交易"
-              @blur="handleSearchBlur"
-              @input="handleSearchInput"
-              :focus="isSearching"
-            />
-            <text v-else class="search-text">查找交易</text>
-            <text v-if="isSearching && searchKeyword" class="clear-icon" @click.stop="clearSearch">×</text>
-          </view>
+      
           <view class="statistics-link" @click="goToStatistics">
             <text class="statistics-text">收支统计</text>
             <text class="chevron">></text>
@@ -49,6 +36,10 @@
             <text class="dropdown-arrow">▼</text>
           </view>
           <view class="summary-amounts" v-if="!isDateRangeSelected">
+            <text class="expense-amount">支出¥{{ monthlyExpense }}</text>
+            <text class="income-amount">收入¥{{ monthlyIncome }}</text>
+          </view>
+          <view class="summary-amounts" v-else-if="startDate && endDate && formatDate(startDate) === formatDate(endDate)">
             <text class="expense-amount">支出¥{{ monthlyExpense }}</text>
             <text class="income-amount">收入¥{{ monthlyIncome }}</text>
           </view>
@@ -83,21 +74,7 @@
           </view>
         </view>
       </view>
-      
-      <!-- 空状态 -->
-      <view class="empty-state" v-if="filteredTransactions.length === 0 && !loading">
-        <text class="empty-icon">{{ searchKeyword ? '🔍' : '📝' }}</text>
-        <text class="empty-text">{{ searchKeyword ? '未找到相关交易' : '暂无交易记录' }}</text>
-        <text class="empty-desc">
-          {{ searchKeyword ? '请尝试其他关键词搜索' : '您还没有任何金币交易记录' }}
-        </text>
-        <view v-if="searchKeyword" class="clear-search-btn" @click="clearSearch">
-          <text class="clear-search-text">清除搜索</text>
-        </view>
-        <view v-if="!searchKeyword" class="retry-btn" @click="getBillData(true)">
-          <text class="retry-text">刷新数据</text>
-        </view>
-      </view>
+     
       
       <!-- 加载更多 -->
       <view class="load-more" v-if="filteredTransactions.length > 0">
@@ -152,34 +129,8 @@
           
           <!-- 交易类型 -->
           <view class="filter-group">
-            <text class="filter-group-title">交易类型</text>
-            <view class="filter-options transaction-types">
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedTransactionType === 'all' }"
-                @click="selectTransactionType('all')"
-              >
-                <text class="option-text">全部</text>
-              </view>
-              
-             
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedTransactionType === 'qrcode' }"
-                @click="selectTransactionType('qrcode')"
-              >
-                <text class="option-text">二维码收付款</text>
-              </view>
-              
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedTransactionType === 'recharge' }"
-                @click="selectTransactionType('recharge')"
-              >
-                <text class="option-text">充值提现</text>
-              </view>
-             
-            </view>
+          
+           
           </view>
         </view>
         
@@ -376,16 +327,29 @@ const filteredTransactions = computed(() => {
   
   // 先按日期范围过滤
   if (startDate.value && endDate.value) {
-    // 日期范围模式
+    // 日期范围模式 - 只比较日期部分，忽略时间
     result = result.filter(item => {
-      const itemDate = new Date(item.createTime)
-      return itemDate.getTime() >= startDate.value.getTime() && 
-             itemDate.getTime() <= endDate.value.getTime()
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      // 解析交易时间，只取日期部分
+      const itemDate = new Date(itemTimeStr)
+      const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
+      
+      // 解析选择日期，只取日期部分
+      const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
+      const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
+      
+      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
+             itemDateOnly.getTime() <= endDateOnly.getTime()
     })
   } else {
     // 月份模式
     result = result.filter(item => {
-      const itemDate = new Date(item.createTime)
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      const itemDate = new Date(itemTimeStr)
       return itemDate.getFullYear() === currentYear.value && 
              itemDate.getMonth() + 1 === currentMonth.value
     })
@@ -473,7 +437,15 @@ const monthList = computed(() => {
 const displayedDateText = computed(() => {
   if (selectionMode.value === 'range' && startDate.value && endDate.value) {
     // 选择了具体日期范围
-    return `${formatDate(startDate.value)} - ${formatDate(endDate.value)}`
+    const startDateStr = formatDate(startDate.value)
+    const endDateStr = formatDate(endDate.value)
+    
+    // 如果是同一天，只显示一个日期
+    if (startDateStr === endDateStr) {
+      return startDateStr
+    } else {
+      return `${startDateStr} - ${endDateStr}`
+    }
   } else if (selectionMode.value === 'range' && startDate.value) {
     // 只选择了开始日期
     return formatDate(startDate.value)
@@ -493,17 +465,30 @@ const monthlyExpense = computed(() => {
   let currentTransactions = []
   
   if (startDate.value && endDate.value) {
-    // 日期范围模式
+    // 日期范围模式（包括单日期选择）- 使用精确的日期比较
     currentTransactions = transactions.value.filter(item => {
-      const itemDate = new Date(item.createTime)
-      return itemDate.getTime() >= startDate.value.getTime() && 
-             itemDate.getTime() <= endDate.value.getTime() &&
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      // 解析交易时间，只取日期部分
+      const itemDate = new Date(itemTimeStr)
+      const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
+      
+      // 解析选择日期，只取日期部分
+      const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
+      const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
+      
+      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
+             itemDateOnly.getTime() <= endDateOnly.getTime() &&
              item.type === 1  // 支出
     })
   } else {
     // 月份模式
     currentTransactions = transactions.value.filter(item => {
-      const itemDate = new Date(item.createTime)
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      const itemDate = new Date(itemTimeStr)
       return itemDate.getFullYear() === currentYear.value && 
              itemDate.getMonth() + 1 === currentMonth.value &&
              item.type === 1  // 支出
@@ -518,17 +503,30 @@ const monthlyIncome = computed(() => {
   let currentTransactions = []
   
   if (startDate.value && endDate.value) {
-    // 日期范围模式
+    // 日期范围模式（包括单日期选择）- 使用精确的日期比较
     currentTransactions = transactions.value.filter(item => {
-      const itemDate = new Date(item.createTime)
-      return itemDate.getTime() >= startDate.value.getTime() && 
-             itemDate.getTime() <= endDate.value.getTime() &&
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      // 解析交易时间，只取日期部分
+      const itemDate = new Date(itemTimeStr)
+      const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
+      
+      // 解析选择日期，只取日期部分
+      const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
+      const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
+      
+      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
+             itemDateOnly.getTime() <= endDateOnly.getTime() &&
              item.type === 0  // 收入
     })
   } else {
     // 月份模式
     currentTransactions = transactions.value.filter(item => {
-      const itemDate = new Date(item.createTime)
+      const itemTimeStr = item.createTime
+      if (!itemTimeStr) return false
+      
+      const itemDate = new Date(itemTimeStr)
       return itemDate.getFullYear() === currentYear.value && 
              itemDate.getMonth() + 1 === currentMonth.value &&
              item.type === 0  // 收入
@@ -672,7 +670,7 @@ const formatDateRange = () => {
   return `${formatDate(startDate.value)} 至 ${formatDate(endDate.value)}`
 }
 
-const confirmSelection = () => {
+const confirmSelection = async () => {
   // 确认选择，更新月份显示
   if (selectionMode.value === 'month') {
     currentYear.value = selectedYear.value
@@ -681,17 +679,24 @@ const confirmSelection = () => {
     startDate.value = null
     endDate.value = null
   } else if (selectionMode.value === 'range') {
-    // 日期范围选择模式，更新为开始日期所在的月份
+    // 日期范围选择模式
+    if (startDate.value && !endDate.value) {
+      // 如果只选择了开始日期，将结束日期设置为同一天（单日期选择）
+      endDate.value = new Date(startDate.value)
+    }
+    
+    // 更新为开始日期所在的月份
     if (startDate.value) {
       currentYear.value = startDate.value.getFullYear()
       currentMonth.value = startDate.value.getMonth() + 1
     }
   }
+  
   closeCalendar()
   
   // 重新获取数据
   currentPage.value = 1
-  getBillData(true)
+  await getBillData(true)
 }
 
 // 月份选择相关方法
@@ -745,9 +750,8 @@ const handleTouchStart = (e) => {
 }
 
 const handleTouchMove = (e) => {
-  if (!isSwipeEnabled.value) return
-  // 阻止默认滚动行为
-  e.preventDefault()
+  // 不处理触摸移动事件，避免性能警告
+  // 滑动检测在 touchend 事件中处理
 }
 
 const handleTouchEnd = (e) => {
@@ -857,6 +861,7 @@ const getBillData = async (isRefresh = false) => {
       limit: pageSize.value.toString()
     }
     
+    // 获取所有数据后在前端过滤，确保数据完整性
     const response = await apiBillQuery(queryParams)
     
     if (response.code === 200) {
