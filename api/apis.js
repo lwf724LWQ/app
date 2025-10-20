@@ -87,6 +87,14 @@ export function apiGetLikelist(account) {
 		data:{account}
 	})
 }
+//上传视频
+export function apiSubmitVideo(data) {
+    return request({
+        url: "/web/video/insert",
+        method: "POST",
+        data: data
+    })
+}
 
 export function apiGetClassList() {
 	return request({

@@ -25,6 +25,10 @@
 			</view>
 		</view>
 	</view>
+	<!-- 发布按钮 -->
+	<view class="publish-btn" @click="gotoOss()">
+	  <uni-icons type="plus" size="20" color="#fff"></uni-icons>
+	</view>
 </template>
 
 <script setup>
@@ -44,6 +48,7 @@
 		setAccount,
 		getAccount
 	} from '@/utils/request.js'; // 导入setToken，账号
+	
 	
 
 	// 响应式数据
@@ -122,6 +127,13 @@
 			});
 		}
 	};
+	
+
+	const gotoOss=()=>{
+	  uni.navigateTo({
+	    url: `/pages/video/oss`
+	  });
+	};
 
 	// 生命周期钩子
 	onMounted(async () => {
@@ -138,14 +150,14 @@
 			if (Videoinfo.data && Videoinfo.data.records && Array.isArray(Videoinfo.data.records)) {
 				videoList.value = Videoinfo.data.records.map(item => ({
 					title: item.title,
-					src: item.url,
-					id: item.id,
+					src: "http://video.caimizm.com/"+item.url,
+					// id: item.id,
 					account: item.account,
 					likeCount:item.likeCount,
 					createTime:item.createTime,
 					flag:item.flag,
 					price:item.price,
-					updateTime:item.updateTime
+					updateTime:item.updateTime,
 				}));
 				console.log('更新后的 videoList:', videoList.value);
 			} else {
@@ -273,5 +285,24 @@
 
 	.like-count {
 		font-size: 14px;
+	}
+	/* 发布按钮 */
+	.publish-btn {
+	  position: fixed;
+	  right: 30rpx;
+	  bottom: 120rpx;
+	  width: 100rpx;
+	  height: 100rpx;
+	  background-color: #28B389;
+	  border-radius: 50%;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  box-shadow: 0 4rpx 20rpx rgba(40, 179, 137, 0.3);
+	  z-index: 999;
+	}
+	
+	.publish-btn:active {
+	  transform: scale(0.95);
 	}
 </style>

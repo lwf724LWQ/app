@@ -1,3 +1,5 @@
+import "./chunk-TDUMLE5V.js";
+
 // C:/Users/Administrator/Desktop/my-painting-rules-project/node_modules/html2canvas/dist/html2canvas.esm.js
 var extendStatics = function(d, b) {
   extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {

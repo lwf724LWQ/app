@@ -83,7 +83,7 @@
 			}
 		},
 		{
-			"path": "pages/user/oss",
+			"path": "pages/video/oss",
 			"style": {
 				"navigationBarTitleText": "上传视频",
 				"enablePullDownRefresh": false,

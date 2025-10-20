@@ -14,12 +14,13 @@ let fileName ='uploads'+ uuid +'.'+suffix;
 //执行上传操作
 return await client.multipartUpload(fileName,file,{
 	progress:function( percentage ,checkpoint ){
-		console.log( percentage ,checkpoint )
-}
-//checkpoint:''
+		console.log(percentage ,checkpoint,fileName )
+},
+fileName:fileName
 });
 }
 },
 }
+
 export default tool;
 		
