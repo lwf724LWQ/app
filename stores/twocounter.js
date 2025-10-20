@@ -1,19 +1,28 @@
+// stores/twocounter.js
 import { ref } from 'vue';
 import { apiTicketQuery } from "@/api/apis.js"
 import { defineStore } from 'pinia';
 
 export const usetwoCounterStore = defineStore('twocounter', () => {
     const List = ref([]);
-    const queryParams = {
+    const queryParams = ref({
         page: 1,
-        limit: 107,
+        limit: 20,
         tname: '排列5'
-    }
+    });
+    const isLoading = ref(false);
+    const hasMore = ref(true);
+    const error = ref(null);
 
     // 请求数据并转换成drawLine需要的数组形式
-    const getCounterInfo = async () => {
+    const getCounterInfo = async (isLoadMore = false) => {
+        if (isLoading.value) return;
+        
+        isLoading.value = true;
+        error.value = null;
+        
         try {
-            const res = await apiTicketQuery(queryParams);
+            const res = await apiTicketQuery(queryParams.value);
             console.log("原始数据:", res.data.records);
             
             // 转换数据
@@ -25,10 +34,28 @@ export const usetwoCounterStore = defineStore('twocounter', () => {
             // 在末尾添加4行空数据
             addEmptyRows(convertedData);
             
-            List.value = convertedData;
+            if (isLoadMore) {
+                // 加载更多 - 追加数据
+                List.value = [...List.value, ...convertedData];
+            } else {
+                // 刷新 - 替换数据
+                List.value = convertedData;
+            }
+            
+            // 检查是否还有更多数据
+            hasMore.value = res.data.records.length >= queryParams.value.limit;
+            
+            // 增加页码，为下次加载做准备
+            if (hasMore.value) {
+                queryParams.value.page++;
+            }
+            
             console.log("转换后数据（包含4行空数据）:", List.value);
-        } catch (error) {
-            console.error("获取数据失败:", error);
+        } catch (err) {
+            error.value = err;
+            console.error("获取数据失败:", err);
+        } finally {
+            isLoading.value = false;
         }
     }
 
@@ -65,9 +92,29 @@ export const usetwoCounterStore = defineStore('twocounter', () => {
         }
     }
 
+    // 加载更多数据
+    const loadMoreData = async () => {
+        if (!hasMore.value || isLoading.value) return;
+        await getCounterInfo(true);
+    }
+
+    // 重置状态
+    const reset = () => {
+        List.value = [];
+        queryParams.value.page = 1;
+        hasMore.value = true;
+        isLoading.value = false;
+        error.value = null;
+    }
+
     // 以对象的形式返回
     return {
         List,
-        getCounterInfo
+        isLoading,
+        hasMore,
+        error,
+        getCounterInfo,
+        loadMoreData,
+        reset
     }
 });

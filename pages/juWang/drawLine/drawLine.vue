@@ -1,11 +1,8 @@
 <template>
 	<view class="container">
 		<!-- 自定义导航栏 -->
-  <custom-juwang-nav-bar title="drawLine"
-                           :onSubmit="handleSubmit"
-                           @child-event="handleChildEvent"
-                           @share-event="handleShareEvent"
-    ></custom-juwang-nav-bar>
+		<custom-juwang-nav-bar title="drawLine" :onSubmit="handleSubmit" @child-event="handleChildEvent"
+			@share-event="handleShareEvent"></custom-juwang-nav-bar>
 		<!-- <draw-select ref="child" @message-from-child="handleMessage"></draw-select> -->
 		<!-- 修改线条颜色,粗细的 -->
 		<select-color @select-color="handleColorMessage" @select-line-width="handleLineMessage"></select-color>
@@ -47,6 +44,8 @@
 							<view class="number-item" :class="{ highlighted: isHighlighted(groupIndex, numIndex) }"
 								:data-group-index="groupIndex" :data-num-index="numIndex" ref="numberRefs">
 								{{ num }}
+								<!-- 添加内容容器 -->
+								<div class="grid-content"></div>
 							</view>
 						</td>
 					</tr>
@@ -152,7 +151,8 @@
 <script setup>
 	import {
 		onLoad,
-		onUnload
+		onUnload,
+		onReachBottom
 	} from "@dcloudio/uni-app"
 	import {
 		ref,
@@ -175,6 +175,23 @@
 		useCounterStore
 	} from "@/stores/counter.js";
 	import NumberSelector from '../../../components/NumberSelector/NumberSelector.vue';
+	// 创建本地的 onCanvasEnd 处理函数
+	const onCanvasEnd = (event) => {
+		// 首先调用从 useDrawing 导入的函数
+		drawingOnCanvasEnd(event);
+
+		// 然后添加您的自定义逻辑
+		const endPoint = currentShape.value.end;
+		const numberPos = checkPointOnNumber(endPoint);
+		// console.log(numberPos)
+		if (1) {
+			// const { groupIndex, numIndex } = numberPos;
+			// 应用样式到对应格子
+			applyStyleToGrid(20, 1);
+			console.log("111111111122222222222222")
+		}
+	};
+
 
 	//下面是关于组件数字选择器的处理
 	// 添加状态控制
@@ -186,6 +203,8 @@
 	const counterStore = useCounterStore();
 	console.log(counterStore)
 	const classifyList = ref([]);
+	//存储预览样式信息的
+	const gridStyles = ref({});
 	// 打开数字选择器
 	const openNumberSelector = (groupIndex, numIndex) => {
 		selectedGroupIndex.value = groupIndex;
@@ -203,14 +222,146 @@
 	const handleConfirmSelection = (data) => {
 		console.log('确认选择:', data);
 		console.log('格子位置:', selectedGroupIndex.value, selectedNumIndex.value);
+		const key = `${data.groupIndex}-${data.numIndex}`;
+		gridStyles.value[key] = {
+			previewType: data.previewType,
+			content: {
+				selectedCondition: data.selectedCondition,
+				selectedNumbers: data.selectedNumbers,
+				selecteddoubNumber: data.selecteddoubNumber
+			}
+		};
+		console.log(gridStyles.value) //20-2  + 内容
 		closeNumberSelector();
+		// 应用样式到对应格子
+		applyStyleToGrid(data.groupIndex, data.numIndex);
 		// 这里可以处理选择的数据
 	};
+	// 应用样式到格子
+	const applyStyleToGrid = (groupIndex, numIndex) => {
+		const key = `${groupIndex}-${numIndex}`;
+		const styleData = gridStyles.value[key];
+		if (!styleData) return;
+		// 找到对应的格子元素
+		const gridElement = document.querySelector(
+			`[data-group-index="${groupIndex}"][data-num-index="${numIndex}"]`
+		);
+		if (!gridElement) return;
+		// 清除之前的样式
+		gridElement.classList.remove('solid', 'hollow');
+
+		// 应用新样式
+		if (styleData.previewType === 'solid') {
+			gridElement.classList.add('solid');
+		} else {
+			gridElement.classList.add('hollow');
+		}
+		// 更新内容
+		const contentElement = gridElement.querySelector('.grid-content');
+		console.log(styleData.content.selectedCondition);
+		if (contentElement) {
+			contentElement.innerHTML = '';
+
+			if (styleData.content.selectedCondition) {
+				const conditionElement = document.createElement('div');
+				conditionElement.textContent = styleData.content.selectedCondition;
+				contentElement.appendChild(conditionElement);
+			}
+
+			if (styleData.content.selectedNumbers && styleData.content.selectedNumbers.length > 0) {
+				const numbersElement = document.createElement('div');
+				numbersElement.textContent = styleData.content.selectedNumbers.join(' ');
+				contentElement.appendChild(numbersElement);
+			}
+
+			if (styleData.content.selecteddoubNumber) {
+				const doubNumberElement = document.createElement('div');
+				doubNumberElement.textContent = styleData.content.selecteddoubNumber;
+				contentElement.appendChild(doubNumberElement);
+			}
+		}
+	};
+
 	//------------------------------------------------------
+
+	// 加载状态管理
+	const isLoading = ref(false);
+	const hasMore = ref(true);
+	const loadError = ref(null);
 	// 获取异步请求的画布真实数据
 	//先拿到store实例对象
 	const twocounterStore = usetwoCounterStore()
-	console.log(twocounterStore.List)
+	// console.log(twocounterStore.List)
+	// onReachBottom(async () => {
+
+	// 	// 防止重复加载
+	// 	if (isLoading.value || !hasMore.value) {
+	// 		console.log("正在加载或没有更多数据，跳过");
+	// 		return;
+	// 	}
+
+	// 	try {
+	// 		// 设置加载状态
+	// 		isLoading.value = true;
+	// 		loadError.value = null;
+
+	// 		// 显示加载提示
+	// 		uni.showLoading({
+	// 			title: '加载更多数据...',
+	// 			mask: false
+	// 		});
+
+	// 		// 调用 store 的加载更多方法
+	// 		await twocounterStore.loadMoreData();
+
+	// 		// 更新状态
+	// 		hasMore.value = twocounterStore.hasMore;
+
+	// 		console.log("加载更多完成，当前数据量:", twocounterStore.List.length);
+
+	// 		// 显示成功提示（可选）
+	// 		if (hasMore.value) {
+	// 			uni.showToast({
+	// 				title: `已加载 ${twocounterStore.List.length} 条数据`,
+	// 				icon: 'none',
+	// 				duration: 1500
+	// 			});
+	// 		}
+
+	// 	} catch (error) {
+	// 		console.error('加载更多失败:', error);
+	// 		loadError.value = error;
+	// 		uni.showToast({
+	// 			title: '加载失败，请重试',
+	// 			icon: 'none'
+	// 		});
+	// 	} finally {
+	// 		isLoading.value = false;
+	// 		uni.hideLoading();
+	// 	}
+	// });
+	// // 添加重试方法
+	// const retryLoadMore = () => {
+	// 	if (loadError.value) {
+	// 		loadError.value = null;
+	// 		onReachBottom(); // 重新触发加载
+	// 	}
+	// };
+
+	// // 监听 store 状态变化
+	// watch(() => twocounterStore.isLoading, (loading) => {
+	// 	isLoading.value = loading;
+	// });
+
+	// watch(() => twocounterStore.hasMore, (more) => {
+	// 	hasMore.value = more;
+	// });
+
+	// watch(() => twocounterStore.error, (error) => {
+	// 	if (error) {
+	// 		loadError.value = error;
+	// 	}
+	// });
 
 
 
@@ -335,11 +486,13 @@
 		eraserSize,
 		onCanvasStart,
 		onCanvasMove,
-		onCanvasEnd,
+		onCanvasEnd: drawingOnCanvasEnd, // 重命名以避免冲突
 		redraw,
 		initCanvas,
-		selectedColor
+		selectedColor,
+		checkPointOnNumber
 	} = useDrawing(numberGroups, highlighted, numberRefs, openNumberSelector);
+
 	nextTick()
 	const {
 		textLabels,
@@ -751,5 +904,29 @@
 	.fab-open .fab-item {
 		opacity: 1;
 		transform: translateY(0) scale(1);
+	}
+
+	/* drawLine.vue 中的样式 */
+	.number-item.solid {
+		width: 100%;
+		border-radius: 0px;
+		background-color: #ff4d4f;
+		color: white;
+	}
+
+	.number-item.hollow {
+		border: 2px solid #ff4d4f;
+		background-color: transparent;
+	}
+
+	.grid-content {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-size: 12px;
+		text-align: center;
+		z-index: 20;
+		width: 100%;
 	}
 </style>

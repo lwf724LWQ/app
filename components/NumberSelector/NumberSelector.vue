@@ -33,7 +33,7 @@
 				</div>
 			</div>
 
-			<div class="section">
+			<div class="section" v-if="props.numIndex==0?false:true">
 				<div class="section-title">选择对数</div>
 				<div class="conditions-grid">
 					<div v-for="doubnumber in doubnumbers" :key="doubnumber" class="condition-btn"
@@ -46,14 +46,13 @@
 
 
 			<!-- 效果预览区域 -->
-			<div class="section preview-section">
+			<div class="section preview-section" v-if="props.numIndex !== 5 && props.numIndex !== 0">
 				<div class="section-title">效果预览</div>
 				<div class="preview-options">
 					<div class="preview-option" @click="previewType = 'solid'">
 						<div class="option-checkbox" :class="{selected: previewType === 'solid'}"></div>
 						<span>实心</span>
 					</div>
-	
 				</div>
 
 				<div class="digits-container">
@@ -144,7 +143,20 @@
 	
 	const mode = ref('advanced')
 	// 数字选择
-	const numbers = ref([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	const numbers = computed(() => {
+  if (props.numIndex == 0) {
+    // 生成00-36的数字数组
+    const numbers = [];
+    for (let i = 0; i <= 36; i++) {
+      // 将数字格式化为两位数
+      numbers.push(i.toString().padStart(2, '0'));
+    }
+    return numbers;
+  } else {
+    // 默认0-9
+    return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  }
+});
 	//选中数字数组
 	const selectedNumbers = ref([])
 	//为了省略掉数组中的【】而设计转换
@@ -177,6 +189,10 @@
 	{
 		conditions.value = ['单', '双', '大', '小', 'X']
 	}
+	if(props.numIndex === 0)
+	{
+		conditions.value = ['单', '双', '大', '小']
+	}
 	
 	
 	// 选中的条件数组
@@ -196,16 +212,16 @@
 		// 处理特殊条件
 		if (condition === '单') {
 			// 选中所有奇数: 1,3,5,7,9
-			selectedNumbers.value = [1, 3, 5, 7, 9]
+			selectedNumbers.value = ['1', '3', '5', '7', '9']
 		} else if (condition === '双') {
 			// 选中所有偶数: 0,2,4,6,8
-			selectedNumbers.value = [0, 2, 4, 6, 8]
+			selectedNumbers.value = ['0', '2', '4', '6', '8']
 		} else if (condition === '大') {
 			// 选中大数: 5,6,7,8,9
-			selectedNumbers.value = [5, 6, 7, 8, 9]
+			selectedNumbers.value = ['5', '6', '7', '8', '9']
 		} else if (condition === '小') {
 			// 选中小数: 0,1,2,3,4
-			selectedNumbers.value = [0, 1, 2, 3, 4]
+			selectedNumbers.value = ['0', '1', '2', '3', '4']
 		} else if (condition === 'X') {
 			selectedNumbers.value = []
 		}
@@ -266,7 +282,8 @@
 		    selectedCondition: selectedCondition.value,
 		    selecteddoubNumber: selecteddoubNumber.value,
 		    groupIndex: props.groupIndex, // 添加格子信息
-		    numIndex: props.numIndex
+		    numIndex: props.numIndex,
+			previewType: previewType.value
 		};
 		emit('confirm', selectionData);
 	}

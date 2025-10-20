@@ -792,33 +792,40 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 				groupIndex,
 				numIndex
 			} = numberPos;
+			console.log(groupIndex,numIndex)
 			// 如果是智能模式，并且终点在46-49行，1-4列
-			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 1) {
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 0) {
+				if (showNumberSelectorCallback) {
+					showNumberSelectorCallback(groupIndex, numIndex);
+				}
+			}
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 1) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 2) {
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 2) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 3) {
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 3) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 4) {
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 4) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
-			if (currentMode.value === 'smart' && groupIndex >= 106 && groupIndex <= 110 && numIndex == 5) {
+			if (currentMode.value === 'smart' && groupIndex >= 20 && groupIndex <= 23 && numIndex == 5) {
 				if (showNumberSelectorCallback) {
 					showNumberSelectorCallback(groupIndex, numIndex);
 				}
 			}
+			
 		}
 
 
