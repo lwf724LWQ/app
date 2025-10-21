@@ -2,6 +2,11 @@ import {
 	getAccount,
 	request
 } from "@/utils/request.js"
+import {
+  setToken,
+  getToken, 
+  setAccount, 
+} from '@/utils/request.js';
 
 
 export function apiGetDayRandom() {
@@ -94,6 +99,18 @@ export function apiSubmitVideo(data) {
         method: "POST",
         data: data
     })
+}
+
+// 视频付费情况查询 
+export function apiCheckVideoPayment(data = {}) {
+  return request({
+    url: "/web/video/find_pay",
+    method: "GET",
+    data,
+    headers: {
+      'Authorization': getToken()
+    }
+  })
 }
 
 export function apiGetClassList() {
