@@ -52,7 +52,8 @@
       
       <!-- 期号信息 -->
       <view class="period-info">
-        <text class="period-text">第25269期</text>
+        <text class="period-text">{{ lotteryType ? lotteryType.name : '彩票类型' }} 第{{ getIssueNumber() }}期</text>
+        <text class="period-status">{{ issueInfo.status }}</text>
       </view>
     </view>
     
@@ -69,14 +70,26 @@
         <button class="publish-btn" @click="publishScheme">发布</button>
       </view>
     </view>
+    
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { getAccount } from '@/utils/request.js'
+import { apiPost, apiGetIssueNo } from '@/api/apis.js'
 
 // 方案数据
 const schemes = ref([])
+
+// 彩票类型和期号信息
+const lotteryType = ref(null)
+const issueInfo = ref({
+  id: null,
+  number: null,
+  status: '待开奖',
+  time: '今天 21:30'
+})
 
 // 格式化方案数据显示（保留原函数以兼容）
 const formatSchemeData = (scheme) => {
@@ -224,23 +237,143 @@ const modifyScheme = () => {
 }
 
 // 发布方案
-const publishScheme = () => {
+const publishScheme = async () => {
   uni.showModal({
     title: '确认发布',
     content: '确定要发布这些方案吗？发布后将无法修改或删除。',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        uni.showToast({
-          title: '发布成功',
-          icon: 'success'
-        })
-        // 这里可以添加实际的发布逻辑
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1500)
+        await handlePublish()
       }
     }
   })
+}
+
+// 处理发布逻辑
+const handlePublish = async () => {
+  try {
+    uni.showLoading({
+      title: '发布中...'
+    })
+    
+    // 准备发帖数据
+    const postData = {
+      tname: lotteryType.value ? lotteryType.value.name : '预测方案', // 彩票名称
+      issueno: getIssueNumber(), // 期号 - 使用统一的期号获取函数
+      content: generatePostContent(), // 发帖内容
+      account: getAccount() || '', // 账号
+      pimg: '', // 帖子图片（暂时为空）
+      flag: true // 无需审核
+    }
+    
+    console.log('发帖数据:', postData)
+    
+    const response = await apiPost(postData)
+    
+    uni.hideLoading()
+    
+    if (response.code === 200) {
+      uni.showToast({
+        title: '发布成功',
+        icon: 'success'
+      })
+      
+      // 清除本地存储的方案数据
+      uni.removeStorageSync('predict_schemes_data')
+      
+      // 延迟返回论坛页面
+      setTimeout(() => {
+        uni.reLaunch({
+          url: '/pages/forum/forum'
+        })
+      }, 1500)
+    } else {
+      uni.showToast({
+        title: response.msg || '发布失败',
+        icon: 'none'
+      })
+    }
+    
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({
+      title: '发布失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 获取期号显示
+const getIssueNumber = () => {
+  return issueInfo.value.number || issueInfo.value.id || '--'
+}
+
+
+// 加载期号信息
+const loadIssueInfo = async () => {
+  try {
+    if (!lotteryType.value || !lotteryType.value.id) {
+      return
+    }
+    
+    uni.showLoading({ title: '加载期号中...' })
+    
+    const response = await apiGetIssueNo({ cpid: lotteryType.value.id })
+    
+    uni.hideLoading()
+    
+    if (response.code === 200 && response.data !== null && response.data !== undefined) {
+      let issueNumber = null
+      let issueStatus = '待开奖'
+      let issueTime = '今天 21:30'
+      
+      if (typeof response.data === 'number' || typeof response.data === 'string') {
+        issueNumber = response.data.toString()
+      } else if (typeof response.data === 'object') {
+        issueNumber = response.data.issueno || response.data.number || response.data.id
+        issueStatus = response.data.status || '待开奖'
+        issueTime = response.data.time || '今天 21:30'
+      }
+      
+      issueInfo.value = {
+        id: issueNumber,
+        number: issueNumber,
+        status: issueStatus,
+        time: issueTime
+      }
+      
+      uni.showToast({ title: `期号加载成功: ${issueNumber}`, icon: 'success' })
+    } else {
+      uni.showToast({ title: '期号数据为空', icon: 'none' })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({ title: '期号加载异常', icon: 'none' })
+  }
+}
+
+// 生成发帖内容
+const generatePostContent = () => {
+  if (schemes.value.length === 0) {
+    return '暂无方案数据'
+  }
+  
+  let content = '【预测方案】\n\n'
+  
+  schemes.value.forEach((scheme, index) => {
+    content += `${index + 1}. ${scheme.name} (${scheme.id})\n`
+    
+    const displayData = getSchemeDisplayData(scheme)
+    displayData.forEach(info => {
+      content += `   ${info}\n`
+    })
+    content += '\n'
+  })
+  
+      content += `期号: 第${getIssueNumber()}期\n`
+  content += `发布时间: ${new Date().toLocaleString()}`
+  
+  return content
 }
 
 // 返回
@@ -256,7 +389,6 @@ const goBack = () => {
         // 清除本地存储的方案数据
         try {
           uni.removeStorageSync('predict_schemes_data')
-          console.log('已清除本地存储的方案数据')
         } catch (error) {
           console.error('清除本地存储失败:', error)
         }
@@ -278,14 +410,35 @@ onMounted(() => {
   const currentPage = pages[pages.length - 1]
   const options = currentPage.options
   
-  if (options.schemes) {
+  if (options.data) {
+    try {
+      const publishData = JSON.parse(decodeURIComponent(options.data))
+      
+      schemes.value = publishData.schemes || []
+      lotteryType.value = publishData.lotteryType || null
+      issueInfo.value = publishData.issueInfo || {
+        id: null,
+        number: null,
+        status: '待开奖',
+        time: '今天 21:30'
+      }
+      
+      // 如果期号信息为空或无效，主动获取期号
+      if (!issueInfo.value.number && !issueInfo.value.id) {
+        loadIssueInfo()
+      }
+    } catch (error) {
+      uni.showToast({
+        title: '数据解析失败',
+        icon: 'none'
+      })
+    }
+  } else if (options.schemes) {
+    // 兼容旧的URL参数格式
     try {
       const decodedSchemes = decodeURIComponent(options.schemes)
       schemes.value = JSON.parse(decodedSchemes)
-      
-      // 数据加载完成
     } catch (error) {
-      console.error('解析方案数据失败:', error)
       uni.showToast({
         title: '数据解析失败',
         icon: 'none'
@@ -450,6 +603,12 @@ onMounted(() => {
 .period-text {
   font-size: 24rpx;
   color: #999;
+  margin-bottom: 8rpx;
+}
+
+.period-status {
+  font-size: 22rpx;
+  color: #ff4757;
 }
 
 /* 底部区域 */
@@ -498,5 +657,6 @@ onMounted(() => {
   background-color: #ff4757;
   color: #fff;
 }
+
 </style>
 

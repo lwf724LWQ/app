@@ -83,6 +83,15 @@
 			}
 		},
 		{
+			"path": "pages/user/edit-profile",
+			"style": {
+				"navigationBarTitleText": "编辑资料",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+
+		{
 			"path": "pages/video/oss",
 			"style": {
 				"navigationBarTitleText": "上传视频",

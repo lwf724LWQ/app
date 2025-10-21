@@ -171,6 +171,9 @@ const login = async () => {
     uni.hideLoading()
     
     if (success) {
+      // 打印登录返回的完整数据，用于调试
+      console.log('验证码登录API返回的完整数据:', success);
+      
       // 设置全局token
       if (success.data?.token) {
         setToken(success.data.token)
@@ -179,6 +182,61 @@ const login = async () => {
       // 设置全局account
       if (phone.value) {
         setAccount(phone.value)
+      }
+      
+      // 直接使用登录返回的用户信息
+      try {
+        // 从登录返回的数据中提取用户信息
+        const loginData = success.data || {};
+        
+        // 处理头像URL - 如果是相对路径，拼接完整URL
+        let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
+        if (loginData.himg) {
+          if (loginData.himg.startsWith('http')) {
+            // 已经是完整URL
+            avatarUrl = loginData.himg;
+          } else {
+            // 相对路径，拼接完整URL
+            avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
+          }
+        }
+        
+        // 保存用户信息到本地存储
+        const userInfo = {
+          nickname: loginData.uname || '用户',
+          avatar: avatarUrl,
+          phone: phone.value
+        };
+        
+        // 保存到本地存储，供用户页面使用
+        uni.setStorageSync('userInfo', userInfo);
+        uni.setStorageSync('loginData', {
+          uname: loginData.uname,
+          himg: loginData.himg,
+          account: phone.value
+        });
+        
+        console.log('验证码登录成功，用户信息已保存:', userInfo);
+        console.log('登录数据已保存:', {
+          uname: loginData.uname,
+          himg: loginData.himg,
+          account: phone.value
+        });
+        
+      } catch (error) {
+        console.error('保存用户信息失败:', error);
+        // 使用默认用户信息
+        const defaultUserInfo = {
+          nickname: '用户',
+          avatar: 'http://video.caimizm.com/himg/user.png',
+          phone: phone.value
+        };
+        uni.setStorageSync('userInfo', defaultUserInfo);
+        uni.setStorageSync('loginData', {
+          uname: '用户',
+          himg: 'http://video.caimizm.com/himg/user.png',
+          account: phone.value
+        });
       }
       
       uni.showToast({ title: '登录成功', icon: 'success' })

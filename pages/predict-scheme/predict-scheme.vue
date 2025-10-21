@@ -295,6 +295,11 @@
       <text class="btn-step">{{ publishButtonText }}</text>
     </view>
     
+    <!-- 测试期号按钮 -->
+    <view class="test-issue-btn" @click="testIssueAPI">
+      <uni-icons type="gear" size="16" color="#fff"></uni-icons>
+    </view>
+    
     <!-- 保存提示弹窗 -->
     <view v-if="showSaveDialog" class="save-dialog-mask" @click="dontSaveScheme">
       <view class="save-dialog" @click.stop>
@@ -355,9 +360,29 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { apiGetIssueNo } from '@/api/apis.js'
 
 // 当前选中的方案
 const activeScheme = ref('AXCX')
+
+// 彩票类型和期号相关
+const lotteryTypes = ref([
+  { id: 16, name: '排列三', code: 'pl3', status: '待开奖', time: '今天 21:30' },
+  { id: 17, name: '排列五', code: 'pl5', status: '待开奖', time: '今天 21:30' },
+  { id: 15, name: '七星彩', code: 'qxc', status: '待开奖', time: '今天 21:30' },
+  { id: 12, name: '福彩3D', code: 'fc3d', status: '待开奖', time: '今天 21:30' }
+])
+
+// 当前选中的彩票类型
+const currentLotteryType = ref(lotteryTypes.value[0])
+
+// 当前期号信息
+const currentIssueInfo = ref({
+  id: null,
+  number: null,
+  status: '待开奖',
+  time: '今天 21:30'
+})
 
 // 选中的数字
 const selectedThousands = ref([])
@@ -1216,9 +1241,21 @@ const goToPublish = () => {
     return
   }
   
-  // 跳转到发布页面，传递已添加的方案数据
+  // 准备传递的数据
+  const publishData = {
+    schemes: addedSchemes.value,
+    lotteryType: currentLotteryType.value,
+    issueInfo: currentIssueInfo.value
+  }
+  
+  // 跳转到发布页面，传递已添加的方案数据和期号信息
+  console.log('=== 方案页面传递到发布页面的数据 ===')
+  console.log('publishData:', publishData)
+  console.log('期号信息:', publishData.issueInfo)
+  console.log('彩票类型:', publishData.lotteryType)
+  
   uni.navigateTo({
-    url: `/pages/predict-publish/predict-publish?schemes=${encodeURIComponent(JSON.stringify(addedSchemes.value))}`
+    url: `/pages/predict-publish/predict-publish?data=${encodeURIComponent(JSON.stringify(publishData))}`
   })
 }
 
@@ -1241,11 +1278,178 @@ const handleModifySchemes = (schemesToModify) => {
   }
 }
 
+// 从论坛页面获取当前选中的彩票类型
+const loadCurrentLotteryType = () => {
+  try {
+    // 从本地存储获取论坛页面选中的彩票类型
+    const forumLotteryType = uni.getStorageSync('currentLotteryType')
+    if (forumLotteryType) {
+      currentLotteryType.value = forumLotteryType
+      console.log('已加载论坛选中的彩票类型:', currentLotteryType.value.name)
+    } else {
+      console.log('未找到论坛选中的彩票类型，使用默认值')
+    }
+    
+    // 从本地存储获取期号信息
+    const savedIssueInfo = uni.getStorageSync('currentIssueInfo')
+    if (savedIssueInfo) {
+      currentIssueInfo.value = savedIssueInfo
+      console.log('已加载保存的期号信息:', currentIssueInfo.value)
+    } else {
+      console.log('未找到保存的期号信息')
+    }
+  } catch (error) {
+    console.error('加载彩票类型失败:', error)
+  }
+}
+
+// 加载期号信息
+const loadIssueInfo = async () => {
+  try {
+    console.log('加载期号信息:', currentLotteryType.value.code)
+    
+    // 如果本地存储已有期号信息且期号不为空，直接使用
+    if (currentIssueInfo.value.number && currentIssueInfo.value.number !== '--') {
+      console.log('使用本地存储的期号信息:', currentIssueInfo.value)
+      return
+    }
+    
+    uni.showLoading({
+      title: '加载中...'
+    })
+    
+    // 调用查询彩票期号接口
+    const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
+    
+    uni.hideLoading()
+    
+    if (response.code === 200) {
+      console.log('=== 方案页面期号API响应 ===')
+      console.log('完整响应:', response)
+      console.log('响应数据:', response.data)
+      console.log('数据字段:', response.data ? Object.keys(response.data) : '无数据')
+      
+      // 更新期号信息
+      if (response.data !== null && response.data !== undefined) {
+        console.log('期号数据类型:', typeof response.data)
+        
+        // 处理不同的数据结构
+        let issueNumber = null
+        let issueStatus = '待开奖'
+        let issueTime = '今天 21:30'
+        
+        if (typeof response.data === 'number' || typeof response.data === 'string') {
+          // data直接是期号值
+          issueNumber = response.data.toString()
+          console.log('期号值:', issueNumber)
+        } else if (typeof response.data === 'object') {
+          // data是对象，包含多个字段
+          issueNumber = response.data.issueno || response.data.number || response.data.id
+          issueStatus = response.data.status || '待开奖'
+          issueTime = response.data.time || '今天 21:30'
+        }
+        
+        currentIssueInfo.value = {
+          id: issueNumber,
+          number: issueNumber,
+          status: issueStatus,
+          time: issueTime
+        }
+        
+        // 更新彩票类型状态
+        currentLotteryType.value.status = currentIssueInfo.value.status
+        currentLotteryType.value.time = currentIssueInfo.value.time
+        
+        console.log('方案页面更新后的期号信息:', currentIssueInfo.value)
+        console.log('期号字段值:', {
+          issueno: response.data.issueno,
+          number: response.data.number,
+          id: response.data.id
+        })
+      }
+      
+      console.log('期号信息已更新:', currentIssueInfo.value)
+    } else {
+      console.error('加载期号失败:', response.msg)
+    }
+  } catch (error) {
+    uni.hideLoading()
+    console.error('加载期号信息失败:', error)
+  }
+}
+
+// 测试期号API
+const testIssueAPI = async () => {
+  try {
+    console.log('=== 方案页面测试期号API ===')
+    console.log('当前彩票类型:', currentLotteryType.value)
+    console.log('当前期号信息:', currentIssueInfo.value)
+    
+    uni.showLoading({ title: '测试中...' })
+    
+    const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
+    
+    uni.hideLoading()
+    
+    console.log('=== 方案页面期号API测试结果 ===')
+    console.log('请求参数:', { cpid: currentLotteryType.value.id })
+    console.log('响应状态码:', response.code)
+    console.log('响应消息:', response.msg)
+    console.log('完整响应:', response)
+    
+    if (response.code === 200) {
+      console.log('✅ 期号API调用成功')
+      console.log('响应数据结构:', {
+        hasData: !!response.data,
+        dataType: typeof response.data,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      })
+      
+      if (response.data) {
+        console.log('期号数据详情:', response.data)
+        console.log('期号字段值:', {
+          issueno: response.data.issueno,
+          number: response.data.number,
+          id: response.data.id,
+          status: response.data.status,
+          time: response.data.time
+        })
+        
+        // 更新期号信息
+        currentIssueInfo.value = {
+          id: response.data.id || null,
+          number: response.data.issueno || response.data.number || null,
+          status: response.data.status || '待开奖',
+          time: response.data.time || '今天 21:30'
+        }
+        
+        console.log('更新后的期号信息:', currentIssueInfo.value)
+        
+        uni.showToast({ title: '期号API测试成功', icon: 'success' })
+      } else {
+        console.log('⚠️ 响应中没有data字段')
+        uni.showToast({ title: '响应无数据', icon: 'none' })
+      }
+    } else {
+      console.log('❌ 期号API调用失败:', response.msg)
+      uni.showToast({ title: `测试失败: ${response.msg}`, icon: 'none' })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    console.error('❌ 期号API测试异常:', error)
+    uni.showToast({ title: '测试异常', icon: 'none' })
+  }
+}
+
 // 页面加载时监听修改事件
 onMounted(() => {
   uni.$on('modifySchemes', handleModifySchemes)
   // 加载已保存的方案数据
   loadSavedSchemes()
+  // 从论坛页面获取当前选中的彩票类型
+  loadCurrentLotteryType()
+  // 加载期号信息
+  loadIssueInfo()
 })
 
 // 页面卸载时移除监听器
@@ -1623,6 +1827,26 @@ const clearStoredSchemes = () => {
   font-size: 20rpx;
   color: #fff;
   margin-top: 5rpx;
+}
+
+/* 测试期号按钮 */
+.test-issue-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 180rpx;
+  width: 80rpx;
+  height: 80rpx;
+  background-color: #ff6b35;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
+  z-index: 999;
+}
+
+.test-issue-btn:active {
+  transform: scale(0.95);
 }
 
 /* 保存提示弹窗 */

@@ -8,7 +8,7 @@
       </view>
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
-          <text class="period-text">第{{ currentPeriod }}期 {{ currentPeriodStatus }}</text>
+          <text class="period-text">{{ currentLotteryType.name }} {{ currentLotteryType.status }}</text>
           <uni-icons type="arrowdown" size="16" color="#fff" :class="{ 'rotate': showPeriodDropdown }"></uni-icons>
         </view>
       </view>
@@ -19,7 +19,7 @@
       <!-- 期号下拉菜单 -->
       <view v-if="showPeriodDropdown" class="period-dropdown" @click.stop>
         <view class="dropdown-header">
-          <text class="dropdown-title">选择期号</text>
+          <text class="dropdown-title">选择彩票类型</text>
           <view class="close-btn" @click="closePeriodDropdown">
             <uni-icons type="close" size="16" color="#999"></uni-icons>
           </view>
@@ -27,13 +27,13 @@
         <scroll-view scroll-y class="dropdown-list">
           <view 
             class="dropdown-item" 
-            :class="{ active: period.id === currentPeriodId }"
-            v-for="period in periodList" 
-            :key="period.id"
-            @click="selectPeriod(period)"
+            :class="{ active: lotteryType.id === currentLotteryType.id }"
+            v-for="lotteryType in lotteryTypes" 
+            :key="lotteryType.id"
+            @click="selectLotteryType(lotteryType)"
           >
-            <text class="period-item-text">第{{ period.id }}期 {{ period.status }}</text>
-            <text class="period-item-time">{{ period.time }}</text>
+            <text class="period-item-text">{{ lotteryType.name }} {{ lotteryType.status }}</text>
+            <text class="period-item-time">{{ lotteryType.time }}</text>
           </view>
         </scroll-view>
       </view>
@@ -80,9 +80,9 @@
     <!-- 搜索栏 -->
     <view class="search-header">
       <text class="search-label">搜索帖子</text>
-      <view class="search-input-wrapper">
+      <view class="search-input-wrapper" @click="showFilterModal">
         <uni-icons type="search" size="16" color="#999"></uni-icons>
-        <input type="text" placeholder="搜索头尾、芝麻、靓规等帖" class="search-input" />
+        <input type="text" placeholder="搜索头尾、芝麻、靓规等帖" class="search-input" readonly />
       </view>
     </view>
     
@@ -144,61 +144,51 @@
       <!-- 预测内容 -->
       <view v-if="activeTab === 'predict'" class="tab-content">
         <view class="predict-list">
-          <view class="predict-item" v-for="(predict, index) in predictList" :key="index">
-            <view class="predict-header">
-              <image :src="predict.avatar" class="user-avatar"></image>
+          <view class="predict-item" v-for="(item, index) in predictList" :key="index">
+            <!-- 帖子头部 -->
+            <view class="post-header">
               <view class="user-info">
-                <text class="username">{{ predict.username }}</text>
-                <text class="predict-time">{{ predict.time }}</text>
+                <image :src="item.avatar" class="avatar"></image>
+                <view class="username-and-url">
+                  <text class="username">{{ item.username }}</text>
               </view>
-              <view class="predict-status">
-                <text class="status-text">{{ predict.status }}</text>
               </view>
+              <view class="more-options">
+                <uni-icons type="more-filled" size="20" color="#999"></uni-icons>
             </view>
-            
-            <view class="predict-content">
-              <view class="period-info">
-                <text class="period-text">第{{ predict.period }}期</text>
               </view>
               
-              <!-- 中肚预测 -->
-              <view class="predict-section">
-                <text class="section-title">[中肚]</text>
-                <view class="number-predict">
-                  <text class="predict-text">百位: {{ predict.middle.hundreds }} 主攻{{ predict.middle.mainHundreds }} 重点{{ predict.middle.keyHundreds }}</text>
-                  <text class="predict-text">十位: {{ predict.middle.tens }} 主攻{{ predict.middle.mainTens }} 重点{{ predict.middle.keyTens }}</text>
-                </view>
+            <!-- 期号和时间 -->
+            <view class="issue-time">
+              <text class="issue-no">第{{ item.period }}期</text>
+              <text class="post-time">{{ item.time }}</text>
               </view>
               
-              <!-- 芝麻预测 -->
-              <view class="predict-section">
-                <text class="section-title">[芝麻] {{ predict.sesame.hitRate }}</text>
-				
-                <view class="number-predict">
-                  <text class="predict-text">千位: {{ predict.sesame.thousands }} 主攻{{ predict.sesame.mainThousands }} 重点{{ predict.sesame.keyThousands }}</text>
-                  <text class="predict-text">百位: {{ predict.sesame.hundreds }} 主攻{{ predict.sesame.mainHundreds }} 重点{{ predict.sesame.keyHundreds }}</text>
-                  <text class="predict-text">十位: {{ predict.sesame.tens }} 主攻{{ predict.sesame.mainTens }} 重点{{ predict.sesame.keyTens }}</text>
-                  <text class="predict-text">个位: {{ predict.sesame.units }} 主攻{{ predict.sesame.mainUnits }} 重点{{ predict.sesame.keyUnits }}</text>
-                </view>
-              </view>
+            <!-- 帖子内容 -->
+            <view class="post-content">
+              <text class="content-text">{{ item.content }}</text>
             </view>
             
-            <view class="predict-footer">
-              <view class="post-stats">
-                <view class="stat-item">
-                  <uni-icons type="heart" size="14" color="#999"></uni-icons>
-                  <text class="stat-text">{{ predict.likes }}</text>
+            <!-- 帖子底部操作 -->
+            <view class="post-footer">
+              <view class="action-item">
+                <uni-icons type="hand-up" size="18" color="#999"></uni-icons>
+                <text class="count">{{ item.likes }}</text>
                 </view>
-                <view class="stat-item">
-                  <uni-icons type="chat" size="14" color="#999"></uni-icons>
-                  <text class="stat-text">{{ predict.comments }}</text>
+              <view class="action-item">
+                <uni-icons type="redo" size="18" color="#999"></uni-icons>
+                <text class="count">{{ item.shares }}</text>
                 </view>
-                <view class="stat-item">
-                  <uni-icons type="redo" size="14" color="#999"></uni-icons>
-                  <text class="stat-text">{{ predict.shares }}</text>
+              <view class="action-item">
+                <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
+                <text class="count">{{ item.comments }}</text>
                 </view>
               </view>
             </view>
+          
+          <!-- 暂无数据提示 -->
+          <view v-if="predictList.length === 0" class="no-posts-tip">
+            <text>暂无预测帖子</text>
           </view>
         </view>
       </view>
@@ -236,6 +226,12 @@
     <view class="publish-btn" @click="showPublishModal">
       <uni-icons type="plus" size="20" color="#fff"></uni-icons>
     </view>
+    
+    <!-- 测试期号按钮 -->
+    <view class="test-issue-btn" @click="testIssueAPI">
+      <uni-icons type="gear" size="16" color="#fff"></uni-icons>
+    </view>
+    
     
     <!-- 发布弹出层 -->
     <uni-popup ref="publishPopup" type="bottom" :safe-area="false">
@@ -299,11 +295,62 @@
         </view>
       </view>
     </uni-popup>
+    
+    <!-- 筛选弹窗 -->
+    <view v-if="showFilterDialog" class="filter-dialog-mask" @click="hideFilterModal">
+      <view class="filter-dialog" @click.stop>
+        <!-- 弹窗头部 -->
+        <view class="filter-header">
+          <text class="filter-title">心水预测</text>
+          <text class="filter-period">第{{ currentLotteryType.name }}期 {{ currentLotteryType.status }}</text>
+        </view>
+        
+        <!-- 心水预测筛选 -->
+        <view class="filter-section">
+          <view class="filter-grid">
+            <view 
+              class="filter-item" 
+              :class="{ active: selectedPredictionFilter === filter }"
+              v-for="filter in predictionFilters" 
+              :key="filter"
+              @click="togglePredictionFilter(filter)"
+            >
+              {{ filter }}
+            </view>
+          </view>
+        </view>
+        
+        <!-- 其他筛选 -->
+        <view class="filter-section">
+          <text class="section-title">其他筛选</text>
+          <text class="section-subtitle">(可结合上面选项选择一个)</text>
+          <view class="filter-grid">
+            <view 
+              class="filter-item" 
+              :class="{ active: selectedOtherFilter === filter }"
+              v-for="filter in otherFilters" 
+              :key="filter"
+              @click="toggleOtherFilter(filter)"
+            >
+              {{ filter }}
+            </view>
+          </view>
+        </view>
+        
+        <!-- 搜索按钮 -->
+        <view class="filter-footer">
+          <button class="search-btn" @click="performSearch">
+            {{ getSearchButtonText() }}
+          </button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { apiGetIssueNo, apiPostListQuery } from '@/api/apis.js'
 
 // 当前选中的标签
 const activeTab = ref('predict')
@@ -311,11 +358,8 @@ const activeTab = ref('predict')
 // 当前选中的标签（分类标签）
 const activeTag = ref(0)
 
-// 期号下拉框状态
+// 彩票类型下拉框状态
 const showPeriodDropdown = ref(false)
-const currentPeriodId = ref(25268)
-const currentPeriod = ref(25268)
-const currentPeriodStatus = ref('待开奖')
 
 // 弹出层引用
 const publishPopup = ref(null)
@@ -326,22 +370,40 @@ const agreedToTerms = ref(false)
 // 选中的功能类型
 const selectedFunction = ref('')
 
+// 筛选弹窗相关
+const showFilterDialog = ref(false)
+const selectedPredictionFilter = ref('') // 心水预测只能选择一个
+const selectedOtherFilter = ref('') // 其他筛选只能选择一个
+
+// 心水预测筛选选项
+const predictionFilters = ref([
+  '头尾', '芝麻', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾', 
+  '稳码', '中肚', '头尾合', '中肚合', '千百合', '千十合', '百个合', '十个合', 
+  'ABXD', 'ABCX', 'AXCD', 'XBCD', 'ABXX', 'AXCX', 'XXCD', 'XBXD', '死数', 
+  '二字现', '三字现', '过滤王二定', '过滤王三定', '过滤王四定', 
+  '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合'
+])
+
+// 其他筛选选项
+const otherFilters = ref([
+  '大师帖子', '靓规贴子', '点赞最多', '讨论最热'
+])
+
 // 分类标签列表
 const tags = ref([
   '#全部', '#大师', '#靓规贴', '#过滤王', '#点赞最多'
 ])
 
-// 期号列表
-const periodList = ref([
-  { id: 25268, status: '待开奖', time: '今天 21:30' },
-  { id: 25267, status: '已开奖', time: '今天 21:30', result: '12345' },
-  { id: 25266, status: '已开奖', time: '昨天 21:30', result: '67890' },
-  { id: 25265, status: '已开奖', time: '昨天 21:30', result: '54321' },
-  { id: 25264, status: '已开奖', time: '2天前 21:30', result: '09876' },
-  { id: 25263, status: '已开奖', time: '2天前 21:30', result: '13579' },
-  { id: 25262, status: '已开奖', time: '3天前 21:30', result: '24680' },
-  { id: 25261, status: '已开奖', time: '3天前 21:30', result: '97531' }
+// 彩票类别列表
+const lotteryTypes = ref([
+  { id: 16, name: '排列三', code: 'pl3', status: '待开奖', time: '今天 21:30' },
+  { id: 17, name: '排列五', code: 'pl5', status: '待开奖', time: '今天 21:30' },
+  { id: 15, name: '七星彩', code: 'qxc', status: '待开奖', time: '今天 21:30' },
+  { id: 12, name: '福彩3D', code: 'fc3d', status: '待开奖', time: '今天 21:30' }
 ])
+
+// 当前选中的彩票类别
+const currentLotteryType = ref(lotteryTypes.value[0])
 
 // 头条列表
 const headlinesList = ref([
@@ -397,76 +459,15 @@ const followList = ref([
 ])
 
 // 预测列表
-const predictList = ref([
-  {
-    id: 1,
-    username: '致富取经',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '刚刚',
-    status: '稳码',
-    period: 25268,
-    middle: {
-      hundreds: '134579',
-      mainHundreds: '1347',
-      keyHundreds: '13',
-      tens: '012589',
-      mainTens: '1289',
-      keyTens: '18'
-    },
-    sesame: {
-      hitRate: '近10中2',
-      thousands: '024589',
-      mainThousands: '0459',
-      keyThousands: '09',
-      hundreds: '134579',
-      mainHundreds: '1347',
-      keyHundreds: '13',
-      tens: '012589',
-      mainTens: '1289',
-      keyTens: '18',
-      units: '023459',
-      mainUnits: '2459',
-      keyUnits: '25'
-    },
-    likes: 0,
-    comments: 0,
-    shares: 0
-  },
-  {
-    id: 2,
-    username: '暴富精英2026',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '10分钟前',
-    status: '预测中',
-    period: 25268,
-    middle: {
-      hundreds: '02468',
-      mainHundreds: '0246',
-      keyHundreds: '02',
-      tens: '13579',
-      mainTens: '1357',
-      keyTens: '13'
-    },
-    sesame: {
-      hitRate: '近10中5',
-      thousands: '13579',
-      mainThousands: '1357',
-      keyThousands: '13',
-      hundreds: '02468',
-      mainHundreds: '0246',
-      keyHundreds: '02',
-      tens: '13579',
-      mainTens: '1357',
-      keyTens: '13',
-      units: '02468',
-      mainUnits: '0246',
-      keyUnits: '02'
-    },
-    likes: 12,
-    comments: 8,
-    shares: 3
-  }
-])
+const predictList = ref([])
+
+// 当前期号信息
+const currentIssueInfo = ref({
+  id: null,
+  number: null,
+  status: '待开奖',
+  time: '今天 21:30'
+})
 
 // 鸡汤列表
 const soupList = ref([
@@ -501,7 +502,16 @@ const soupList = ref([
 
 // 页面加载完成
 onMounted(() => {
-  console.log('论坛页面加载完成')
+  try {
+    const savedLotteryType = uni.getStorageSync('currentLotteryType')
+    if (savedLotteryType) {
+      currentLotteryType.value = savedLotteryType
+    }
+  } catch (error) {
+    console.error('加载保存的彩票类型失败:', error)
+  }
+  
+  loadLotteryData(currentLotteryType.value.code)
 })
 
 // 切换标签
@@ -518,24 +528,87 @@ const selectTag = (index) => {
   // 这里可以根据标签加载不同的帖子
 }
 
-// 切换期号下拉框
+// 切换彩票类型下拉框
 const togglePeriodDropdown = () => {
   showPeriodDropdown.value = !showPeriodDropdown.value
 }
 
-// 关闭期号下拉框
+// 关闭彩票类型下拉框
 const closePeriodDropdown = () => {
   showPeriodDropdown.value = false
 }
 
-// 选择期号
-const selectPeriod = (period) => {
-  currentPeriodId.value = period.id
-  currentPeriod.value = period.id
-  currentPeriodStatus.value = period.status
+// 选择彩票类型
+const selectLotteryType = (lotteryType) => {
+  currentLotteryType.value = lotteryType
   showPeriodDropdown.value = false
-  console.log('选择期号:', period)
-  // 这里可以根据期号加载不同的数据
+  
+  try {
+    uni.setStorageSync('currentLotteryType', lotteryType)
+  } catch (error) {
+    console.error('保存彩票类型失败:', error)
+  }
+  
+  loadLotteryData(lotteryType.code)
+}
+
+// 根据彩票类型加载数据
+const loadLotteryData = async (lotteryCode) => {
+  try {
+    const lotteryType = lotteryTypes.value.find(type => type.code === lotteryCode)
+    if (!lotteryType) {
+      return
+    }
+    
+    uni.showLoading({ title: '加载中...' })
+    
+    const response = await apiGetIssueNo({ cpid: lotteryType.id })
+    
+    uni.hideLoading()
+    
+    if (response.code === 200 && response.data !== null && response.data !== undefined) {
+      let issueNumber = null
+      let issueStatus = '待开奖'
+      let issueTime = '今天 21:30'
+      
+      if (typeof response.data === 'number' || typeof response.data === 'string') {
+        issueNumber = response.data.toString()
+      } else if (typeof response.data === 'object') {
+        issueNumber = response.data.issueno || response.data.number || response.data.id
+        issueStatus = response.data.status || '待开奖'
+        issueTime = response.data.time || '今天 21:30'
+      }
+      
+      lotteryType.status = issueStatus
+      lotteryType.time = issueTime
+      
+      if (currentLotteryType.value.code === lotteryCode) {
+        currentLotteryType.value.status = lotteryType.status
+        currentLotteryType.value.time = lotteryType.time
+      }
+      
+      currentIssueInfo.value = {
+        id: issueNumber,
+        number: issueNumber,
+        status: issueStatus,
+        time: issueTime
+      }
+      
+      try {
+        uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
+      } catch (error) {
+        console.error('保存期号信息失败:', error)
+      }
+      
+      loadPredictPosts()
+      uni.showToast({ title: '数据加载成功', icon: 'success' })
+    } else {
+      uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({ title: '网络错误，请重试', icon: 'none' })
+  }
 }
 
 // 预览图片
@@ -624,6 +697,212 @@ const selectFunction = (type) => {
   // 关闭弹出层
   hidePublishModal()
 }
+
+// 显示筛选弹窗
+const showFilterModal = () => {
+  showFilterDialog.value = true
+}
+
+// 隐藏筛选弹窗
+const hideFilterModal = () => {
+  showFilterDialog.value = false
+}
+
+// 切换筛选选项
+// 切换心水预测筛选
+const togglePredictionFilter = (filter) => {
+  if (selectedPredictionFilter.value === filter) {
+    selectedPredictionFilter.value = '' // 取消选择
+  } else {
+    selectedPredictionFilter.value = filter // 选择新的
+  }
+}
+
+// 切换其他筛选
+const toggleOtherFilter = (filter) => {
+  if (selectedOtherFilter.value === filter) {
+    selectedOtherFilter.value = '' // 取消选择
+  } else {
+    selectedOtherFilter.value = filter // 选择新的
+  }
+}
+
+// 执行搜索
+const performSearch = () => {
+  const filters = []
+  if (selectedPredictionFilter.value) {
+    filters.push(selectedPredictionFilter.value)
+  }
+  if (selectedOtherFilter.value) {
+    filters.push(selectedOtherFilter.value)
+  }
+  
+  console.log('执行搜索，选中的筛选条件:', filters)
+  
+  // 这里可以根据选中的筛选条件进行搜索
+  if (filters.length === 0) {
+    uni.showToast({
+      title: '请选择筛选条件',
+      icon: 'none'
+    })
+    return
+  }
+  
+  uni.showToast({
+    title: `搜索${filters.join('+')}`,
+    icon: 'success'
+  })
+  
+  // 关闭弹窗
+  hideFilterModal()
+  
+  // 这里可以调用搜索API
+  // searchPosts(filters)
+}
+
+// 获取搜索按钮文本
+const getSearchButtonText = () => {
+  const filters = []
+  if (selectedPredictionFilter.value) {
+    filters.push(selectedPredictionFilter.value)
+  }
+  if (selectedOtherFilter.value) {
+    filters.push(selectedOtherFilter.value)
+  }
+  
+  if (filters.length === 0) {
+    return '搜索'
+  }
+  
+  return filters.join('+')
+}
+
+// 加载预测帖子数据
+const loadPredictPosts = async () => {
+  try {
+    const queryData = {
+      tname: currentLotteryType.value.name,
+      issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || '--',
+      page: '1',
+      limit: '20'
+    }
+    
+    const response = await apiPostListQuery(queryData)
+    
+    if (response.code === 200) {
+      if (response.data && response.data.records && Array.isArray(response.data.records)) {
+        predictList.value = response.data.records.map((post) => {
+          return {
+            id: post.id,
+            username: post.account || '匿名用户',
+            avatar: post.pimg ? (post.pimg.startsWith('http') ? post.pimg : `http://video.caimizm.com/himg/${post.pimg}`) : '/static/images/defaultAvatar.png',
+            time: formatTime(post.createTime),
+            status: '预测中',
+            period: post.issueno || currentIssueInfo.value.number,
+            content: post.content || '',
+            likes: post.likeCount || 0,
+            comments: post.comment || 0,
+            shares: 0
+          }
+        })
+      } else {
+        predictList.value = []
+      }
+    } else {
+      predictList.value = []
+    }
+  } catch (error) {
+    predictList.value = []
+  }
+}
+
+// 解析预测内容
+const parsePredictionContent = (content) => {
+  // 这里可以根据实际的内容格式来解析预测数据
+  // 暂时返回空对象，后续可以根据实际数据结构调整
+  return {}
+}
+
+// 格式化时间
+const formatTime = (timeStr) => {
+  if (!timeStr) return '刚刚'
+  
+  try {
+    const time = new Date(timeStr)
+    const now = new Date()
+    const diff = now - time
+    
+    if (diff < 60000) return '刚刚'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+    return `${Math.floor(diff / 86400000)}天前`
+  } catch (error) {
+    return '刚刚'
+  }
+}
+
+// 测试期号API
+const testIssueAPI = async () => {
+  try {
+    console.log('=== 开始测试期号API ===')
+    console.log('当前彩票类型:', currentLotteryType.value)
+    
+    uni.showLoading({ title: '测试中...' })
+    
+    const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
+    
+    uni.hideLoading()
+    
+    console.log('=== 期号API测试结果 ===')
+    console.log('请求参数:', { cpid: currentLotteryType.value.id })
+    console.log('响应状态码:', response.code)
+    console.log('响应消息:', response.msg)
+    console.log('完整响应:', response)
+    
+    if (response.code === 200) {
+      console.log('✅ 期号API调用成功')
+      console.log('响应数据结构:', {
+        hasData: !!response.data,
+        dataType: typeof response.data,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      })
+      
+      if (response.data) {
+        console.log('期号数据详情:', response.data)
+        console.log('期号字段值:', {
+          issueno: response.data.issueno,
+          number: response.data.number,
+          id: response.data.id,
+          status: response.data.status,
+          time: response.data.time
+        })
+        
+        // 更新期号信息
+        currentIssueInfo.value = {
+          id: response.data.id || null,
+          number: response.data.issueno || response.data.number || null,
+          status: response.data.status || '待开奖',
+          time: response.data.time || '今天 21:30'
+        }
+        
+        console.log('更新后的期号信息:', currentIssueInfo.value)
+        
+        uni.showToast({ title: '期号API测试成功', icon: 'success' })
+      } else {
+        console.log('⚠️ 响应中没有data字段')
+        uni.showToast({ title: '响应无数据', icon: 'none' })
+      }
+    } else {
+      console.log('❌ 期号API调用失败:', response.msg)
+      uni.showToast({ title: `测试失败: ${response.msg}`, icon: 'none' })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    console.error('❌ 期号API测试异常:', error)
+    uni.showToast({ title: '测试异常', icon: 'none' })
+  }
+}
+
 </script>
 
 <style scoped>
@@ -1010,93 +1289,111 @@ const selectFunction = (type) => {
   color: #333;
 }
 
-/* 预测样式 */
+/* 预测列表样式 */
+.predict-list {
+  padding: 20rpx;
+  background-color: #f8f8f8;
+}
+
 .predict-item {
   background-color: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
+  border-radius: 16rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
-  position: relative;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
-.predict-header {
+.post-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 20rpx;
 }
 
-.predict-status {
-  background-color: #ff4757;
-  padding: 6rpx 12rpx;
-  border-radius: 12rpx;
+.user-info {
+  display: flex;
+  align-items: center;
 }
 
-.status-text {
-  font-size: 20rpx;
-  color: #fff;
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  background-color: #eee;
+  flex-shrink: 0;
 }
 
-.predict-content {
-  margin-bottom: 20rpx;
+.username-and-url {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.period-info {
-  text-align: center;
-  margin-bottom: 20rpx;
-}
-
-.period-text {
-  font-size: 24rpx;
-  color: #ff4757;
-  font-weight: 500;
-}
-
-.predict-section {
-  margin-bottom: 20rpx;
-}
-
-.section-title {
-  display: block;
-  font-size: 26rpx;
-  font-weight: 600;
+.username {
+  font-size: 28rpx;
+  font-weight: bold;
   color: #333;
-  margin-bottom: 10rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.number-predict {
-  background-color: #f8f8f8;
-  padding: 15rpx;
-  border-radius: 10rpx;
+.more-options {
+  padding: 10rpx;
 }
 
-.predict-text {
-  display: block;
+.issue-time {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
   font-size: 24rpx;
+  color: #666;
+}
+
+.issue-no {
+  font-weight: bold;
+  margin-right: 10rpx;
   color: #333;
-  margin-bottom: 8rpx;
-  line-height: 1.4;
 }
 
-.predict-footer {
-  border-top: 1rpx solid #f0f0f0;
-  padding-top: 20rpx;
+.post-time {
+  color: #999;
 }
 
-.post-stats {
+.post-content {
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+  font-size: 28rpx;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.post-footer {
   display: flex;
   justify-content: space-around;
+  align-items: center;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #eee;
 }
 
-.stat-item {
+.action-item {
   display: flex;
   align-items: center;
+  color: #999;
+  font-size: 24rpx;
 }
 
-.stat-text {
+.action-item .count {
   margin-left: 8rpx;
-  font-size: 24rpx;
+}
+
+.no-posts-tip {
+  text-align: center;
+  padding: 40rpx;
   color: #999;
+  font-size: 28rpx;
 }
 
 /* 鸡汤样式 */
@@ -1146,6 +1443,27 @@ const selectFunction = (type) => {
 .publish-btn:active {
   transform: scale(0.95);
 }
+
+/* 测试期号按钮 */
+.test-issue-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 240rpx;
+  width: 80rpx;
+  height: 80rpx;
+  background-color: #ff6b35;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
+  z-index: 999;
+}
+
+.test-issue-btn:active {
+  transform: scale(0.95);
+}
+
 
 /* 发布弹出层样式 */
 .publish-modal {
@@ -1316,5 +1634,106 @@ const selectFunction = (type) => {
   color: #333;
   font-size: 32rpx;
   padding: 20rpx 40rpx;
+}
+
+/* 筛选弹窗样式 */
+.filter-dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-dialog {
+  width: 90%;
+  max-width: 600rpx;
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.filter-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-period {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.filter-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.section-subtitle {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.filter-item {
+  padding: 12rpx 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: #666;
+  border: 1rpx solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.filter-item.active {
+  background-color: #ff4757;
+  color: #fff;
+  border-color: #ff4757;
+}
+
+.filter-footer {
+  margin-top: 30rpx;
+  text-align: center;
+}
+
+.search-btn {
+  width: 100%;
+  height: 80rpx;
+  background-color: #ff4757;
+  color: #fff;
+  border: none;
+  border-radius: 40rpx;
+  font-size: 32rpx;
+  font-weight: 600;
 }
 </style>

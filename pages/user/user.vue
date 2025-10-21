@@ -4,14 +4,18 @@
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar">
-            <image :src="memberStore.profile.avatar" mode="aspectFill"></image>
+            <image 
+              src="http://video.caimizm.com/himg/user.png" 
+              mode="aspectFill"
+              @error="handleAvatarError"
+            ></image>
           </view>
           <view class="user-details">
-            <text class="username">欢迎您</text>
+            <text class="username">{{ memberStore.profile?.nickname || '欢迎您' }}</text>
            
           </view>
         </view>
-        <view class="edit-btn">
+        <view class="edit-btn" @click="goToEditProfile">
           <text class="edit-text">点击编辑资料</text>
         </view>
       </view>
@@ -46,8 +50,8 @@
             </view>
           </view>
         </view>
-        <view class="edit-btn">
-          <text class="edit-text">点击编辑资料</text>
+        <view class="edit-btn" @click="goToLogin">
+          <text class="edit-text">点击登录</text>
         </view>
       </view>
       <view class="user-stats">
@@ -166,6 +170,11 @@ const isBalanceVisible = ref(false)
 // 用户金币余额
 const userBalance = ref(0)
 
+// 处理头像加载错误
+const handleAvatarError = (e) => {
+  // 头像加载失败时使用默认头像
+}
+
 // 获取用户金币余额
 const getUserBalance = async () => {
   try {
@@ -182,24 +191,45 @@ const getUserBalance = async () => {
     if (response.code === 200) {
       userBalance.value = response.data || 0
     } else {
-      console.error('获取余额失败:', response.msg)
       userBalance.value = 0
     }
   } catch (error) {
-    console.error('获取用户余额失败:', error)
     userBalance.value = 0
   }
 }
 
 // 检查登录状态
-const checkLoginStatus = () => {
+const checkLoginStatus = async () => {
   const token = getToken();
   if (token) {
-    // 有token表示已登录，设置profile对象
-    memberStore.profile = {
-      avatar: '../../static/images/xxmLogo.png', // 默认头像
-      nickname: '欢迎您'
-    };
+    try {
+      // 从本地存储获取登录时保存的用户信息
+      const savedUserInfo = uni.getStorageSync('userInfo') || {}
+      const loginData = uni.getStorageSync('loginData') || {}
+      
+      // 优先使用登录时保存的完整数据
+      if (loginData.uname || loginData.account) {
+        memberStore.profile = {
+          avatar: loginData.himg || 'http://video.caimizm.com/himg/user.png', // himg 是头像
+          nickname: loginData.uname || '欢迎您' // uname 是昵称
+        };
+      } else {
+        // 如果没有登录数据，使用本地存储的用户信息
+        memberStore.profile = {
+          avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
+          nickname: savedUserInfo.nickname || '欢迎您'
+        };
+      }
+      
+    } catch (error) {
+      // 从本地存储获取用户信息作为后备
+      const savedUserInfo = uni.getStorageSync('userInfo') || {}
+      memberStore.profile = {
+        avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
+        nickname: savedUserInfo.nickname || '欢迎您'
+      };
+    }
+    
     // 获取用户余额
     getUserBalance()
   } else {
@@ -282,6 +312,23 @@ const goToOrders = () => {
   uni.navigateTo({ url: '/pages/orders/orders' });
 };
 
+// 跳转到登录页面
+const goToLogin = () => {
+  uni.navigateTo({ url: '/pages/login/login' });
+};
+
+// 跳转到编辑用户信息页面
+const goToEditProfile = () => {
+  if (!memberStore.profile) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none'
+    });
+    return;
+  }
+  uni.navigateTo({ url: '/pages/user/edit-profile' });
+};
+
 // 切换金币显示状态
 const toggleBalanceVisibility = (e) => {
   e.stopPropagation(); // 阻止事件冒泡
@@ -330,7 +377,22 @@ const handleMenuClick = (item) => {
 // 页面加载时检查登录状态
 onMounted(() => {
   checkLoginStatus();
+  
+  // 监听用户信息更新事件
+  uni.$on('userProfileUpdated', (data) => {
+    if (memberStore.profile) {
+      // 更新用户信息
+      memberStore.profile.nickname = data.nickname;
+      memberStore.profile.avatar = data.avatar;
+      
+      uni.showToast({
+        title: '用户信息已更新',
+        icon: 'success'
+      });
+    }
+  });
 });
+
 // 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
 onShow(() => {
   checkLoginStatus();

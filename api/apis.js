@@ -221,3 +221,42 @@ export function apiBillQuery(data = {}) {
 		data
 	})
 }
+
+// 用户信息修改接口
+export function apiUpdateUserProfile(data = {}) {
+	return request({
+		url: "/web/user/update",
+		method: "POST",
+		data
+	})
+}
+
+// 发帖接口
+export function apiPost(data = {}) {
+	return request({
+		url: "/web/post/insert",
+		method: "POST",
+		data
+	})
+}
+
+// 查询彩票期号接口
+export function apiGetIssueNo(data = {}) {
+	return request({
+		url: "/web/ticket/find_issueno",
+		method: "GET",
+		data,
+		
+	})
+}
+
+// 帖子列表查询接口
+export function apiPostListQuery(data = {}) {
+	return request({
+		url: "/web/post/query",
+		method: "POST",
+		data
+	})
+}
+
+

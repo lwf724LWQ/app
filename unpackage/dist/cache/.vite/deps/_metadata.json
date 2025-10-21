@@ -1,31 +1,25 @@
 {
-  "hash": "3826cc09",
-  "configHash": "0f2a0411",
+  "hash": "2e8a0643",
+  "configHash": "878a3b37",
   "lockfileHash": "a3570ea5",
-  "browserHash": "32dc1de1",
+  "browserHash": "b06d924c",
   "optimized": {
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "ed67f9a5",
-      "needsInterop": false
-    },
     "qrcode": {
       "src": "../../../../../node_modules/qrcode/lib/browser.js",
       "file": "qrcode.js",
-      "fileHash": "a64e3fad",
+      "fileHash": "40258f09",
       "needsInterop": true
     },
     "nanoid": {
       "src": "../../../../../node_modules/nanoid/index.browser.js",
       "file": "nanoid.js",
-      "fileHash": "73d75a2c",
+      "fileHash": "b9fa9969",
       "needsInterop": false
     },
     "ali-oss": {
       "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
       "file": "ali-oss.js",
-      "fileHash": "6773bfa3",
+      "fileHash": "020b1d3f",
       "needsInterop": true
     }
   },

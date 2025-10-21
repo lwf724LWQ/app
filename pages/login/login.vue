@@ -176,6 +176,9 @@ const gologin=async ()=>{
 	    uni.hideLoading()
 	    
 	    if (success) {
+	      // 打印登录返回的完整数据，用于调试
+	      console.log('登录API返回的完整数据:', success);
+	      
 	      // 设置全局token
 	      if (success.data?.token) {
 	        setToken(success.data.token);
@@ -199,6 +202,62 @@ const gologin=async ()=>{
 	        })
 	        return;
 	      }
+	      
+	      // 直接使用登录返回的用户信息
+	      try {
+	        // 从登录返回的数据中提取用户信息
+	        const loginData = success.data || {};
+	        
+        // 处理头像URL
+        let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
+        if (loginData.himg) {
+          if (loginData.himg.startsWith('http')) {
+            // 已经是完整URL
+            avatarUrl = loginData.himg;
+          } else {
+            // 相对路径，拼接完整URL
+            avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
+          }
+        }
+        
+        // 保存用户信息到本地存储
+        const userInfo = {
+          nickname: loginData.uname || '用户',
+          avatar: avatarUrl,
+          phone: account.value
+        };
+        
+        // 保存到本地存储，供用户页面使用
+        uni.setStorageSync('userInfo', userInfo);
+        uni.setStorageSync('loginData', {
+          uname: loginData.uname,
+          himg: avatarUrl, // 保存完整的头像URL
+          account: account.value
+        });
+        
+        console.log('登录成功，用户信息已保存:', userInfo);
+        console.log('登录数据已保存:', {
+          uname: loginData.uname,
+          himg: avatarUrl, // 显示完整的头像URL
+          account: account.value
+        });
+        
+      } catch (error) {
+        console.error('保存用户信息失败:', error);
+        // 使用默认用户信息
+        const defaultAvatarUrl = 'http://video.caimizm.com/himg/user.png';
+        const defaultUserInfo = {
+          nickname: '用户',
+          avatar: defaultAvatarUrl,
+          phone: account.value
+        };
+        uni.setStorageSync('userInfo', defaultUserInfo);
+        uni.setStorageSync('loginData', {
+          uname: '用户',
+          himg: defaultAvatarUrl, // 保存完整的默认头像URL
+          account: account.value
+        });
+      }
 	      
 	      // 显示登录成功提示
 	      uni.showToast({

@@ -23,6 +23,7 @@
       :refresher-threshold="100"
       refresher-default-style="black"
       refresher-background="#f5f5f5"
+      :enable-passive="true"
     >
       <!-- 用户信息区域 -->
       <view class="user-info-section">
@@ -30,7 +31,7 @@
         <view class="balance-section">
           <text class="balance-text">我的余额: </text>
           <text class="balance-amount">{{ userBalance }}金币</text>
-          <button class="record-btn" @click="viewTransactionRecord">金币交易记录</button>
+          <button class="record-btn" @click.stop="viewTransactionRecord">金币交易记录</button>
         </view>
       </view>
       
@@ -43,7 +44,7 @@
           <view 
             class="amount-option" 
             :class="{ active: selectedAmount === 10 }"
-            @click="selectAmount(10)"
+            @click.stop="selectAmount(10)"
           >
             <text class="amount-text">10个金币</text>
             <text class="price-text">10元</text>
@@ -53,7 +54,7 @@
           <view 
             class="amount-option" 
             :class="{ active: selectedAmount === 50 }"
-            @click="selectAmount(50)"
+            @click.stop="selectAmount(50)"
           >
             <text class="amount-text">50个金币</text>
             <text class="price-text">50元</text>
@@ -63,7 +64,7 @@
           <view 
             class="amount-option" 
             :class="{ active: selectedAmount === 100 }"
-            @click="selectAmount(100)"
+            @click.stop="selectAmount(100)"
           >
             <text class="amount-text">100个金币</text>
             <text class="price-text">100元</text>
@@ -85,13 +86,13 @@
         
         <!-- 服务协议 -->
         <view class="agreement-section">
-          <view class="agreement-checkbox" @click="toggleAgreement">
+          <view class="agreement-checkbox" @click.stop="toggleAgreement">
             <view class="checkbox" :class="{ checked: agreedToTerms }">
               <text class="check-mark" v-if="agreedToTerms">✓</text>
             </view>
             <text class="agreement-text">
               我已阅读并同意
-              <text class="link-text" @click.stop="viewAgreement">《充值服务协议》</text>
+              <text class="link-text" @click.stop.prevent="viewAgreement">《充值服务协议》</text>
             </text>
           </view>
         </view>
@@ -109,11 +110,12 @@
         <button 
           class="payment-btn" 
           :class="{ disabled: !canPay }"
-          @click="handlePayment"
+          @click.stop="handlePayment"
           :disabled="!canPay"
         >
           支付 ¥{{ paymentAmount }}元
         </button>
+        
       </view>
     </scroll-view>
     
@@ -143,9 +145,9 @@
           <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
         </view>
         <view class="qr-footer">
-          <button class="cancel-qr-btn" @click="closeQRModal">取消支付</button>
-          <button class="refresh-qr-btn" @click="refreshQRCode">刷新二维码</button>
-          <button class="success-qr-btn" @click="handlePaymentSuccess">支付完成</button>
+          <button class="cancel-qr-btn" @click.stop="closeQRModal">取消支付</button>
+          <button class="refresh-qr-btn" @click.stop="refreshQRCode">刷新二维码</button>
+          <button class="success-qr-btn" @click.stop="handlePaymentSuccess">支付完成</button>
         </view>
       </view>
     </view>
@@ -225,6 +227,7 @@ const viewTransactionRecord = () => {
   uni.navigateTo({ url: '/pages/transaction/transaction' })
 }
 
+
 const handlePayment = () => {
   if (!canPay.value) return
   
@@ -252,9 +255,9 @@ const processPayment = async () => {
       amount: paymentAmount.value.toString(),
       type: 0, // 0表示充值
       account: getAccount() || currentUser.value,
-      payType: 0 // 0表示微信支付
+      payType: 0, // 0表示微信支付
+      channel: 0 // 0表示电脑端
     }
-    
     
     // 调用充值接口
     const response = await apiUserRecharge(rechargeData)
