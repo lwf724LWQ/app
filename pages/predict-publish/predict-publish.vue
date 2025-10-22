@@ -55,10 +55,30 @@
         <text class="period-text">{{ lotteryType ? lotteryType.name : '彩票类型' }} 第{{ getIssueNumber() }}期</text>
         <text class="period-status">{{ issueInfo.status }}</text>
       </view>
+      
+      <!-- 追帖功能区域 -->
+      <view class="append-section" v-if="postId || isAppendMode">
+        <view class="append-title">
+          <text class="append-title-text">追加内容</text>
+          <text class="append-post-id">帖子ID: {{ postId }}</text>
+        </view>
+        <view class="append-info">
+          <text class="append-info-text">将自动追加当前选择的方案到原帖子</text>
+        </view>
+        <view class="append-buttons">
+          <button 
+            class="append-btn" 
+            :class="{ disabled: isAppending }"
+            @click="handleAppendPost"
+          >
+            {{ isAppending ? '追加中...' : '追加发帖' }}
+          </button>
+        </view>
+      </view>
     </view>
     
     <!-- 底部按钮区域 -->
-    <view class="bottom-section">
+    <view class="bottom-section" v-if="!isAppendMode">
       <!-- 警告信息 -->
       <view class="warning-section">
         <text class="warning-text">注:帖子一旦发布,将不能进行修改或删除操作</text>
@@ -71,16 +91,29 @@
       </view>
     </view>
     
+    <!-- 追帖模式底部提示 -->
+    <view class="bottom-section" v-if="isAppendMode">
+      <view class="warning-section">
+        <text class="warning-text">追帖模式：追加内容到已发布的帖子</text>
+      </view>
+    </view>
+    
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getAccount } from '@/utils/request.js'
-import { apiPost, apiGetIssueNo } from '@/api/apis.js'
+import { apiPost, apiGetIssueNo, apiPostUpdate, apiPostListQuery } from '@/api/apis.js'
 
 // 方案数据
 const schemes = ref([])
+
+// 追帖相关数据
+const postId = ref('') // 当前帖子ID
+const isAppending = ref(false) // 是否正在追帖
+const appendContent = ref('') // 追帖内容
+const isAppendMode = ref(false) // 是否为追帖模式
 
 // 彩票类型和期号信息
 const lotteryType = ref(null)
@@ -249,6 +282,171 @@ const publishScheme = async () => {
   })
 }
 
+// 测试追帖功能
+const testAppendFunction = () => {
+  console.log('=== 测试追帖功能 ===')
+  console.log('当前帖子ID:', postId.value)
+  console.log('追帖模式:', isAppendMode.value)
+  
+  if (!postId.value) {
+    uni.showModal({
+      title: '测试结果',
+      content: '帖子ID缺失，无法测试追帖功能',
+      showCancel: false
+    })
+    return
+  }
+  
+  uni.showModal({
+    title: '测试追帖功能',
+    content: `帖子ID: ${postId.value}\n方案数量: ${schemes.value.length}\n\n是否执行追帖？`,
+    confirmText: '执行追帖',
+    cancelText: '取消',
+    success: (res) => {
+      if (res.confirm) {
+        handleAppendPost()
+      }
+    }
+  })
+}
+
+// 处理追帖逻辑
+const handleAppendPost = async () => {
+  if (!postId.value) {
+    uni.showToast({
+      title: '帖子ID缺失',
+      icon: 'none'
+    })
+    return
+  }
+  
+  try {
+    isAppending.value = true
+    uni.showLoading({
+      title: '追加中...'
+    })
+    
+    // 自动生成追加内容（包含原帖子内容）
+    const appendText = await generateAppendContent()
+    
+    console.log('=== 追帖调试信息 ===')
+    console.log('帖子ID:', postId.value)
+    console.log('追加内容:', appendText)
+    console.log('追帖模式:', isAppendMode.value)
+    
+    // 调用追帖接口 - 只传递必要的参数，不包含pimg
+    const response = await apiPostUpdate({
+      id: postId.value,
+      content: appendText
+      // 注意：不传递pimg参数，追加帖子不需要图片
+    })
+    
+    console.log('追帖接口响应:', response)
+    
+    uni.hideLoading()
+    
+    if (response.code === 200) {
+      uni.showToast({
+        title: '追加成功',
+        icon: 'success'
+      })
+      
+      // 延迟返回论坛页面
+      setTimeout(() => {
+        uni.reLaunch({
+          url: '/pages/forum/forum'
+        })
+      }, 1500)
+    } else {
+      uni.showToast({
+        title: response.msg || '追加失败',
+        icon: 'none'
+      })
+    }
+    
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({
+      title: '追加失败，请重试',
+      icon: 'none'
+    })
+  } finally {
+    isAppending.value = false
+  }
+}
+
+// 生成追加内容
+const generateAppendContent = async () => {
+  try {
+    // 首先获取原帖子的内容
+    let originalContent = ''
+    
+    if (postId.value) {
+      // 调用接口获取原帖子的完整内容
+      const response = await apiPostListQuery({
+        page: 1,
+        size: 1,
+        id: postId.value
+      })
+      
+      if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
+        originalContent = response.data.records[0].content || ''
+        console.log('=== 获取原帖子内容 ===')
+        console.log('原帖子内容:', originalContent)
+      }
+    }
+    
+    // 生成追加内容
+    let appendContent = '\n\n--- 追加内容 ---\n'
+    appendContent += `追加时间: ${new Date().toLocaleString()}\n`
+    
+    if (schemes.value.length > 0) {
+      appendContent += '\n追加方案:\n'
+      schemes.value.forEach((scheme, index) => {
+        appendContent += `${index + 1}. ${scheme.name} (${scheme.id})\n`
+        
+        const displayData = getSchemeDisplayData(scheme)
+        displayData.forEach(info => {
+          appendContent += `   ${info}\n`
+        })
+      })
+    } else {
+      appendContent += '\n追加内容: 方案数据\n'
+    }
+    
+    // 将追加内容添加到原内容后面
+    const finalContent = originalContent + appendContent
+    
+    console.log('=== 最终追加内容 ===')
+    console.log('原内容长度:', originalContent.length)
+    console.log('追加内容长度:', appendContent.length)
+    console.log('最终内容长度:', finalContent.length)
+    
+    return finalContent
+    
+  } catch (error) {
+    console.error('生成追加内容失败:', error)
+    
+    // 如果获取原内容失败，至少返回追加内容
+    let appendContent = '\n\n--- 追加内容 ---\n'
+    appendContent += `追加时间: ${new Date().toLocaleString()}\n`
+    
+    if (schemes.value.length > 0) {
+      appendContent += '\n追加方案:\n'
+      schemes.value.forEach((scheme, index) => {
+        appendContent += `${index + 1}. ${scheme.name} (${scheme.id})\n`
+        
+        const displayData = getSchemeDisplayData(scheme)
+        displayData.forEach(info => {
+          appendContent += `   ${info}\n`
+        })
+      })
+    }
+    
+    return appendContent
+  }
+}
+
 // 处理发布逻辑
 const handlePublish = async () => {
   try {
@@ -262,7 +460,7 @@ const handlePublish = async () => {
       issueno: getIssueNumber(), // 期号 - 使用统一的期号获取函数
       content: generatePostContent(), // 发帖内容
       account: getAccount() || '', // 账号
-      pimg: '', // 帖子图片（暂时为空）
+      pimg: '', // 预测帖不需要图片
       flag: true // 无需审核
     }
     
@@ -273,20 +471,29 @@ const handlePublish = async () => {
     uni.hideLoading()
     
     if (response.code === 200) {
-      uni.showToast({
-        title: '发布成功',
-        icon: 'success'
-      })
+      // 保存帖子ID到本地存储，用于后续追帖
+      if (response.data && response.data.id) {
+        postId.value = response.data.id
+        uni.setStorageSync('currentPostId', response.data.id)
+        
+        // 保存今天已发布的方案和帖子ID映射
+        savePublishedSchemeData(response.data.id)
+      }
+      
+        uni.showToast({
+          title: '发布成功',
+          icon: 'success'
+        })
       
       // 清除本地存储的方案数据
       uni.removeStorageSync('predict_schemes_data')
       
       // 延迟返回论坛页面
-      setTimeout(() => {
+        setTimeout(() => {
         uni.reLaunch({
           url: '/pages/forum/forum'
         })
-      }, 1500)
+        }, 1500)
     } else {
       uni.showToast({
         title: response.msg || '发布失败',
@@ -352,6 +559,171 @@ const loadIssueInfo = async () => {
   }
 }
 
+// 加载追帖模式下的方案数据
+const loadSchemeForAppend = async (schemeId) => {
+  try {
+    console.log('=== 加载追帖方案数据 ===')
+    console.log('方案ID:', schemeId)
+    
+    const today = new Date().toDateString()
+    const publishedPosts = uni.getStorageSync(`publishedPosts_${today}`) || {}
+    
+    console.log('已发布的帖子映射:', publishedPosts)
+    
+    // 获取该方案对应的帖子ID
+    const schemePostId = publishedPosts[schemeId]
+    if (schemePostId) {
+      postId.value = schemePostId
+      console.log(`加载方案 ${schemeId} 对应的帖子ID:`, schemePostId)
+      
+      // 从接口获取帖子详细信息
+      await loadPostDetails(schemePostId)
+    } else {
+      console.log(`未找到方案 ${schemeId} 对应的帖子ID`)
+      
+      // 尝试从接口获取用户已发布的帖子
+      await loadUserPublishedPosts(schemeId)
+    }
+    
+  } catch (error) {
+    console.error('加载追帖方案数据失败:', error)
+  }
+}
+
+// 从接口获取帖子详细信息
+const loadPostDetails = async (postId) => {
+  try {
+    console.log('=== 获取帖子详细信息 ===')
+    console.log('帖子ID:', postId)
+    
+    // 调用帖子列表查询接口获取帖子详情
+    const response = await apiPostListQuery({
+      page: 1,
+      size: 1,
+      id: postId
+    })
+    
+    if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
+      const post = response.data.records[0]
+      console.log('帖子详情:', post)
+      
+      // 从帖子内容中解析方案数据
+      if (post.content) {
+        parseSchemeFromPostContent(post.content)
+      }
+    }
+    
+  } catch (error) {
+    console.error('获取帖子详情失败:', error)
+  }
+}
+
+// 从接口获取用户已发布的帖子
+const loadUserPublishedPosts = async (schemeId) => {
+  try {
+    console.log('=== 获取用户已发布帖子 ===')
+    console.log('方案ID:', schemeId)
+    
+    const response = await apiPostListQuery({
+      page: 1,
+      size: 20,
+      account: uni.getStorageSync('account') || ''
+    })
+    
+    if (response.code === 200 && response.data && response.data.records) {
+      // 查找包含指定方案的帖子
+      const targetPost = response.data.records.find(post => 
+        post.content && post.content.includes(schemeId)
+      )
+      
+      if (targetPost) {
+        postId.value = targetPost.id
+        console.log(`找到方案 ${schemeId} 对应的帖子:`, targetPost.id)
+        
+        // 解析方案数据
+        parseSchemeFromPostContent(targetPost.content)
+      } else {
+        console.log(`未找到包含方案 ${schemeId} 的帖子`)
+      }
+    }
+    
+  } catch (error) {
+    console.error('获取用户已发布帖子失败:', error)
+  }
+}
+
+// 从帖子内容中解析方案数据
+const parseSchemeFromPostContent = (content) => {
+  try {
+    console.log('=== 解析帖子内容 ===')
+    console.log('帖子内容:', content)
+    
+    // 这里可以根据帖子内容的格式来解析方案数据
+    // 暂时使用本地存储的方案数据作为备用
+    const savedSchemesData = uni.getStorageSync('predict_schemes_data')
+    console.log('本地存储的方案数据:', savedSchemesData)
+    
+    if (savedSchemesData && savedSchemesData.schemeData) {
+      // 尝试从本地存储中找到对应的方案数据
+      const schemeKeys = Object.keys(savedSchemesData.schemeData)
+      const matchingScheme = schemeKeys.find(key => content.includes(key))
+      
+      if (matchingScheme) {
+        const schemeData = savedSchemesData.schemeData[matchingScheme]
+        const schemeObj = {
+          id: matchingScheme,
+          name: matchingScheme,
+          data: schemeData
+        }
+        schemes.value = [schemeObj]
+        console.log('解析出的方案数据:', schemeObj)
+      }
+    }
+    
+  } catch (error) {
+    console.error('解析帖子内容失败:', error)
+  }
+}
+
+// 保存已发布的方案数据
+const savePublishedSchemeData = (postId) => {
+  try {
+    const today = new Date().toDateString()
+    
+    // 获取今天已发布的方案列表
+    const publishedSchemes = uni.getStorageSync(`publishedSchemes_${today}`) || []
+    
+    // 获取今天已发布的帖子ID映射
+    const publishedPosts = uni.getStorageSync(`publishedPosts_${today}`) || {}
+    
+    // 遍历当前方案，记录已发布的方案
+    schemes.value.forEach(scheme => {
+      const schemeId = scheme.id
+      
+      // 如果方案还没有被标记为已发布，则添加
+      if (!publishedSchemes.includes(schemeId)) {
+        publishedSchemes.push(schemeId)
+      }
+      
+      // 保存方案对应的帖子ID
+      publishedPosts[schemeId] = postId
+    })
+    
+    // 保存到本地存储
+    uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
+    uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+    
+    console.log('已保存发布数据:', {
+      publishedSchemes,
+      publishedPosts,
+      postId
+    })
+    
+  } catch (error) {
+    console.error('保存已发布方案数据失败:', error)
+  }
+}
+
 // 生成发帖内容
 const generatePostContent = () => {
   if (schemes.value.length === 0) {
@@ -409,6 +781,44 @@ onMounted(() => {
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1]
   const options = currentPage.options
+  
+  console.log('=== 页面加载调试信息 ===')
+  console.log('页面参数:', options)
+  
+  // 检查是否有帖子ID（用于追帖功能）
+  if (options.postId) {
+    postId.value = options.postId
+    uni.setStorageSync('currentPostId', options.postId)
+    console.log('接收到帖子ID，进入追帖模式:', options.postId)
+    
+    // 进入追帖模式，隐藏发帖相关功能
+    isAppendMode.value = true
+    console.log('追帖模式已设置:', isAppendMode.value)
+    
+    // 如果有schemeId，加载对应的方案数据
+    if (options.schemeId) {
+      console.log('加载方案数据:', options.schemeId)
+      loadSchemeForAppend(options.schemeId)
+    }
+  } else {
+    // 从本地存储获取帖子ID - 只有在明确进入追帖模式时才设置
+    const savedPostId = uni.getStorageSync('currentPostId')
+    if (savedPostId) {
+      // 检查是否真的是追帖模式（通过检查是否有追帖数据）
+      const appendData = uni.getStorageSync('appendPostData')
+      if (appendData && appendData.postId === savedPostId) {
+        postId.value = savedPostId
+        isAppendMode.value = true
+        console.log('从本地存储恢复追帖模式:', savedPostId)
+      } else {
+        // 清除可能残留的帖子ID，确保是新帖模式
+        uni.removeStorageSync('currentPostId')
+        console.log('清除残留的帖子ID，确保新帖模式')
+      }
+    }
+  }
+  
+  console.log('最终状态 - 帖子ID:', postId.value, '追帖模式:', isAppendMode.value)
   
   if (options.data) {
     try {
@@ -656,6 +1066,76 @@ onMounted(() => {
 .publish-btn {
   background-color: #ff4757;
   color: #fff;
+}
+
+/* 追帖功能样式 */
+.append-section {
+  margin-top: 40rpx;
+  background-color: #fff;
+  border-radius: 15rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.append-title {
+  margin-bottom: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.append-title-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.append-post-id {
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  align-self: flex-start;
+}
+
+.append-info {
+  margin: 20rpx 0;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 10rpx;
+  text-align: center;
+}
+
+.append-info-text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.append-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin-top: 30rpx;
+}
+
+.append-btn {
+  width: 200rpx;
+  height: 70rpx;
+  background-color: #28B389;
+  color: #fff;
+  border: none;
+  border-radius: 35rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.append-btn.disabled {
+  background-color: #ccc;
+  color: #999;
 }
 
 </style>

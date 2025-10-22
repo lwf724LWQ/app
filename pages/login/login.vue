@@ -242,6 +242,16 @@ const gologin=async ()=>{
           account: account.value
         });
         
+        // 自动保存当前用户头像到userAvatars本地存储
+        try {
+          const userAvatars = uni.getStorageSync('userAvatars') || {}
+          userAvatars[account.value] = avatarUrl
+          uni.setStorageSync('userAvatars', userAvatars)
+          console.log('登录时自动保存用户头像:', account.value, avatarUrl)
+        } catch (error) {
+          console.error('保存用户头像到userAvatars失败:', error)
+        }
+        
       } catch (error) {
         console.error('保存用户信息失败:', error);
         // 使用默认用户信息

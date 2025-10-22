@@ -63,7 +63,7 @@ export function apilogin(data = {}) {
 export function apigetsts(headers = {}) {
 	return request({
 		url: "/web/video/get_sts",
-		heade: headers // 将参数放在请求头中
+		headers: headers // 将参数放在请求头中
 	})
 }
 //获取视频列表
@@ -255,6 +255,29 @@ export function apiPostListQuery(data = {}) {
 	return request({
 		url: "/web/post/query",
 		method: "POST",
+		data
+	})
+}
+
+// 获取OSS临时凭证接口（使用现有的apigetsts）
+export function getCOSSecretKey(params = {}) {
+	return apigetsts(params)
+}
+
+// 帖子点赞接口
+export function apiPostLike(data = {}) {
+	return request({
+		url: "/web/post/like_count",
+		method: "POST",
+		data
+	})
+}
+
+// 追加帖子接口
+export function apiPostUpdate(data = {}) {
+	return request({
+		url: "/web/post/update",
+		method: "GET",
 		data
 	})
 }

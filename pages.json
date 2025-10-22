@@ -173,6 +173,14 @@
 			}
 		},
 		{
+			"path": "pages/pattern-predict/pattern-predict",
+			"style": {
+				"navigationBarTitleText": "规律预测",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/dream-interpretation/dream-interpretation",
 			"style": {
 				"navigationBarTitleText": "解梦",

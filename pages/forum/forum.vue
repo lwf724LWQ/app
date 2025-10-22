@@ -80,9 +80,35 @@
     <!-- 搜索栏 -->
     <view class="search-header">
       <text class="search-label">搜索帖子</text>
-      <view class="search-input-wrapper" @click="showFilterModal">
+      <view class="search-input-wrapper">
         <uni-icons type="search" size="16" color="#999"></uni-icons>
-        <input type="text" placeholder="搜索头尾、芝麻、靓规等帖" class="search-input" readonly />
+        <input 
+          type="text" 
+          placeholder="搜索头尾、芝麻、靓规等帖" 
+          class="search-input" 
+          v-model="searchKeyword"
+          @input="handleSearchInput"
+          @focus="showSearchSuggestions = true"
+        />
+        <view v-if="searchKeyword" class="clear-search" @click="clearSearch">
+          <uni-icons type="clear" size="16" color="#999"></uni-icons>
+        </view>
+        <view class="filter-btn" @click="showFilterModal">
+          <uni-icons type="tune" size="16" color="#999"></uni-icons>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 搜索建议下拉框 -->
+    <view v-if="showSearchSuggestions && searchSuggestions.length > 0" class="search-suggestions">
+      <view 
+        class="suggestion-item" 
+        v-for="(suggestion, index) in searchSuggestions" 
+        :key="index"
+        @click="selectSuggestion(suggestion)"
+      >
+        <uni-icons type="search" size="14" color="#999"></uni-icons>
+        <text class="suggestion-text">{{ suggestion }}</text>
       </view>
     </view>
     
@@ -143,8 +169,14 @@
       
       <!-- 预测内容 -->
       <view v-if="activeTab === 'predict'" class="tab-content">
+        <!-- 搜索状态提示 -->
+        <view v-if="isSearching && searchKeyword" class="search-status">
+          <text class="search-status-text">搜索"{{ searchKeyword }}"的结果</text>
+          <text class="search-count">共{{ filteredPredictList.length }}条</text>
+        </view>
+        
         <view class="predict-list">
-          <view class="predict-item" v-for="(item, index) in predictList" :key="index">
+          <view class="predict-item" v-for="(item, index) in (isSearching && searchKeyword ? filteredPredictList : predictList)" :key="index">
             <!-- 帖子头部 -->
             <view class="post-header">
               <view class="user-info">
@@ -171,9 +203,9 @@
             
             <!-- 帖子底部操作 -->
             <view class="post-footer">
-              <view class="action-item">
-                <uni-icons type="hand-up" size="18" color="#999"></uni-icons>
-                <text class="count">{{ item.likes }}</text>
+              <view class="action-item" :class="{ 'liked-disabled': item.isLiked }" @click="handleLike(item)">
+                <uni-icons type="hand-up" size="18" :color="item.isLiked ? '#ff4757' : '#999'"></uni-icons>
+                <text class="count" :class="{ 'liked': item.isLiked }">{{ item.likes }}</text>
                 </view>
               <view class="action-item">
                 <uni-icons type="redo" size="18" color="#999"></uni-icons>
@@ -182,6 +214,10 @@
               <view class="action-item">
                 <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
                 <text class="count">{{ item.comments }}</text>
+                </view>
+              <view class="action-item append-btn" @click="handleAppendPost(item)">
+                <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
+                <text class="count">追帖</text>
                 </view>
               </view>
             </view>
@@ -227,10 +263,7 @@
       <uni-icons type="plus" size="20" color="#fff"></uni-icons>
     </view>
     
-    <!-- 测试期号按钮 -->
-    <view class="test-issue-btn" @click="testIssueAPI">
-      <uni-icons type="gear" size="16" color="#fff"></uni-icons>
-    </view>
+    
     
     
     <!-- 发布弹出层 -->
@@ -296,6 +329,9 @@
       </view>
     </uni-popup>
     
+    <!-- 搜索建议遮罩 -->
+    <view v-if="showSearchSuggestions" class="search-suggestions-mask" @click="showSearchSuggestions = false"></view>
+    
     <!-- 筛选弹窗 -->
     <view v-if="showFilterDialog" class="filter-dialog-mask" @click="hideFilterModal">
       <view class="filter-dialog" @click.stop>
@@ -339,9 +375,14 @@
         
         <!-- 搜索按钮 -->
         <view class="filter-footer">
-          <button class="search-btn" @click="performSearch">
-            {{ getSearchButtonText() }}
-          </button>
+          <view class="filter-buttons">
+            <button class="clear-filter-btn" @click="clearFilterSelection">
+              清空
+            </button>
+            <button class="search-btn" @click="performSearch">
+              {{ getSearchButtonText() }}
+            </button>
+          </view>
         </view>
       </view>
     </view>
@@ -350,7 +391,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { apiGetIssueNo, apiPostListQuery } from '@/api/apis.js'
+import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
+import { getAccount } from '@/utils/request.js'
 
 // 当前选中的标签
 const activeTab = ref('predict')
@@ -374,6 +416,13 @@ const selectedFunction = ref('')
 const showFilterDialog = ref(false)
 const selectedPredictionFilter = ref('') // 心水预测只能选择一个
 const selectedOtherFilter = ref('') // 其他筛选只能选择一个
+
+// 搜索相关
+const searchKeyword = ref('')
+const showSearchSuggestions = ref(false)
+const searchSuggestions = ref([])
+const filteredPredictList = ref([])
+const isSearching = ref(false)
 
 // 心水预测筛选选项
 const predictionFilters = ref([
@@ -511,6 +560,9 @@ onMounted(() => {
     console.error('加载保存的彩票类型失败:', error)
   }
   
+  // 自动保存当前用户头像到本地存储
+  autoSaveCurrentUserAvatar()
+  
   loadLotteryData(currentLotteryType.value.code)
 })
 
@@ -524,8 +576,18 @@ const switchTab = (tab) => {
 // 选择分类标签
 const selectTag = (index) => {
   activeTag.value = index
-  console.log('选择标签:', tags.value[index])
-  // 这里可以根据标签加载不同的帖子
+  const selectedTag = tags.value[index]
+  console.log('选择标签:', selectedTag)
+  
+  // 提取标签内容（去掉#号）
+  const tagContent = selectedTag.replace('#', '')
+  
+  // 设置搜索关键词并执行搜索
+  searchKeyword.value = tagContent
+  performFuzzySearch()
+  
+  // 关闭搜索建议框
+  showSearchSuggestions.value = false
 }
 
 // 切换彩票类型下拉框
@@ -675,9 +737,21 @@ const selectFunction = (type) => {
       })
       break
     case 'pattern':
+      console.log('准备跳转到规律预测页面')
+      // 跳转到规律预测页面
+      uni.navigateTo({
+        url: '/pages/pattern-predict/pattern-predict',
+        success: () => {
+          console.log('跳转成功')
+          hidePublishModal()
+        },
+        fail: (err) => {
+          console.error('跳转失败:', err)
       uni.showToast({
-        title: '跳转到规律帖发布',
+            title: '跳转失败',
         icon: 'none'
+          })
+        }
       })
       break
     case 'filter':
@@ -727,7 +801,131 @@ const toggleOtherFilter = (filter) => {
   }
 }
 
-// 执行搜索
+// 处理搜索输入
+const handleSearchInput = () => {
+  if (searchKeyword.value.trim()) {
+    // 生成搜索建议
+    generateSearchSuggestions()
+    // 执行模糊搜索
+    performFuzzySearch()
+  } else {
+    // 清空搜索
+    clearSearchResults()
+  }
+}
+
+// 生成搜索建议
+const generateSearchSuggestions = () => {
+  const keyword = searchKeyword.value.trim().toLowerCase()
+  const suggestions = []
+  
+  // 从预测筛选选项中生成建议
+  predictionFilters.value.forEach(filter => {
+    if (filter.toLowerCase().includes(keyword)) {
+      suggestions.push(filter)
+    }
+  })
+  
+  // 从其他筛选选项中生成建议
+  otherFilters.value.forEach(filter => {
+    if (filter.toLowerCase().includes(keyword)) {
+      suggestions.push(filter)
+    }
+  })
+  
+  // 限制建议数量
+  searchSuggestions.value = suggestions.slice(0, 5)
+}
+
+// 选择搜索建议
+const selectSuggestion = (suggestion) => {
+  searchKeyword.value = suggestion
+  showSearchSuggestions.value = false
+  performFuzzySearch()
+}
+
+// 清空搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+  showSearchSuggestions.value = false
+  activeTag.value = -1 // 重置标签选中状态
+  clearSearchResults()
+}
+
+// 执行模糊搜索
+const performFuzzySearch = () => {
+  const keyword = searchKeyword.value.trim().toLowerCase()
+  
+  if (!keyword) {
+    clearSearchResults()
+    return
+  }
+  
+  isSearching.value = true
+  
+  // 对预测帖子进行模糊搜索
+  filteredPredictList.value = predictList.value.filter(post => {
+    // 搜索用户名
+    if (post.username && post.username.toLowerCase().includes(keyword)) {
+      return true
+    }
+    
+    // 搜索帖子内容
+    if (post.content && post.content.toLowerCase().includes(keyword)) {
+      return true
+    }
+    
+    // 搜索期号
+    if (post.period && post.period.toString().includes(keyword)) {
+      return true
+    }
+    
+    // 特殊标签搜索逻辑
+    if (keyword === '全部') {
+      return true // 显示所有帖子
+    }
+    
+    if (keyword === '大师' || keyword === '大师帖子') {
+      // 搜索包含"大师"关键词的帖子
+      return post.content && post.content.toLowerCase().includes('大师')
+    }
+    
+    if (keyword === '靓规贴' || keyword === '靓规贴子') {
+      // 搜索包含"靓规"关键词的帖子
+      return post.content && post.content.toLowerCase().includes('靓规')
+    }
+    
+    if (keyword === '过滤王') {
+      // 搜索包含"过滤王"关键词的帖子
+      return post.content && post.content.toLowerCase().includes('过滤王')
+    }
+    
+    if (keyword === '点赞最多') {
+      // 按点赞数排序（这里简化处理，实际可以按likes字段排序）
+      return post.likes > 0
+    }
+    
+    return false
+  })
+  
+  // 如果是"点赞最多"标签，按点赞数排序
+  if (keyword === '点赞最多') {
+    filteredPredictList.value.sort((a, b) => b.likes - a.likes)
+  }
+  
+  uni.showToast({
+    title: `找到${filteredPredictList.value.length}条结果`,
+    icon: 'success'
+  })
+}
+
+// 清空搜索结果
+const clearSearchResults = () => {
+  filteredPredictList.value = []
+  isSearching.value = false
+}
+
+// 执行筛选搜索
 const performSearch = () => {
   const filters = []
   if (selectedPredictionFilter.value) {
@@ -737,9 +935,9 @@ const performSearch = () => {
     filters.push(selectedOtherFilter.value)
   }
   
-  console.log('执行搜索，选中的筛选条件:', filters)
+  console.log('执行筛选搜索，选中的筛选条件:', filters)
   
-  // 这里可以根据选中的筛选条件进行搜索
+  // 检查是否选择了筛选条件
   if (filters.length === 0) {
     uni.showToast({
       title: '请选择筛选条件',
@@ -748,16 +946,112 @@ const performSearch = () => {
     return
   }
   
+  // 设置搜索关键词
+  searchKeyword.value = filters.join('+')
+  
+  // 执行筛选搜索
+  performFilterSearch(filters)
+  
+  // 关闭筛选弹窗
+  hideFilterModal()
+  
+  // 重置标签选中状态
+  activeTag.value = -1
+  
   uni.showToast({
     title: `搜索${filters.join('+')}`,
     icon: 'success'
   })
+}
+
+// 执行筛选搜索的具体逻辑
+const performFilterSearch = (filters) => {
+  isSearching.value = true
   
-  // 关闭弹窗
-  hideFilterModal()
+  // 对预测帖子进行筛选搜索
+  filteredPredictList.value = predictList.value.filter(post => {
+    let matches = false
+    
+    // 检查心水预测筛选条件
+    if (selectedPredictionFilter.value) {
+      const predictionFilter = selectedPredictionFilter.value.toLowerCase()
+      
+      // 在帖子内容中搜索匹配的筛选条件
+      if (post.content && post.content.toLowerCase().includes(predictionFilter)) {
+        matches = true
+      }
+      
+      // 特殊处理一些筛选条件
+      if (predictionFilter === '头尾' && post.content && 
+          (post.content.includes('头') || post.content.includes('尾'))) {
+        matches = true
+      }
+      
+      if (predictionFilter === '芝麻' && post.content && 
+          post.content.includes('芝麻')) {
+        matches = true
+      }
+      
+      if (predictionFilter === '中肚' && post.content && 
+          post.content.includes('中肚')) {
+        matches = true
+      }
+      
+      if (predictionFilter.includes('定') && post.content && 
+          post.content.includes('定')) {
+        matches = true
+      }
+      
+      if (predictionFilter.includes('杀') && post.content && 
+          post.content.includes('杀')) {
+        matches = true
+      }
+      
+      if (predictionFilter.includes('合') && post.content && 
+          post.content.includes('合')) {
+        matches = true
+      }
+      
+      if (predictionFilter.includes('过滤王') && post.content && 
+          post.content.includes('过滤王')) {
+        matches = true
+      }
+    }
+    
+    // 检查其他筛选条件
+    if (selectedOtherFilter.value) {
+      const otherFilter = selectedOtherFilter.value.toLowerCase()
+      
+      if (otherFilter === '大师帖子' && post.content && 
+          post.content.includes('大师')) {
+        matches = true
+      }
+      
+      if (otherFilter === '靓规贴子' && post.content && 
+          post.content.includes('靓规')) {
+        matches = true
+      }
+      
+      if (otherFilter === '点赞最多' && post.likes > 0) {
+        matches = true
+      }
+      
+      if (otherFilter === '讨论最热' && post.comments > 0) {
+        matches = true
+      }
+    }
+    
+    return matches
+  })
   
-  // 这里可以调用搜索API
-  // searchPosts(filters)
+  // 如果是"点赞最多"或"讨论最热"，按相应字段排序
+  if (selectedOtherFilter.value === '点赞最多') {
+    filteredPredictList.value.sort((a, b) => b.likes - a.likes)
+  } else if (selectedOtherFilter.value === '讨论最热') {
+    filteredPredictList.value.sort((a, b) => b.comments - a.comments)
+  }
+  
+  console.log(`筛选搜索完成，找到${filteredPredictList.value.length}条结果`)
 }
 
 // 获取搜索按钮文本
@@ -792,19 +1086,56 @@ const loadPredictPosts = async () => {
     if (response.code === 200) {
       if (response.data && response.data.records && Array.isArray(response.data.records)) {
         predictList.value = response.data.records.map((post) => {
+          const postId = post.id
+          
+          // 检查postId是否有效
+          if (!postId) {
+            return null // 跳过无效的帖子
+          }
+          
+		  
+		 
+		  
+          // 检查当前用户是否点赞过这个帖子
+          const currentAccount = getAccount()
+          const userLikedKey = `${postId}_${currentAccount}`
+          const isLiked = getLikedStatus(userLikedKey)
+          
+          // 使用服务器返回的点赞数
+          const serverLikeCount = post.likeCount || 0
+          
+          // 处理用户头像
+          let userAvatar = 'http://video.caimizm.com/himg/user.png'
+          
+          if (post.pimg) {
+            // 如果帖子中有头像信息，使用帖子的头像
+            userAvatar = post.pimg.startsWith('http') ? post.pimg : `http://video.caimizm.com/himg/${post.pimg}`
+            // 保存这个用户的头像信息
+            saveUserAvatar(post.account, userAvatar)
+          } else {
+            // 使用getUserAvatar函数获取头像
+            userAvatar = getUserAvatar(post.account)
+          }
+          
+          
           return {
-            id: post.id,
+            id: postId,
             username: post.account || '匿名用户',
-            avatar: post.pimg ? (post.pimg.startsWith('http') ? post.pimg : `http://video.caimizm.com/himg/${post.pimg}`) : '/static/images/defaultAvatar.png',
+            avatar: userAvatar, // 使用处理后的头像
             time: formatTime(post.createTime),
             status: '预测中',
             period: post.issueno || currentIssueInfo.value.number,
             content: post.content || '',
-            likes: post.likeCount || 0,
+            likes: serverLikeCount, // 使用服务器返回的点赞数
             comments: post.comment || 0,
-            shares: 0
+            shares: 0,
+            isLiked: isLiked, // 检查当前用户是否点赞过
+            isLiking: false // 点赞中状态
           }
         })
+        
+        // 过滤掉无效的帖子
+        predictList.value = predictList.value.filter(post => post !== null)
       } else {
         predictList.value = []
       }
@@ -816,11 +1147,82 @@ const loadPredictPosts = async () => {
   }
 }
 
-// 解析预测内容
-const parsePredictionContent = (content) => {
-  // 这里可以根据实际的内容格式来解析预测数据
-  // 暂时返回空对象，后续可以根据实际数据结构调整
-  return {}
+// 获取本地存储的点赞状态和数字
+const getLikedStatus = (postId) => {
+  try {
+    const likedPosts = uni.getStorageSync('likedPosts') || {}
+    return likedPosts[postId] || false
+  } catch (error) {
+    return false
+  }
+}
+
+// 获取本地存储的点赞数字
+const getLikedCount = (postId) => {
+  try {
+    const likedCounts = uni.getStorageSync('likedCounts') || {}
+    return likedCounts[postId] || 0
+  } catch (error) {
+    return 0
+  }
+}
+
+// 保存点赞状态到本地存储
+const saveLikedStatus = (postId, isLiked) => {
+  try {
+    const likedPosts = uni.getStorageSync('likedPosts') || {}
+    likedPosts[postId] = isLiked
+    uni.setStorageSync('likedPosts', likedPosts)
+  } catch (error) {
+    // 静默处理错误
+  }
+}
+
+// 保存点赞数字到本地存储
+const saveLikedCount = (postId, count) => {
+  try {
+    const likedCounts = uni.getStorageSync('likedCounts') || {}
+    likedCounts[postId] = count
+    uni.setStorageSync('likedCounts', likedCounts)
+  } catch (error) {
+    // 静默处理错误
+  }
+}
+
+// 获取用户头像
+const getUserAvatar = (account) => {
+  try {
+    // 如果是当前登录用户，使用登录数据中的头像
+    const currentAccount = getAccount()
+    if (account === currentAccount) {
+      const loginData = uni.getStorageSync('loginData') || {}
+      if (loginData.himg) {
+        return loginData.himg
+      }
+    }
+    
+    // 对于其他用户，尝试从本地存储中获取他们的头像
+    const userAvatars = uni.getStorageSync('userAvatars') || {}
+    if (userAvatars[account]) {
+      return userAvatars[account]
+    }
+    
+    // 如果都没有，使用默认头像
+    return 'http://video.caimizm.com/himg/user.png'
+  } catch (error) {
+    return 'http://video.caimizm.com/himg/user.png'
+  }
+}
+
+// 保存用户头像信息
+const saveUserAvatar = (account, avatarUrl) => {
+  try {
+    const userAvatars = uni.getStorageSync('userAvatars') || {}
+    userAvatars[account] = avatarUrl
+    uni.setStorageSync('userAvatars', userAvatars)
+  } catch (error) {
+    // 静默处理错误
+  }
 }
 
 // 格式化时间
@@ -841,67 +1243,251 @@ const formatTime = (timeStr) => {
   }
 }
 
-// 测试期号API
-const testIssueAPI = async () => {
-  try {
-    console.log('=== 开始测试期号API ===')
-    console.log('当前彩票类型:', currentLotteryType.value)
-    
-    uni.showLoading({ title: '测试中...' })
-    
-    const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
-    
-    uni.hideLoading()
-    
-    console.log('=== 期号API测试结果 ===')
-    console.log('请求参数:', { cpid: currentLotteryType.value.id })
-    console.log('响应状态码:', response.code)
-    console.log('响应消息:', response.msg)
-    console.log('完整响应:', response)
-    
-    if (response.code === 200) {
-      console.log('✅ 期号API调用成功')
-      console.log('响应数据结构:', {
-        hasData: !!response.data,
-        dataType: typeof response.data,
-        dataKeys: response.data ? Object.keys(response.data) : []
-      })
+// 清空筛选选择
+const clearFilterSelection = () => {
+  selectedPredictionFilter.value = ''
+  selectedOtherFilter.value = ''
+  
+  uni.showToast({
+    title: '已清空筛选条件',
+    icon: 'success'
+  })
+}
+
+  // 处理帖子点赞
+  const handleLike = async (post) => {
+    try {
+      // 防止重复点击
+      if (post.isLiking) {
+        return
+      }
       
-      if (response.data) {
-        console.log('期号数据详情:', response.data)
-        console.log('期号字段值:', {
-          issueno: response.data.issueno,
-          number: response.data.number,
-          id: response.data.id,
-          status: response.data.status,
-          time: response.data.time
+      // 检查当前用户是否已经点赞过这个帖子
+      const currentAccount = getAccount()
+      const userLikedKey = `${post.id}_${currentAccount}`
+      const hasUserLiked = getLikedStatus(userLikedKey)
+      
+      if (hasUserLiked) {
+        uni.showToast({
+          title: '你已经点赞过了',
+          icon: 'none'
+        })
+        return
+      }
+      
+      // 检查postId是否有效
+      if (!post.id) {
+        uni.showToast({
+          title: '帖子数据异常，无法点赞',
+          icon: 'none'
+        })
+        return
+      }
+      
+      post.isLiking = true
+      
+      // 调用点赞接口
+      const likeData = {
+        postId: post.id,
+        account: currentAccount // 使用当前登录用户账号
+      }
+      
+      const response = await apiPostLike(likeData)
+      
+      if (response.code === 200) {
+        // 点赞成功，更新状态
+        post.isLiked = true
+        post.likes += 1
+        
+        // 保存当前用户对这个帖子的点赞状态
+        saveLikedStatus(userLikedKey, true)
+        
+        uni.showToast({
+          title: response.msg || '点赞成功',
+          icon: 'success'
         })
         
-        // 更新期号信息
-        currentIssueInfo.value = {
-          id: response.data.id || null,
-          number: response.data.issueno || response.data.number || null,
-          status: response.data.status || '待开奖',
-          time: response.data.time || '今天 21:30'
-        }
+        // 更新列表中的对应帖子
+        updatePostInList(post)
         
-        console.log('更新后的期号信息:', currentIssueInfo.value)
-        
-        uni.showToast({ title: '期号API测试成功', icon: 'success' })
       } else {
-        console.log('⚠️ 响应中没有data字段')
-        uni.showToast({ title: '响应无数据', icon: 'none' })
+        uni.showToast({
+          title: response.msg || '点赞失败',
+          icon: 'none'
+        })
       }
-    } else {
-      console.log('❌ 期号API调用失败:', response.msg)
-      uni.showToast({ title: `测试失败: ${response.msg}`, icon: 'none' })
+      
+    } catch (error) {
+      uni.showToast({
+        title: '网络错误，请重试',
+        icon: 'none'
+      })
+    } finally {
+      post.isLiking = false
     }
-  } catch (error) {
-    uni.hideLoading()
-    console.error('❌ 期号API测试异常:', error)
-    uni.showToast({ title: '测试异常', icon: 'none' })
+  }
+
+// 更新列表中的帖子数据
+const updatePostInList = (updatedPost) => {
+  // 更新原始列表
+  const originalIndex = predictList.value.findIndex(p => p.id === updatedPost.id)
+  if (originalIndex !== -1) {
+    predictList.value[originalIndex] = { ...updatedPost }
+  }
+  
+  // 更新筛选列表
+  const filteredIndex = filteredPredictList.value.findIndex(p => p.id === updatedPost.id)
+  if (filteredIndex !== -1) {
+    filteredPredictList.value[filteredIndex] = { ...updatedPost }
   }
 }
+
+// 自动保存当前用户头像到本地存储
+const autoSaveCurrentUserAvatar = () => {
+  try {
+    const loginData = uni.getStorageSync('loginData') || {}
+    const currentAccount = getAccount()
+    
+    if (loginData.himg && currentAccount) {
+      const userAvatars = uni.getStorageSync('userAvatars') || {}
+      if (!userAvatars[currentAccount]) {
+        userAvatars[currentAccount] = loginData.himg
+        uni.setStorageSync('userAvatars', userAvatars)
+      }
+    }
+  } catch (error) {
+    // 静默处理错误
+  }
+}
+
+// 处理追帖按钮点击
+const handleAppendPost = (post) => {
+  try {
+    console.log('=== 追帖按钮点击 ===')
+    console.log('帖子信息:', post)
+    
+    // 检查帖子ID是否有效
+    if (!post.id) {
+      uni.showToast({
+        title: '帖子数据异常，无法追帖',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 检查是否是当前用户自己的帖子
+    const currentAccount = getAccount()
+    if (post.username === currentAccount) {
+      uni.showModal({
+        title: '追帖确认',
+        content: `确定要对帖子"第${post.period}期"进行追帖吗？`,
+        confirmText: '确定追帖',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到追帖页面
+            navigateToAppendPost(post)
+          }
+        }
+      })
+    } else {
+      uni.showToast({
+        title: '只能追帖自己的帖子',
+        icon: 'none'
+      })
+    }
+    
+  } catch (error) {
+    console.error('追帖按钮点击处理失败:', error)
+    uni.showToast({
+      title: '操作失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 跳转到追帖页面
+const navigateToAppendPost = (post) => {
+  try {
+    console.log('=== 跳转到追帖页面 ===')
+    console.log('帖子ID:', post.id)
+    console.log('帖子内容:', post.content)
+    
+    // 从帖子内容中提取方案信息
+    let schemeId = extractSchemeFromContent(post.content)
+    
+    console.log('提取的方案ID:', schemeId)
+    
+    // 保存帖子信息到本地存储，供predict-scheme.vue使用
+    const appendPostData = {
+      postId: post.id,
+      schemeId: schemeId,
+      postContent: post.content,
+      period: post.period,
+      timestamp: Date.now()
+    }
+    
+    uni.setStorageSync('appendPostData', appendPostData)
+    
+    // 跳转到方案设置页面，让用户选择要追加的方案
+    uni.navigateTo({
+      url: '/pages/predict-scheme/predict-scheme',
+      success: () => {
+        console.log('跳转到方案设置页面成功')
+        uni.showToast({
+          title: '请选择要追加的方案',
+          icon: 'success'
+        })
+      },
+      fail: (err) => {
+        console.error('跳转到方案设置页面失败:', err)
+        uni.showToast({
+          title: '跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+    
+  } catch (error) {
+    console.error('跳转到追帖页面失败:', error)
+    uni.showToast({
+      title: '跳转失败',
+      icon: 'none'
+    })
+  }
+}
+
+// 从帖子内容中提取方案ID
+const extractSchemeFromContent = (content) => {
+  try {
+    if (!content) return ''
+    
+    // 常见的方案类型列表
+    const schemeTypes = [
+      '头尾', '中肚', 'ABXX', 'AXCX', 'XBXD', 'XXCD', 'ABCX', 'ABXD', 'AXCD', 'XBCD',
+      '芝麻', '二字现', '三字现', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾',
+      '稳码', '头尾合', '中肚合', '千百合', '千十合', '百个合', '十个合', '死数',
+      '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合'
+    ]
+    
+    // 在内容中查找方案类型
+    for (const scheme of schemeTypes) {
+      if (content.includes(scheme)) {
+        console.log(`在内容中找到方案: ${scheme}`)
+        return scheme
+      }
+    }
+    
+    // 如果没有找到具体方案，返回空字符串
+    console.log('未在内容中找到具体方案')
+    return ''
+    
+  } catch (error) {
+    console.error('提取方案ID失败:', error)
+    return ''
+  }
+}
+
 
 </script>
 
@@ -1142,6 +1728,90 @@ const testIssueAPI = async () => {
   border: none;
 }
 
+.clear-search, .filter-btn {
+  width: 32rpx;
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12rpx;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.clear-search:active, .filter-btn:active {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 搜索建议遮罩 */
+.search-suggestions-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: 999;
+}
+
+/* 搜索建议下拉框 */
+.search-suggestions {
+  position: fixed;
+  top: 256rpx;
+  left: 30rpx;
+  right: 30rpx;
+  background-color: #fff;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:active {
+  background-color: #f8f8f8;
+}
+
+.suggestion-text {
+  margin-left: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+/* 搜索状态提示 */
+.search-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.search-status-text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.search-count {
+  font-size: 24rpx;
+  color: #28B389;
+  font-weight: 500;
+}
+
 /* 分类标签栏 */
 .category-tags {
   position: fixed;
@@ -1171,11 +1841,22 @@ const testIssueAPI = async () => {
   font-size: 22rpx;
   color: #666;
   white-space: nowrap;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .tag-item.active {
   background-color: #ff4757;
   color: #fff;
+}
+
+.tag-item:active {
+  transform: scale(0.95);
+  background-color: #e0e0e0;
+}
+
+.tag-item.active:active {
+  background-color: #e63946;
 }
 
 .forum-content {
@@ -1389,6 +2070,39 @@ const testIssueAPI = async () => {
   margin-left: 8rpx;
 }
 
+.action-item .count.liked {
+  color: #ff4757;
+  font-weight: 600;
+}
+
+.action-item:active {
+  opacity: 0.7;
+}
+
+.action-item.liked-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-item.liked-disabled:active {
+  opacity: 0.6; /* 保持禁用状态，不响应点击效果 */
+}
+
+/* 追帖按钮样式 */
+.action-item.append-btn {
+  color: #28B389;
+}
+
+.action-item.append-btn .count {
+  color: #28B389;
+  font-weight: 500;
+}
+
+.action-item.append-btn:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
 .no-posts-tip {
   text-align: center;
   padding: 40rpx;
@@ -1441,26 +2155,6 @@ const testIssueAPI = async () => {
 }
 
 .publish-btn:active {
-  transform: scale(0.95);
-}
-
-/* 测试期号按钮 */
-.test-issue-btn {
-  position: fixed;
-  right: 30rpx;
-  bottom: 240rpx;
-  width: 80rpx;
-  height: 80rpx;
-  background-color: #ff6b35;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
-  z-index: 999;
-}
-
-.test-issue-btn:active {
   transform: scale(0.95);
 }
 
@@ -1726,8 +2420,28 @@ const testIssueAPI = async () => {
   text-align: center;
 }
 
+.filter-buttons {
+  display: flex;
+  gap: 20rpx;
+}
+
+.clear-filter-btn {
+  flex: 1;
+  height: 80rpx;
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1rpx solid #ddd;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.clear-filter-btn:active {
+  background-color: #e0e0e0;
+}
+
 .search-btn {
-  width: 100%;
+  flex: 2;
   height: 80rpx;
   background-color: #ff4757;
   color: #fff;
@@ -1736,4 +2450,9 @@ const testIssueAPI = async () => {
   font-size: 32rpx;
   font-weight: 600;
 }
+
+.search-btn:active {
+  background-color: #e63946;
+}
+
 </style>

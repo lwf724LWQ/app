@@ -5,7 +5,7 @@
         <view class="avatar-section">
           <view class="avatar">
             <image 
-              src="http://video.caimizm.com/himg/user.png" 
+              :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'" 
               mode="aspectFill"
               @error="handleAvatarError"
             ></image>
@@ -173,6 +173,9 @@ const userBalance = ref(0)
 // 处理头像加载错误
 const handleAvatarError = (e) => {
   // 头像加载失败时使用默认头像
+  if (memberStore.profile) {
+    memberStore.profile.avatar = 'http://video.caimizm.com/himg/user.png'
+  }
 }
 
 // 获取用户金币余额
@@ -210,8 +213,8 @@ const checkLoginStatus = async () => {
       // 优先使用登录时保存的完整数据
       if (loginData.uname || loginData.account) {
         memberStore.profile = {
-          avatar: loginData.himg || 'http://video.caimizm.com/himg/user.png', // himg 是头像
-          nickname: loginData.uname || '欢迎您' // uname 是昵称
+          avatar: loginData.himg || savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png', // 优先使用himg，然后是本地保存的头像
+          nickname: loginData.uname || savedUserInfo.nickname || '欢迎您' // uname 是昵称
         };
       } else {
         // 如果没有登录数据，使用本地存储的用户信息

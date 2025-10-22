@@ -6,8 +6,16 @@
         <view class="nav-left" @click="goBack">
           <text class="back-arrow">‹</text>
         </view>
-        <text class="nav-title">设置方案</text>
+        <text class="nav-title">{{ isAppendMode ? '追帖方案' : '设置方案' }}</text>
         <view class="nav-right"></view>
+      </view>
+    </view>
+    
+    <!-- 追帖模式提示 -->
+    <view v-if="isAppendMode && appendPostData" class="append-mode-tip">
+      <view class="tip-content">
+        <uni-icons type="info" size="16" color="#28B389"></uni-icons>
+        <text class="tip-text">追帖模式：为帖子"第{{ appendPostData.period }}期"追加方案</text>
       </view>
     </view>
     
@@ -18,17 +26,29 @@
         <scroll-view scroll-y class="menu-scroll">
           <view 
             class="menu-item" 
-            :class="{ active: activeScheme === scheme.id }"
+            :class="{ 
+              active: activeScheme === scheme.id,
+              published: isSchemePublished(scheme.id),
+              disabled: isSchemePublished(scheme.id)
+            }"
             v-for="scheme in schemeList" 
             :key="scheme.id"
             @click="selectScheme(scheme.id)"
           >
             <text class="menu-text">{{ scheme.name }}</text>
+            <view class="menu-icons">
             <uni-icons v-if="activeScheme === scheme.id" type="checkmarkempty" size="16" color="#ff4757"></uni-icons>
+              <uni-icons v-if="isSchemePublished(scheme.id)" type="checkmarkempty" size="16" color="#28B389"></uni-icons>
+            </view>
           </view>
           <!-- 底部标签 -->
           <view class="menu-footer">
             <text class="footer-text">方案列表</text>
+            <!-- 测试按钮 -->
+            <view class="test-buttons">
+              <button class="test-btn" @click="testPublishedScheme">获取已发布</button>
+              <button class="test-btn" @click="clearTestData">清除数据</button>
+            </view>
           </view>
         </scroll-view>
       </view>
@@ -295,10 +315,6 @@
       <text class="btn-step">{{ publishButtonText }}</text>
     </view>
     
-    <!-- 测试期号按钮 -->
-    <view class="test-issue-btn" @click="testIssueAPI">
-      <uni-icons type="gear" size="16" color="#fff"></uni-icons>
-    </view>
     
     <!-- 保存提示弹窗 -->
     <view v-if="showSaveDialog" class="save-dialog-mask" @click="dontSaveScheme">
@@ -360,7 +376,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { apiGetIssueNo } from '@/api/apis.js'
+import { apiGetIssueNo, apiPostListQuery } from '@/api/apis.js'
 
 // 当前选中的方案
 const activeScheme = ref('AXCX')
@@ -549,12 +565,269 @@ const currentSchemeDigits = computed(() => {
   return getSchemeDigits(activeScheme.value)
 })
 
+// 已发布的方案列表（用于禁用已发布的方案）
+const publishedSchemes = ref([])
+
+// 追帖模式相关
+const isAppendMode = ref(false)
+const appendPostData = ref(null)
+
+// 检查方案是否已发布
+const isSchemePublished = (schemeId) => {
+  return publishedSchemes.value.includes(schemeId)
+}
+
+// 检查是否进入追帖模式
+const checkAppendMode = () => {
+  try {
+    const savedAppendData = uni.getStorageSync('appendPostData')
+    if (savedAppendData && savedAppendData.postId) {
+      isAppendMode.value = true
+      appendPostData.value = savedAppendData
+      
+      console.log('=== 进入追帖模式 ===')
+      console.log('追帖数据:', savedAppendData)
+      
+      // 显示追帖模式提示
+      uni.showModal({
+        title: '追帖模式',
+        content: `正在为帖子"第${savedAppendData.period}期"追加方案\n\n已发布的方案将被禁用，请选择其他方案进行追加。`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      // 在追帖模式下，直接使用追帖数据设置已发布方案
+      const today = new Date().toDateString()
+      const publishedSchemes = []
+      const publishedPosts = {}
+      
+      // 从追帖数据中提取方案信息
+      const schemeId = savedAppendData.schemeId
+      if (schemeId) {
+        publishedSchemes.push(schemeId)
+        publishedPosts[schemeId] = savedAppendData.postId
+      }
+      
+      // 保存到本地存储
+      uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
+      uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+      
+      // 重新加载已发布方案
+      loadPublishedSchemes()
+      
+      console.log('追帖模式 - 已发布的方案:', publishedSchemes)
+      console.log('追帖模式 - 已发布的帖子映射:', publishedPosts)
+    }
+  } catch (error) {
+    console.error('检查追帖模式失败:', error)
+  }
+}
+
+// 测试函数：获取用户已发布的帖子
+const testPublishedScheme = async () => {
+  try {
+    uni.showLoading({ title: '获取已发布帖子...' })
+    
+    // 调用接口获取用户已发布的帖子
+    const response = await apiPostListQuery({
+      page: 1,
+      size: 20,
+      account: uni.getStorageSync('account') || ''
+    })
+    
+    uni.hideLoading()
+    
+    if (response.code === 200 && response.data && response.data.records) {
+      const today = new Date().toDateString()
+      const publishedSchemes = []
+      const publishedPosts = {}
+      
+      // 处理返回的帖子数据
+      response.data.records.forEach(post => {
+        if (post.content && post.content.includes('预测方案')) {
+          // 从帖子内容中提取方案信息
+          const content = post.content
+          
+          // 检查是否包含特定方案
+          if (content.includes('中肚')) {
+            publishedSchemes.push('中肚')
+            publishedPosts['中肚'] = post.id
+          }
+          if (content.includes('头尾')) {
+            publishedSchemes.push('头尾')
+            publishedPosts['头尾'] = post.id
+          }
+          if (content.includes('定头')) {
+            publishedSchemes.push('定头')
+            publishedPosts['定头'] = post.id
+          }
+          if (content.includes('定百')) {
+            publishedSchemes.push('定百')
+            publishedPosts['定百'] = post.id
+          }
+          if (content.includes('定十')) {
+            publishedSchemes.push('定十')
+            publishedPosts['定十'] = post.id
+          }
+          if (content.includes('定尾')) {
+            publishedSchemes.push('定尾')
+            publishedPosts['定尾'] = post.id
+          }
+        }
+      })
+      
+      // 保存到本地存储
+      uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
+      uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+      
+      // 重新加载已发布方案
+      loadPublishedSchemes()
+      
+      uni.showToast({
+        title: `找到 ${publishedSchemes.length} 个已发布方案`,
+        icon: 'success'
+      })
+      
+      console.log('已发布的方案:', publishedSchemes)
+      console.log('已发布的帖子映射:', publishedPosts)
+      
+    } else {
+      // 接口返回失败，使用备用方案
+      handleApiFailure()
+    }
+    
+  } catch (error) {
+    uni.hideLoading()
+    console.error('获取已发布帖子失败:', error)
+    
+    // 接口调用失败，使用备用方案
+    handleApiFailure()
+  }
+}
+
+// 处理接口失败的情况
+const handleApiFailure = () => {
+  try {
+    console.log('=== 使用备用方案处理已发布帖子 ===')
+    
+    // 如果是追帖模式，从追帖数据中提取已发布的方案
+    if (isAppendMode.value && appendPostData.value) {
+      const today = new Date().toDateString()
+      const publishedSchemes = []
+      const publishedPosts = {}
+      
+      // 从追帖数据中提取方案信息
+      const schemeId = appendPostData.value.schemeId
+      if (schemeId) {
+        publishedSchemes.push(schemeId)
+        publishedPosts[schemeId] = appendPostData.value.postId
+      }
+      
+      // 保存到本地存储
+      uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
+      uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+      
+      // 重新加载已发布方案
+      loadPublishedSchemes()
+      
+      uni.showToast({
+        title: `追帖模式：已识别 ${schemeId} 方案`,
+        icon: 'success'
+      })
+      
+      console.log('备用方案 - 已发布的方案:', publishedSchemes)
+      console.log('备用方案 - 已发布的帖子映射:', publishedPosts)
+      
+    } else {
+      // 非追帖模式，显示提示信息
+      uni.showModal({
+        title: '获取已发布帖子失败',
+        content: '无法获取已发布的帖子信息，可能的原因：\n1. 网络连接问题\n2. 服务器暂时不可用\n3. 账号权限问题\n\n是否继续使用本地数据？',
+        confirmText: '继续',
+        cancelText: '重试',
+        success: (res) => {
+          if (res.confirm) {
+            // 使用本地存储的数据
+            loadPublishedSchemes()
+            uni.showToast({
+              title: '使用本地数据',
+              icon: 'success'
+            })
+          } else {
+            // 重试获取
+            setTimeout(() => {
+              testPublishedScheme()
+            }, 1000)
+          }
+        }
+      })
+    }
+    
+  } catch (error) {
+    console.error('处理接口失败情况时出错:', error)
+    uni.showToast({
+      title: '操作失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 清除测试数据
+const clearTestData = () => {
+  const today = new Date().toDateString()
+  uni.removeStorageSync(`publishedSchemes_${today}`)
+  uni.removeStorageSync(`publishedPosts_${today}`)
+  
+  publishedSchemes.value = []
+  
+  uni.showToast({
+    title: '已清除测试数据',
+    icon: 'success'
+  })
+}
+
+// 获取已发布的方案列表
+const loadPublishedSchemes = async () => {
+  try {
+    const today = new Date().toDateString()
+    const publishedData = uni.getStorageSync(`publishedSchemes_${today}`) || []
+    publishedSchemes.value = publishedData
+    
+    console.log('已发布的方案:', publishedSchemes.value)
+    
+    // 如果有已发布的方案，显示提示
+    if (publishedSchemes.value.length > 0) {
+      console.log('检测到已发布的方案:', publishedSchemes.value.join(', '))
+    }
+  } catch (error) {
+    console.error('加载已发布方案失败:', error)
+  }
+}
+
 // 选择方案
 const selectScheme = (schemeId) => {
+  console.log('=== 选择方案调试信息 ===')
+  console.log('选择的方案ID:', schemeId)
+  console.log('当前已发布方案:', publishedSchemes.value)
+  console.log('方案是否已发布:', isSchemePublished(schemeId))
+  
   // 如果是同一个方案，直接返回
   if (schemeId === activeScheme.value) {
     return
   }
+  
+  // 检查方案是否已发布 - 已发布的方案无法选择
+  if (isSchemePublished(schemeId)) {
+    console.log('方案已发布，无法选择')
+    uni.showToast({
+      title: '该方案今天已发布过，无法重复选择',
+      icon: 'none',
+      duration: 2000
+    })
+    return
+  }
+  
+  console.log('方案未发布，正常选择方案')
   
   // 如果当前方案有更改，显示保存提示
   if (hasChanges.value) {
@@ -565,6 +838,60 @@ const selectScheme = (schemeId) => {
   
   // 没有更改，直接切换
   switchToScheme(schemeId)
+}
+
+// 进入追帖模式
+const enterAppendMode = (schemeId) => {
+  try {
+    console.log('=== 进入追帖模式调试信息 ===')
+    console.log('方案ID:', schemeId)
+    
+    // 获取该方案对应的帖子ID
+    const today = new Date().toDateString()
+    const publishedPosts = uni.getStorageSync(`publishedPosts_${today}`) || {}
+    const postId = publishedPosts[schemeId]
+    
+    console.log('今天日期:', today)
+    console.log('已发布的帖子映射:', publishedPosts)
+    console.log('获取到的帖子ID:', postId)
+    
+    if (!postId) {
+      console.log('未找到对应的帖子ID')
+      uni.showToast({
+        title: '未找到对应的帖子ID',
+        icon: 'none'
+      })
+      return
+    }
+    
+    console.log('进入追帖模式，帖子ID:', postId)
+    console.log('准备跳转到URL:', `/pages/predict-publish/predict-publish?postId=${postId}&schemeId=${schemeId}`)
+    
+    // 跳转到预测发布页面，传递帖子ID
+    uni.navigateTo({
+      url: `/pages/predict-publish/predict-publish?postId=${postId}&schemeId=${schemeId}`,
+      success: () => {
+        console.log('跳转成功')
+        uni.showToast({
+          title: '进入追帖模式',
+          icon: 'success'
+        })
+      },
+      fail: (err) => {
+        console.log('跳转失败:', err)
+        uni.showToast({
+          title: '跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+  } catch (error) {
+    console.error('进入追帖模式失败:', error)
+    uni.showToast({
+      title: '进入追帖模式失败',
+      icon: 'none'
+    })
+  }
 }
 
 // 切换到指定方案
@@ -1241,18 +1568,119 @@ const goToPublish = () => {
     return
   }
   
+  // 如果是追帖模式，直接进入追帖流程
+  if (isAppendMode.value && appendPostData.value) {
+    proceedToAppendPost()
+    return
+  }
+  
+  // 检查是否有已发布的方案需要追帖
+  const publishedSchemesInCurrent = addedSchemes.value.filter(scheme => 
+    isSchemePublished(scheme.id)
+  )
+  
+  // 如果所有选择的方案都没有发布过，直接发新帖
+  if (publishedSchemesInCurrent.length === 0) {
+    proceedToPublish()
+    return
+  }
+  
+  // 如果有已发布的方案，提示用户选择处理方式
+  const publishedNames = publishedSchemesInCurrent.map(s => s.name).join('、')
+  uni.showModal({
+    title: '检测到已发布方案',
+    content: `以下方案今天已发布过：${publishedNames}\n\n选择处理方式：`,
+    confirmText: '进入追帖模式',
+    cancelText: '继续发新帖',
+    success: (res) => {
+      if (res.confirm) {
+        // 进入追帖模式 - 跳转到第一个已发布方案的追帖
+        const firstPublishedScheme = publishedSchemesInCurrent[0]
+        enterAppendMode(firstPublishedScheme.id)
+      } else {
+        // 继续发新帖
+        proceedToPublish()
+      }
+    }
+  })
+}
+
+// 处理追帖发布
+const proceedToAppendPost = () => {
+  try {
+    console.log('=== 处理追帖发布 ===')
+    console.log('追帖数据:', appendPostData.value)
+    console.log('添加的方案:', addedSchemes.value)
+    
+    if (!appendPostData.value || !appendPostData.value.postId) {
+      uni.showToast({
+        title: '追帖数据异常',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 准备传递的数据
+    const publishData = {
+      schemes: addedSchemes.value,
+      lotteryType: currentLotteryType.value,
+      issueInfo: currentIssueInfo.value,
+      appendMode: true,
+      appendPostData: appendPostData.value
+    }
+    
+    // 跳转到预测发布页面，进入追帖模式
+  uni.navigateTo({
+      url: `/pages/predict-publish/predict-publish?data=${encodeURIComponent(JSON.stringify(publishData))}&postId=${appendPostData.value.postId}`,
+      success: () => {
+        console.log('跳转到追帖发布页面成功')
+        // 清除追帖数据
+        uni.removeStorageSync('appendPostData')
+      },
+      fail: (err) => {
+        console.error('跳转到追帖发布页面失败:', err)
+        uni.showToast({
+          title: '跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+    
+  } catch (error) {
+    console.error('处理追帖发布失败:', error)
+    uni.showToast({
+      title: '操作失败，请重试',
+      icon: 'none'
+    })
+  }
+}
+
+// 继续发新帖
+const proceedToPublish = () => {
+  // 检查是否从规律预测页面进入
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1]
+  const previousPage = pages[pages.length - 2]
+  
+  // 如果是从规律预测页面进入的，返回到规律预测页面
+  if (previousPage && previousPage.route === 'pages/pattern-predict/pattern-predict') {
+    // 保存方案数据到本地存储，供规律预测页面使用
+    uni.setStorageSync('predict_schemes_data', {
+      addedSchemes: addedSchemes.value,
+      schemeData: schemeData.value,
+      timestamp: Date.now()
+    })
+    
+    uni.navigateBack()
+    return
+  }
+  
   // 准备传递的数据
   const publishData = {
     schemes: addedSchemes.value,
     lotteryType: currentLotteryType.value,
     issueInfo: currentIssueInfo.value
   }
-  
-  // 跳转到发布页面，传递已添加的方案数据和期号信息
-  console.log('=== 方案页面传递到发布页面的数据 ===')
-  console.log('publishData:', publishData)
-  console.log('期号信息:', publishData.issueInfo)
-  console.log('彩票类型:', publishData.lotteryType)
   
   uni.navigateTo({
     url: `/pages/predict-publish/predict-publish?data=${encodeURIComponent(JSON.stringify(publishData))}`
@@ -1285,18 +1713,11 @@ const loadCurrentLotteryType = () => {
     const forumLotteryType = uni.getStorageSync('currentLotteryType')
     if (forumLotteryType) {
       currentLotteryType.value = forumLotteryType
-      console.log('已加载论坛选中的彩票类型:', currentLotteryType.value.name)
-    } else {
-      console.log('未找到论坛选中的彩票类型，使用默认值')
     }
     
-    // 从本地存储获取期号信息
     const savedIssueInfo = uni.getStorageSync('currentIssueInfo')
     if (savedIssueInfo) {
       currentIssueInfo.value = savedIssueInfo
-      console.log('已加载保存的期号信息:', currentIssueInfo.value)
-    } else {
-      console.log('未找到保存的期号信息')
     }
   } catch (error) {
     console.error('加载彩票类型失败:', error)
@@ -1306,71 +1727,38 @@ const loadCurrentLotteryType = () => {
 // 加载期号信息
 const loadIssueInfo = async () => {
   try {
-    console.log('加载期号信息:', currentLotteryType.value.code)
-    
-    // 如果本地存储已有期号信息且期号不为空，直接使用
     if (currentIssueInfo.value.number && currentIssueInfo.value.number !== '--') {
-      console.log('使用本地存储的期号信息:', currentIssueInfo.value)
       return
     }
     
-    uni.showLoading({
-      title: '加载中...'
-    })
+    uni.showLoading({ title: '加载中...' })
     
-    // 调用查询彩票期号接口
     const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
     
     uni.hideLoading()
     
-    if (response.code === 200) {
-      console.log('=== 方案页面期号API响应 ===')
-      console.log('完整响应:', response)
-      console.log('响应数据:', response.data)
-      console.log('数据字段:', response.data ? Object.keys(response.data) : '无数据')
+    if (response.code === 200 && response.data !== null && response.data !== undefined) {
+      let issueNumber = null
+      let issueStatus = '待开奖'
+      let issueTime = '今天 21:30'
       
-      // 更新期号信息
-      if (response.data !== null && response.data !== undefined) {
-        console.log('期号数据类型:', typeof response.data)
-        
-        // 处理不同的数据结构
-        let issueNumber = null
-        let issueStatus = '待开奖'
-        let issueTime = '今天 21:30'
-        
-        if (typeof response.data === 'number' || typeof response.data === 'string') {
-          // data直接是期号值
-          issueNumber = response.data.toString()
-          console.log('期号值:', issueNumber)
-        } else if (typeof response.data === 'object') {
-          // data是对象，包含多个字段
-          issueNumber = response.data.issueno || response.data.number || response.data.id
-          issueStatus = response.data.status || '待开奖'
-          issueTime = response.data.time || '今天 21:30'
-        }
-        
-        currentIssueInfo.value = {
-          id: issueNumber,
-          number: issueNumber,
-          status: issueStatus,
-          time: issueTime
-        }
-        
-        // 更新彩票类型状态
-        currentLotteryType.value.status = currentIssueInfo.value.status
-        currentLotteryType.value.time = currentIssueInfo.value.time
-        
-        console.log('方案页面更新后的期号信息:', currentIssueInfo.value)
-        console.log('期号字段值:', {
-          issueno: response.data.issueno,
-          number: response.data.number,
-          id: response.data.id
-        })
+      if (typeof response.data === 'number' || typeof response.data === 'string') {
+        issueNumber = response.data.toString()
+      } else if (typeof response.data === 'object') {
+        issueNumber = response.data.issueno || response.data.number || response.data.id
+        issueStatus = response.data.status || '待开奖'
+        issueTime = response.data.time || '今天 21:30'
       }
       
-      console.log('期号信息已更新:', currentIssueInfo.value)
-    } else {
-      console.error('加载期号失败:', response.msg)
+      currentIssueInfo.value = {
+        id: issueNumber,
+        number: issueNumber,
+        status: issueStatus,
+        time: issueTime
+      }
+      
+      currentLotteryType.value.status = currentIssueInfo.value.status
+      currentLotteryType.value.time = currentIssueInfo.value.time
     }
   } catch (error) {
     uni.hideLoading()
@@ -1378,68 +1766,6 @@ const loadIssueInfo = async () => {
   }
 }
 
-// 测试期号API
-const testIssueAPI = async () => {
-  try {
-    console.log('=== 方案页面测试期号API ===')
-    console.log('当前彩票类型:', currentLotteryType.value)
-    console.log('当前期号信息:', currentIssueInfo.value)
-    
-    uni.showLoading({ title: '测试中...' })
-    
-    const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
-    
-    uni.hideLoading()
-    
-    console.log('=== 方案页面期号API测试结果 ===')
-    console.log('请求参数:', { cpid: currentLotteryType.value.id })
-    console.log('响应状态码:', response.code)
-    console.log('响应消息:', response.msg)
-    console.log('完整响应:', response)
-    
-    if (response.code === 200) {
-      console.log('✅ 期号API调用成功')
-      console.log('响应数据结构:', {
-        hasData: !!response.data,
-        dataType: typeof response.data,
-        dataKeys: response.data ? Object.keys(response.data) : []
-      })
-      
-      if (response.data) {
-        console.log('期号数据详情:', response.data)
-        console.log('期号字段值:', {
-          issueno: response.data.issueno,
-          number: response.data.number,
-          id: response.data.id,
-          status: response.data.status,
-          time: response.data.time
-        })
-        
-        // 更新期号信息
-        currentIssueInfo.value = {
-          id: response.data.id || null,
-          number: response.data.issueno || response.data.number || null,
-          status: response.data.status || '待开奖',
-          time: response.data.time || '今天 21:30'
-        }
-        
-        console.log('更新后的期号信息:', currentIssueInfo.value)
-        
-        uni.showToast({ title: '期号API测试成功', icon: 'success' })
-      } else {
-        console.log('⚠️ 响应中没有data字段')
-        uni.showToast({ title: '响应无数据', icon: 'none' })
-      }
-    } else {
-      console.log('❌ 期号API调用失败:', response.msg)
-      uni.showToast({ title: `测试失败: ${response.msg}`, icon: 'none' })
-    }
-  } catch (error) {
-    uni.hideLoading()
-    console.error('❌ 期号API测试异常:', error)
-    uni.showToast({ title: '测试异常', icon: 'none' })
-  }
-}
 
 // 页面加载时监听修改事件
 onMounted(() => {
@@ -1450,6 +1776,10 @@ onMounted(() => {
   loadCurrentLotteryType()
   // 加载期号信息
   loadIssueInfo()
+  // 加载已发布的方案列表
+  loadPublishedSchemes()
+  // 检查是否进入追帖模式
+  checkAppendMode()
 })
 
 // 页面卸载时移除监听器
@@ -1466,7 +1796,6 @@ const saveSchemesToStorage = () => {
       timestamp: Date.now()
     }
     uni.setStorageSync('predict_schemes_data', schemesData)
-    console.log('方案数据已保存到本地存储')
   } catch (error) {
     console.error('保存方案数据失败:', error)
   }
@@ -1481,7 +1810,6 @@ const loadSavedSchemes = () => {
       if (savedData.schemeData) {
         schemeData.value = { ...savedData.schemeData }
       }
-      console.log('已从本地存储加载方案数据:', addedSchemes.value.length, '个方案')
     }
   } catch (error) {
     console.error('加载方案数据失败:', error)
@@ -1492,7 +1820,6 @@ const loadSavedSchemes = () => {
 const clearStoredSchemes = () => {
   try {
     uni.removeStorageSync('predict_schemes_data')
-    console.log('本地存储的方案数据已清除')
   } catch (error) {
     console.error('清除本地存储失败:', error)
   }
@@ -1514,6 +1841,30 @@ const clearStoredSchemes = () => {
   height: 88rpx;
   background-color: #28B389;
   z-index: 999;
+}
+
+/* 追帖模式提示 */
+.append-mode-tip {
+  position: fixed;
+  top: 88rpx;
+  left: 0;
+  right: 0;
+  background-color: #f0f8f0;
+  border-bottom: 1rpx solid #28B389;
+  z-index: 998;
+}
+
+.tip-content {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+}
+
+.tip-text {
+  margin-left: 12rpx;
+  font-size: 26rpx;
+  color: #28B389;
+  font-weight: 500;
 }
 
 .nav-content {
@@ -1549,6 +1900,11 @@ const clearStoredSchemes = () => {
   display: flex;
   padding-top: 88rpx;
   padding-bottom: 120rpx; /* 为浮动按钮留出空间 */
+}
+
+/* 追帖模式下调整顶部间距 */
+.scheme-container:has(.append-mode-tip) .main-content {
+  padding-top: 140rpx; /* 为追帖提示留出额外空间 */
 }
 
 /* 左侧导航菜单 */
@@ -1597,6 +1953,18 @@ const clearStoredSchemes = () => {
   background-color: #fff2f0;
 }
 
+.menu-item.published {
+  background-color: #f0f8f0;
+  opacity: 0.8;
+}
+
+.menu-item.disabled {
+  background-color: #f5f5f5;
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .menu-text {
   font-size: 28rpx;
   color: #666;
@@ -1605,6 +1973,22 @@ const clearStoredSchemes = () => {
 .menu-item.active .menu-text {
   color: #ff4757;
   font-weight: 500;
+}
+
+.menu-item.published .menu-text {
+  color: #28B389;
+  font-weight: 500;
+}
+
+.menu-item.disabled .menu-text {
+  color: #999;
+  font-weight: 400;
+}
+
+.menu-icons {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 /* 底部标签 */
@@ -1618,6 +2002,22 @@ const clearStoredSchemes = () => {
 .footer-text {
   font-size: 24rpx;
   color: #999;
+}
+
+.test-buttons {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.test-btn {
+  height: 60rpx;
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 30rpx;
+  font-size: 22rpx;
 }
 
 /* 右侧配置区域 */
@@ -1827,26 +2227,6 @@ const clearStoredSchemes = () => {
   font-size: 20rpx;
   color: #fff;
   margin-top: 5rpx;
-}
-
-/* 测试期号按钮 */
-.test-issue-btn {
-  position: fixed;
-  right: 30rpx;
-  bottom: 180rpx;
-  width: 80rpx;
-  height: 80rpx;
-  background-color: #ff6b35;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
-  z-index: 999;
-}
-
-.test-issue-btn:active {
-  transform: scale(0.95);
 }
 
 /* 保存提示弹窗 */
