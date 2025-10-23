@@ -585,38 +585,53 @@ const checkAppendMode = () => {
       isAppendMode.value = true
       appendPostData.value = savedAppendData
       
-      console.log('=== 进入追帖模式 ===')
-      console.log('追帖数据:', savedAppendData)
-      
-      // 显示追帖模式提示
-      uni.showModal({
-        title: '追帖模式',
-        content: `正在为帖子"第${savedAppendData.period}期"追加方案\n\n已发布的方案将被禁用，请选择其他方案进行追加。`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
+      // 显示追帖模式提示（只在第一次进入时显示）
+      const hasShownTip = uni.getStorageSync('appendModeTipShown')
+      if (!hasShownTip) {
+        const schemeNames = savedAppendData.schemeIds ? savedAppendData.schemeIds.join('、') : '未知方案'
+        uni.showModal({
+          title: '追帖模式',
+          content: `正在为帖子"第${savedAppendData.period}期"追加方案\n\n已发布的方案(${schemeNames})将被禁用，请选择其他方案进行追加。`,
+          showCancel: false,
+          confirmText: '知道了'
+        })
+        uni.setStorageSync('appendModeTipShown', true)
+      }
       
       // 在追帖模式下，直接使用追帖数据设置已发布方案
       const today = new Date().toDateString()
       const publishedSchemes = []
       const publishedPosts = {}
       
-      // 从追帖数据中提取方案信息
-      const schemeId = savedAppendData.schemeId
-      if (schemeId) {
-        publishedSchemes.push(schemeId)
-        publishedPosts[schemeId] = savedAppendData.postId
-      }
+      // 从追帖数据中提取所有方案信息
+      const schemeIds = savedAppendData.schemeIds || []
+      schemeIds.forEach(schemeId => {
+        if (schemeId) {
+          publishedSchemes.push(schemeId)
+          publishedPosts[schemeId] = savedAppendData.postId
+        }
+      })
       
-      // 保存到本地存储
+      // 保存到本地存储（持久化保存）
       uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
       uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+      
+      // 同时保存追帖数据到专门的存储键，确保数据不丢失
+      uni.setStorageSync('currentAppendPostData', savedAppendData)
       
       // 重新加载已发布方案
       loadPublishedSchemes()
       
-      console.log('追帖模式 - 已发布的方案:', publishedSchemes)
-      console.log('追帖模式 - 已发布的帖子映射:', publishedPosts)
+    } else {
+      // 如果没有appendPostData，检查是否有保存的追帖数据
+      const currentAppendData = uni.getStorageSync('currentAppendPostData')
+      if (currentAppendData && currentAppendData.postId) {
+        isAppendMode.value = true
+        appendPostData.value = currentAppendData
+        
+        // 重新加载已发布方案
+        loadPublishedSchemes()
+      }
     }
   } catch (error) {
     console.error('检查追帖模式失败:', error)
@@ -684,12 +699,9 @@ const testPublishedScheme = async () => {
       loadPublishedSchemes()
       
       uni.showToast({
-        title: `找到 ${publishedSchemes.length} 个已发布方案`,
+        title: `获取到${publishedSchemes.length}个已发布方案`,
         icon: 'success'
       })
-      
-      console.log('已发布的方案:', publishedSchemes)
-      console.log('已发布的帖子映射:', publishedPosts)
       
     } else {
       // 接口返回失败，使用备用方案
@@ -708,8 +720,6 @@ const testPublishedScheme = async () => {
 // 处理接口失败的情况
 const handleApiFailure = () => {
   try {
-    console.log('=== 使用备用方案处理已发布帖子 ===')
-    
     // 如果是追帖模式，从追帖数据中提取已发布的方案
     if (isAppendMode.value && appendPostData.value) {
       const today = new Date().toDateString()
@@ -734,9 +744,6 @@ const handleApiFailure = () => {
         title: `追帖模式：已识别 ${schemeId} 方案`,
         icon: 'success'
       })
-      
-      console.log('备用方案 - 已发布的方案:', publishedSchemes)
-      console.log('备用方案 - 已发布的帖子映射:', publishedPosts)
       
     } else {
       // 非追帖模式，显示提示信息
@@ -793,11 +800,9 @@ const loadPublishedSchemes = async () => {
     const publishedData = uni.getStorageSync(`publishedSchemes_${today}`) || []
     publishedSchemes.value = publishedData
     
-    console.log('已发布的方案:', publishedSchemes.value)
-    
     // 如果有已发布的方案，显示提示
     if (publishedSchemes.value.length > 0) {
-      console.log('检测到已发布的方案:', publishedSchemes.value.join(', '))
+      // 检测到已发布的方案
     }
   } catch (error) {
     console.error('加载已发布方案失败:', error)
@@ -806,11 +811,6 @@ const loadPublishedSchemes = async () => {
 
 // 选择方案
 const selectScheme = (schemeId) => {
-  console.log('=== 选择方案调试信息 ===')
-  console.log('选择的方案ID:', schemeId)
-  console.log('当前已发布方案:', publishedSchemes.value)
-  console.log('方案是否已发布:', isSchemePublished(schemeId))
-  
   // 如果是同一个方案，直接返回
   if (schemeId === activeScheme.value) {
     return
@@ -818,7 +818,6 @@ const selectScheme = (schemeId) => {
   
   // 检查方案是否已发布 - 已发布的方案无法选择
   if (isSchemePublished(schemeId)) {
-    console.log('方案已发布，无法选择')
     uni.showToast({
       title: '该方案今天已发布过，无法重复选择',
       icon: 'none',
@@ -826,8 +825,6 @@ const selectScheme = (schemeId) => {
     })
     return
   }
-  
-  console.log('方案未发布，正常选择方案')
   
   // 如果当前方案有更改，显示保存提示
   if (hasChanges.value) {
@@ -843,20 +840,12 @@ const selectScheme = (schemeId) => {
 // 进入追帖模式
 const enterAppendMode = (schemeId) => {
   try {
-    console.log('=== 进入追帖模式调试信息 ===')
-    console.log('方案ID:', schemeId)
-    
     // 获取该方案对应的帖子ID
     const today = new Date().toDateString()
     const publishedPosts = uni.getStorageSync(`publishedPosts_${today}`) || {}
     const postId = publishedPosts[schemeId]
     
-    console.log('今天日期:', today)
-    console.log('已发布的帖子映射:', publishedPosts)
-    console.log('获取到的帖子ID:', postId)
-    
     if (!postId) {
-      console.log('未找到对应的帖子ID')
       uni.showToast({
         title: '未找到对应的帖子ID',
         icon: 'none'
@@ -864,21 +853,16 @@ const enterAppendMode = (schemeId) => {
       return
     }
     
-    console.log('进入追帖模式，帖子ID:', postId)
-    console.log('准备跳转到URL:', `/pages/predict-publish/predict-publish?postId=${postId}&schemeId=${schemeId}`)
-    
     // 跳转到预测发布页面，传递帖子ID
     uni.navigateTo({
       url: `/pages/predict-publish/predict-publish?postId=${postId}&schemeId=${schemeId}`,
       success: () => {
-        console.log('跳转成功')
         uni.showToast({
           title: '进入追帖模式',
           icon: 'success'
         })
       },
       fail: (err) => {
-        console.log('跳转失败:', err)
         uni.showToast({
           title: '跳转失败',
           icon: 'none'
@@ -1608,10 +1592,6 @@ const goToPublish = () => {
 // 处理追帖发布
 const proceedToAppendPost = () => {
   try {
-    console.log('=== 处理追帖发布 ===')
-    console.log('追帖数据:', appendPostData.value)
-    console.log('添加的方案:', addedSchemes.value)
-    
     if (!appendPostData.value || !appendPostData.value.postId) {
       uni.showToast({
         title: '追帖数据异常',
@@ -1630,15 +1610,12 @@ const proceedToAppendPost = () => {
     }
     
     // 跳转到预测发布页面，进入追帖模式
-  uni.navigateTo({
+    uni.navigateTo({
       url: `/pages/predict-publish/predict-publish?data=${encodeURIComponent(JSON.stringify(publishData))}&postId=${appendPostData.value.postId}`,
       success: () => {
-        console.log('跳转到追帖发布页面成功')
-        // 清除追帖数据
-        uni.removeStorageSync('appendPostData')
+        // 不立即清除追帖数据，让predict-publish.vue在追帖完成后清除
       },
       fail: (err) => {
-        console.error('跳转到追帖发布页面失败:', err)
         uni.showToast({
           title: '跳转失败',
           icon: 'none'
@@ -1647,7 +1624,6 @@ const proceedToAppendPost = () => {
     })
     
   } catch (error) {
-    console.error('处理追帖发布失败:', error)
     uni.showToast({
       title: '操作失败，请重试',
       icon: 'none'

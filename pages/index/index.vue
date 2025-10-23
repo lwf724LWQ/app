@@ -27,7 +27,7 @@
 		<view class="function-area" v-if="currentTab == 'plw'">
 			<view class="function-icons">
 				<view class="icon-item">
-					<image src="/static/red-list.svg" mode="aspectFit"></image>
+					<image src="/static/icons/fav.png" mode="aspectFit"></image>
 					<text>红人榜</text>
 				</view>
 				<view class="icon-item">
@@ -35,15 +35,15 @@
 					<text>画规</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/ticket.svg" mode="aspectFit"></image>
+					<image src="/static/icons/card.png" mode="aspectFit"></image>
 					<text>奖纸</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/master-list.svg" mode="aspectFit"></image>
+					<image src="/static/icons/badge.png" mode="aspectFit"></image>
 					<text>大师榜</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/video.svg" mode="aspectFit"></image>
+					<image src="/static/icons/button.png" mode="aspectFit"></image>
 					<text>视频</text>
 				</view>
 			</view>
@@ -61,11 +61,11 @@
 					<text>解梦</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/元宝 (1).png" mode="aspectFit"></image>
+					<image src="/static/icons/easyinput.png" mode="aspectFit"></image>
 					<text>快选</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/更多.png" mode="aspectFit"></image>
+					<image src="/static/icons/list.png" mode="aspectFit"></image>
 					<text>更多</text>
 				</view>
 			</view>
@@ -74,23 +74,23 @@
 		<view class="function-area" v-if="currentTab == 'qxc'">
 			<view class="function-icons">
 				<view class="icon-item">
-					<image src="/static/red-list.svg" mode="aspectFit"></image>
+					<image src="/static/icons/fav.png" mode="aspectFit"></image>
 					<text>红人榜</text>
 				</view>
-				<view class="icon-item">
-					<image src="/static/rules.svg" mode="aspectFit"></image>
+				<view class="icon-item" @click="drawGui">
+					<image src="/static/icons/grid.png" mode="aspectFit"></image>
 					<text>画规</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/ticket.svg" mode="aspectFit"></image>
+					<image src="/static/icons/card.png" mode="aspectFit"></image>
 					<text>奖纸</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/master-list.svg" mode="aspectFit"></image>
+					<image src="/static/icons/badge.png" mode="aspectFit"></image>
 					<text>大师榜</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/video.svg" mode="aspectFit"></image>
+					<image src="/static/icons/button.png" mode="aspectFit"></image>
 					<text>视频</text>
 				</view>
 			</view>
@@ -108,11 +108,11 @@
 					<text>解梦</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/元宝.png" mode="aspectFit"></image>
+					<image src="/static/icons/easyinput.png" mode="aspectFit"></image>
 					<text>快选</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/更多 (1).png" mode="aspectFit"></image>
+					<image src="/static/icons/list.png" mode="aspectFit"></image>
 					<text>更多</text>
 				</view>
 			</view>
@@ -225,10 +225,11 @@
 				// });
 			},
 			drawGui(){
-				console.log('dddd')
-        uni.navigateTo({
-          url: '/pages/juWang/drawLine/drawLineRead?tname=排列5' // 可携带参数
-        });
+				// 根据当前选中的选项卡决定跳转到哪个画规页面
+				const tname = this.currentTab === 'plw' ? '排列5' : '七星彩'
+				uni.navigateTo({
+					url: `/pages/juWang/drawLine/drawLineRead?tname=${tname}`
+				});
 			},
 			// 跳转到解梦页面
 			goToDreamInterpretation(){

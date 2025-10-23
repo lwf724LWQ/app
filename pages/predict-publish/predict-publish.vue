@@ -329,19 +329,11 @@ const handleAppendPost = async () => {
     // 自动生成追加内容（包含原帖子内容）
     const appendText = await generateAppendContent()
     
-    console.log('=== 追帖调试信息 ===')
-    console.log('帖子ID:', postId.value)
-    console.log('追加内容:', appendText)
-    console.log('追帖模式:', isAppendMode.value)
-    
     // 调用追帖接口 - 只传递必要的参数，不包含pimg
     const response = await apiPostUpdate({
       id: postId.value,
       content: appendText
-      // 注意：不传递pimg参数，追加帖子不需要图片
     })
-    
-    console.log('追帖接口响应:', response)
     
     uni.hideLoading()
     
@@ -350,6 +342,11 @@ const handleAppendPost = async () => {
         title: '追加成功',
         icon: 'success'
       })
+      
+      // 清理追帖相关数据
+      uni.removeStorageSync('appendPostData')
+      uni.removeStorageSync('currentAppendPostData')
+      uni.removeStorageSync('appendModeTipShown')
       
       // 延迟返回论坛页面
       setTimeout(() => {
@@ -382,17 +379,28 @@ const generateAppendContent = async () => {
     let originalContent = ''
     
     if (postId.value) {
-      // 调用接口获取原帖子的完整内容
-      const response = await apiPostListQuery({
-        page: 1,
-        size: 1,
-        id: postId.value
-      })
-      
-      if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
-        originalContent = response.data.records[0].content || ''
-        console.log('=== 获取原帖子内容 ===')
-        console.log('原帖子内容:', originalContent)
+      try {
+        // 尝试通过帖子列表查询获取原帖子内容
+        const response = await apiPostListQuery({
+          page: 1,
+          size: 50,
+          tname: currentLotteryType.value?.name || '预测方案'
+        })
+        
+        if (response.code === 200 && response.data && response.data.records && Array.isArray(response.data.records)) {
+          // 在查询结果中查找目标帖子
+          const targetPost = response.data.records.find(post => post.id == postId.value)
+          
+          if (targetPost) {
+            originalContent = targetPost.content || ''
+          }
+        }
+      } catch (error) {
+        // 如果API查询失败，尝试从本地存储获取
+        const appendData = uni.getStorageSync('currentAppendPostData')
+        if (appendData && appendData.postContent) {
+          originalContent = appendData.postContent
+        }
       }
     }
     
@@ -403,7 +411,7 @@ const generateAppendContent = async () => {
     if (schemes.value.length > 0) {
       appendContent += '\n追加方案:\n'
       schemes.value.forEach((scheme, index) => {
-        appendContent += `${index + 1}. ${scheme.name} (${scheme.id})\n`
+        appendContent += `${index + 1}. [${scheme.id}]\n`
         
         const displayData = getSchemeDisplayData(scheme)
         displayData.forEach(info => {
@@ -417,16 +425,9 @@ const generateAppendContent = async () => {
     // 将追加内容添加到原内容后面
     const finalContent = originalContent + appendContent
     
-    console.log('=== 最终追加内容 ===')
-    console.log('原内容长度:', originalContent.length)
-    console.log('追加内容长度:', appendContent.length)
-    console.log('最终内容长度:', finalContent.length)
-    
     return finalContent
     
   } catch (error) {
-    console.error('生成追加内容失败:', error)
-    
     // 如果获取原内容失败，至少返回追加内容
     let appendContent = '\n\n--- 追加内容 ---\n'
     appendContent += `追加时间: ${new Date().toLocaleString()}\n`
@@ -434,7 +435,7 @@ const generateAppendContent = async () => {
     if (schemes.value.length > 0) {
       appendContent += '\n追加方案:\n'
       schemes.value.forEach((scheme, index) => {
-        appendContent += `${index + 1}. ${scheme.name} (${scheme.id})\n`
+        appendContent += `${index + 1}. [${scheme.id}]\n`
         
         const displayData = getSchemeDisplayData(scheme)
         displayData.forEach(info => {

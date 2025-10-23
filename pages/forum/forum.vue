@@ -199,6 +199,32 @@
             <!-- 帖子内容 -->
             <view class="post-content">
               <text class="content-text">{{ item.content }}</text>
+              <!-- 规律帖图片显示 - 支持多张图片 -->
+              <view v-if="item.image" class="post-image-container">
+                <!-- 单张图片 -->
+                <image 
+                  v-if="!isMultipleImages(item.image)"
+                  :src="item.image.startsWith('http') ? item.image : `http://video.caimizm.com/himg/${item.image}`" 
+                  class="post-image"
+                  mode="aspectFit"
+                  @click="previewImage(item.image, [item.image])"
+                />
+                <!-- 多张图片 -->
+                <view v-else class="multiple-images">
+                  <view 
+                    v-for="(imageUrl, index) in getImageUrls(item.image)" 
+                    :key="index" 
+                    class="image-item"
+                  >
+                    <image 
+                      :src="imageUrl.startsWith('http') ? imageUrl : `http://video.caimizm.com/himg/${imageUrl}`" 
+                      class="post-image-small"
+                      mode="aspectFit"
+                      @click="previewImage(imageUrl, getImageUrls(item.image))"
+                    />
+                  </view>
+                </view>
+              </view>
             </view>
             
             <!-- 帖子底部操作 -->
@@ -569,7 +595,6 @@ onMounted(() => {
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab
-  console.log('切换到标签:', tab)
   // 这里可以根据标签加载不同的内容
 }
 
@@ -577,7 +602,6 @@ const switchTab = (tab) => {
 const selectTag = (index) => {
   activeTag.value = index
   const selectedTag = tags.value[index]
-  console.log('选择标签:', selectedTag)
   
   // 提取标签内容（去掉#号）
   const tagContent = selectedTag.replace('#', '')
@@ -673,6 +697,17 @@ const loadLotteryData = async (lotteryCode) => {
   }
 }
 
+// 检查是否为多张图片（包含逗号分隔）
+const isMultipleImages = (imageStr) => {
+  return imageStr && imageStr.includes(',')
+}
+
+// 获取图片URL数组
+const getImageUrls = (imageStr) => {
+  if (!imageStr) return []
+  return imageStr.split(',').map(url => url.trim()).filter(url => url)
+}
+
 // 预览图片
 const previewImage = (current, urls) => {
   uni.previewImage({
@@ -694,17 +729,13 @@ const hidePublishModal = () => {
 // 切换协议同意状态
 const toggleAgreementManually = () => {
   agreedToTerms.value = !agreedToTerms.value
-  console.log('协议状态变更:', agreedToTerms.value)
-  console.log('当前协议状态:', agreedToTerms.value ? '已同意' : '未同意')
 }
 
 // 选择功能类型
 const selectFunction = (type) => {
-  console.log('选择功能类型:', type, '协议状态:', agreedToTerms.value)
   
   // 所有功能都需要先同意协议
   if (!agreedToTerms.value) {
-    console.log('协议未同意，显示提示')
     uni.showToast({
       title: '请先同意管理规范',
       icon: 'none'
@@ -712,23 +743,19 @@ const selectFunction = (type) => {
     return
   }
   
-  console.log('协议已同意，准备跳转')
   
   selectedFunction.value = type
   
   // 根据选择的类型跳转到不同的发布页面
   switch (type) {
     case 'predict':
-      console.log('准备跳转到设置方案页面')
       // 跳转到设置方案页面
       uni.navigateTo({
         url: '/pages/predict-scheme/predict-scheme',
         success: () => {
-          console.log('跳转成功')
           hidePublishModal()
         },
         fail: (err) => {
-          console.error('跳转失败:', err)
           uni.showToast({
             title: '跳转失败',
             icon: 'none'
@@ -737,16 +764,13 @@ const selectFunction = (type) => {
       })
       break
     case 'pattern':
-      console.log('准备跳转到规律预测页面')
       // 跳转到规律预测页面
       uni.navigateTo({
         url: '/pages/pattern-predict/pattern-predict',
         success: () => {
-          console.log('跳转成功')
           hidePublishModal()
         },
         fail: (err) => {
-          console.error('跳转失败:', err)
       uni.showToast({
             title: '跳转失败',
         icon: 'none'
@@ -935,7 +959,6 @@ const performSearch = () => {
     filters.push(selectedOtherFilter.value)
   }
   
-  console.log('执行筛选搜索，选中的筛选条件:', filters)
   
   // 检查是否选择了筛选条件
   if (filters.length === 0) {
@@ -1051,7 +1074,6 @@ const performFilterSearch = (filters) => {
     filteredPredictList.value.sort((a, b) => b.comments - a.comments)
   }
   
-  console.log(`筛选搜索完成，找到${filteredPredictList.value.length}条结果`)
 }
 
 // 获取搜索按钮文本
@@ -1107,15 +1129,8 @@ const loadPredictPosts = async () => {
           // 处理用户头像
           let userAvatar = 'http://video.caimizm.com/himg/user.png'
           
-          if (post.pimg) {
-            // 如果帖子中有头像信息，使用帖子的头像
-            userAvatar = post.pimg.startsWith('http') ? post.pimg : `http://video.caimizm.com/himg/${post.pimg}`
-            // 保存这个用户的头像信息
-            saveUserAvatar(post.account, userAvatar)
-          } else {
-            // 使用getUserAvatar函数获取头像
-            userAvatar = getUserAvatar(post.account)
-          }
+          // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
+          userAvatar = getUserAvatar(post.account)
           
           
           return {
@@ -1126,6 +1141,7 @@ const loadPredictPosts = async () => {
             status: '预测中',
             period: post.issueno || currentIssueInfo.value.number,
             content: post.content || '',
+            image: post.pimg || '', // 帖子图片（规律帖的图片）
             likes: serverLikeCount, // 使用服务器返回的点赞数
             comments: post.comment || 0,
             shares: 0,
@@ -1363,8 +1379,6 @@ const autoSaveCurrentUserAvatar = () => {
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
   try {
-    console.log('=== 追帖按钮点击 ===')
-    console.log('帖子信息:', post)
     
     // 检查帖子ID是否有效
     if (!post.id) {
@@ -1409,19 +1423,15 @@ const handleAppendPost = (post) => {
 // 跳转到追帖页面
 const navigateToAppendPost = (post) => {
   try {
-    console.log('=== 跳转到追帖页面 ===')
-    console.log('帖子ID:', post.id)
-    console.log('帖子内容:', post.content)
     
-    // 从帖子内容中提取方案信息
-    let schemeId = extractSchemeFromContent(post.content)
+    // 从帖子内容中提取所有方案信息
+    const schemeIds = extractSchemeFromContent(post.content)
     
-    console.log('提取的方案ID:', schemeId)
     
     // 保存帖子信息到本地存储，供predict-scheme.vue使用
     const appendPostData = {
       postId: post.id,
-      schemeId: schemeId,
+      schemeIds: schemeIds, // 改为数组，包含所有方案
       postContent: post.content,
       period: post.period,
       timestamp: Date.now()
@@ -1433,7 +1443,6 @@ const navigateToAppendPost = (post) => {
     uni.navigateTo({
       url: '/pages/predict-scheme/predict-scheme',
       success: () => {
-        console.log('跳转到方案设置页面成功')
         uni.showToast({
           title: '请选择要追加的方案',
           icon: 'success'
@@ -1457,34 +1466,34 @@ const navigateToAppendPost = (post) => {
   }
 }
 
-// 从帖子内容中提取方案ID
+// 从帖子内容中提取所有方案ID
 const extractSchemeFromContent = (content) => {
   try {
-    if (!content) return ''
+    if (!content) return []
     
     // 常见的方案类型列表
     const schemeTypes = [
       '头尾', '中肚', 'ABXX', 'AXCX', 'XBXD', 'XXCD', 'ABCX', 'ABXD', 'AXCD', 'XBCD',
       '芝麻', '二字现', '三字现', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾',
       '稳码', '头尾合', '中肚合', '千百合', '千十合', '百个合', '十个合', '死数',
-      '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合'
+      '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合',
+      '过滤王二定', '过滤王三定', '过滤王四定'
     ]
     
-    // 在内容中查找方案类型
-    for (const scheme of schemeTypes) {
-      if (content.includes(scheme)) {
-        console.log(`在内容中找到方案: ${scheme}`)
-        return scheme
-      }
-    }
+    const foundSchemes = []
     
-    // 如果没有找到具体方案，返回空字符串
-    console.log('未在内容中找到具体方案')
-    return ''
+    // 在内容中查找所有方案类型
+    schemeTypes.forEach(scheme => {
+      if (content.includes(scheme)) {
+        foundSchemes.push(scheme)
+      }
+    })
+    
+    return foundSchemes
     
   } catch (error) {
     console.error('提取方案ID失败:', error)
-    return ''
+    return []
   }
 }
 
@@ -2049,6 +2058,38 @@ const extractSchemeFromContent = (content) => {
   color: #333;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* 帖子图片样式 */
+.post-image-container {
+  margin-top: 20rpx;
+  text-align: center;
+}
+
+.post-image {
+  max-width: 100%;
+  max-height: 400rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 多张图片样式 */
+.multiple-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  justify-content: center;
+}
+
+.image-item {
+  flex: 0 0 auto;
+}
+
+.post-image-small {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .post-footer {
