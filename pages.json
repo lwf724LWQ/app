@@ -68,6 +68,30 @@
 			}
 		},
 		{
+			"path": "pages/video/play",
+			"style": {
+				"navigationBarTitleText": "视频播放",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/video/reward",
+			"style": {
+				"navigationBarTitleText": "打赏博主",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/video/payment",
+			"style": {
+				"navigationBarTitleText": "视频支付",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "components/NumberSelector/NumberSelector",
 			"style": {
 				"navigationBarTitleText": "数字digit-display",

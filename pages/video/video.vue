@@ -26,26 +26,26 @@
 	<view class="area" v-if="currentTab === 'plw' || 0">
 			<view class="title" v-for="(video, index) in videoList" :key="index">
 				<text class="video-title">{{ video.title }}</text>
-				<video 
-					:src="video.src" 
-					controls 
-					object-fit="cover" 
+				<!-- 将 video 标签改为 img 标签 -->
+				<img
+					:src="video.imgurl" 
+					class="video-image"
 					@click="playVideo(video)"
 					:class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
-				>
-				</video>
+				/>
+				
 				<view class="video-info">
-					<text class="video-price" v-if="video.flag">
+					<text class="video-price" v-if="video.flag && video.price > 0">
 						{{ video.hasPaid ? '已付费' : `付费视频 ${video.price}金币` }}
 					</text>
 					<text class="video-free" v-else>免费视频</text>
 				</view>
-				<view class="like-section">
+				<!-- <view class="like-section">
 					<button class="like-btn" :class="{ 'liked': video.isLiked }" @click="toggleLike(video)">
 						<text class="like-icon">{{ video.isLiked ? '❤️' : '👍' }}</text>
 						<text class="like-count">{{ video.likeCount }}</text>
 					</button>
-				</view>
+				</view> -->
 			</view>
 		</view>
 	<!-- 发布按钮 -->
@@ -72,7 +72,10 @@
 		setAccount,
 		getAccount
 	} from '@/utils/request.js'; // 导入setToken，账号
-	
+	// 导入 Pinia store
+		import { useVideoStore } from '@/stores/video.js'
+		// 初始化 store
+			const videoStore = useVideoStore()
 	// 下拉选择器相关数据
 	const pickerOptions = ref(['排列五', '排列三', '七星彩', '福彩3D']);
 	const pickerIndex = ref(0);
@@ -154,109 +157,114 @@
 		    return;
 		  }
 		  
-		  // 检查视频是否收费
-		  if (video.flag) {
-		    try {
-		      // 查询用户是否已付费
-		      const paymentCheck = await apiCheckVideoPayment({
-		        videoId: video.id,
-		        account: getAccount()
-		      });
-			 
-			  
-		      
-		      if (paymentCheck.success) {
-		        if (paymentCheck.data.hasPaid) {
-		          // 用户已付费，直接播放
-		          uni.navigateTo({
-		            url: `/pages/video/play?id=${video.id}`
-		          });
-		        } else {
-		          // 用户未付费，显示付费提示
-		          uni.showModal({
-		            title: '付费视频',
-		            content: `观看此视频需要支付${video.price}金币`,
-		            confirmText: '立即支付',
-		            cancelText: '取消',
-		            success: async (res) => {
-		              if (res.confirm) {
-		                // 这里调用支付接口
-		                await payForVideo(video);
-		              }
-		            }
-		          });
-		        }
-		      } else {
-		        throw new Error(paymentCheck.message || '查询付费状态失败');
-		      }
-		    } catch (error) {
-		      uni.showToast({
-		        title: error.message || '查询失败',
-		        icon: 'none'
-		      });
-		    }
-		  } else {
+		  // 将当前视频保存到 Pinia store
+		  videoStore.setCurrentVideo(video)
+		  
+		  // 如果视频是免费的（price为0或flag为false），直接播放
+		  if (!video.flag || video.price === 0) {
 		    // 免费视频直接播放
 		    uni.navigateTo({
 		      url: `/pages/video/play?id=${video.id}`
 		    });
+		    return;
 		  }
-		};
-	
-		// 支付视频方法
-		const payForVideo = async (video) => {
+		  
+		  // 检查视频是否收费
 		  try {
-		    // 这里调用支付接口
-		    // const paymentResult = await apiPayForVideo({...});
-		    
-		    // 支付成功后更新视频状态
-		    video.hasPaid = true;
-		    
-		    uni.showToast({
-		      title: '支付成功，开始播放',
-		      icon: 'success'
+		    // 查询用户是否已付费
+		    const paymentCheck = await apiCheckVideoPayment({
+		      videoId: video.id,
+		      account: getAccount()
 		    });
 		    
-		    // 播放视频
-		    uni.navigateTo({
-		      url: `/pages/video/play?id=${video.id}`
-		    });
+		    if (paymentCheck.data) {
+		      if (paymentCheck.data) {
+		        // 用户已付费，直接播放
+		        uni.navigateTo({
+		          url: `/pages/video/play?id=${video.id}`
+		        });
+		      } else {
+		        // 用户未付费，显示付费提示
+		        uni.showModal({
+		          title: '付费视频',
+		          content: `观看此视频需要支付${video.price}金币`,
+		          confirmText: '立即支付',
+		          cancelText: '取消',
+		          success: async (res) => {
+		            if (res.confirm) {
+		              // 这里调用支付接口
+		              await payForVideo(video);
+		            }
+		          }
+		        });
+		      }
+		    } else {
+		       uni.navigateTo({
+		      		          url: `/pages/video/play?id=${video.id}`
+		      		        });
+		    }
 		  } catch (error) {
 		    uni.showToast({
-		      title: '支付失败',
+		      title: error.message || '查询失败',
 		      icon: 'none'
 		    });
 		  }
 		};
 	
-		// 检查视频付费状态
-		const checkVideoPaymentStatus = async () => {
-		  try {
-		    const account = getAccount();
-		    if (!account) return;
-		    
-		    // 批量检查视频付费状态
-		    const videoIds = videoList.value.map(video => video.id).filter(id => id);
-		    if (videoIds.length === 0) return;
-		    
-		    const paymentStatus = await apiCheckVideoPayment({
-		      videoIds: videoIds.join(','),
-		      account: account
-		    });
-		    
-		    if (paymentStatus.success) {
-		      // 更新视频付费状态
-		      videoList.value.forEach(video => {
-		        const paidVideo = paymentStatus.data.find(item => item.videoId === video.id);
-		        if (paidVideo) {
-		          video.hasPaid = paidVideo.hasPaid;
-		        }
-		      });
-		    }
-		  } catch (error) {
-		    console.error('检查视频付费状态失败:', error);
-		  }
-		};
+	// 支付视频方法
+	const payForVideo = async (video) => {
+	  try {
+	    // 这里调用支付接口
+	    // const paymentResult = await apiPayForVideo({...});
+	    
+	    // 支付成功后更新视频状态
+	    video.hasPaid = true;
+	    
+	    uni.showToast({
+	      title: '支付成功，开始播放',
+	      icon: 'success'
+	    });
+	    
+	    // 播放视频
+	    uni.navigateTo({
+	      url: `/pages/video/play?id=${video.id}`
+	    });
+	  } catch (error) {
+	    uni.showToast({
+	      title: '支付失败',
+	      icon: 'none'
+	    });
+	  }
+	};
+	
+	// 检查视频付费状态
+	const checkVideoPaymentStatus = async () => {
+	  try {
+	    const account = getAccount();
+	    if (!account) return;
+	    
+	    // 批量检查视频付费状态
+	    const videoIds = videoList.value.map(video => video.id).filter(id => id);
+	    if (videoIds.length === 0) return;
+	    
+	    const paymentStatus = await apiCheckVideoPayment({
+	      videoIds: videoIds.join(','),
+	      account: account
+	    });
+	    
+	    if (paymentStatus.success) {
+	      // 更新视频付费状态
+	      videoList.value.forEach(video => {
+	        const paidVideo = paymentStatus.data.find(item => item.videoId === video.id);
+	        if (paidVideo) {
+	          video.hasPaid = paidVideo.hasPaid;
+	        }
+	      });
+	    }
+	  } catch (error) {
+	    console.error('检查视频付费状态失败:', error);
+	  }
+	};
 
 	//是否点赞
 	// 点赞功能
@@ -317,14 +325,16 @@
 			if (Videoinfo.data && Videoinfo.data.records && Array.isArray(Videoinfo.data.records)) {
 				videoList.value = Videoinfo.data.records.map(item => ({
 					title: item.title,
-					src: "http://video.caimizm.com/"+item.url,
+					src: "http://video.caimizm.com/" + item.url,
 					id: item.id,
 					account: item.account,
-					likeCount:item.likeCount,
-					createTime:item.createTime,
-					flag:item.flag,
-					price:item.price,
-					updateTime:item.updateTime,
+					likeCount: item.likeCount,
+					createTime: item.createTime,
+					// 如果价格为0，则视为免费视频
+					flag: item.price > 0 ? item.flag : false,
+					price: item.price,
+					updateTime: item.updateTime,
+					imgurl: "http://video.caimizm.com/" + item.vimg // 使用封面图片URL
 				}));
 				console.log('更新后的 videoList:', videoList.value);
 			} else {
@@ -336,12 +346,8 @@
 				title: '获取视频失败',
 				icon: 'none'
 			});
-
 		}
-		//----------------------------------------------------------
-
 	});
-	
 </script>
 
 <style scoped>
@@ -441,14 +447,24 @@
 
 	}
 
-	video {
+	
+	.video-image {
 		flex: 1 1 calc(50% - 30px);
 		width: 100%;
+		height: 200px; /* 设置固定高度 */
 		background: rgba(255, 255, 255, 0.95);
 		border-radius: 16px;
 		overflow: hidden;
 		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		object-fit: cover; /* 确保图片填充整个容器 */
+		cursor: pointer; /* 添加指针样式，表示可点击 */
+	}
+
+	/* 鼠标悬停效果 */
+	.video-image:hover {
+		transform: scale(1.02);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 	}
 
 	/* ----------------------------------------------------------------- */

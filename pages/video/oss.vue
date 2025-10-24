@@ -38,11 +38,23 @@
 			</view>
 		</view>
 
-		<!-- 上传区域 -->
+		<!-- 视频上传区域 -->
 		<view class="upload-area" @click="chooseFile">
 			<u-icon name="plus" size="50" color="#3498db"></u-icon>
-			<view class="upload-text">点击选择文件</view>
+			<view class="upload-text">点击选择视频文件</view>
 			<view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
+		</view>
+
+		<!-- 封面选择区域 -->
+		<view class="cover-area" v-if="fileList.length > 0">
+			<text class="section-title">视频封面</text>
+			<view class="cover-preview" @click="chooseCover">
+				<image v-if="coverImage" :src="coverImage" class="cover-image"></image>
+				<view v-else class="cover-placeholder">
+					<u-icon name="image" size="40" color="#ccc"></u-icon>
+					<text>点击选择封面</text>
+				</view>
+			</view>
 		</view>
 
 		<!-- 上传进度 -->
@@ -121,13 +133,12 @@
 	const videoTitle = ref('')
 	const isCharge = ref(1) // 1=免费，2=收费
 	const chargePrice = ref('')
-	const videoData = {
-	    title: videoTitle.value,
-	    flag: isCharge.value === 2, 
-	    price: isCharge.value === 2 ? chargePrice.value : '0', 
-	}
+	
+	// 封面图片
+	const coverImage = ref('')
+	const coverFile = ref(null)
 
-	// 选择文件
+	// 选择视频文件
 	const chooseFile = () => {
 		uni.chooseImage({
 			count: 1, // 限制只能选择一个文件
@@ -145,6 +156,20 @@
 					const fileName = fileList.value[0].name
 					videoTitle.value = fileName.replace(/\.[^/.]+$/, "") // 移除文件扩展名
 				}
+			}
+		})
+	}
+
+	// 选择封面
+	const chooseCover = () => {
+		uni.chooseImage({
+			count: 1,
+			sizeType: ['original', 'compressed'],
+			sourceType: ['album', 'camera'],
+			success: (res) => {
+				const tempFilePath = res.tempFilePaths[0]
+				coverImage.value = tempFilePath
+				coverFile.value = res.tempFiles[0]
 			}
 		})
 	}
@@ -174,51 +199,73 @@
 		statusClass.value = 'status-warning'
 		uploadProgress.value = 0
 
-		for (let i = 0; i < fileList.value.length; i++) {
-			const file = fileList.value[i]
-			try {
-				// 执行上传
-				const result = await tool.oss.upload(file, {
-					progress: (percentage) => {
-						uploadProgress.value = Math.floor(percentage * 100)
-						statusMessage.value = `上传中: ${uploadProgress.value}%`
-					},
-				})
-				
-				console.log(result.name)
-				
-				// 准备发送到后端的数据
-				const videoData = {
-					title: videoTitle.value,
-					flag: isCharge.value,
-					price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
-					account:getAccount(),
-					url: result.name
-				}
-				
-				// 这里添加发送到后端的代码
-				// 假设有一个 apiSubmitVideo 函数
-				const submitResult = await apiSubmitVideo(videoData)
-				
-				// 添加到上传结果
-				uploadResults.value.push({
-					name: file.name,
-					size: file.size,
-					url: result.url,
-				})
-
-				statusMessage.value = `文件"${file.name}"上传成功`
-				statusClass.value = 'status-success'
-				
-				// 重置表单（可选）
-				videoTitle.value = ''
-				isCharge.value = 1
-				chargePrice.value = ''
-			} catch (error) {
-				statusMessage.value = `文件"${file.name}"上传失败: ${error.message}`
-				statusClass.value = 'status-error'
-			}
-		}
+		 for (let i = 0; i < fileList.value.length; i++) {
+		    const file = fileList.value[i]
+		    try {
+		      // 执行视频上传
+		      const videoResult = await tool.oss.upload(file, {
+		        folder: 'videos', // 视频存储文件夹
+		        progress: (percentage) => {
+		          uploadProgress.value = Math.floor(percentage * 100)
+		          statusMessage.value = `视频上传中: ${uploadProgress.value}%`
+		        },
+		      })
+		      
+		      console.log('视频上传成功:', videoResult.name)
+		      
+		      // 上传封面图片到 vimg 文件夹
+		      let coverUrl = ""
+		      if (coverFile.value) {
+		        statusMessage.value = '正在上传封面...'
+		        
+		        
+		        
+		        // 上传封面图片到 vimg 文件夹
+		        const coverResult = await tool.oss.upload(coverFile.value, {
+		          folder: 'vimg', // 已经在文件名中指定了路径，所以这里设为空
+		          progress: () => {} // 封面上传不需要显示进度
+		        })
+		        
+		        coverUrl = coverResult.name
+		        console.log('封面上传成功:', coverUrl)
+		      }
+		      
+		      // 准备发送到后端的数据
+		      const videoData = {
+		        title: videoTitle.value,
+		        flag: isCharge.value === 2,
+		        price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
+		        account: getAccount(),
+		        url: videoResult.name,
+		        vimg: coverUrl // 添加封面URL
+		      }
+		      
+		      // 提交视频信息到后端
+		      const submitResult = await apiSubmitVideo(videoData)
+		      console.log('视频信息提交成功:', submitResult)
+		      
+		      // 添加到上传结果
+		      uploadResults.value.push({
+		        name: file.name,
+		        size: file.size,
+		        url: videoResult.url,
+		        coverUrl: coverUrl
+		      })
+		
+		      statusMessage.value = `文件"${file.name}"上传成功`
+		      statusClass.value = 'status-success'
+		      
+		      // 重置表单（可选）
+		      videoTitle.value = ''
+		      isCharge.value = 1
+		      chargePrice.value = ''
+		      coverImage.value = ''
+		      coverFile.value = null
+		    } catch (error) {
+		      statusMessage.value = `文件"${file.name}"上传失败: ${error.message}`
+		      statusClass.value = 'status-error'
+		    }
+		  }
 	}
 
 	// 清空文件
@@ -226,6 +273,8 @@
 		fileList.value = []
 		uploadResults.value = []
 		uploadProgress.value = 0
+		coverImage.value = ''
+		coverFile.value = null
 		statusMessage.value = '已清空所有文件'
 		statusClass.value = 'status-warning'
 	}
@@ -337,6 +386,44 @@
 	.upload-hint {
 		font-size: 14px;
 		color: #7f8c8d;
+	}
+
+	/* 新增：封面选择区域 */
+	.cover-area {
+		margin-bottom: 20px;
+	}
+	
+	.section-title {
+		font-size: 16px;
+		font-weight: bold;
+		margin-bottom: 10px;
+		display: block;
+	}
+	
+	.cover-preview {
+		width: 100%;
+		height: 200px;
+		border: 1px dashed #ccc;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		background-color: #f8f8f8;
+	}
+
+	.cover-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.cover-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		color: #999;
+		font-size: 14px;
 	}
 
 	.progress-area {

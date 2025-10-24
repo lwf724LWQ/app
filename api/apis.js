@@ -63,7 +63,7 @@ export function apilogin(data = {}) {
 export function apigetsts(headers = {}) {
 	return request({
 		url: "/web/video/get_sts",
-		headers: headers // 将参数放在请求头中
+		heade: headers // 将参数放在请求头中
 	})
 }
 //获取视频列表
@@ -111,6 +111,51 @@ export function apiCheckVideoPayment(data = {}) {
       'Authorization': getToken()
     }
   })
+}
+//订单
+export function apiRewardVideo(data) {
+  return request({
+    url: "/web/order/recharge",
+    method: "POST",
+    data: {
+      info: data.info, 
+      amount: data.amount,           
+      type: data.type,         
+      account: data.account,         
+      payType: data.payType,   
+      channel: data.channel      
+    },
+    headers: {
+      'Authorization': getToken()     // 添加token
+    }
+  })
+}
+//用户头像,名字
+export function apiUserimg(data) {
+	return request({
+		url: "/web/user/find_info",
+		data
+	})
+}
+//余额支付
+export function apigoldpay(data) {
+	return request({
+		url: "/web/user/pay_gold",
+		data,
+		headers: {
+		  'Authorization': getToken()     // 添加token
+		}
+	})
+}
+//微信支付
+export function apiWxpay(data) {
+	return request({
+		url: "/web/user/pay_wx",
+		data,
+		headers: {
+		  'Authorization': getToken()     // 添加token
+		}
+	})
 }
 
 export function apiGetClassList() {
@@ -170,7 +215,31 @@ export function apiNoticeDetail(data = {}) {
 	})
 }
 
-
+// 查询彩票期号接口
+export function apiGetIssueNo(data = {}) {
+	return request({
+		url: "/web/ticket/find_issueno",
+		method: "GET",
+		data,
+		
+	})
+}
+// 帖子点赞接口
+export function apiPostLike(data = {}) {
+	return request({
+		url: "/web/post/like_count",
+		method: "POST",
+		data
+	})
+}
+// 帖子列表查询接口
+export function apiPostListQuery(data = {}) {
+	return request({
+		url: "/web/post/query",
+		method: "POST",
+		data
+	})
+}
 export function apiSearchData(data = {}) {
 	return request({
 		url: "/searchWall",
@@ -221,77 +290,3 @@ export function apiBillQuery(data = {}) {
 		data
 	})
 }
-
-// 用户信息修改接口
-export function apiUpdateUserProfile(data = {}) {
-	return request({
-		url: "/web/user/update",
-		method: "POST",
-		data
-	})
-}
-
-// 发帖接口
-export function apiPost(data = {}) {
-	return request({
-		url: "/web/post/insert",
-		method: "POST",
-		data
-	})
-}
-
-// 查询彩票期号接口
-export function apiGetIssueNo(data = {}) {
-	return request({
-		url: "/web/ticket/find_issueno",
-		method: "GET",
-		data,
-		
-	})
-}
-
-// 帖子列表查询接口
-export function apiPostListQuery(data = {}) {
-	return request({
-		url: "/web/post/query",
-		method: "POST",
-		data
-	})
-}
-
-// 获取OSS临时凭证接口（使用现有的apigetsts）
-export function getCOSSecretKey(params = {}) {
-	return apigetsts(params)
-}
-
-// 帖子点赞接口
-export function apiPostLike(data = {}) {
-	return request({
-		url: "/web/post/like_count",
-		method: "POST",
-		data
-	})
-}
-
-// 追加帖子接口
-export function apiPostUpdate(data = {}) {
-	return request({
-		url: "/web/post/update",
-		method: "GET",
-		data
-	})
-}
-
-// 查询订单支付状态接口
-export function apiGetOrderPayStatus(data = {}) {
-	return request({
-		url: "/web/order/find_pay_status",
-		method: "GET",
-		data,
-		headers: {
-			'Authorization': getToken()
-		}
-	})
-}
-
-

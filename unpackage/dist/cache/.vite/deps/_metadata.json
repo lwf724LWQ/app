@@ -1,25 +1,25 @@
 {
-  "hash": "2e8a0643",
-  "configHash": "878a3b37",
+  "hash": "3826cc09",
+  "configHash": "0f2a0411",
   "lockfileHash": "a3570ea5",
-  "browserHash": "b06d924c",
+  "browserHash": "2d9a341f",
   "optimized": {
-    "qrcode": {
-      "src": "../../../../../node_modules/qrcode/lib/browser.js",
-      "file": "qrcode.js",
-      "fileHash": "40258f09",
-      "needsInterop": true
-    },
     "nanoid": {
       "src": "../../../../../node_modules/nanoid/index.browser.js",
       "file": "nanoid.js",
-      "fileHash": "b9fa9969",
+      "fileHash": "5bbae294",
       "needsInterop": false
     },
     "ali-oss": {
       "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
       "file": "ali-oss.js",
-      "fileHash": "020b1d3f",
+      "fileHash": "68a498e6",
+      "needsInterop": true
+    },
+    "qrcode": {
+      "src": "../../../../../node_modules/qrcode/lib/browser.js",
+      "file": "qrcode.js",
+      "fileHash": "d7692783",
       "needsInterop": true
     }
   },
