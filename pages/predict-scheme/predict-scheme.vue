@@ -29,7 +29,7 @@
             :class="{ 
               active: activeScheme === scheme.id,
               published: isSchemePublished(scheme.id),
-              disabled: isSchemePublished(scheme.id)
+              disabled: !isFromPatternPredict && isSchemePublished(scheme.id)
             }"
             v-for="scheme in schemeList" 
             :key="scheme.id"
@@ -572,6 +572,13 @@ const publishedSchemes = ref([])
 const isAppendMode = ref(false)
 const appendPostData = ref(null)
 
+// 检查是否从规律预测页面进入
+const isFromPatternPredict = computed(() => {
+  const pages = getCurrentPages()
+  const previousPage = pages[pages.length - 2]
+  return previousPage && previousPage.route === 'pages/pattern-predict/pattern-predict'
+})
+
 // 检查方案是否已发布
 const isSchemePublished = (schemeId) => {
   return publishedSchemes.value.includes(schemeId)
@@ -816,8 +823,8 @@ const selectScheme = (schemeId) => {
     return
   }
   
-  // 检查方案是否已发布 - 已发布的方案无法选择
-  if (isSchemePublished(schemeId)) {
+  // 检查方案是否已发布 - 已发布的方案无法选择（规律帖除外）
+  if (!isFromPatternPredict.value && isSchemePublished(schemeId)) {
     uni.showToast({
       title: '该方案今天已发布过，无法重复选择',
       icon: 'none',
@@ -1552,6 +1559,25 @@ const goToPublish = () => {
     return
   }
   
+  // 检查是否从规律预测页面进入 - 规律帖不应该进入追帖模式
+  const pages = getCurrentPages()
+  const hasPatternPredictPage = pages.some(page => 
+    page.route === 'pages/pattern-predict/pattern-predict'
+  )
+  
+  // 如果是规律帖，直接返回到规律预测页面
+  if (hasPatternPredictPage) {
+    // 保存方案数据到本地存储，供规律预测页面使用
+    uni.setStorageSync('predict_schemes_data', {
+      addedSchemes: addedSchemes.value,
+      schemeData: schemeData.value,
+      timestamp: Date.now()
+    })
+    
+    uni.navigateBack()
+    return
+  }
+  
   // 如果是追帖模式，直接进入追帖流程
   if (isAppendMode.value && appendPostData.value) {
     proceedToAppendPost()
@@ -1633,13 +1659,25 @@ const proceedToAppendPost = () => {
 
 // 继续发新帖
 const proceedToPublish = () => {
-  // 检查是否从规律预测页面进入
+  // 检查是否从规律预测页面进入 - 使用更可靠的检测方法
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1]
   const previousPage = pages[pages.length - 2]
   
-  // 如果是从规律预测页面进入的，返回到规律预测页面
-  if (previousPage && previousPage.route === 'pages/pattern-predict/pattern-predict') {
+  // 检查页面栈中是否有规律预测页面
+  const hasPatternPredictPage = pages.some(page => 
+    page.route === 'pages/pattern-predict/pattern-predict'
+  )
+  
+  console.log('=== 检查页面来源 ===')
+  console.log('页面栈长度:', pages.length)
+  console.log('当前页面:', currentPage.route)
+  console.log('上一页面:', previousPage ? previousPage.route : '无')
+  console.log('页面栈中是否有规律预测页面:', hasPatternPredictPage)
+  
+  // 如果页面栈中有规律预测页面，返回到规律预测页面
+  if (hasPatternPredictPage) {
+    console.log('检测到规律帖模式，返回到规律预测页面')
     // 保存方案数据到本地存储，供规律预测页面使用
     uni.setStorageSync('predict_schemes_data', {
       addedSchemes: addedSchemes.value,

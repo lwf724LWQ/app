@@ -282,4 +282,16 @@ export function apiPostUpdate(data = {}) {
 	})
 }
 
+// 查询订单支付状态接口
+export function apiGetOrderPayStatus(data = {}) {
+	return request({
+		url: "/web/order/find_pay_status",
+		method: "GET",
+		data,
+		headers: {
+			'Authorization': getToken()
+		}
+	})
+}
+
 

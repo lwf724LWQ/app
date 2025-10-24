@@ -244,8 +244,8 @@
               <view class="action-item append-btn" @click="handleAppendPost(item)">
                 <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
                 <text class="count">追帖</text>
-                </view>
               </view>
+            </view>
             </view>
           
           <!-- 暂无数据提示 -->
@@ -289,11 +289,16 @@
       <uni-icons type="plus" size="20" color="#fff"></uni-icons>
     </view>
     
-    
-    
-    
     <!-- 发布弹出层 -->
-    <uni-popup ref="publishPopup" type="bottom" :safe-area="false">
+    <uni-popup 
+      ref="publishPopup" 
+      type="bottom" 
+      :safe-area="false" 
+      :mask-click="false" 
+      :animation="true"
+      :mask-background-color="'rgba(0,0,0,0.5)'"
+      :duration="300"
+    >
       <view class="publish-modal">
         <view class="modal-header">
           <text class="modal-title">发布帖子</text>
@@ -583,11 +588,14 @@ onMounted(() => {
       currentLotteryType.value = savedLotteryType
     }
   } catch (error) {
-    console.error('加载保存的彩票类型失败:', error)
+    // 静默处理错误
   }
   
   // 自动保存当前用户头像到本地存储
   autoSaveCurrentUserAvatar()
+  
+  // 优化触摸事件性能
+  optimizeTouchEvents()
   
   loadLotteryData(currentLotteryType.value.code)
 })
@@ -595,7 +603,6 @@ onMounted(() => {
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab
-  // 这里可以根据标签加载不同的内容
 }
 
 // 选择分类标签
@@ -632,7 +639,7 @@ const selectLotteryType = (lotteryType) => {
   try {
     uni.setStorageSync('currentLotteryType', lotteryType)
   } catch (error) {
-    console.error('保存彩票类型失败:', error)
+    // 静默处理错误
   }
   
   loadLotteryData(lotteryType.code)
@@ -683,7 +690,7 @@ const loadLotteryData = async (lotteryCode) => {
       try {
         uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
       } catch (error) {
-        console.error('保存期号信息失败:', error)
+        // 静默处理错误
       }
       
       loadPredictPosts()
@@ -1096,65 +1103,81 @@ const getSearchButtonText = () => {
 // 加载预测帖子数据
 const loadPredictPosts = async () => {
   try {
+    // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
-      tname: currentLotteryType.value.name,
+      tname: currentLotteryType.value.name, // 查询预测帖
       issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || '--',
       page: '1',
       limit: '20'
     }
     
+    // 查询预测帖
     const response = await apiPostListQuery(queryData)
+    
+    let allPosts = []
     
     if (response.code === 200) {
       if (response.data && response.data.records && Array.isArray(response.data.records)) {
-        predictList.value = response.data.records.map((post) => {
-          const postId = post.id
-          
-          // 检查postId是否有效
-          if (!postId) {
-            return null // 跳过无效的帖子
-          }
-          
-		  
-		 
-		  
-          // 检查当前用户是否点赞过这个帖子
-          const currentAccount = getAccount()
-          const userLikedKey = `${postId}_${currentAccount}`
-          const isLiked = getLikedStatus(userLikedKey)
-          
-          // 使用服务器返回的点赞数
-          const serverLikeCount = post.likeCount || 0
-          
-          // 处理用户头像
-          let userAvatar = 'http://video.caimizm.com/himg/user.png'
-          
-          // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
-          userAvatar = getUserAvatar(post.account)
-          
-          
-          return {
-            id: postId,
-            username: post.account || '匿名用户',
-            avatar: userAvatar, // 使用处理后的头像
-            time: formatTime(post.createTime),
-            status: '预测中',
-            period: post.issueno || currentIssueInfo.value.number,
-            content: post.content || '',
-            image: post.pimg || '', // 帖子图片（规律帖的图片）
-            likes: serverLikeCount, // 使用服务器返回的点赞数
-            comments: post.comment || 0,
-            shares: 0,
-            isLiked: isLiked, // 检查当前用户是否点赞过
-            isLiking: false // 点赞中状态
-          }
-        })
-        
-        // 过滤掉无效的帖子
-        predictList.value = predictList.value.filter(post => post !== null)
-      } else {
-        predictList.value = []
+        allPosts = [...response.data.records]
       }
+    }
+    
+    // 查询规律帖 - 使用规律帖的tname格式
+    const patternQueryData = {
+      tname: `${currentLotteryType.value.name}-规律预测`, // 查询规律帖
+      issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || '--',
+      page: '1',
+      limit: '20'
+    }
+    
+    const patternResponse = await apiPostListQuery(patternQueryData)
+    
+    if (patternResponse.code === 200) {
+      if (patternResponse.data && patternResponse.data.records && Array.isArray(patternResponse.data.records)) {
+        allPosts = [...allPosts, ...patternResponse.data.records]
+      }
+    }
+    
+    // 处理所有帖子数据
+    if (allPosts.length > 0) {
+      predictList.value = allPosts.map((post) => {
+        const postId = post.id
+        
+        // 检查postId是否有效
+        if (!postId) {
+          return null // 跳过无效的帖子
+        }
+        
+        // 检查当前用户是否点赞过这个帖子
+        const currentAccount = getAccount()
+        const userLikedKey = `${postId}_${currentAccount}`
+        const isLiked = getLikedStatus(userLikedKey)
+        
+        // 使用服务器返回的点赞数
+        const serverLikeCount = post.likeCount || 0
+        
+        // 处理用户头像
+        let userAvatar = 'http://video.caimizm.com/himg/user.png'
+        
+        // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
+        userAvatar = getUserAvatar(post.account)
+        
+        return {
+          id: postId,
+          username: post.account || '匿名用户',
+          avatar: userAvatar, // 使用处理后的头像
+          time: formatTime(post.createTime),
+          status: '预测中',
+          period: post.issueno || currentIssueInfo.value.number,
+          content: post.content || '',
+          image: post.pimg || '', // 帖子图片（规律帖的图片）
+          likes: serverLikeCount, // 使用服务器返回的点赞数
+          comments: post.comment || 0,
+          shares: 0,
+          isLiked: isLiked, // 检查当前用户是否点赞过
+          isLiking: false // 点赞中状态
+        }
+      }).filter(post => post !== null)
     } else {
       predictList.value = []
     }
@@ -1376,6 +1399,29 @@ const autoSaveCurrentUserAvatar = () => {
   }
 }
 
+// 优化触摸事件性能
+const optimizeTouchEvents = () => {
+  try {
+    // 在H5环境下优化触摸事件
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      // 为所有元素添加被动事件监听器
+      const addPassiveListener = (element, event, handler) => {
+        element.addEventListener(event, handler, { passive: true })
+      }
+      
+      // 为滚动容器添加被动滚动监听器
+      const scrollContainers = document.querySelectorAll('.predict-list, .modal-content, .dropdown-list, .filter-dialog')
+      scrollContainers.forEach(container => {
+        addPassiveListener(container, 'touchstart', () => {})
+        addPassiveListener(container, 'touchmove', () => {})
+        addPassiveListener(container, 'touchend', () => {})
+      })
+    }
+  } catch (error) {
+    // 静默处理错误
+  }
+}
+
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
   try {
@@ -1412,7 +1458,6 @@ const handleAppendPost = (post) => {
     }
     
   } catch (error) {
-    console.error('追帖按钮点击处理失败:', error)
     uni.showToast({
       title: '操作失败，请重试',
       icon: 'none'
@@ -1449,7 +1494,6 @@ const navigateToAppendPost = (post) => {
         })
       },
       fail: (err) => {
-        console.error('跳转到方案设置页面失败:', err)
         uni.showToast({
           title: '跳转失败',
           icon: 'none'
@@ -1458,7 +1502,6 @@ const navigateToAppendPost = (post) => {
     })
     
   } catch (error) {
-    console.error('跳转到追帖页面失败:', error)
     uni.showToast({
       title: '跳转失败',
       icon: 'none'
@@ -1492,7 +1535,6 @@ const extractSchemeFromContent = (content) => {
     return foundSchemes
     
   } catch (error) {
-    console.error('提取方案ID失败:', error)
     return []
   }
 }
@@ -1501,9 +1543,25 @@ const extractSchemeFromContent = (content) => {
 </script>
 
 <style scoped>
+/* 全局触摸事件优化 */
+* {
+  touch-action: manipulation;
+}
+
+/* 滚动容器特殊处理 */
+.scroll-container {
+  touch-action: pan-y;
+}
+
+/* 输入框特殊处理 */
+input, textarea {
+  touch-action: manipulation;
+}
 .forum-container {
   min-height: 100vh;
   background-color: #f5f5f5;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 主导航栏 */
@@ -1519,6 +1577,8 @@ const extractSchemeFromContent = (content) => {
   align-items: center;
   justify-content: space-between;
   padding: 0 30rpx;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
 }
 
 .nav-left, .nav-right {
@@ -1583,6 +1643,10 @@ const extractSchemeFromContent = (content) => {
   box-shadow: 0 8rpx 30rpx rgba(0,0,0,0.15);
   z-index: 1000;
   overflow: hidden;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
 }
 
 .dropdown-header {
@@ -1611,6 +1675,12 @@ const extractSchemeFromContent = (content) => {
 
 .dropdown-list {
   max-height: 500rpx;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
+  /* 优化触摸性能 */
+  touch-action: pan-y;
 }
 
 .dropdown-item {
@@ -1675,6 +1745,8 @@ const extractSchemeFromContent = (content) => {
   background-color: #fff;
   z-index: 998;
   display: flex;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
 }
 
 .tab-item {
@@ -1684,6 +1756,9 @@ const extractSchemeFromContent = (content) => {
   justify-content: center;
   position: relative;
   border-bottom: 4rpx solid transparent;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: all 0.2s ease;
 }
 
 .tab-item.active {
@@ -1712,6 +1787,8 @@ const extractSchemeFromContent = (content) => {
   display: flex;
   align-items: center;
   padding: 0 30rpx;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
 }
 
 .search-label {
@@ -1831,6 +1908,8 @@ const extractSchemeFromContent = (content) => {
   background-color: #fff;
   z-index: 996;
   padding: 20rpx 0;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
 }
 
 .category-scroll {
@@ -1852,6 +1931,8 @@ const extractSchemeFromContent = (content) => {
   white-space: nowrap;
   transition: all 0.3s ease;
   cursor: pointer;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
 }
 
 .tag-item.active {
@@ -1871,6 +1952,8 @@ const extractSchemeFromContent = (content) => {
 .forum-content {
   padding: 20rpx;
   padding-top: 356rpx; /* 为四个固定区域留出空间 */
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 标签内容区域 */
@@ -1983,6 +2066,8 @@ const extractSchemeFromContent = (content) => {
 .predict-list {
   padding: 20rpx;
   background-color: #f8f8f8;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
 }
 
 .predict-item {
@@ -1991,6 +2076,9 @@ const extractSchemeFromContent = (content) => {
   margin-bottom: 20rpx;
   padding: 20rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
 }
 
 .post-header {
@@ -2105,6 +2193,9 @@ const extractSchemeFromContent = (content) => {
   align-items: center;
   color: #999;
   font-size: 24rpx;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
 }
 
 .action-item .count {
@@ -2193,6 +2284,9 @@ const extractSchemeFromContent = (content) => {
   justify-content: center;
   box-shadow: 0 4rpx 20rpx rgba(40, 179, 137, 0.3);
   z-index: 999;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
 }
 
 .publish-btn:active {
@@ -2210,6 +2304,11 @@ const extractSchemeFromContent = (content) => {
   display: flex;
   flex-direction: column;
   position: relative;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  will-change: transform;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
 }
 
 .modal-header {
@@ -2241,6 +2340,12 @@ const extractSchemeFromContent = (content) => {
   padding: 30rpx;
   flex: 1;
   overflow-y: auto;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
+  /* 优化触摸性能 */
+  touch-action: pan-y;
 }
 
 /* 期号标题 */
@@ -2317,6 +2422,13 @@ const extractSchemeFromContent = (content) => {
   align-items: center;
   flex: 1;
   margin: 0 15rpx;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
+}
+
+.function-btn:active {
+  transform: scale(0.95);
 }
 
 .btn-icon {
@@ -2393,6 +2505,12 @@ const extractSchemeFromContent = (content) => {
   padding: 40rpx;
   max-height: 80vh;
   overflow-y: auto;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
+  /* 优化触摸性能 */
+  touch-action: pan-y;
 }
 
 .filter-header {

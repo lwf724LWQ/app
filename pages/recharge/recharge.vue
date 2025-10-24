@@ -142,12 +142,7 @@
           <text class="qr-tip">请使用微信扫描二维码完成支付</text>
           <text class="qr-amount">支付金额：¥{{ paymentAmount }}元</text>
           <text class="qr-status" v-if="isCheckingPayment">正在检查支付状态...</text>
-          <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
-        </view>
-        <view class="qr-footer">
-          <button class="cancel-qr-btn" @click.stop="closeQRModal">取消支付</button>
-          <button class="refresh-qr-btn" @click.stop="refreshQRCode">刷新二维码</button>
-          <button class="success-qr-btn" @click.stop="handlePaymentSuccess">支付完成</button>
+          <text class="qr-hint" v-if="isCheckingPayment">请在1分钟内完成支付，请耐心等待系统检查</text>
         </view>
       </view>
     </view>
@@ -157,7 +152,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getToken, getAccount } from '@/utils/request.js'
-import { apiUserRecharge, apiGetUserBalance } from '@/api/apis.js'
+import { apiUserRecharge, apiGetUserBalance, apiGetOrderPayStatus } from '@/api/apis.js'
 
 // 响应式数据
 const currentUser = ref('vfmumq')
@@ -174,6 +169,7 @@ const qrCodeUrl = ref('')
 const paymentCheckTimer = ref(null)
 const isCheckingPayment = ref(false)
 const isRefreshing = ref(false)
+const currentOrderNo = ref('') // 当前订单号
 
 // 计算属性
 const paymentAmount = computed(() => {
@@ -249,14 +245,14 @@ const processPayment = async () => {
   })
   
   try {
-    // 准备充值数据
+    // 准备充值数据（根据API文档调整）
     const rechargeData = {
-      info: `用户充值${paymentAmount.value}元`,
-      amount: paymentAmount.value.toString(),
-      type: 0, // 0表示充值
-      account: getAccount() || currentUser.value,
-      payType: 0, // 0表示微信支付
-      channel: 0 // 0表示电脑端
+      info: `用户充值${paymentAmount.value}元`, // 订单信息（可选）
+      amount: paymentAmount.value.toString(), // 订单金额（必需）
+      type: 0, // 订单类型：0充值（可选）
+      account: getAccount() || currentUser.value, // 账号（可选）
+      payType: 0, // 支付方式：0微信（可选）
+      channel: 0 // 下单渠道：0电脑端（可选）
     }
     
     // 调用充值接口
@@ -266,14 +262,17 @@ const processPayment = async () => {
     
     if (response.code === 200) {
       // 充值成功，处理微信支付
-      if (response.data && response.data.includes('weixin://wxpay')) {
+      if (response.data && response.data.coreUrl && response.data.coreUrl.includes('weixin://wxpay')) {
+        // 保存订单号（从响应中提取）
+        currentOrderNo.value = response.data.orderNo || `ORDER_${Date.now()}`
+        
         // 显示二维码支付
-        currentPaymentUrl.value = response.data
+        currentPaymentUrl.value = response.data.coreUrl
         showQRModal.value = true
         
         // 生成二维码
         setTimeout(() => {
-          generateQRCode(response.data)
+          generateQRCode(response.data.coreUrl)
           // 开始检查支付状态
           startPaymentCheck()
         }, 100)
@@ -319,7 +318,6 @@ const processPayment = async () => {
     }
   } catch (error) {
     uni.hideLoading()
-    console.error('充值接口调用失败:', error)
     uni.showToast({
       title: '网络错误，请重试',
       icon: 'none'
@@ -341,7 +339,7 @@ const getUserInfo = async () => {
       }
     }
   } catch (error) {
-    console.error('获取用户信息失败:', error)
+    // 获取用户信息失败，静默处理
   }
 }
 
@@ -361,7 +359,6 @@ const generateQRCode = (url) => {
         }
       }, (error, dataUrl) => {
         if (error) {
-          console.error('二维码生成失败:', error)
           // 使用在线服务作为备选
           generateQRCodeOnline(url)
         } else {
@@ -370,12 +367,10 @@ const generateQRCode = (url) => {
         }
       })
     }).catch(error => {
-      console.error('导入qrcode库失败:', error)
       // 使用在线服务作为备选
       generateQRCodeOnline(url)
     })
   } catch (error) {
-    console.error('生成二维码失败:', error)
     // 使用在线服务作为备选
     generateQRCodeOnline(url)
   }
@@ -389,7 +384,6 @@ const generateQRCodeOnline = (url) => {
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize.value}x${qrSize.value}&data=${encodedUrl}`
     qrCodeUrl.value = qrApiUrl
   } catch (error) {
-    console.error('在线二维码生成失败:', error)
     uni.showToast({
       title: '二维码生成失败',
       icon: 'none'
@@ -404,6 +398,7 @@ const closeQRModal = () => {
   showQRModal.value = false
   currentPaymentUrl.value = ''
   qrCodeUrl.value = ''
+  currentOrderNo.value = ''
 }
 
 // 下拉刷新方法
@@ -425,7 +420,6 @@ const onRefresh = async () => {
     }, 1000)
     
   } catch (error) {
-    console.error('下拉刷新失败:', error)
     isRefreshing.value = false
     uni.showToast({
       title: '刷新失败',
@@ -447,7 +441,7 @@ const refreshPage = async () => {
     agreedToTerms.value = false
     
   } catch (error) {
-    console.error('页面刷新失败:', error)
+    // 页面刷新失败，静默处理
   }
 }
 
@@ -486,16 +480,10 @@ const handlePaymentSuccess = async () => {
     customAmount.value = ''
     agreedToTerms.value = false
   } catch (error) {
-    console.error('处理支付成功失败:', error)
+    // 处理支付成功失败，静默处理
   }
 }
 
-const refreshQRCode = () => {
-  if (currentPaymentUrl.value) {
-    qrCodeUrl.value = '' // 清空当前二维码
-    generateQRCode(currentPaymentUrl.value)
-  }
-}
 
 // 开始检查支付状态
 const startPaymentCheck = () => {
@@ -506,60 +494,104 @@ const startPaymentCheck = () => {
   
   isCheckingPayment.value = true
   let checkCount = 0
-  const maxChecks = 20 // 最多检查20次（100秒）
+  const maxChecks = 20 // 最多检查20次（60秒）
   const startTime = Date.now()
   
-  
-  // 每3秒检查一次支付状态
+  // 每10秒检查一次支付状态（给客户更多支付时间）
   paymentCheckTimer.value = setInterval(async () => {
     try {
       checkCount++
       
-      // 模拟支付成功检测 - 基于时间和检查次数
-      const elapsedTime = Date.now() - startTime
-      const elapsedSeconds = Math.floor(elapsedTime / 1000)
+      // 调用API检查支付状态
+      const paymentStatusResponse = await apiGetOrderPayStatus({
+        orderNo: currentOrderNo.value
+      })
       
-      // 如果用户已经扫码超过15秒，大幅提高成功概率
-      let successProbability = 0.05 // 5%基础概率
-      
-      if (elapsedSeconds > 15) {
-        successProbability = 0.8 // 80%概率
-      } else if (elapsedSeconds > 10) {
-        successProbability = 0.6 // 60%概率
-      } else if (elapsedSeconds > 5) {
-        successProbability = 0.3 // 30%概率
-      } else if (checkCount > 3) {
-        successProbability = 0.15 // 15%概率
+      if (paymentStatusResponse.code === 200) {
+        // 检查支付状态
+        const paymentStatus = paymentStatusResponse.data
+        
+        if (paymentStatus === 'success' || paymentStatus === 'paid' || paymentStatus === 1) {
+          // 支付成功
+          stopPaymentCheck()
+          await handlePaymentSuccess()
+          return
+        } else if (paymentStatus === 'failed' || paymentStatus === 'cancelled' || paymentStatus === 0) {
+          // 支付失败 - 但给客户更多时间，不立即跳转
+          // 只有在检查次数较多时才提示失败
+          if (checkCount >= 5) { // 检查5次后（约50秒）才提示失败
+            stopPaymentCheck()
+            uni.showToast({
+              title: '支付失败，请重试',
+              icon: 'none',
+              duration: 3000
+            })
+            closeQRModal()
+            return
+          }
+        }
+        // 如果状态是 'pending' 或其他状态，继续检查
       }
       
-      const randomSuccess = Math.random() < successProbability
-      
-      
-      if (randomSuccess) {
-        await handlePaymentSuccess()
+      // 检查是否超过1分钟
+      const elapsedTime = Date.now() - startTime
+      if (elapsedTime >= 60000) { // 60秒 = 1分钟
+        stopPaymentCheck()
+        
+        // 最后一次检查支付状态
+        try {
+          const finalCheckResponse = await apiGetOrderPayStatus({
+            orderNo: currentOrderNo.value
+          })
+          
+          if (finalCheckResponse.code === 200) {
+            const finalStatus = finalCheckResponse.data
+            if (finalStatus === 'success' || finalStatus === 'paid' || finalStatus === 1) {
+              // 支付成功
+              await handlePaymentSuccess()
+            } else {
+              // 支付失败
+              uni.showToast({
+                title: '支付失败，请重试',
+                icon: 'none',
+                duration: 3000
+              })
+              closeQRModal()
+            }
+          } else {
+            // 无法获取支付状态，提示支付失败
+            uni.showToast({
+              title: '支付失败，请重试',
+              icon: 'none',
+              duration: 3000
+            })
+            closeQRModal()
+          }
+        } catch (error) {
+          // 最后检查失败，提示支付失败
+          uni.showToast({
+            title: '支付失败，请重试',
+            icon: 'none',
+            duration: 3000
+          })
+          closeQRModal()
+        }
         return
       }
       
+    } catch (error) {
       // 如果检查次数达到上限，停止检查
       if (checkCount >= maxChecks) {
-        console.log('支付检查超时，停止检查')
         stopPaymentCheck()
         uni.showToast({
-          title: '支付检查超时，请手动确认',
+          title: '支付检查失败，请重试',
           icon: 'none',
           duration: 3000
         })
+        closeQRModal()
       }
-      
-      // 实际项目中，这里应该调用后端接口检查支付状态
-      // const paymentStatus = await checkPaymentStatus(currentPaymentUrl.value)
-      // if (paymentStatus === 'success') {
-      //   await handlePaymentSuccess()
-      // }
-    } catch (error) {
-      console.error('检查支付状态失败:', error)
     }
-  }, 3000)
+  }, 10000) // 改为每10秒检查一次
 }
 
 // 停止检查支付状态
@@ -569,7 +601,6 @@ const stopPaymentCheck = () => {
     paymentCheckTimer.value = null
   }
   isCheckingPayment.value = false
-  console.log('停止检查支付状态')
 }
 
 // 页面加载时获取用户信息
@@ -1000,34 +1031,4 @@ onUnmounted(() => {
   100% { opacity: 1; }
 }
 
-.qr-footer {
-  display: flex;
-  gap: 20rpx;
-  padding: 30rpx;
-  border-top: 1rpx solid #f0f0f0;
-}
-
-.cancel-qr-btn, .refresh-qr-btn, .success-qr-btn {
-  flex: 1;
-  height: 80rpx;
-  border: none;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.cancel-qr-btn {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.refresh-qr-btn {
-  background-color: #28B389;
-  color: #fff;
-}
-
-.success-qr-btn {
-  background-color: #ff4757;
-  color: #fff;
-}
 </style>
