@@ -27,7 +27,7 @@ import { ref } from 'vue';
 import {onLoad,onUnload,onReachBottom,onShareAppMessage,onShareTimeline} from "@dcloudio/uni-app"
 
 import {apiGetClassList,apiGetHistoryList} from "@/api/apis.js"
-import {gotoHome} from "@/utils/common.js"
+// import {gotoHome} from "@/utils/common.js"
 //分类列表数据
 const classList = ref([]);
 const noData = ref(false)

@@ -228,7 +228,7 @@
 				// 根据当前选中的选项卡决定跳转到哪个画规页面
 				const tname = this.currentTab === 'plw' ? '排列5' : '七星彩'
 				uni.navigateTo({
-					url: `/pages/juWang/drawLine/drawLineRead?tname=${tname}`
+					url: `/pages/juWang/drawLine/drawLine`
 				});
 			},
 			// 跳转到解梦页面

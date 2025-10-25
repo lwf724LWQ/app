@@ -272,6 +272,45 @@ export function apiGetUserBalance(data = {}) {
 		data
 	})
 }
+// 发帖接口
+export function apiPost(data = {}) {
+	return request({
+		url: "/web/post/insert",
+		method: "POST",
+		data
+	})
+}
+// 查询订单支付状态接口
+export function apiGetOrderPayStatus(data = {}) {
+	return request({
+		url: "/web/order/find_pay_status",
+		method: "GET",
+		data,
+		headers: {
+			'Authorization': getToken()
+		}
+	})
+}
+// 用户信息修改接口
+export function apiUpdateUserProfile(data = {}) {
+	return request({
+		url: "/web/user/update",
+		method: "POST",
+		data
+	})
+}
+// 追加帖子接口
+export function apiPostUpdate(data = {}) {
+	return request({
+		url: "/web/post/update",
+		method: "GET",
+		data
+	})
+}
+// 获取OSS临时凭证接口（使用现有的apigetsts）
+export function getCOSSecretKey(params = {}) {
+	return apigetsts(params)
+}
 
 // 订单查询接口
 export function apiOrderQuery(data = {}) {

@@ -8,7 +8,7 @@ export const usetwoCounterStore = defineStore('twocounter', () => {
     const queryParams = ref({
         page: 1,
         limit: 20,
-        tname: '排列5'
+        tname: '排列五'
     });
     const isLoading = ref(false);
     const hasMore = ref(true);
@@ -45,10 +45,7 @@ export const usetwoCounterStore = defineStore('twocounter', () => {
             // 检查是否还有更多数据
             hasMore.value = res.data.records.length >= queryParams.value.limit;
             
-            // 增加页码，为下次加载做准备
-            if (hasMore.value) {
-                queryParams.value.page++;
-            }
+            
             
             console.log("转换后数据（包含4行空数据）:", List.value);
         } catch (err) {

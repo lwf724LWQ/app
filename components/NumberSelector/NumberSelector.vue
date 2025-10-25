@@ -111,7 +111,7 @@
 				  <!-- 稳码样式 -->
 				  <div class="digit-box" v-if="selectedCondition === '稳码'">
 				    <div class="wenma">
-				      <div class='firstsize'>稳上一码：{{selectedNumbers2}}</div>
+				      <div class='firstsize'>稳码：{{selectedNumbers2}}</div>
 				    </div>
 				  </div>
 				</div>
@@ -290,276 +290,334 @@
 </script>
 
 <style>
-	* {
-		margin: 0;
-		padding: 0;
-		box-sizing: border-box;
-		font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-	}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
 
-	body {
-		background-color: #f5f7fa;
-		color: #333;
-		padding: 20px;
-		max-width: 500px;
-		margin: 0 auto;
-	}
+.NumberPos {
+    width: 100%;
+    min-height: auto;
+    margin: 0 auto;
+    padding: 20rpx;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+}
 
-	.firstsize {
-		width: 500rpx;
-		text-align: left;
-		font-size: 200%;
-		color: darkturquoise;
-	}
+.container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
 
-	.wenma {
-		position: relative;
-		width: 550rpx;
-		height: 130rpx;
-		left: 200rpx;
-		border-radius: 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 15px;
-		font-weight: bold;
-		background-color: #ff4d4f;
-	}
+/* 头部样式优化 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20rpx;
+    border-bottom: 1px solid #eee;
+    background-color: white;
+    flex-shrink: 0;
+}
 
-	.NumberPos {
-		width: 80%;
-		height: 10%;
-		margin: auto;
-		margin-top: 188px;
-		background-color: white;
-		border-radius: 16px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-	}
+.title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+}
 
-	/* 头部样式 - Flex布局 */
-	.header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 20px;
-		border-bottom: 1px solid #eee;
-		background-color: white;
-	}
+.mode-switch {
+    display: flex;
+    background: #f0f2f5;
+    border-radius: 20rpx;
+    padding: 4rpx;
+}
 
-	.title {
-		font-size: 20px;
-		font-weight: 600;
-		color: #333;
-	}
+.mode-btn {
+    padding: 8rpx 24rpx;
+    border-radius: 16rpx;
+    font-size: 24rpx;
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-	.mode-switch {
-		display: flex;
-		background: #f0f2f5;
-		border-radius: 20px;
-		padding: 4px;
-	}
+.mode-btn.active {
+    background: #ff7900;
+    color: white;
+}
 
-	.mode-btn {
-		padding: 6px 16px;
-		border-radius: 16px;
-		font-size: 14px;
-		cursor: pointer;
-		transition: all 0.3s;
-	}
+/* 内容区域优化 */
+.section {
+    padding: 20rpx;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
 
-	.mode-btn.active {
-		background: #ff7900;
-		color: white;
-	}
+.section-title {
+    font-size: 28rpx;
+    font-weight: 500;
+    margin-bottom: 20rpx;
+    color: #333;
+}
 
-	/* 数字选择区域 - Flex布局 */
-	.section {
-		padding: 20px;
-		border-bottom: 1px solid #eee;
-	}
+/* 数字网格优化 */
+.numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15rpx;
+}
 
-	.section-title {
-		font-size: 16px;
-		font-weight: 500;
-		margin-bottom: 16px;
-		color: #333;
-	}
+.number-btn {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: white;
+    font-size: 28rpx;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 60rpx;
+}
 
-	.numbers-grid {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 12px;
-	}
+.number-btn.selected {
+    background: #1677ff;
+    color: white;
+    border-color: #1677ff;
+    transform: scale(1.05);
+}
 
-	.number-btn {
-		flex: 0 0 calc(20% - 10px);
-		aspect-ratio: 1;
-		border-radius: 50%;
-		border: 1px solid #e0e0e0;
-		background: white;
-		font-size: 18px;
-		font-weight: 500;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
+/* 条件网格优化 */
+.conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15rpx;
+}
 
-	.number-btn.selected {
-		background: #1677ff;
-		color: white;
-		border-color: #1677ff;
-		transform: scale(1.05);
-	}
+.condition-btn {
+    padding: 15rpx 0;
+    border-radius: 8rpx;
+    border: 1px solid #e0e0e0;
+    background: white;
+    font-size: 24rpx;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 
+.condition-btn.selected {
+    background: #1677ff;
+    color: white;
+    border-color: #1677ff;
+}
 
-	/* 条件选择区域 - Flex布局 */
-	.conditions-grid {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
+/* 预览区域优化 */
+.preview-section {
+    border-bottom: none;
+}
 
-	.condition-btn {
-		flex: 0 0 calc(20% - 8px);
-		padding: 8px 0;
-		border-radius: 8px;
-		border: 1px solid #e0e0e0;
-		background: white;
-		font-size: 14px;
-		text-align: center;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
+.preview-options {
+    display: flex;
+    align-items: center;
+    gap: 30rpx;
+    margin-bottom: 20rpx;
+}
 
-	.condition-btn.selected {
-		background: #1677ff;
-		color: white;
-		border-color: #1677ff;
-	}
+.preview-option {
+    display: flex;
+    align-items: center;
+    gap: 10rpx;
+    font-size: 24rpx;
+    cursor: pointer;
+}
 
-	/* 效果预览区域 - Flex布局 */
-	.preview-section {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-	}
+.option-checkbox {
+    width: 30rpx;
+    height: 30rpx;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-	.preview-options {
-		display: flex;
-		align-items: center;
-		gap: 20px;
-	}
+.option-checkbox.selected {
+    background: #1677ff;
+    border-color: #1677ff;
+}
 
-	.preview-option {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		font-size: 14px;
-		cursor: pointer;
-	}
+.option-checkbox.selected::after {
+    content: "✓";
+    color: white;
+    font-size: 20rpx;
+}
 
-	.option-checkbox {
-		width: 18px;
-		height: 18px;
-		border-radius: 50%;
-		border: 1px solid #e0e0e0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+/* 数字显示容器优化 */
+.digits-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 15rpx;
+    flex-wrap: wrap;
+}
 
-	.option-checkbox.selected {
-		background: #1677ff;
-		border-color: #1677ff;
-	}
+.digit-box {
+    flex: 1;
+    min-width: 120rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10rpx;
+}
 
-	.option-checkbox.selected::after {
-		content: "✓";
-		color: white;
-		font-size: 12px;
-	}
+.digit-label {
+    font-size: 24rpx;
+    color: #666;
+}
 
-	.digits-container {
-		display: flex;
-		justify-content: space-between;
-	}
+.digit-display {
+    width: 100%;
+    min-height: 80rpx;
+    border-radius: 8rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 24rpx;
+    font-weight: bold;
+    padding: 10rpx;
+    text-align: center;
+}
 
-	.digit-box {
-		width: 23%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-	}
+.digit-display.hollow {
+    border: 2px solid #e0e0e0;
+    background: white;
+    color: #333;
+}
 
-	.digit-label {
-		font-size: 14px;
-		color: #666;
-	}
+.digit-display.solid {
+    background: #ff4d4f;
+    color: white;
+}
 
-	.digit-display {
-		width: 100%;
-		aspect-ratio: 1;
-		border-radius: 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 15px;
-		font-weight: bold;
-	}
+/* 稳码样式优化 */
+.wenma {
+    width: 100%;
+    min-height: 100rpx;
+    border-radius: 8rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24rpx;
+    font-weight: bold;
+    background-color: #ff4d4f;
+    color: white;
+    padding: 15rpx;
+    text-align: center;
+}
 
-	.digit-display.hollow {
-		display: inline-block;
-		text-align: center;
-		border: 2px solid #e0e0e0;
-		background: white;
-	}
+.firstsize {
+    font-size: 24rpx;
+    color: white;
+    text-align: center;
+    width: 100%;
+}
 
-	.digit-display.solid {
-		display: inline-block;
-		text-align: center;
-		background: #ff4d4f;
-		color: white;
-	}
+/* 底部按钮优化 */
+.footer {
+    display: flex;
+    padding: 20rpx;
+    gap: 20rpx;
+    flex-shrink: 0;
+}
 
-	/* 底部按钮 - Flex布局 */
-	.footer {
-		display: flex;
-		padding: 20px;
-		gap: 16px;
-	}
+.action-btn {
+    flex: 1;
+    padding: 20rpx 0;
+    border-radius: 8rpx;
+    font-size: 28rpx;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 
-	.action-btn {
-		flex: 1;
-		padding: 14px 0;
-		border-radius: 8px;
-		font-size: 16px;
-		font-weight: 500;
-		text-align: center;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
+.cancel-btn {
+    background: #f0f2f5;
+    color: #666;
+}
 
-	.cancel-btn {
-		background: #f0f2f5;
-		color: #666;
-	}
+.cancel-btn:active {
+    background: #e6e8eb;
+}
 
-	.cancel-btn:hover {
-		background: #e6e8eb;
-	}
+.confirm-btn {
+    background: #ff7900;
+    color: white;
+}
 
-	.confirm-btn {
-		background: #ff7900;
-		color: white;
-	}
+.confirm-btn:active {
+    background: #e66a00;
+}
 
-	.confirm-btn:hover {
-		background: #e66a00;
-	}
+/* 响应式设计 */
+@media (max-width: 375px) {
+    .NumberPos {
+        padding: 15rpx;
+    }
+    
+    .section {
+        padding: 15rpx;
+    }
+    
+    .numbers-grid {
+        gap: 10rpx;
+    }
+    
+    .number-btn {
+        font-size: 24rpx;
+        min-height: 50rpx;
+    }
+    
+    .conditions-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10rpx;
+    }
+    
+    .condition-btn {
+        font-size: 22rpx;
+        padding: 12rpx 0;
+    }
+    
+    .digit-box {
+        min-width: 100rpx;
+    }
+    
+    .digit-display {
+        min-height: 70rpx;
+        font-size: 22rpx;
+    }
+}
+
+@media (min-width: 768px) {
+    .NumberPos {
+        max-width: 600rpx;
+    }
+    
+    .numbers-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+    
+    .conditions-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
 </style>

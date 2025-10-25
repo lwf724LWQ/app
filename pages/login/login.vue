@@ -128,7 +128,7 @@ const account=ref('');
 const password=ref('');
 const code=ref('');
 const tocken=ref('');
-const isAgreed=ref(false);
+const isAgreed=ref(true);
 const showPassword=ref(false);
 const Userinfo = reactive({
     type: '',
@@ -280,7 +280,7 @@ const gologin=async ()=>{
 	      setTimeout(() => {
 	      	// 跳转到用户页面
 		  	uni.switchTab({
-			  	url: '/pages/user/user',
+			  	url: '/pages/index/index',
 		  	})
 	      }, 1500)
 	      

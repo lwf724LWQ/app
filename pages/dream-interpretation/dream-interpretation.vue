@@ -117,7 +117,7 @@
                   @load="handleImageLoad(item, index)"
                 ></image>
                 <view class="default-icon" v-else>
-                  <text class="icon-text">💭</text>
+                  <text class="icon-text"></text>
                 </view>
               </view>
             </view>
@@ -193,8 +193,9 @@ const popularDreams = ref([
 const popularCategories = ref([])
 
 const getImageUrl = (id, imgName) => {
+	
   if (!id || !imgName) return ''
-  const baseUrl = 'http://caimi.s7.tunnelfrp.com'
+  const baseUrl = 'http://video.caimizm.com'
   if (imgName.startsWith('http')) return imgName
   if (imgName.startsWith('/')) return `${baseUrl}${imgName}`
   // 尝试多种可能的图片路径
@@ -218,7 +219,7 @@ const handleImageError = (item, index) => {
   // 如果当前尝试的是第一个路径，可以尝试其他路径
   if (!item.triedAlternativePaths) {
     item.triedAlternativePaths = true
-    const baseUrl = 'http://caimi.s7.tunnelfrp.com'
+    const baseUrl = 'http://video.caimizm.com'
     const alternativePaths = [
       `${baseUrl}/web/dream/image/${item.id}`,
       `${baseUrl}/api/image/${item.id}`,

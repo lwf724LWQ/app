@@ -3,34 +3,33 @@
 		<view class="navbar">
 			<!-- 返回按钮 -->
 			<view class="navbar-left" @click="goBack">
-			   <uni-icons type="left" size="30"></uni-icons>
-			 </view>
-			 <!-- 标题 -->
-			 <view class="navbar-title">上传视频</view>
-			
+				<uni-icons type="left" size="30"></uni-icons>
+			</view>
+			<!-- 标题 -->
+			<view class="navbar-title">上传视频</view>
 		</view>
-		
+
 		<!-- 视频信息表单 -->
 		<view class="form-area">
 			<view class="form-item">
 				<text class="form-label">视频标题</text>
 				<input class="form-input" v-model="videoTitle" placeholder="请输入视频标题" />
 			</view>
-			
+
 			<view class="form-item">
 				<text class="form-label">是否收费</text>
 				<view class="radio-group">
 					<label class="radio-label">
-						<radio value="1" :checked="isCharge === 1" @click="isCharge = 1" >免费</radio>
+						<radio value="1" :checked="isCharge === 1" @click="isCharge = 1">免费</radio>
 					</label>
-					
+
 					<label class="radio-label">
-						<radio value="2" :checked="isCharge === 2" @click="isCharge = 2" >收费</radio>
+						<radio value="2" :checked="isCharge === 2" @click="isCharge = 2">收费</radio>
 					</label>
-					
+
 				</view>
 			</view>
-			
+
 			<view class="form-item" v-if="isCharge === 2">
 				<text class="form-label">收费价格</text>
 				<input class="form-input" v-model="chargePrice" type="number" placeholder="请输入价格" />
@@ -111,12 +110,12 @@
 		setAccount,
 		getAccount
 	} from '@/utils/request.js'; // 导入setToken，账号
-	
+
 	//导航栏
 	const goBack = () => {
-	  uni.navigateBack({
-	    delta: 1
-	  });
+		uni.navigateBack({
+			delta: 1
+		});
 	};
 
 	// 文件列表
@@ -128,12 +127,12 @@
 	// 状态信息
 	const statusMessage = ref('请选择要上传的文件')
 	const statusClass = ref('')
-	
+
 	// 新增：视频信息表单
 	const videoTitle = ref('')
 	const isCharge = ref(1) // 1=免费，2=收费
 	const chargePrice = ref('')
-	
+
 	// 封面图片
 	const coverImage = ref('')
 	const coverFile = ref(null)
@@ -150,7 +149,7 @@
 				fileList.value = res.tempFiles
 				statusMessage.value = `已选择${fileList.value.length}个文件，点击"开始上传"按钮上传`
 				statusClass.value = 'status-warning'
-				
+
 				// 自动生成默认标题（可选）
 				if (!videoTitle.value && fileList.value.length > 0) {
 					const fileName = fileList.value[0].name
@@ -181,14 +180,14 @@
 			statusClass.value = 'status-error'
 			return
 		}
-		
+
 		// 验证表单
 		if (!videoTitle.value.trim()) {
 			statusMessage.value = '请输入视频标题'
 			statusClass.value = 'status-error'
 			return
 		}
-		
+
 		if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
 			statusMessage.value = '请输入有效的收费价格'
 			statusClass.value = 'status-error'
@@ -199,73 +198,73 @@
 		statusClass.value = 'status-warning'
 		uploadProgress.value = 0
 
-		 for (let i = 0; i < fileList.value.length; i++) {
-		    const file = fileList.value[i]
-		    try {
-		      // 执行视频上传
-		      const videoResult = await tool.oss.upload(file, {
-		        folder: 'videos', // 视频存储文件夹
-		        progress: (percentage) => {
-		          uploadProgress.value = Math.floor(percentage * 100)
-		          statusMessage.value = `视频上传中: ${uploadProgress.value}%`
-		        },
-		      })
-		      
-		      console.log('视频上传成功:', videoResult.name)
-		      
-		      // 上传封面图片到 vimg 文件夹
-		      let coverUrl = ""
-		      if (coverFile.value) {
-		        statusMessage.value = '正在上传封面...'
-		        
-		        
-		        
-		        // 上传封面图片到 vimg 文件夹
-		        const coverResult = await tool.oss.upload(coverFile.value, {
-		          folder: 'vimg', // 已经在文件名中指定了路径，所以这里设为空
-		          progress: () => {} // 封面上传不需要显示进度
-		        })
-		        
-		        coverUrl = coverResult.name
-		        console.log('封面上传成功:', coverUrl)
-		      }
-		      
-		      // 准备发送到后端的数据
-		      const videoData = {
-		        title: videoTitle.value,
-		        flag: isCharge.value === 2,
-		        price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
-		        account: getAccount(),
-		        url: videoResult.name,
-		        vimg: coverUrl // 添加封面URL
-		      }
-		      
-		      // 提交视频信息到后端
-		      const submitResult = await apiSubmitVideo(videoData)
-		      console.log('视频信息提交成功:', submitResult)
-		      
-		      // 添加到上传结果
-		      uploadResults.value.push({
-		        name: file.name,
-		        size: file.size,
-		        url: videoResult.url,
-		        coverUrl: coverUrl
-		      })
-		
-		      statusMessage.value = `文件"${file.name}"上传成功`
-		      statusClass.value = 'status-success'
-		      
-		      // 重置表单（可选）
-		      videoTitle.value = ''
-		      isCharge.value = 1
-		      chargePrice.value = ''
-		      coverImage.value = ''
-		      coverFile.value = null
-		    } catch (error) {
-		      statusMessage.value = `文件"${file.name}"上传失败: ${error.message}`
-		      statusClass.value = 'status-error'
-		    }
-		  }
+		for (let i = 0; i < fileList.value.length; i++) {
+			const file = fileList.value[i]
+			try {
+				// 执行视频上传
+				const videoResult = await tool.oss.upload(file, {
+					folder: 'videos', // 视频存储文件夹
+					progress: (percentage) => {
+						uploadProgress.value = Math.floor(percentage * 100)
+						statusMessage.value = `视频上传中: ${uploadProgress.value}%`
+					},
+				})
+
+				console.log('视频上传成功:', videoResult.name)
+
+				// 上传封面图片到 vimg 文件夹
+				let coverUrl = ""
+				if (coverFile.value) {
+					statusMessage.value = '正在上传封面...'
+
+
+
+					// 上传封面图片到 vimg 文件夹
+					const coverResult = await tool.oss.upload(coverFile.value, {
+						folder: 'vimg', // 已经在文件名中指定了路径，所以这里设为空
+						progress: () => {} // 封面上传不需要显示进度
+					})
+
+					coverUrl = coverResult.name
+					console.log('封面上传成功:', coverUrl)
+				}
+
+				// 准备发送到后端的数据
+				const videoData = {
+					title: videoTitle.value,
+					flag: isCharge.value === 2,
+					price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
+					account: getAccount(),
+					url: videoResult.name,
+					vimg: coverUrl // 添加封面URL
+				}
+
+				// 提交视频信息到后端
+				const submitResult = await apiSubmitVideo(videoData)
+				console.log('视频信息提交成功:', submitResult)
+
+				// 添加到上传结果
+				uploadResults.value.push({
+					name: file.name,
+					size: file.size,
+					url: videoResult.url,
+					coverUrl: coverUrl
+				})
+
+				statusMessage.value = `文件"${file.name}"上传成功`
+				statusClass.value = 'status-success'
+
+				// 重置表单（可选）
+				videoTitle.value = ''
+				isCharge.value = 1
+				chargePrice.value = ''
+				coverImage.value = ''
+				coverFile.value = null
+			} catch (error) {
+				statusMessage.value = `文件"${file.name}"上传失败: ${error.message}`
+				statusClass.value = 'status-error'
+			}
+		}
 	}
 
 	// 清空文件
@@ -290,39 +289,52 @@
 </script>
 
 <style>
-	.navbar-left {
-	  width: 44px;
-	  height: 44px;
-	  display: flex;
-	  align-items: center;
-	  justify-content: flex-start;
-	  .uni-icons{
-	    color: #fff!important;
-	    font-size: 22px!important;
-	  }
-	}
-	.navbar-title {
-	  font-size: 18px;
-	  font-weight: 500;
-	  flex: 1;
-	  text-align: center;
-	}
 	.navbar {
-	  height: 44px;
-	  background-color: #1677ff;
-	  color: white;
-	  display: flex;
-	  align-items: center;
-	  justify-content: space-between;
-	  padding: 0 16px;
-	  margin-bottom: 3rpx;
-	  position: relative;
-	  z-index: 10;
+		height: 44px;
+		background-color: #1677ff;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 16px;
+		margin-bottom: 3rpx;
+		position: relative;
+		z-index: 10;
 	}
+
+	.navbar-left {
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+	}
+
+	.navbar-left .uni-icons {
+		color: #fff !important;
+		font-size: 22px !important;
+	}
+
+	.navbar-title {
+		font-size: 18px;
+		font-weight: 500;
+		text-align: center;
+		position: absolute;
+		left: 0;
+		right: 0;
+		pointer-events: none;
+	}
+
+	.navbar-right {
+		width: 44px;
+		/* 与左侧相同的宽度 */
+		height: 44px;
+	}
+
 	.container {
 		padding: 20rpx;
 	}
-	
+
 	/* 新增：表单样式 */
 	.form-area {
 		background: white;
@@ -331,39 +343,39 @@
 		margin-bottom: 20px;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 	}
-	
+
 	.form-item {
 		display: flex;
 		flex-direction: column;
 		margin-bottom: 30rpx;
 	}
-	
+
 	.form-label {
 		font-size: 32rpx;
 		font-weight: 500;
 		margin-bottom: 15rpx;
 		color: #333;
 	}
-	
+
 	.form-input {
 		border: 1px solid #e4e7ed;
 		border-radius: 8rpx;
 		padding: 20rpx;
 		font-size: 28rpx;
 	}
-	
+
 	.radio-group {
 		display: flex;
 		gap: 40rpx;
 		font-size: 30rpx;
 	}
-	
+
 	.radio-label {
 		display: flex;
 		align-items: center;
 		font-size: 30rpx;
 	}
-	
+
 	.price-unit {
 		margin-left: 10rpx;
 		color: #999;
@@ -392,14 +404,14 @@
 	.cover-area {
 		margin-bottom: 20px;
 	}
-	
+
 	.section-title {
 		font-size: 16px;
 		font-weight: bold;
 		margin-bottom: 10px;
 		display: block;
 	}
-	
+
 	.cover-preview {
 		width: 100%;
 		height: 200px;

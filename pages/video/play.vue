@@ -1,7 +1,13 @@
 <template>
-	<view class="video-info">
-	  <text class="video-title">{{ videoData.title }}</text>
+	<view class="navbar">
+		<!-- 返回按钮 -->
+		<view class="navbar-left" @click="goBack">
+		   <uni-icons type="left" size="30"></uni-icons>
+		 </view>
+		 <!-- 标题 -->
+		 <view class="navbar-title">{{ videoData.title }}</view>
 	</view>
+	
   <view class="container">
     <!-- 视频播放器容器 -->
     <view class="video-container">
@@ -123,6 +129,12 @@ onMounted(() => {
   // 创建视频上下文
   videoContext.value = uni.createVideoContext('videoPlayer')
 })
+//导航栏
+	const goBack = () => {
+		uni.navigateBack({
+			delta: 1
+		});
+	};
 
 // 获取用户信息
 const getUserInfo = async (account) => {
@@ -331,6 +343,47 @@ const toggleLike = async () => {
 </script>
 
 <style scoped>
+	.navbar {
+	  height: 44px;
+	  background-color: #1677ff;
+	  color: white;
+	  display: flex;
+	  align-items: center;
+	  justify-content: space-between; 
+	  padding: 0 16px;
+	  margin-bottom: 3rpx;
+	  position: relative;
+	  z-index: 10;
+	}
+	
+	.navbar-left {
+	  width: 44px;
+	  height: 44px;
+	  display: flex;
+	  align-items: center;
+	  justify-content: flex-start;
+	   z-index: 11;
+	}
+	
+	.navbar-left .uni-icons {
+	  color: #fff !important;
+	  font-size: 22px !important;
+	}
+	
+	.navbar-title {
+	  font-size: 18px;
+	  font-weight: 500;
+	  text-align: center;
+	  position: absolute;
+	  left: 0;
+	  right: 0;
+	  pointer-events: none;
+	}
+	
+	.navbar-right {
+	  width: 44px; /* 与左侧相同的宽度 */
+	  height: 44px;
+	}
 /* 作者信息 */
 .author-info {
   margin-top: 30rpx;

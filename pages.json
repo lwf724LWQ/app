@@ -123,14 +123,14 @@
 				"navigationStyle": "custom"
 			}
 		},
-		{
-			"path": "pages/preview/preview",
-			"style": {
-				"navigationBarTitleText": "预览",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
+		// {
+		// 	"path": "pages/preview/preview",
+		// 	"style": {
+		// 		"navigationBarTitleText": "预览",
+		// 		"enablePullDownRefresh": false,
+		// 		"navigationStyle": "custom"
+		// 	}
+		// },
 		{
 			"path": "pages/notice/notice",
 			"style": {
@@ -168,7 +168,7 @@
 			"path": "pages/video/video",
 			"style": {
 				"navigationBarTitleText": "视频",
-				"enablePullDownRefresh": false,
+				"enablePullDownRefresh": true,
 				"navigationStyle": "custom"
 			}
 		},

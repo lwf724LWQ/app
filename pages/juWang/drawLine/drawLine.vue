@@ -145,7 +145,6 @@
 			</view>
 		</view>
 	</view>
-
 </template>
 
 <script setup>
@@ -538,55 +537,76 @@
 	// 初始化
 	onMounted(async () => {
 		await twocounterStore.getCounterInfo();
-		await nextTick();
+		// await nextTick();
 		console.log('数字元素数量:', numberRefs.value.length);
 		await initCanvas();
-		await nextTick();
+		// await nextTick();
 
 		console.log('初始化后数字元素数量:', numberRefs.value.length);
 		// console.log('目标行索引:', getTargetRowIndex());
+		// 添加滚动到底部的代码
+		 setTimeout(() => {
+		   scrollToBottom();
+		 },0); // 延迟300ms确保内容完全渲染
 	});
 
 	// 监听形状变化
 	watch(shapes, () => redraw(false), {
 		deep: true
 	});
+	 // 滚动到底部的方法
+	 const scrollToBottom = () => {
+	   // 获取页面高度
+	   const query = uni.createSelectorQuery();
+	   query.select('.container').boundingClientRect();
+	   query.selectViewport().scrollOffset();
+	   query.exec((res) => {
+	     if (res[0]) {
+	       // 计算需要滚动的高度
+	       const pageHeight = res[0].height;
+	       // 滚动到底部
+	       uni.pageScrollTo({
+	         scrollTop: pageHeight,
+	         duration: 0
+	       });
+	     }
+	   });
+	 };
 </script>
 
 <style scoped lang="less">
 	.modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(0, 0, 0, 0.5);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 1000;
+	    position: fixed;
+	    top: 0;
+	    left: 0;
+	    width: 100%;
+	    height: 100%;
+	    background-color: rgba(0, 0, 0, 0.5);
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    z-index: 1000;
 	}
-
+	
 	.modal-content {
-		background-color: white;
-		border-radius: 16px;
-		width: 90%;
-		max-width: 500px;
-		max-height: 90vh;
-		overflow-y: auto;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	    background-color: white;
+	    border-radius: 16px;
+	    width: 95%;
+	    max-width: 600rpx;
+	    max-height: 85vh;
+	    overflow-y: auto;
+	    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	    position: relative;
 	}
-
-	/* 样式保持不变 */
+	
+	/* 优化 NumberSelector 容器样式 */
 	.boxNumber {
-		position: relative;
-		top: -400rpx;
-		width: 100%;
-		min-height: 20vh;
-		padding: 0;
-		box-sizing: border-box;
-		background-color: #f9f9f9;
-		overflow: hidden;
+	    width: 100%;
+	    min-height: auto;
+	    padding: 0;
+	    box-sizing: border-box;
+	    background-color: #f9f9f9;
+	    overflow: visible;
 	}
 
 	.container {
@@ -672,7 +692,7 @@
 	}
 
 	.table-row:nth-child(4n) .table-cell {
-		border-bottom: 2px solid #5aa3e7;
+		border-bottom: 4px solid #000000;
 	}
 
 	/* 目标行样式 */
@@ -726,17 +746,20 @@
 
 	/* 列背景色设置 */
 	.col-1 {
-		background-color: #cddef0;
+		background-color: #f00105;
 		color: #000;
 	}
 
 	.col-2 {
-		border-right: 2px solid #5aa3e7;
-		background-color: #90bef2;
+		border-right: 4px solid #5aa3e7;
+		background-color: #424242;
 
 		.cell-content {
 			font-size: 33rpx !important;
 		}
+	}
+	.col-2 .number-item{
+		color:white;
 	}
 
 	.col-3,
@@ -745,13 +768,19 @@
 	.col-6 {
 		background-color: #FFFFFF;
 	}
+	.col-3 .number-item,
+		.col-4 .number-item,
+		.col-5 .number-item,
+		.col-6 .number-item {
+			font-size: 73rpx; /* 中间四列的数字字体大小 */
+		}
 
 	.col-7 {
-		border-left: 2px solid #5aa3e7;
-		background-color: #90bef0;
+		border-left: 4px solid #5aa3e7;
+		background-color: #cecece;
 
 		.number-item {
-			font-size: 28rpx !important;
+			font-size: 43rpx !important;
 		}
 	}
 
