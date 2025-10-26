@@ -178,17 +178,11 @@
 	const onCanvasEnd = (event) => {
 		// 首先调用从 useDrawing 导入的函数
 		drawingOnCanvasEnd(event);
-
 		// 然后添加您的自定义逻辑
 		const endPoint = currentShape.value.end;
 		const numberPos = checkPointOnNumber(endPoint);
-		// console.log(numberPos)
-		if (1) {
-			// const { groupIndex, numIndex } = numberPos;
-			// 应用样式到对应格子
-			applyStyleToGrid(20, 1);
-			console.log("111111111122222222222222")
-		}
+		
+		
 	};
 
 
@@ -462,7 +456,7 @@
 		isHighlighted,
 		toggleHighlight,
 		handleMessage
-	} = useTableData(child);
+	} = useTableData(child,null,openNumberSelector);
 	const handleColorMessage = (val) => {
 		strokeColor.value = val
 	}
@@ -692,7 +686,7 @@
 	}
 
 	.table-row:nth-child(4n) .table-cell {
-		border-bottom: 4px solid #000000;
+		border-bottom: 4px solid #8BAF95;
 	}
 
 	/* 目标行样式 */
@@ -704,7 +698,7 @@
 		padding: 0;
 		text-align: center;
 		border: 1px solid #dbe7d6;
-		height: 80rpx;
+		height: 90rpx;
 		box-sizing: border-box;
 		white-space: nowrap;
 		overflow: hidden;
@@ -746,21 +740,21 @@
 
 	/* 列背景色设置 */
 	.col-1 {
-		background-color: #f00105;
-		color: #000;
+		background-color: #90C380;
+		color: #DDEBB8;
+		width: 30rpx;
 	}
 
 	.col-2 {
-		border-right: 4px solid #5aa3e7;
-		background-color: #424242;
+		border-right: 4px solid #89B197;
+		border-left: 4px solid #89B197;
+		background-color: #DFEDBC;
 
 		.cell-content {
 			font-size: 33rpx !important;
 		}
 	}
-	.col-2 .number-item{
-		color:white;
-	}
+	
 
 	.col-3,
 	.col-4,
@@ -776,8 +770,8 @@
 		}
 
 	.col-7 {
-		border-left: 4px solid #5aa3e7;
-		background-color: #cecece;
+		border-left: 4px solid #8CB699;
+		background-color: #DFEDBC;
 
 		.number-item {
 			font-size: 43rpx !important;
@@ -794,7 +788,7 @@
 		justify-content: center;
 		font-size: 38rpx;
 		font-weight: bold;
-		color: #333;
+		color: #93C381;
 		transition: all 0.2s;
 		cursor: pointer;
 		box-sizing: border-box;
@@ -939,12 +933,12 @@
 	.number-item.solid {
 		width: 100%;
 		border-radius: 0px;
-		background-color: #ff4d4f;
+		background-color: #0000ff;
 		color: white;
 	}
 
 	.number-item.hollow {
-		border: 2px solid #ff4d4f;
+		border: 2px solid #0000ff;
 		background-color: transparent;
 	}
 

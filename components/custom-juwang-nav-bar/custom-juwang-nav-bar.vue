@@ -114,7 +114,7 @@ const goBack = () => {
 /* 自定义导航栏 */
 .navbar {
   height: 44px;
-  background-color: #1677ff;
+  background-color: #90C281;
   color: white;
   display: flex;
   align-items: center;

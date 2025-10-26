@@ -393,18 +393,18 @@
     background: #1677ff;
     color: white;
     border-color: #1677ff;
-    transform: scale(1.05);
+    transform: scale(1.00);
 }
 
 /* 条件网格优化 */
 .conditions-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 15rpx;
 }
 
 .condition-btn {
-    padding: 15rpx 0;
+   padding: 15rpx 0;
     border-radius: 8rpx;
     border: 1px solid #e0e0e0;
     background: white;
@@ -570,7 +570,7 @@
 
 /* 响应式设计 */
 @media (max-width: 375px) {
-    .NumberPos {
+   .NumberPos {
         padding: 15rpx;
     }
     
@@ -588,7 +588,7 @@
     }
     
     .conditions-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 10rpx;
     }
     
@@ -608,15 +608,15 @@
 }
 
 @media (min-width: 768px) {
-    .NumberPos {
+.NumberPos {
         max-width: 600rpx;
     }
     
-    .numbers-grid {
-        grid-template-columns: repeat(10, 1fr);
+   .numbers-grid {
+        grid-template-columns: repeat(5, 1fr);
     }
     
-    .conditions-grid {
+  .conditions-grid {
         grid-template-columns: repeat(5, 1fr);
     }
 }

@@ -7,7 +7,7 @@ import {
 // import { useCounterStore } from '@/stores/counter'
 // const counter = useCounterStore()
 //该文件是生成表格数据
-export default function useTableData(child, NumberGroups = null) {
+export default function useTableData(child, NumberGroups = null,showNumberSelectorCallback) {
 	// 在 useTableData 函数中调用
 	const externalData=null;
 	console.log('useTableData 被调用，externalData:');
@@ -154,18 +154,19 @@ export default function useTableData(child, NumberGroups = null) {
 
 	// 判断是否为目标行（倒数1~4行）
 	function isTargetRow(groupIndex) {
-		const totalRows = 1;
+		const totalRows = 23;
 		// 检查当前行索引是否在倒数1~4行范围内
-		return groupIndex >= totalRows - 4 && groupIndex < totalRows;
+		return groupIndex > totalRows - 4 && groupIndex <= totalRows;
 	}
 	// 处理单元格点击事件
 	function handleCellClick(groupIndex, colIndex) {
 		// 检查是否为目标行（倒数第四行）且是2~7列
-		if (isTargetRow(groupIndex) && colIndex >= 1 && colIndex <= 6) {
+		if (isTargetRow(groupIndex) && colIndex >= 0 && colIndex <= 6) {
 			// 这里假设update函数在主组件中定义
 			// child.value.showFab = true;
 			indexes.colIndex = colIndex;
 			indexes.groupIndex = groupIndex;
+			showNumberSelectorCallback(indexes.groupIndex,indexes.colIndex);
 		}
 		toggleHighlight(groupIndex, colIndex);
 	}
