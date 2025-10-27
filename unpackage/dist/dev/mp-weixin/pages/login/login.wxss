@@ -1,0 +1,388 @@
+
+.input-placeholder {
+  color: #999;
+}
+
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.login-wrapper.data-v-e4e4508d {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fffe 0%, #ffffff 100%);
+  position: relative;
+}
+
+/* 状态栏 */
+.status-bar.data-v-e4e4508d {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  height: 60rpx;
+}
+.status-bar .time.data-v-e4e4508d {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #000;
+}
+.status-bar .status-icons.data-v-e4e4508d {
+  display: flex;
+  gap: 10rpx;
+}
+.status-bar .status-icons .signal-icon.data-v-e4e4508d,
+.status-bar .status-icons .wifi-icon.data-v-e4e4508d,
+.status-bar .status-icons .battery-icon.data-v-e4e4508d {
+  font-size: 24rpx;
+}
+
+/* 头部区域 */
+.header.data-v-e4e4508d {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  margin-bottom: 40rpx;
+}
+.header .back-btn.data-v-e4e4508d {
+  width: 60rpx;
+  height: 60rpx;
+  background: #e8f5e8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header .back-btn .back-icon.data-v-e4e4508d {
+  font-size: 32rpx;
+  color: #28B389;
+  font-weight: bold;
+}
+.header .header-wave .wave-icon.data-v-e4e4508d {
+  font-size: 32rpx;
+  color: #28B389;
+}
+
+/* 主标题 */
+.title-section.data-v-e4e4508d {
+  text-align: center;
+  margin-bottom: 80rpx;
+}
+.title-section .main-title.data-v-e4e4508d {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 4rpx;
+}
+
+/* 登录表单 */
+.login-form.data-v-e4e4508d {
+  padding: 0 60rpx;
+  /* 链接区域 */
+  /* 登录按钮 */
+  /* 用户协议 */
+  /* 分隔线 */
+  /* 第三方登录 */
+}
+.login-form .input-group.data-v-e4e4508d {
+  margin-bottom: 40rpx;
+}
+.login-form .input-group .input-container.data-v-e4e4508d {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 40rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+.login-form .input-group .input-container .input-icon.data-v-e4e4508d {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-form .input-group .input-container .input-icon .phone-icon-svg.data-v-e4e4508d {
+  width: 32rpx;
+  height: 48rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 8rpx;
+  position: relative;
+}
+.login-form .input-group .input-container .input-icon .phone-icon-svg.data-v-e4e4508d::before {
+  content: "";
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  right: 4rpx;
+  bottom: 8rpx;
+  border: 2rpx solid #28B389;
+  border-radius: 4rpx;
+}
+.login-form .input-group .input-container .input-icon .phone-icon-svg.data-v-e4e4508d::after {
+  content: "";
+  position: absolute;
+  bottom: 2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #28B389;
+  border-radius: 50%;
+}
+.login-form .input-group .input-container .input-icon .lock-icon-svg.data-v-e4e4508d {
+  width: 32rpx;
+  height: 32rpx;
+  position: relative;
+}
+.login-form .input-group .input-container .input-icon .lock-icon-svg.data-v-e4e4508d::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 16rpx;
+  border: 3rpx solid #28B389;
+  border-bottom: none;
+  border-radius: 10rpx 10rpx 0 0;
+}
+.login-form .input-group .input-container .input-icon .lock-icon-svg.data-v-e4e4508d::after {
+  content: "";
+  position: absolute;
+  top: 12rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24rpx;
+  height: 20rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 4rpx;
+}
+.login-form .input-group .input-container .country-code.data-v-e4e4508d {
+  font-size: 32rpx;
+  color: #000;
+  font-weight: 500;
+  margin-right: 20rpx;
+}
+.login-form .input-group .input-container .separator.data-v-e4e4508d {
+  width: 2rpx;
+  height: 40rpx;
+  background: #ddd;
+  margin-right: 20rpx;
+}
+.login-form .input-group .input-container .phone-input.data-v-e4e4508d,
+.login-form .input-group .input-container .password-input.data-v-e4e4508d {
+  flex: 1;
+  font-size: 32rpx;
+  color: #000;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+.login-form .input-group .input-container .eye-icon.data-v-e4e4508d {
+  margin-left: 20rpx;
+  cursor: pointer;
+}
+.login-form .input-group .input-container .eye-icon .eye-icon-svg.data-v-e4e4508d {
+  width: 32rpx;
+  height: 20rpx;
+  position: relative;
+  border: 2rpx solid #666;
+  border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+  transition: all 0.3s ease;
+}
+.login-form .input-group .input-container .eye-icon .eye-icon-svg .eye-ball.data-v-e4e4508d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #666;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.login-form .input-group .input-container .eye-icon .eye-icon-svg.eye-open.data-v-e4e4508d {
+  border-color: #28B389;
+}
+.login-form .input-group .input-container .eye-icon .eye-icon-svg.eye-open .eye-ball.data-v-e4e4508d {
+  background: #28B389;
+  width: 10rpx;
+  height: 10rpx;
+}
+.login-form .links-section.data-v-e4e4508d {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 60rpx;
+}
+.login-form .links-section .register-link.data-v-e4e4508d {
+  font-size: 28rpx;
+  color: #28B389;
+}
+.login-form .links-section .forgot-link.data-v-e4e4508d {
+  font-size: 28rpx;
+  color: #999;
+}
+.login-form .login-btn-container.data-v-e4e4508d {
+  margin-bottom: 40rpx;
+}
+.login-form .login-btn-container .login-btn.data-v-e4e4508d {
+  width: 100%;
+  height: 100rpx;
+  background: #28B389;
+  border-radius: 20rpx;
+  border: none;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-form .agreement-section.data-v-e4e4508d {
+  margin-bottom: 60rpx;
+}
+.login-form .agreement-section .checkbox-container.data-v-e4e4508d {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+.login-form .agreement-section .checkbox-container .checkbox.data-v-e4e4508d {
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+}
+.login-form .agreement-section .checkbox-container .checkbox.checked.data-v-e4e4508d {
+  background: #28B389;
+  border-color: #28B389;
+}
+.login-form .agreement-section .checkbox-container .checkbox.checked .checkmark.data-v-e4e4508d {
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
+}
+.login-form .agreement-section .checkbox-container .agreement-text.data-v-e4e4508d {
+  flex: 1;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.5;
+}
+.login-form .agreement-section .checkbox-container .agreement-text .link-text.data-v-e4e4508d {
+  color: #28B389;
+}
+.login-form .divider.data-v-e4e4508d {
+  display: flex;
+  align-items: center;
+  margin: 60rpx 0 40rpx;
+}
+.login-form .divider .divider-line.data-v-e4e4508d {
+  flex: 1;
+  height: 2rpx;
+  background: #ddd;
+}
+.login-form .divider .divider-text.data-v-e4e4508d {
+  margin: 0 30rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+.login-form .third-party-login.data-v-e4e4508d {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.login-form .third-party-login .wechat-btn.data-v-e4e4508d,
+.login-form .third-party-login .qq-btn.data-v-e4e4508d {
+  width: 100%;
+  height: 100rpx;
+  background: #fff;
+  border-radius: 50rpx;
+  border: 2rpx solid #E5E5E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40rpx;
+  gap: 20rpx;
+}
+.login-form .third-party-login .wechat-btn .btn-icon.data-v-e4e4508d,
+.login-form .third-party-login .qq-btn .btn-icon.data-v-e4e4508d {
+  font-size: 40rpx;
+}
+.login-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d,
+.login-form .third-party-login .qq-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+.login-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d::before,
+.login-form .third-party-login .qq-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d::before {
+  content: "";
+  position: absolute;
+  top: 8rpx;
+  left: 4rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background: #07C160;
+  border-radius: 50%;
+  border: 2rpx solid #07C160;
+}
+.login-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d::after,
+.login-form .third-party-login .qq-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-e4e4508d::after {
+  content: "";
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 20rpx;
+  height: 20rpx;
+  background: #07C160;
+  border-radius: 50%;
+  border: 2rpx solid #07C160;
+}
+.login-form .third-party-login .wechat-btn .btn-icon.qq-icon.data-v-e4e4508d,
+.login-form .third-party-login .qq-btn .btn-icon.qq-icon.data-v-e4e4508d {
+  color: #007aff;
+}
+.login-form .third-party-login .wechat-btn .btn-text.data-v-e4e4508d,
+.login-form .third-party-login .qq-btn .btn-text.data-v-e4e4508d {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 底部指示器 */
+.bottom-indicator.data-v-e4e4508d {
+  position: absolute;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120rpx;
+  height: 8rpx;
+  background: #000;
+  border-radius: 4rpx;
+}

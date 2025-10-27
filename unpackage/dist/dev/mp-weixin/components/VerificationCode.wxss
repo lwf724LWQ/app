@@ -1,0 +1,35 @@
+.code-container.data-v-0b74c6a3 {
+  display: flex;
+  gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+.code-input.data-v-0b74c6a3 {
+  flex: 1;
+  height: 80rpx;
+  font-size: 28rpx;
+}
+.holder-class.data-v-0b74c6a3 {
+  color: #999;
+  font-size: 28rpx;
+}
+.code-btn.data-v-0b74c6a3 {
+  width: 220rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background-color: transparent;
+  color: #000;
+  border: none;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+  padding: 0;
+}
+.code-btn.data-v-0b74c6a3:after {
+  border: none;
+}
+uni-button[disabled][type='default'].data-v-0b74c6a3,
+uni-button[disabled].data-v-0b74c6a3:not([type]) {
+  color: rgba(0, 0, 0, 0.3);
+  background-color: transparent;
+}

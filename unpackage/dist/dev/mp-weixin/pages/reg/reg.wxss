@@ -1,0 +1,440 @@
+
+.input-placeholder {
+  color: #999;
+}
+
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.reg-container.data-v-bca7dd61 {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fffe 0%, #ffffff 100%);
+  position: relative;
+}
+
+/* 状态栏 */
+.status-bar.data-v-bca7dd61 {
+  height: 44rpx;
+  background: transparent;
+}
+
+/* 头部区域 */
+.header.data-v-bca7dd61 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  margin-bottom: 40rpx;
+}
+.header .back-btn.data-v-bca7dd61 {
+  width: 60rpx;
+  height: 60rpx;
+  background: #e8f5e8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header .back-btn .back-icon.data-v-bca7dd61 {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+}
+.header .back-btn .back-icon .back-arrow.data-v-bca7dd61 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32rpx;
+  color: #28B389;
+  font-weight: bold;
+  z-index: 2;
+}
+.header .back-btn .back-icon .logo-lines.data-v-bca7dd61 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.header .back-btn .back-icon .logo-lines .line.data-v-bca7dd61 {
+  position: absolute;
+  background: #28B389;
+  border-radius: 2rpx;
+  opacity: 0.3;
+}
+.header .back-btn .back-icon .logo-lines .line.line-1.data-v-bca7dd61 {
+  width: 20rpx;
+  height: 2rpx;
+  top: -8rpx;
+  left: -10rpx;
+  transform: rotate(-15deg);
+}
+.header .back-btn .back-icon .logo-lines .line.line-2.data-v-bca7dd61 {
+  width: 16rpx;
+  height: 2rpx;
+  top: 4rpx;
+  left: -8rpx;
+  transform: rotate(15deg);
+}
+
+/* 主标题 */
+.title-section.data-v-bca7dd61 {
+  text-align: center;
+  margin-bottom: 80rpx;
+}
+.title-section .main-title.data-v-bca7dd61 {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 4rpx;
+}
+
+/* 注册表单 */
+.reg-form.data-v-bca7dd61 {
+  padding: 0 60rpx;
+  /* 链接区域 */
+  /* 注册按钮 */
+  /* 用户协议 */
+  /* 分隔线 */
+  /* 第三方登录 */
+}
+.reg-form .input-group.data-v-bca7dd61 {
+  margin-bottom: 40rpx;
+}
+.reg-form .input-group .input-container.data-v-bca7dd61 {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 40rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+.reg-form .input-group .input-container .input-icon.data-v-bca7dd61 {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reg-form .input-group .input-container .input-icon .phone-icon-svg.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 48rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 8rpx;
+  position: relative;
+}
+.reg-form .input-group .input-container .input-icon .phone-icon-svg.data-v-bca7dd61::before {
+  content: "";
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  right: 4rpx;
+  bottom: 8rpx;
+  border: 2rpx solid #28B389;
+  border-radius: 4rpx;
+}
+.reg-form .input-group .input-container .input-icon .phone-icon-svg.data-v-bca7dd61::after {
+  content: "";
+  position: absolute;
+  bottom: 2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #28B389;
+  border-radius: 50%;
+}
+.reg-form .input-group .input-container .input-icon .code-icon-svg.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 6rpx;
+  position: relative;
+}
+.reg-form .input-group .input-container .input-icon .code-icon-svg.data-v-bca7dd61::before {
+  content: "";
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 6rpx;
+  height: 6rpx;
+  background: #28B389;
+  border-radius: 50%;
+}
+.reg-form .input-group .input-container .input-icon .code-icon-svg.data-v-bca7dd61::after {
+  content: "";
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 8rpx;
+  height: 8rpx;
+  background: #28B389;
+  border-radius: 50%;
+}
+.reg-form .input-group .input-container .input-icon .user-icon-svg.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 50%;
+  position: relative;
+}
+.reg-form .input-group .input-container .input-icon .user-icon-svg.data-v-bca7dd61::before {
+  content: "";
+  position: absolute;
+  top: 6rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #28B389;
+  border-radius: 50%;
+}
+.reg-form .input-group .input-container .input-icon .user-icon-svg.data-v-bca7dd61::after {
+  content: "";
+  position: absolute;
+  bottom: 4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16rpx;
+  height: 8rpx;
+  background: #28B389;
+  border-radius: 8rpx 8rpx 0 0;
+}
+.reg-form .input-group .input-container .input-icon .lock-icon-svg.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 32rpx;
+  position: relative;
+}
+.reg-form .input-group .input-container .input-icon .lock-icon-svg.data-v-bca7dd61::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rpx;
+  height: 16rpx;
+  border: 3rpx solid #28B389;
+  border-bottom: none;
+  border-radius: 10rpx 10rpx 0 0;
+}
+.reg-form .input-group .input-container .input-icon .lock-icon-svg.data-v-bca7dd61::after {
+  content: "";
+  position: absolute;
+  top: 12rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24rpx;
+  height: 20rpx;
+  border: 3rpx solid #28B389;
+  border-radius: 4rpx;
+}
+.reg-form .input-group .input-container .country-code.data-v-bca7dd61 {
+  font-size: 32rpx;
+  color: #000;
+  font-weight: 500;
+  margin-right: 20rpx;
+}
+.reg-form .input-group .input-container .separator.data-v-bca7dd61 {
+  width: 2rpx;
+  height: 40rpx;
+  background: #ddd;
+  margin-right: 20rpx;
+}
+.reg-form .input-group .input-container .code-container.data-v-bca7dd61 {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.reg-form .input-group .input-container .phone-input.data-v-bca7dd61,
+.reg-form .input-group .input-container .username-input.data-v-bca7dd61,
+.reg-form .input-group .input-container .password-input.data-v-bca7dd61 {
+  flex: 1;
+  font-size: 32rpx;
+  color: #000;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+.reg-form .input-group .input-container .eye-icon.data-v-bca7dd61 {
+  margin-left: 20rpx;
+  cursor: pointer;
+}
+.reg-form .input-group .input-container .eye-icon .eye-icon-svg.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 20rpx;
+  position: relative;
+  border: 2rpx solid #666;
+  border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+  transition: all 0.3s ease;
+}
+.reg-form .input-group .input-container .eye-icon .eye-icon-svg .eye-ball.data-v-bca7dd61 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8rpx;
+  height: 8rpx;
+  background: #666;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.reg-form .input-group .input-container .eye-icon .eye-icon-svg.eye-open.data-v-bca7dd61 {
+  border-color: #28B389;
+}
+.reg-form .input-group .input-container .eye-icon .eye-icon-svg.eye-open .eye-ball.data-v-bca7dd61 {
+  background: #28B389;
+  width: 10rpx;
+  height: 10rpx;
+}
+.reg-form .links-section.data-v-bca7dd61 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 60rpx;
+}
+.reg-form .links-section .login-link.data-v-bca7dd61 {
+  font-size: 28rpx;
+  color: #28B389;
+}
+.reg-form .reg-btn-container.data-v-bca7dd61 {
+  margin-bottom: 20rpx;
+}
+.reg-form .reg-btn-container .reg-btn.data-v-bca7dd61 {
+  width: 80%;
+  height: 80rpx;
+  background: #28B389;
+  border-radius: 16rpx;
+  border: none;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.reg-form .agreement-section.data-v-bca7dd61 {
+  margin-bottom: 60rpx;
+}
+.reg-form .agreement-section .checkbox-container.data-v-bca7dd61 {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+.reg-form .agreement-section .checkbox-container .checkbox.data-v-bca7dd61 {
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+}
+.reg-form .agreement-section .checkbox-container .checkbox.checked.data-v-bca7dd61 {
+  background: #28B389;
+  border-color: #28B389;
+}
+.reg-form .agreement-section .checkbox-container .checkbox.checked .checkmark.data-v-bca7dd61 {
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
+}
+.reg-form .agreement-section .checkbox-container .agreement-text.data-v-bca7dd61 {
+  flex: 1;
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.5;
+}
+.reg-form .agreement-section .checkbox-container .agreement-text .link-text.data-v-bca7dd61 {
+  color: #28B389;
+}
+.reg-form .divider.data-v-bca7dd61 {
+  display: flex;
+  align-items: center;
+  margin: 60rpx 0 40rpx;
+}
+.reg-form .divider .divider-line.data-v-bca7dd61 {
+  flex: 1;
+  height: 2rpx;
+  background: #ddd;
+}
+.reg-form .divider .divider-text.data-v-bca7dd61 {
+  margin: 0 30rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+.reg-form .third-party-login.data-v-bca7dd61 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.reg-form .third-party-login .wechat-btn.data-v-bca7dd61 {
+  width: 100%;
+  height: 100rpx;
+  background: #fff;
+  border-radius: 50rpx;
+  border: 2rpx solid #E5E5E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40rpx;
+  gap: 20rpx;
+}
+.reg-form .third-party-login .wechat-btn .btn-icon.data-v-bca7dd61 {
+  font-size: 40rpx;
+}
+.reg-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-bca7dd61 {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+.reg-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-bca7dd61::before {
+  content: "";
+  position: absolute;
+  top: 8rpx;
+  left: 4rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background: #07C160;
+  border-radius: 50%;
+  border: 2rpx solid #07C160;
+}
+.reg-form .third-party-login .wechat-btn .btn-icon.wechat-icon .wechat-icon-svg.data-v-bca7dd61::after {
+  content: "";
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 20rpx;
+  height: 20rpx;
+  background: #07C160;
+  border-radius: 50%;
+  border: 2rpx solid #07C160;
+}
+.reg-form .third-party-login .wechat-btn .btn-text.data-v-bca7dd61 {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
