@@ -375,6 +375,35 @@
 		console.log('子组件调用了父组件的提交方法，数据：', data);
 		// 可以在这里处理提交逻辑
 		clearCanvas()
+		 // 显示确认对话框
+			  uni.showModal({
+			    title: '确认清除',
+			    content: '确定要清除所有绘制内容和样式吗？此操作不可撤销。',
+			    success: (res) => {
+			      if (res.confirm) {
+			        console.log('用户确认清除操作');
+			        clearCanvas(); // 清除画布
+			        clearAllGridContents(); // 清除grid-content内容
+			      } else if (res.cancel) {
+			        console.log('用户取消清除操作');
+			      }
+			    }
+			  });
+			};
+			const clearAllGridContents = () => {
+			   // 清除存储的所有样式
+			     gridStyles.value = {};
+			     
+			     // 清除所有格子的样式和内容
+			     const gridElements = document.querySelectorAll('[data-group-index][data-num-index]');
+			     gridElements.forEach(element => {
+			       element.classList.remove('solid', 'hollow');
+			       
+			       const contentElement = element.querySelector('.grid-content');
+			       if (contentElement) {
+			         contentElement.innerHTML = '';
+			       }
+			     });
 	};
 
 	const handleChildEvent = (params) => {
@@ -751,10 +780,12 @@
 		background-color: #DFEDBC;
 
 		.cell-content {
-			font-size: 33rpx !important;
+			font-size: 40rpx !important;
 		}
 	}
-	
+	.col-2 .number-item {
+			font-size: 50rpx;
+		}
 
 	.col-3,
 	.col-4,
@@ -774,7 +805,7 @@
 		background-color: #DFEDBC;
 
 		.number-item {
-			font-size: 43rpx !important;
+			font-size: 70rpx !important;
 		}
 	}
 

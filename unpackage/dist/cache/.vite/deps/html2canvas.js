@@ -1,4 +1,4 @@
-import "./chunk-BQWMX7FD.js";
+import "./chunk-TDUMLE5V.js";
 
 // C:/Users/Administrator/Desktop/my-painting-rules-project/node_modules/html2canvas/dist/html2canvas.esm.js
 var extendStatics = function(d, b) {

@@ -164,7 +164,7 @@
 			drawGui(){
 				const tname = this.currentTab === 'plw' ? '排列5' : '七星彩'
 				uni.navigateTo({
-					url: `/pages/juWang/drawLine/drawLineRead?tname=${tname}`
+					url: `/pages/juWang/drawLine/drawLine`
 				});
 			},
 			goToDreamInterpretation(){

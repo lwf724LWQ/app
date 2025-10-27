@@ -39,7 +39,7 @@
 
 		<!-- 视频上传区域 -->
 		<view class="upload-area" @click="chooseFile">
-			<u-icon name="plus" size="50" color="#3498db"></u-icon>
+			<uni-icons name="plus" size="50" color="#3498db"></uni-icons>
 			<view class="upload-text">点击选择视频文件</view>
 			<view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
 		</view>
@@ -50,7 +50,7 @@
 			<view class="cover-preview" @click="chooseCover">
 				<image v-if="coverImage" :src="coverImage" class="cover-image"></image>
 				<view v-else class="cover-placeholder">
-					<u-icon name="image" size="40" color="#ccc"></u-icon>
+					<uni-icons name="image" size="40" color="#ccc"></uni-icons>
 					<text>点击选择封面</text>
 				</view>
 			</view>
@@ -58,7 +58,7 @@
 
 		<!-- 上传进度 -->
 		<view class="progress-area" v-if="uploadProgress > 0">
-			<u-line-progress :percent="uploadProgress" active-color="#3498db" :show-percent="true" />
+			<progress :percent="uploadProgress" active-color="#3498db" show-info />
 		</view>
 
 		<!-- 状态信息 -->
@@ -81,7 +81,7 @@
 			<view class="file-list">
 				<view v-for="(result, index) in uploadResults" :key="index" class="file-item">
 					<view class="file-icon">
-						<u-icon name="file" size="24" color="#409eff"></u-icon>
+						<uni-icons name="file" size="24" color="#409eff"></uni-icons>
 					</view>
 					<view class="file-info">
 						<text class="file-name">{{ result.name }}</text>
