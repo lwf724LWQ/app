@@ -112,6 +112,8 @@ const schemes = ref([])
 const lotteryType = ref(null)
 const uploadedImageUrls = ref([]) // 改为数组存储多张图片URL
 const isUploadingImage = ref(false)
+// 请求锁 - 防止重复请求
+const isLoadingIssueInfo = ref(false)
 
 // 计算属性
 const canPublish = computed(() => {
@@ -270,7 +272,14 @@ const loadSchemesFromStorage = () => {
 
 // 加载期号信息
 const loadIssueInfo = async () => {
+  // 防止重复请求
+  if (isLoadingIssueInfo.value) {
+    console.log('正在加载期号信息，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingIssueInfo.value = true
     // 从本地存储获取当前彩票类型
     const savedLotteryType = uni.getStorageSync('currentLotteryType')
     if (savedLotteryType) {
@@ -313,9 +322,12 @@ const loadIssueInfo = async () => {
     }
   } catch (error) {
     uni.hideLoading()
+    console.error('加载期号信息失败:', error)
     // 如果加载失败，也使用0作为期号
     issueNumber.value = '0'
     uni.showToast({ title: '期号加载异常，使用默认期号: 0', icon: 'none' })
+  } finally {
+    isLoadingIssueInfo.value = false
   }
 }
 

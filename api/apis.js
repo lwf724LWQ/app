@@ -220,10 +220,19 @@ export function apiGetIssueNo(data = {}) {
 	return request({
 		url: "/web/ticket/find_issueno",
 		method: "GET",
-		data,
-		
+		data
 	})
 }
+
+// 查询彩票最新开奖结果接口
+export function apiFindResult(headers = {}) {
+	return request({
+		url: "/web/ticket/find_result",
+		method: "GET",
+		headers
+	})
+}
+
 // 帖子点赞接口
 export function apiPostLike(data = {}) {
 	return request({

@@ -124,6 +124,11 @@ const issueInfo = ref({
   time: '今天 21:30'
 })
 
+// 请求锁 - 防止重复请求
+const isLoadingIssueInfo = ref(false)
+const isLoadingPostDetails = ref(false)
+const isLoadingUserPosts = ref(false)
+
 // 格式化方案数据显示（保留原函数以兼容）
 const formatSchemeData = (scheme) => {
   const data = scheme.data
@@ -519,7 +524,14 @@ const getIssueNumber = () => {
 
 // 加载期号信息
 const loadIssueInfo = async () => {
+  // 防止重复请求
+  if (isLoadingIssueInfo.value) {
+    console.log('正在加载期号信息，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingIssueInfo.value = true
     if (!lotteryType.value || !lotteryType.value.id) {
       return
     }
@@ -556,7 +568,10 @@ const loadIssueInfo = async () => {
     }
   } catch (error) {
     uni.hideLoading()
+    console.error('加载期号信息失败:', error)
     uni.showToast({ title: '期号加载异常', icon: 'none' })
+  } finally {
+    isLoadingIssueInfo.value = false
   }
 }
 
@@ -593,7 +608,14 @@ const loadSchemeForAppend = async (schemeId) => {
 
 // 从接口获取帖子详细信息
 const loadPostDetails = async (postId) => {
+  // 防止重复请求
+  if (isLoadingPostDetails.value) {
+    console.log('正在加载帖子详情，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingPostDetails.value = true
     console.log('=== 获取帖子详细信息 ===')
     console.log('帖子ID:', postId)
     
@@ -616,12 +638,21 @@ const loadPostDetails = async (postId) => {
     
   } catch (error) {
     console.error('获取帖子详情失败:', error)
+  } finally {
+    isLoadingPostDetails.value = false
   }
 }
 
 // 从接口获取用户已发布的帖子
 const loadUserPublishedPosts = async (schemeId) => {
+  // 防止重复请求
+  if (isLoadingUserPosts.value) {
+    console.log('正在加载用户帖子，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingUserPosts.value = true
     console.log('=== 获取用户已发布帖子 ===')
     console.log('方案ID:', schemeId)
     
@@ -650,6 +681,8 @@ const loadUserPublishedPosts = async (schemeId) => {
     
   } catch (error) {
     console.error('获取用户已发布帖子失败:', error)
+  } finally {
+    isLoadingUserPosts.value = false
   }
 }
 

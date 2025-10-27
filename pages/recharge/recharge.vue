@@ -170,6 +170,7 @@ const paymentCheckTimer = ref(null)
 const isCheckingPayment = ref(false)
 const isRefreshing = ref(false)
 const currentOrderNo = ref('') // 当前订单号
+const isLoadingUserInfo = ref(false) // 请求锁 - 防止重复请求用户信息
 
 // 计算属性
 const paymentAmount = computed(() => {
@@ -327,7 +328,14 @@ const processPayment = async () => {
 
 // 获取用户信息
 const getUserInfo = async () => {
+  // 防止重复请求
+  if (isLoadingUserInfo.value) {
+    console.log('正在加载用户信息，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingUserInfo.value = true
     const account = getAccount()
     if (account) {
       currentUser.value = account
@@ -339,7 +347,10 @@ const getUserInfo = async () => {
       }
     }
   } catch (error) {
+    console.error('获取用户信息失败:', error)
     // 获取用户信息失败，静默处理
+  } finally {
+    isLoadingUserInfo.value = false
   }
 }
 

@@ -455,6 +455,10 @@ const searchSuggestions = ref([])
 const filteredPredictList = ref([])
 const isSearching = ref(false)
 
+// 请求锁 - 防止重复请求
+const isLoadingPosts = ref(false)
+const isLoadingLottery = ref(false)
+
 // 心水预测筛选选项
 const predictionFilters = ref([
   '头尾', '芝麻', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾', 
@@ -580,8 +584,17 @@ const soupList = ref([
   }
 ])
 
+// 页面是否已经初始化
+const isPageInitialized = ref(false)
+
 // 页面加载完成
 onMounted(() => {
+  // 防止重复初始化
+  if (isPageInitialized.value) {
+    console.log('页面已经初始化，跳过重复加载')
+    return
+  }
+  
   try {
     const savedLotteryType = uni.getStorageSync('currentLotteryType')
     if (savedLotteryType) {
@@ -598,6 +611,8 @@ onMounted(() => {
   optimizeTouchEvents()
   
   loadLotteryData(currentLotteryType.value.code)
+  
+  isPageInitialized.value = true
 })
 
 // 切换标签
@@ -633,6 +648,13 @@ const closePeriodDropdown = () => {
 
 // 选择彩票类型
 const selectLotteryType = (lotteryType) => {
+  // 检查是否是同一个彩票类型，如果是就不要重复加载
+  if (currentLotteryType.value.code === lotteryType.code) {
+    console.log('彩票类型未变化，跳过加载')
+    showPeriodDropdown.value = false
+    return
+  }
+  
   currentLotteryType.value = lotteryType
   showPeriodDropdown.value = false
   
@@ -647,7 +669,14 @@ const selectLotteryType = (lotteryType) => {
 
 // 根据彩票类型加载数据
 const loadLotteryData = async (lotteryCode) => {
+  // 防止重复请求
+  if (isLoadingLottery.value) {
+    console.log('正在加载彩票数据，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingLottery.value = true
     const lotteryType = lotteryTypes.value.find(type => type.code === lotteryCode)
     if (!lotteryType) {
       return
@@ -694,13 +723,15 @@ const loadLotteryData = async (lotteryCode) => {
       }
       
       loadPredictPosts()
-      uni.showToast({ title: '数据加载成功', icon: 'success' })
+      // 移除不必要的提示，避免每次加载都弹出
     } else {
       uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
     }
   } catch (error) {
-    uni.hideLoading()
-    uni.showToast({ title: '网络错误，请重试', icon: 'none' })
+      uni.hideLoading()
+      uni.showToast({ title: '网络错误，请重试', icon: 'none' })
+  } finally {
+    isLoadingLottery.value = false
   }
 }
 
@@ -1102,7 +1133,15 @@ const getSearchButtonText = () => {
 
 // 加载预测帖子数据
 const loadPredictPosts = async () => {
+  // 防止重复请求 - 必须在最开始就检查并设置
+  if (isLoadingPosts.value) {
+    console.log('正在加载帖子，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingPosts.value = true
+    
     // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
       tname: currentLotteryType.value.name, // 查询预测帖
@@ -1182,7 +1221,10 @@ const loadPredictPosts = async () => {
       predictList.value = []
     }
   } catch (error) {
+    console.error('加载帖子失败:', error)
     predictList.value = []
+  } finally {
+    isLoadingPosts.value = false
   }
 }
 
@@ -1479,6 +1521,7 @@ const navigateToAppendPost = (post) => {
       schemeIds: schemeIds, // 改为数组，包含所有方案
       postContent: post.content,
       period: post.period,
+      lotteryType: currentLotteryType.value.name, // 添加彩票类型
       timestamp: Date.now()
     }
     
@@ -1543,11 +1586,6 @@ const extractSchemeFromContent = (content) => {
 </script>
 
 <style scoped>
-/* 全局触摸事件优化 */
-* {
-  touch-action: manipulation;
-}
-
 /* 滚动容器特殊处理 */
 .scroll-container {
   touch-action: pan-y;

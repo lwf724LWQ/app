@@ -289,14 +289,7 @@
 	}
 </script>
 
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-}
-
+<style scoped>
 .NumberPos {
     width: 100%;
     min-height: auto;

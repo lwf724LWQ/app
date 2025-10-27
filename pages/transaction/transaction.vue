@@ -292,6 +292,7 @@ const hasMore = ref(true)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const totalRecords = ref(0)
+const isLoadingBill = ref(false) // 添加请求锁
 
 // 筛选相关数据
 const showFilterModal = ref(false)
@@ -829,7 +830,14 @@ const validateToken = () => {
 
 // 获取账单数据
 const getBillData = async (isRefresh = false) => {
+  // 防止重复请求
+  if (isLoadingBill.value) {
+    console.log('正在加载账单数据，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingBill.value = true
     loading.value = true
     
     // 验证token
@@ -902,6 +910,7 @@ const getBillData = async (isRefresh = false) => {
     })
   } finally {
     loading.value = false
+    isLoadingBill.value = false
   }
 }
 

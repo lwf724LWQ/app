@@ -2,172 +2,140 @@
 	<view class="lottery-container">
 		<!-- 顶部广告轮播图 -->
 		<swiper class="ad-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500">
-
 			<swiper-item>
 				<view class="swiper-item">
 					<image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
-
 				</view>
 			</swiper-item>
 			<swiper-item>
 				<view class="swiper-item">
 					<image src="/static/aoRed.jpg" mode="aspectFill"></image>
-
 				</view>
 			</swiper-item>
 		</swiper>
 
-		<!-- 选项卡 -->
-		<view class="tabs">
-			<view class="tab-item" :class="{ 'active': currentTab === 'plw' }" @click="switchTab('plw')">排列五</view>
-			<view class="tab-item" :class="{ 'activeqxc': currentTab === 'qxc' }" @click="switchTab('qxc')">七星彩</view>
+		<!-- 开奖结果区域 - 福彩3D -->
+		<view class="lottery-results-fc3d">
+			<view class="result-item-fc3d">
+				<view class="result-header-fc3d">
+					<view class="lottery-title-fc3d">福彩3D {{ fc3dPeriod }}</view>
+					<view class="lottery-date">{{ lotteryDate }}</view>
+				</view>
+				<view class="winning-numbers-fc3d">
+					<view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
+						<view class="number-item-fc3d">{{ num }}</view>
+						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 开奖结果区域 - 排列五 -->
+		<view class="lottery-results-plw">
+			<view class="result-item-plw">
+				<view class="result-header-plw">
+					<view class="lottery-title-plw">排列三 排列五 {{ plwPeriod }}</view>
+					<view class="lottery-date">{{ lotteryDate }}</view>
+				</view>
+				<view class="winning-numbers-plw">
+					<view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
+						<view class="number-item-plw">{{ num }}</view>
+						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+					</view>
+				</view>
+			</view>
 		</view>
 
-		<!-- 功能图标区 -->
-		<view class="function-area" v-if="currentTab == 'plw'">
-			<view class="function-icons">
-				<view class="icon-item">
-					<image src="/static/icons/fav.png" mode="aspectFit"></image>
-					<text>红人榜</text>
+		<!-- 开奖结果区域 - 七星彩 -->
+		<view class="lottery-results-qxc">
+			<view class="result-item-qxc">
+				<view class="result-header-qxc">
+					<view class="lottery-title-qxc">七星彩 {{ qxcPeriod }}</view>
+					<view class="lottery-date">{{ lotteryDate }}</view>
 				</view>
-				<view class="icon-item">
-					<image src="/static/huagui.png" mode="aspectFit" @click="drawGui()"></image>
+				<view class="winning-numbers-qxc">
+					<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
+						<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{ num }}</view>
+						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+					</view>
+				</view>
+			</view>
+		</view>
+
+		<!-- 通知横幅 -->
+		<view class="notice-banner">
+			<image class="notice-icon" src="/static/喇叭.svg" mode="aspectFit"></image>
+			<text class="notice-text">【2025 国庆总结通知】</text>
+			<text class="notice-new">NEW</text>
+			<text class="notice-arrow">></text>
+		</view>
+
+		<!-- 功能图标区 - 15个图标网格 -->
+		<view class="function-area">
+			<view class="function-grid">
+				<!-- 第一行 -->
+				<view class="icon-item" @click="drawGui()">
+					<image src="/static/huagui.png" mode="aspectFit"></image>
 					<text>画规</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/icons/card.png" mode="aspectFit"></image>
-					<text>奖纸</text>
+					<image src="/static/icons/list.png" mode="aspectFit"></image>
+					<text>长条</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/icons/badge.png" mode="aspectFit"></image>
-					<text>大师榜</text>
+					<image src="/static/icons/font.png" mode="aspectFit"></image>
+					<text>云规</text>
+				</view>
+				<view class="icon-item">
+					<image src="/static/icons/card.png" mode="aspectFit"></image>
+					<text>统计</text>
 				</view>
 				<view class="icon-item">
 					<image src="/static/icons/button.png" mode="aspectFit"></image>
-					<text>视频</text>
+					<text>智能规</text>
 				</view>
-			</view>
-			<view class="function-icons">
-				<view class="icon-item">
-					<image src="/static/黄历查询.png" mode="aspectFit"></image>
-					<text>黄历</text>
-				</view>
+				<!-- 第二行 -->
 				<view class="icon-item">
 					<image src="/static/电视剧.png" mode="aspectFit"></image>
 					<text>开奖直播</text>
 				</view>
+				<view class="icon-item">
+					<image src="/static/icons/badge.png" mode="aspectFit"></image>
+					<text>大师榜单</text>
+				</view>
+				<view class="icon-item">
+					<image src="/static/icons/card.png" mode="aspectFit"></image>
+					<text>大师统计</text>
+				</view>
+				<view class="icon-item">
+					<image src="/static/icons/fav.png" mode="aspectFit"></image>
+					<text>奖表统计</text>
+				</view>
+				<view class="icon-item">
+					<image src="/static/icons/search-bar.png" mode="aspectFit"></image>
+					<text>奖表查询</text>
+				</view>
+				<!-- 第三行 -->
 				<view class="icon-item" @click="goToDreamInterpretation">
 					<image src="/static/月亮 (1) (1).png" mode="aspectFit"></image>
 					<text>解梦</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/icons/easyinput.png" mode="aspectFit"></image>
-					<text>快选</text>
+					<image src="/static/icons/collapse.png" mode="aspectFit"></image>
+					<text>过滤王</text>
 				</view>
 				<view class="icon-item">
-					<image src="/static/icons/list.png" mode="aspectFit"></image>
-					<text>更多</text>
+					<image src="/static/icons/search-bar.png" mode="aspectFit"></image>
+					<text>彩友搜索</text>
 				</view>
-			</view>
-		</view>
-		<!-- 功能图标区 -->
-		<view class="function-area" v-if="currentTab == 'qxc'">
-			<view class="function-icons">
+				<view class="icon-item icon-item-message">
+					<image src="/static/icons/color.png" mode="aspectFit"></image>
+					<text>我的消息</text>
+					<view class="message-badge">1</view>
+				</view>
 				<view class="icon-item">
-					<image src="/static/icons/fav.png" mode="aspectFit"></image>
-					<text>红人榜</text>
-				</view>
-				<view class="icon-item" @click="drawGui">
 					<image src="/static/icons/grid.png" mode="aspectFit"></image>
-					<text>画规</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/icons/card.png" mode="aspectFit"></image>
-					<text>奖纸</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/icons/badge.png" mode="aspectFit"></image>
-					<text>大师榜</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/icons/button.png" mode="aspectFit"></image>
-					<text>视频</text>
-				</view>
-			</view>
-			<view class="function-icons">
-				<view class="icon-item">
-					<image src="/static/黄历查询(1).png" mode="aspectFit"></image>
-					<text>黄历</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/电视剧 (1).png" mode="aspectFit"></image>
-					<text>开奖直播</text>
-				</view>
-				<view class="icon-item" @click="goToDreamInterpretation">
-					<image src="/static/月亮 (1) (2).png" mode="aspectFit"></image>
-					<text>解梦</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/icons/easyinput.png" mode="aspectFit"></image>
-					<text>快选</text>
-				</view>
-				<view class="icon-item">
-					<image src="/static/icons/list.png" mode="aspectFit"></image>
-					<text>更多</text>
-				</view>
-			</view>
-		</view>
-		<!-- 开奖结果区域 -->
-		<view class="lottery-results">
-			<!-- 排列五 -->
-			<view class="result-item">
-				<view class="result-header">
-					<view class="lottery-typep5">排列五</view>
-					<view class="lottery-date">2025-08-11 周一</view>
-					<view class="history-linkp5">开奖历史</view>
-				</view>
-				<!-- <view class="issue-number"></view> -->
-				<view class="winning-numbers">
-					<text class="issue-numberp5">25213期</text>
-					<view class="number-itemp5" v-for="(num,index) in plwNumbers" :key="num"
-						:class="{ 'special' : index >=4}">{{ num }}</view>
-				</view>
-				<!-- 七星彩 -->
-
-				<view class="result-header">
-					<view class="lottery-typeqxc">七星彩</view>
-					<view class="lottery-date">2025-08-10 周日</view>
-					<view class="history-linkqxc">开奖历史</view>
-				</view>
-				<!--  <view class="issue-numberqxc"></view> -->
-				<view class="winning-numbers">
-					<text class="issue-numberqxc">3224期</text>
-					<view class="number-itemqxc" v-for="(num, index) in qxcNumbers" :key="index"
-						:class="{ 'special': index >= 4 }">{{ num }}</view>
-				</view>
-			</view>
-		</view>
-		<!-- 活动区域 -->
-		<view class="activity-area">
-			<image src="/static/喇叭.svg" mode="aspectFit"></image>
-			<view class="activity-type">活动</view>
-			<image src="/static/分隔符.png" mode="aspectFit"></image>
-			<view class="registration-type">注册礼</view>
-			<text>新用户注册，免费得百元...</text>
-		</view>
-
-		<!-- 待开奖区域 -->
-		<view class="upcoming-area">
-			<view class="upcoming-header">
-				<view class="p5-lottery-type" :class="{ 'upcoming-active-p5': upcomingTab === 'plw' }" @click="switchUpcomingTab('plw')">排列五</view>
-				<view class="qxc-lottery-type" :class="{ 'upcoming-active-qxc': upcomingTab === 'qxc' }" @click="switchUpcomingTab('qxc')">七星彩</view>
-			</view>
-			<view class="upcoming-item">
-				<view class="issue-number">{{ upcomingTab === 'plw' ? plwUpcomingIssue : qxcUpcomingIssue }}</view>
-				<view class="status">待开奖</view>
-				<view class="actions">
-					<view class="action-btn" :class="{ 'selected': upcomingAction === 'all' }" @click="switchUpcomingAction('all')">全部</view>
-					<view class="action-btn" :class="{ 'selected': upcomingAction === 'follow' }" @click="switchUpcomingAction('follow')">关注</view>
+					<text>全部</text>
 				</view>
 			</view>
 		</view>
@@ -176,74 +144,162 @@
 </template>
 
 <script>
+	import { apiFindResult } from '@/api/apis.js'
+	
 	export default {
 		data() {
 			return {
-				currentTab: 'plw', // 当前选中的选项卡：plw-排列五，qxc-七星彩
-				upcomingTab: 'plw', // 待开奖区域选中的选项卡：plw-排列五，qxc-七星彩
-				currentNav: 'home', // 当前选中的导航项
-				plwNumbers: ['8', '6', '8', '5', '7'], // 排列五开奖号码
-				qxcNumbers: ['2', '0', '4', '9', '3', '8', '8'], // 七星彩开奖号码
-				plwUpcomingIssue: '25214期', // 排列五待开奖期号
-				qxcUpcomingIssue: '3225期', // 七星彩待开奖期号
-				upcomingAction: 'follow'  ,// 待开奖区域选中的操作：all-全部，follow-关注
+				currentTab: 'plw',
+				fc3dNumbers: ['3', '8', '5'],
+				plwNumbers: ['9', '0', '5', '3', '2'],
+				qxcNumbers: ['8', '0', '6', '5', '7', '9', '7'],
+				fc3dPeriod: '第25123期',
+				plwPeriod: '第25285期',
+				qxcPeriod: '第25123期',
+				lotteryDate: '10.26 周日',
+				isLoadingResults: false // 添加加载锁
 			};
 		},
 		methods: {
-			// 切换顶部选项卡
-			switchTab(tab) {
-				this.currentTab = tab;
-			},
-			// 切换待开奖区域选项卡
-			switchUpcomingTab(tab) {
-				this.upcomingTab = tab;
-			},
-			// 切换待开奖区域操作
-			switchUpcomingAction(action) {
-				this.upcomingAction = action;
-				// 这里可以添加根据操作类型筛选数据的逻辑
-				console.log('切换到:', action);
-			},
-			// 处理swiper切换
-			handleSwiperChange(e) {
-				this.currentTab = e.detail.current === 0 ? 'plw' : 'qxc';
-			},
-			// 切换导航
-			switchNav(nav) {
-				this.currentNav = nav;
-			},
-			// 获取最新开奖结果
-			getLatestResults() {
-				// 这里可以添加请求API获取最新开奖结果的逻辑
-				// 示例：
-				// uni.request({
-				//   url: 'https://api.example.com/lottery/results',
-				//   success: (res) => {
-				//     this.plwNumbers = res.data.plwNumbers;
-				//     this.qxcNumbers = res.data.qxcNumbers;
-				//   }
-				// });
-			},
 			drawGui(){
-				// 根据当前选中的选项卡决定跳转到哪个画规页面
 				const tname = this.currentTab === 'plw' ? '排列5' : '七星彩'
 				uni.navigateTo({
-					url: `/pages/juWang/drawLine/drawLine`
+					url: `/pages/juWang/drawLine/drawLineRead?tname=${tname}`
 				});
 			},
-			// 跳转到解梦页面
 			goToDreamInterpretation(){
 				uni.navigateTo({
 					url: '/pages/dream-interpretation/dream-interpretation'
 				});
+			},
+			// 加载开奖结果
+			async loadLotteryResults() {
+				// 防止重复调用
+				if (this.isLoadingResults) {
+					return
+				}
+				
+				try {
+					this.isLoadingResults = true
+					uni.showLoading({ title: '加载中...' })
+					
+					const response = await apiFindResult()
+					
+					uni.hideLoading()
+					
+				if (response.code === 200 && response.data) {
+					const results = response.data
+					
+					// 检查数据格式 - 可能是一个数组
+					let dataArray = results
+					if (Array.isArray(results)) {
+						dataArray = results
+					} else if (results.records && Array.isArray(results.records)) {
+						dataArray = results.records
+					} else if (results.data && Array.isArray(results.data)) {
+						dataArray = results.data
+					}
+					
+					// 遍历数据，根据彩票名称匹配
+					dataArray.forEach(item => {
+						const tname = item.tname || item.name
+						
+						// 福彩3D
+						if (tname && tname.includes('福彩3D')) {
+							this.fc3dNumbers = this.parseNumbers(item.number)
+							this.fc3dPeriod = '第' + item.issueno + '期'
+						}
+						
+						// 排列五
+						if (tname && tname.includes('排列五')) {
+							this.plwNumbers = this.parseNumbers(item.number)
+							this.plwPeriod = '第' + item.issueno + '期'
+						}
+						
+						// 排列三
+						if (tname && tname.includes('排列三')) {
+							// 排列三和排列五共用期号
+							this.plwPeriod = '第' + item.issueno + '期'
+						}
+						
+						// 七星彩
+						if (tname && tname.includes('七星彩')) {
+							let numbers = this.parseNumbers(item.number)
+							// 如果有refernumber，添加到末尾
+							if (item.refernumber) {
+								numbers.push(item.refernumber)
+							}
+							this.qxcNumbers = numbers
+							this.qxcPeriod = '第' + item.issueno + '期'
+						}
+						
+						// 更新日期
+						if (item.opendate || item.date || item.createTime) {
+							const date = item.opendate || item.date || item.createTime
+							// 格式化日期
+							this.lotteryDate = this.formatDate(date)
+						}
+					})
+					}
+				} catch (error) {
+					uni.hideLoading()
+					console.error('加载开奖结果失败:', error)
+					// 保持默认数据，不显示错误提示
+				} finally {
+					this.isLoadingResults = false
+				}
+			},
+			// 解析中奖号码（支持字符串和数组格式）
+			parseNumbers(numbers) {
+				if (!numbers) {
+					return []
+				}
+				
+				if (Array.isArray(numbers)) {
+					return numbers.map(n => String(n))
+				}
+				
+				if (typeof numbers === 'string') {
+					// 如果是空格分隔的字符串（如 "1 7 2"）
+					if (numbers.includes(' ')) {
+						return numbers.split(' ').map(n => n.trim()).filter(n => n).map(n => String(n))
+					}
+					// 如果是逗号分隔的字符串
+					if (numbers.includes(',')) {
+						return numbers.split(',').map(n => n.trim()).filter(n => n).map(n => String(n))
+					}
+					// 如果是普通字符串，按字符分割
+					return numbers.split('').map(n => n.trim()).filter(n => n).map(n => String(n))
+				}
+				
+				// 如果是数字，转为字符串
+				if (typeof numbers === 'number') {
+					return String(numbers).split('')
+				}
+				
+				return []
+			},
+			// 格式化日期
+			formatDate(dateStr) {
+				if (!dateStr) return '10.26 周日'
+				
+				try {
+					const date = new Date(dateStr)
+					const month = String(date.getMonth() + 1).padStart(2, '0')
+					const day = String(date.getDate()).padStart(2, '0')
+					const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+					const weekday = weekdays[date.getDay()]
+					
+					return `${month}.${day} ${weekday}`
+				} catch (e) {
+					return '10.26 周日'
+				}
 			}
 		},
-		
 		onLoad() {
-			this.getLatestResults();
+			// 加载开奖结果
+			this.loadLotteryResults()
 		}
-		
-		
 	};
 </script>
 
@@ -251,27 +307,16 @@
 	.lottery-container {
 		display: flex;
 		flex-direction: column;
-		min-height: 150vh;
+		min-height: 100vh;
 		background-color: #f5f5f5;
 	}
 
+	/* 轮播图样式 */
 	.ad-swiper {
 		width: 100%;
 		height: 320rpx;
-	}
-
-	.registration-type {
-		background-color: red;
-		color: white;
-		background-color: red;
-		color: white;
-		width: 100rpx;
-		height: 45rpx;
-		align-items: center;
-		flex-direction: column;
-		display: flex;
-		border-radius: 10rpx;
-		margin-right: 15rpx;
+		padding: 20rpx;
+		margin-bottom: 20rpx;
 	}
 
 	.swiper-item {
@@ -287,362 +332,254 @@
 		height: 100%;
 	}
 
-	.activity-type {
-		font-size: 34rpx;
-		color: red;
-		font-weight: 500rpx;
-
+	/* 福彩3D开奖结果 */
+	.lottery-results-fc3d {
+		margin: 0 20rpx 20rpx 20rpx;
 	}
-	
 
+	.result-item-fc3d {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
 
-	.ad-text {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		color: #fff;
+	.result-header-fc3d {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-fc3d {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.winning-numbers-fc3d {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-item-fc3d {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
 		font-size: 32rpx;
 		font-weight: bold;
-		text-shadow: 1rpx 1rpx 2rpx rgba(0, 0, 0, 0.5);
+		color: #fff;
+		margin-bottom: 8rpx;
 	}
 
-	.tabs {
-		display: flex;
-		justify-content: space-around;
-		padding: 20rpx 0;
+	/* 排列五开奖结果 */
+	.lottery-results-plw {
+		margin: 0 20rpx 20rpx 20rpx;
+	}
+
+	.result-item-plw {
 		background-color: #fff;
-		border-bottom: 1rpx solid #e0e0e0;
-		position: relative;
-		z-index: 10;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 	}
 
-	.function-area {
+	.result-header-plw {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-plw {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.lottery-date {
+		font-size: 24rpx;
+		color: #666;
+	}
+
+	.winning-numbers-plw {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.number-item-plw {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	.number-label {
+		font-size: 20rpx;
+		color: #999;
+	}
+
+	/* 七星彩开奖结果 */
+	.lottery-results-qxc {
+		margin: 0 20rpx 20rpx 20rpx;
+	}
+
+	.result-item-qxc {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-qxc {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-qxc {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.winning-numbers-qxc {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+.number-item-qxc {
+	width: 60rpx;
+	height: 60rpx;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #e74c3c;
+	border-radius: 50%;
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #fff;
+	margin-bottom: 8rpx;
+}
+
+/* 七星彩最后一个号码球显示为绿色 */
+.number-item-qxc.qxc-special {
+	background-color: #28B389;
+}
+
+	/* 通知横幅 */
+	.notice-banner {
+		display: flex;
+		align-items: center;
+		margin: 0 20rpx 20rpx 20rpx;
 		padding: 20rpx;
 		background-color: #fff;
-		margin: 20rpx;
 		border-radius: 10rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 	}
 
-	.icon-placeholder {
-		width: 100rpx;
-		height: 100rpx;
-		background-color: #f0f0f0;
-		border-radius: 20rpx;
-		margin-bottom: 10rpx;
-	}
-
-	.tab-item {
-		padding: 15rpx 40rpx;
-		font-size: 32rpx;
-		color: #333;
-		border-radius: 30rpx;
-	}
-	
-	.p5-lottery-type {
-		padding: 12rpx 30rpx;
-		font-size: 28rpx;
-		color: #555;
-		border-radius: 6rpx;
+	.notice-icon {
+		width: 32rpx;
+		height: 32rpx;
 		margin-right: 10rpx;
 	}
-	.qxc-lottery-type {
-		padding: 12rpx 30rpx;
+
+	.notice-text {
+		font-size: 26rpx;
+		color: #333;
+		flex: 1;
+	}
+
+	.notice-new {
+		font-size: 20rpx;
+		color: #fff;
+		background-color: #e74c3c;
+		padding: 4rpx 10rpx;
+		border-radius: 4rpx;
+		margin-right: 10rpx;
+	}
+
+	.notice-arrow {
 		font-size: 28rpx;
-		color: #555;
-		border-radius: 6rpx;
-	}
-	.p5-lottery-type.upcoming-active-p5 {
-		background-color: #2196f3;
-		color: #fff;
-		font-weight: bold;
-	}
-	.qxc-lottery-type.upcoming-active-qxc {
-		background-color: #f57c00;
-		color: #fff;
-		font-weight: bold;
+		color: #999;
 	}
 
-	.tab-item.active {
-		background-color: #1e88e5;
-		color: #fff;
+	/* 功能图标区 */
+	.function-area {
+		padding: 20rpx;
+		background-color: #f5f5f5;
 	}
 
-	.tab-item.activeqxc {
-		background-color: #ff9800;
-		color: #fff;
-	}
-
-
-	.function-icons {
-		display: flex;
-		justify-content: space-around;
-		padding: 30rpx 0;
+	.function-grid {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 20rpx 10rpx;
 		background-color: #fff;
+		padding: 30rpx;
+		border-radius: 10rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 	}
 
 	.icon-item {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		width: 100rpx;
+		justify-content: center;
+		position: relative;
 	}
 
 	.icon-item image {
-		width: 100rpx;
-		height: 100rpx;
-		margin-bottom: 10rpx;
+		width: 60rpx;
+		height: 60rpx;
+		margin-bottom: 8rpx;
 	}
 
 	.icon-item text {
-		font-size: 24rpx;
+		font-size: 20rpx;
 		color: #666;
 	}
 
-	.lottery-results {
-		padding: 20rpx;
-		border-radius: 20%;
+	.icon-item-message {
+		position: relative;
 	}
 
-	.result-item {
-		background-color: #fff;
-		border-radius: 10rpx;
-		padding: 20rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-	}
-
-	.result-header {
+	.message-badge {
+		position: absolute;
+		top: -4rpx;
+		right: -4rpx;
+		background-color: #e74c3c;
+		color: #fff;
+		font-size: 18rpx;
+		width: 32rpx;
+		height: 32rpx;
+		border-radius: 50%;
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 20rpx;
-	}
-
-	.lottery-type {
-		font-size: 32rpx;
-		font-weight: bold;
-		background-color: #1e88e5;
-		color: white;
-	}
-
-
-	.lottery-typep5 {
-		font-size: 32rpx;
-		font-weight: bold;
-		background-color: #1e88e5;
-		color: white;
-		padding: 12rpx 24rpx;
-		border-radius: 16rpx;
-		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
-	}
-
-	.lottery-typeqxc {
-		font-size: 32rpx;
-		font-weight: bold;
-		background-color: #ff9800;
-		color: white;
-		padding: 12rpx 24rpx;
-		border-radius: 16rpx;
-		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
-	}
-
-	.lottery-date {
-		font-size: 24rpx;
-		color: #665e5e;
-
-	}
-
-	.history-linkp5 {
-		font-size: 24rpx;
-		background-color: #b8d0e5;
-		background-size: 35rpx;
-		border-radius: 10%;
-		color: #1e88e5;
-		width: 62px;
-		height: 19px;
-		align-items: center;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.history-linkqxc {
-		font-size: 24rpx;
-		color: #ff9800;
-		background-color: #ffebcd;
-		background-size: 35rpx;
-		border-radius: 10%;
-		width: 62px;
-		height: 19px;
-		align-items: center;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.issue-numberp5 {
-		font-size: 28rpx;
-		color: black;
-		margin-bottom: 20rpx;
-		height: 53px;
-		margin-top: 13px;
-		align-items: center;
-		flex-direction: column;
-	}
-
-
-	.issue-numberqxc {
-		font-size: 28rpx;
-		color: black;
-		margin-bottom: 20rpx;
-		height: 53px;
-		margin-top: 13px;
-		align-items: center;
-		flex-direction: column;
-	}
-
-
-
-	.winning-numbers {
-		display: flex;
-		justify-content: space-around;
-	}
-
-	.number-itemp5 {
-		width: 80rpx;
-		height: 80rpx;
-		display: flex;
 		justify-content: center;
-		align-items: center;
-		background-color: #1e88e5;
-		border-radius: 50rpx;
-		font-size: 36rpx;
-		font-weight: bold;
-		color: #333;
-	}
-
-	.number-itemqxc {
-		width: 80rpx;
-		height: 80rpx;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		background-color: #ff9800;
-		border-radius: 50rpx;
-		font-size: 36rpx;
-		font-weight: bold;
-		color: white;
-	}
-
-	.number-itemp5.special {
-		background-color: white;
-		color: #1e88e5;
-	}
-
-
-	.number-itemqxc.special {
-		background-color: white;
-		color: #ff9800;
-		width: 0px
-	}
-
-	.activity-area {
-		margin: 20rpx;
-		padding: 20rpx;
-		background-color: #fff;
-		border-radius: 10rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-		display: flex;
-		align-items: center;
-	}
-
-	.activity-area image {
-		width: 40rpx;
-		height: 40rpx;
-		margin-right: 10rpx;
-	}
-
-	.activity-area text {
-		font-size: 28rpx;
-		color: #e91e63;
-	}
-
-	.upcoming-area {
-		margin: 20rpx;
-		background-color: #fff;
-		border-radius: 10rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-		overflow: hidden;
-	}
-
-	.upcoming-header {
-		display: flex;
-		justify-content: space-around;
-		padding: 20rpx 0;
-		border-bottom: 1rpx solid #e0e0e0;
-	}
-
-	.upcoming-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 20rpx;
-	}
-
-	.status {
-		font-size: 28rpx;
-		color: #ff9800;
-	}
-
-	.actions {
-		display: flex;
-	}
-
-	.action-btn {
-		padding: 8rpx 20rpx;
-		margin-left: 10rpx;
-		background-color: #f5f5f5;
-		border-radius: 20rpx;
-		font-size: 24rpx;
-		color: #666;
-	}
-
-	.action-btn.selected {
-		color: white;
-		background-color: #ff4500;
-	}
-
-	
-
-	.bottom-nav {
-		display: flex;
-		justify-content: space-around;
-		padding: 20rpx 0;
-		background-color: #fff;
-		border-top: 1rpx solid #e0e0e0;
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-	}
-
-	.nav-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.nav-item image {
-		width: 50rpx;
-		height: 50rpx;
-		margin-bottom: 10rpx;
-	}
-
-	.nav-item text {
-		font-size: 24rpx;
-		color: #666;
-	}
-
-	.nav-item.active text {
-		color: #1e88e5;
+		border: 2rpx solid #fff;
 	}
 </style>

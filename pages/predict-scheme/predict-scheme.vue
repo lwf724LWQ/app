@@ -572,6 +572,10 @@ const publishedSchemes = ref([])
 const isAppendMode = ref(false)
 const appendPostData = ref(null)
 
+// 请求锁 - 防止重复请求
+const isLoadingIssueInfo = ref(false)
+const isLoadingPublishedSchemes = ref(false)
+
 // 检查是否从规律预测页面进入
 const isFromPatternPredict = computed(() => {
   const pages = getCurrentPages()
@@ -588,9 +592,35 @@ const isSchemePublished = (schemeId) => {
 const checkAppendMode = () => {
   try {
     const savedAppendData = uni.getStorageSync('appendPostData')
-    if (savedAppendData && savedAppendData.postId) {
-      isAppendMode.value = true
-      appendPostData.value = savedAppendData
+    
+    // 检查数据是否有效，并且检查是否是当前彩票类型的帖子
+    if (savedAppendData && savedAppendData.postId && savedAppendData.postContent) {
+      // 优先检查保存的彩票类型
+      let isCurrentLotteryPost = false
+      
+      if (savedAppendData.lotteryType) {
+        // 如果保存了彩票类型，直接比较
+        isCurrentLotteryPost = savedAppendData.lotteryType === currentLotteryType.value.name
+      } else {
+        // 兼容旧数据，检查帖子内容中是否包含当前彩票类型
+        const currentLottery = currentLotteryType.value.name
+        isCurrentLotteryPost = savedAppendData.postContent.includes(currentLottery) || 
+                              savedAppendData.postContent.includes(`${currentLottery}-规律预测`)
+      }
+      
+      if (isCurrentLotteryPost) {
+        isAppendMode.value = true
+        appendPostData.value = savedAppendData
+      } else {
+        // 如果不是当前彩票类型的帖子，清除追帖数据
+        console.log('检测到追帖数据，但不是当前彩票类型，清除数据')
+        uni.removeStorageSync('appendPostData')
+        uni.removeStorageSync('currentAppendPostData')
+        uni.removeStorageSync('appendModeTipShown')
+        isAppendMode.value = false
+        appendPostData.value = null
+        return
+      }
       
       // 显示追帖模式提示（只在第一次进入时显示）
       const hasShownTip = uni.getStorageSync('appendModeTipShown')
@@ -607,27 +637,27 @@ const checkAppendMode = () => {
       
       // 在追帖模式下，直接使用追帖数据设置已发布方案
       const today = new Date().toDateString()
-      const publishedSchemes = []
-      const publishedPosts = {}
+      const publishedSchemesList = []
+      const publishedPostsList = {}
       
       // 从追帖数据中提取所有方案信息
       const schemeIds = savedAppendData.schemeIds || []
       schemeIds.forEach(schemeId => {
         if (schemeId) {
-          publishedSchemes.push(schemeId)
-          publishedPosts[schemeId] = savedAppendData.postId
+          publishedSchemesList.push(schemeId)
+          publishedPostsList[schemeId] = savedAppendData.postId
         }
       })
       
+      // 直接更新响应式变量
+      publishedSchemes.value = publishedSchemesList
+      
       // 保存到本地存储（持久化保存）
-      uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
-      uni.setStorageSync(`publishedPosts_${today}`, publishedPosts)
+      uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemesList)
+      uni.setStorageSync(`publishedPosts_${today}`, publishedPostsList)
       
       // 同时保存追帖数据到专门的存储键，确保数据不丢失
       uni.setStorageSync('currentAppendPostData', savedAppendData)
-      
-      // 重新加载已发布方案
-      loadPublishedSchemes()
       
     } else {
       // 如果没有appendPostData，检查是否有保存的追帖数据
@@ -647,7 +677,14 @@ const checkAppendMode = () => {
 
 // 测试函数：获取用户已发布的帖子
 const testPublishedScheme = async () => {
+  // 防止重复请求
+  if (isLoadingPublishedSchemes.value) {
+    console.log('正在加载已发布方案，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingPublishedSchemes.value = true
     uni.showLoading({ title: '获取已发布帖子...' })
     
     // 调用接口获取用户已发布的帖子
@@ -721,6 +758,8 @@ const testPublishedScheme = async () => {
     
     // 接口调用失败，使用备用方案
     handleApiFailure()
+  } finally {
+    isLoadingPublishedSchemes.value = false
   }
 }
 
@@ -734,11 +773,13 @@ const handleApiFailure = () => {
       const publishedPosts = {}
       
       // 从追帖数据中提取方案信息
-      const schemeId = appendPostData.value.schemeId
-      if (schemeId) {
-        publishedSchemes.push(schemeId)
-        publishedPosts[schemeId] = appendPostData.value.postId
-      }
+      const schemeIds = appendPostData.value.schemeIds || []
+      schemeIds.forEach(schemeId => {
+        if (schemeId) {
+          publishedSchemes.push(schemeId)
+          publishedPosts[schemeId] = appendPostData.value.postId
+        }
+      })
       
       // 保存到本地存储
       uni.setStorageSync(`publishedSchemes_${today}`, publishedSchemes)
@@ -748,7 +789,7 @@ const handleApiFailure = () => {
       loadPublishedSchemes()
       
       uni.showToast({
-        title: `追帖模式：已识别 ${schemeId} 方案`,
+        title: `追帖模式：已加载 ${publishedSchemes.length} 个方案`,
         icon: 'success'
       })
       
@@ -1740,11 +1781,19 @@ const loadCurrentLotteryType = () => {
 
 // 加载期号信息
 const loadIssueInfo = async () => {
+  // 防止重复请求
+  if (isLoadingIssueInfo.value) {
+    console.log('正在加载期号信息，跳过重复请求')
+    return
+  }
+  
   try {
+    // 如果已经有期号信息，直接返回
     if (currentIssueInfo.value.number && currentIssueInfo.value.number !== '--') {
       return
     }
     
+    isLoadingIssueInfo.value = true
     uni.showLoading({ title: '加载中...' })
     
     const response = await apiGetIssueNo({ cpid: currentLotteryType.value.id })
@@ -1777,6 +1826,8 @@ const loadIssueInfo = async () => {
   } catch (error) {
     uni.hideLoading()
     console.error('加载期号信息失败:', error)
+  } finally {
+    isLoadingIssueInfo.value = false
   }
 }
 
@@ -1792,8 +1843,10 @@ onMounted(() => {
   loadIssueInfo()
   // 加载已发布的方案列表
   loadPublishedSchemes()
-  // 检查是否进入追帖模式
-  checkAppendMode()
+  // 延迟检查是否进入追帖模式，确保 currentLotteryType 已加载
+  setTimeout(() => {
+    checkAppendMode()
+  }, 100)
 })
 
 // 页面卸载时移除监听器

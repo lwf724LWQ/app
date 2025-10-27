@@ -1,14 +1,15 @@
 <template>
-	<view class="navbar">
-		<!-- 返回按钮 -->
-		<view class="navbar-left" @click="goBack">
-		   <uni-icons type="left" size="30"></uni-icons>
-		 </view>
-		 <!-- 标题 -->
-		 <view class="navbar-title">{{ videoData.title }}</view>
-	</view>
-	
-  <view class="container">
+	<view class="wrapper">
+		<view class="navbar">
+			<!-- 返回按钮 -->
+			<view class="navbar-left" @click="goBack">
+			   <uni-icons type="left" size="30"></uni-icons>
+			 </view>
+			 <!-- 标题 -->
+			 <view class="navbar-title">{{ videoData.title }}</view>
+		</view>
+		
+	  <view class="container">
     <!-- 视频播放器容器 -->
     <view class="video-container">
       <video 
@@ -28,44 +29,68 @@
           <uni-icons type="play-filled" size="60" color="#fff"></uni-icons>
         </view>
       </view>
-    </view>
-    
-    <!-- 视频信息 -->
-    <view class="author-info">
-      <view class="author-avatar">
-        <!-- 修改头像路径 -->
-        <image :src="getAvatarUrl(userInfo.himg)" class="avatar"></image>
-        <view class="v-badge">V</view>
-      </view>
-      <view class="author-details">
-        <text class="author-name">{{userInfo.uname}}</text>
-        <!-- <text class="author-location"></text> -->
+      
+      <!-- 购买按钮（如果有价格） -->
+      <view class="buy-overlay" v-if="videoData.price && videoData.price > 0" @click="handleBuyClick">
+        <view class="buy-button">
+          <text class="buy-text">¥{{ videoData.price }}购买</text>
+        </view>
       </view>
     </view>
     
-    <!-- 操作按钮区域（点赞和打赏在同一行） -->
-    <view class="action-bar">
-      <!-- 点赞按钮 -->
-      <view class="like-section">
-        <button class="like-btn" :class="{ 'liked': videoData.isLiked }" @click="toggleLike">
-          <uni-icons :type="videoData.isLiked ? 'heart-filled' : 'heart'" size="24" :color="videoData.isLiked ? '#ff4757' : '#666'"></uni-icons>
-          <text class="like-count">{{ videoData.likeCount }}</text>
-        </button>
+    <!-- 打赏和点赞区域 -->
+    <view class="interaction-bar">
+      <view class="reward-interaction" @click="goToRewardPage">
+        <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
+        <text class="interaction-text">打赏 0</text>
+      </view>
+      <view class="like-interaction" :class="{ 'liked': videoData.isLiked }" @click="toggleLike">
+        <uni-icons :type="videoData.isLiked ? 'heart-filled' : 'heart'" size="20" :color="videoData.isLiked ? '#ff4757' : '#FF9500'"></uni-icons>
+        <text class="interaction-text">点赞 {{ videoData.likeCount }}</text>
+      </view>
+    </view>
+    
+    <!-- 作者和视频信息 -->
+    <view class="video-info-card">
+      <view class="info-header">
+        <image :src="getAvatarUrl(userInfo.himg)" class="author-avatar"></image>
+        <view class="author-info">
+          <text class="author-name">{{ userInfo.uname }}出品</text>
+          <text class="video-count">视频</text>
+        </view>
+        <view class="header-actions">
+          <button class="teacher-btn">讲师主页</button>
+          <button class="follow-btn">+ 关注</button>
+        </view>
       </view>
       
-      <!-- 打赏按钮 -->
-      <view class="reward-section">
-        <button class="reward-btn" @click="goToRewardPage">
-          <uni-icons type="gift-filled" size="24" color="#aa0000"></uni-icons>
-          <text class="reward-text">打赏</text>
-        </button>
+      <view class="video-title-section">
+        <view class="price-tag" v-if="videoData.price && videoData.price > 0">
+          <text>¥{{ videoData.price }}</text>
+        </view>
+        <text class="video-title-text">{{ videoData.title }}</text>
       </view>
     </view>
-  </view>
+    
+    <!-- 底部按钮 -->
+    <view class="bottom-bar">
+      <view class="bottom-left">
+        <view class="icon-item">
+          <uni-icons type="home" size="24" color="#FFD700"></uni-icons>
+          <text class="icon-label">首页</text>
+        </view>
+       
+      </view>
+      <button class="bottom-buy-btn" @click="handleBuyClick">
+        {{ isFreeVideo ? '开始学习' : '点击购买' }}
+      </button>
+    </view>
+	  </view>
+	</view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { apiGetLikelist, apiGetIsLike,apiCheckVideoPayment,apiUserimg } from '@/api/apis';
 import { getToken, getAccount } from '@/utils/request.js';
@@ -88,6 +113,11 @@ const videoData = ref({
 const showPlayButton = ref(true) // 控制播放按钮显示
 const isPlaying = ref(false) // 视频播放状态
 const videoContext = ref(null) // 视频上下文
+
+// 计算是否为免费视频
+const isFreeVideo = computed(() => {
+  return !videoData.value.flag || videoData.value.price === 0
+})
 //用户头像，名字接口数据接收
 const userInfo = ref({
   uname: '',
@@ -116,7 +146,6 @@ onLoad(async (options) => {
         isLiked: currentVideo.isLiked || false,
         flag: currentVideo.flag,
         price: currentVideo.price,
-		
       }
       // 调用apiUserimg获取用户信息
       await getUserInfo(currentVideo.account);
@@ -129,12 +158,13 @@ onMounted(() => {
   // 创建视频上下文
   videoContext.value = uni.createVideoContext('videoPlayer')
 })
+
 //导航栏
-	const goBack = () => {
-		uni.navigateBack({
-			delta: 1
-		});
-	};
+const goBack = () => {
+	uni.navigateBack({
+		delta: 1
+	});
+};
 
 // 获取用户信息
 const getUserInfo = async (account) => {
@@ -193,16 +223,16 @@ const playVideo = async () => {
     }, 1500);
     return;
   }
-   // 判断是否为免费视频
-    if (!videoData.value.flag || videoData.value.price === 0) {
-      // 免费视频直接播放
-      if (videoContext.value) {
-        videoContext.value.play()
-        isPlaying.value = true
-        showPlayButton.value = false
-      }
-      return;
+  // 判断是否为免费视频
+  if (!videoData.value.flag || videoData.value.price === 0) {
+    // 免费视频直接播放
+    if (videoContext.value) {
+      videoContext.value.play()
+      isPlaying.value = true
+      showPlayButton.value = false
     }
+    return;
+  }
   // 检查视频付费状态
   try {
     // 调用付费检查API
@@ -211,29 +241,28 @@ const playVideo = async () => {
       account: getAccount()
     });
    
-      if (paymentCheck.data) {
-        // 用户已付费，播放视频
-        if (videoContext.value) {
-          videoContext.value.play()
-          isPlaying.value = true
-          showPlayButton.value = false
-        }
-      } else {
-        // 用户未付费，显示付费提示
-        uni.showModal({
-          title: '付费视频',
-          content: `观看此视频需要支付${videoData.value.price}金币`,
-          confirmText: '立即支付',  
-          cancelText: '取消',
-          success: async (res) => {
-            if (res.confirm) {
-              // 这里调用支付接口
-              await payForVideo();
-            }
-          }
-        });
+    if (paymentCheck.data) {
+      // 用户已付费，播放视频
+      if (videoContext.value) {
+        videoContext.value.play()
+        isPlaying.value = true
+        showPlayButton.value = false
       }
-    
+    } else {
+      // 用户未付费，显示付费提示
+      uni.showModal({
+        title: '付费视频',
+        content: `观看此视频需要支付${videoData.value.price}金币`,
+        confirmText: '立即支付',  
+        cancelText: '取消',
+        success: async (res) => {
+          if (res.confirm) {
+            // 这里调用支付接口
+            await payForVideo();
+          }
+        }
+      });
+    }
   } catch (error) {
     uni.showToast({
       title: error.message || '查询失败',
@@ -251,12 +280,12 @@ const payForVideo = async () => {
     account: getAccount(),
     payType: 0, // 默认微信支付
     channel: 0 ,// 微信小程序
-	videoId: videoData.value.id // 添加视频ID参数
+    videoId: videoData.value.id // 添加视频ID参数
   };
   
   // 跳转到支付页面
   uni.navigateTo({
-	   url: `/pages/video/payment?${objectToQueryString(paymentData)}`
+    url: `/pages/video/payment?${objectToQueryString(paymentData)}`
   });
 };
 
@@ -277,6 +306,21 @@ const onVideoPlay = () => {
 const onVideoPause = () => {
   isPlaying.value = false
   showPlayButton.value = true
+}
+
+// 处理购买按钮点击
+const handleBuyClick = async () => {
+  if (!videoData.value.flag || videoData.value.price === 0) {
+    // 免费视频直接播放
+    if (videoContext.value) {
+      videoContext.value.play()
+      isPlaying.value = true
+      showPlayButton.value = false
+    }
+  } else {
+    // 付费视频，跳转到支付
+    await payForVideo()
+  }
 }
 
 // 跳转到打赏页面
@@ -343,154 +387,52 @@ const toggleLike = async () => {
 </script>
 
 <style scoped>
-	.navbar {
-	  height: 44px;
-	  background-color: #1677ff;
-	  color: white;
-	  display: flex;
-	  align-items: center;
-	  justify-content: space-between; 
-	  padding: 0 16px;
-	  margin-bottom: 3rpx;
-	  position: relative;
-	  z-index: 10;
-	}
-	
-	.navbar-left {
-	  width: 44px;
-	  height: 44px;
-	  display: flex;
-	  align-items: center;
-	  justify-content: flex-start;
-	   z-index: 11;
-	}
-	
-	.navbar-left .uni-icons {
-	  color: #fff !important;
-	  font-size: 22px !important;
-	}
-	
-	.navbar-title {
-	  font-size: 18px;
-	  font-weight: 500;
-	  text-align: center;
-	  position: absolute;
-	  left: 0;
-	  right: 0;
-	  pointer-events: none;
-	}
-	
-	.navbar-right {
-	  width: 44px; /* 与左侧相同的宽度 */
-	  height: 44px;
-	}
-/* 作者信息 */
-.author-info {
-  margin-top: 30rpx;
-  padding: 30rpx;
-  background-color: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
+.wrapper {
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
-.author-avatar {
+.navbar {
+  height: 44px;
+  background-color: #1677ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  padding: 0 16px;
+  margin-bottom: 3rpx;
   position: relative;
-  margin-right: 20rpx;
+  z-index: 10;
 }
 
-.avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-}
-
-.v-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 24rpx;
-  height: 24rpx;
-  background-color: #ffd700;
-  border-radius: 50%;
+.navbar-left {
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 16rpx;
-  font-weight: bold;
-  color: #fff;
+  justify-content: flex-start;
+  z-index: 11;
 }
 
-.author-details {
-  display: flex;
-  flex-direction: column;
+.navbar-left .uni-icons {
+  color: #fff !important;
+  font-size: 22px !important;
 }
 
-.author-name {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.author-location {
-  font-size: 24rpx;
-  color: #666;
-}
-
-/* 打赏金额选项 */
-.reward-options {
-  margin-top: 30rpx;
-  padding: 20rpx;
-  background-color: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20rpx;
-  display: block;
-}
-
-.amount-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-}
-
-.amount-option {
-  flex: 1;
-  min-width: 150rpx;
-  padding: 20rpx;
-  border: 2rpx solid #3498db;
-  border-radius: 16rpx;
+.navbar-title {
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
-  background-color: #f8f8f8;
-  transition: all 0.3s ease;
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
 }
-
-.amount-option.active {
-  background-color: #3498db;
-  color: #fff;
-  transform: translateY(-5rpx);
-  box-shadow: 0 4rpx 12rpx rgba(52, 152, 219, 0.2);
-}
-
-.amount-text {
-  font-size: 28rpx;
-  font-weight: bold;
-}
-	
 
 .container {
   padding: 20rpx;
+  padding-bottom: 120rpx;
   background-color: #f5f5f5;
-  min-height: 100vh;
 }
 
 /* 视频容器样式 */
@@ -498,10 +440,9 @@ const toggleLike = async () => {
   position: relative;
   width: 100%;
   height: 600rpx;
-  border-radius: 16rpx;
+  border-radius: 0;
   overflow: hidden;
   background-color: #000;
-  margin-bottom: 20rpx;
 }
 
 .video-player {
@@ -538,92 +479,171 @@ const toggleLike = async () => {
   transform: scale(0.9);
 }
 
-.video-info {
-  margin-top: 30rpx;
-  padding: 20rpx;
-  background-color: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+/* 购买按钮遮罩 */
+.buy-overlay {
+  position: absolute;
+  bottom: 30rpx;
+  right: 30rpx;
+  z-index: 11;
 }
 
-.video-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
-  display: block;
-  margin-bottom: 10rpx;
+.buy-button {
+  background-color: #FF9500;
+  padding: 12rpx 24rpx;
+  border-radius: 8rpx;
 }
 
-.video-author {
-  font-size: 28rpx;
-  color: #666;
+.buy-text {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
-/* 操作按钮区域（点赞和打赏在同一行） */
-.action-bar {
+/* 打赏和点赞交互栏 */
+.interaction-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 30rpx;
-  padding: 0 20rpx;
+  padding: 20rpx 0;
+  background-color: #fff;
+  gap: 40rpx;
+  justify-content: center;
 }
 
-/* 点赞区域 */
-.like-section {
-  flex: 1;
+.reward-interaction,
+.like-interaction {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.interaction-text {
+  color: #FF9500;
+  font-size: 26rpx;
+}
+
+.like-interaction.liked .interaction-text {
+  color: #ff4757;
+}
+
+/* 视频信息卡片 */
+.video-info-card {
+  background-color: #fff;
+  padding: 30rpx;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.author-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
   margin-right: 20rpx;
 }
 
-.like-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 40rpx;
-  padding: 16rpx 24rpx;
-  font-size: 28rpx;
-  color: #666;
-  transition: all 0.3s ease;
-}
-
-.like-btn.liked {
-  color: #ff4757;
-  border-color: #ff4757;
-  background-color: rgba(255, 71, 87, 0.1);
-}
-
-.like-count {
-  margin-left: 10rpx;
-  font-weight: 500;
-}
-
-/* 打赏区域 */
-.reward-section {
+.author-info {
   flex: 1;
 }
 
-.reward-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #ff9500, #ff7300);
-  border: none;
-  border-radius: 40rpx;
-  padding: 16rpx 24rpx;
+.author-name {
   font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.video-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.header-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.teacher-btn,
+.follow-btn {
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+}
+
+.teacher-btn {
+  background-color: transparent;
+  border: 1rpx solid #FF9500;
+  color: #FF9500;
+}
+
+.follow-btn {
+  background-color: #FF9500;
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(255, 149, 0, 0.3);
-  transition: all 0.3s ease;
+  border: none;
 }
 
-.reward-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(255, 149, 0, 0.2);
+/* 视频标题区域 */
+.video-title-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
 }
 
-.reward-text {
-  margin-left: 10rpx;
-  font-weight: 500;
+.price-tag {
+  background-color: #ff4757;
+  padding: 6rpx 12rpx;
+  border-radius: 4rpx;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.video-title-text {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 底部购买栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background-color: #fff;
+  padding: 20rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.bottom-left {
+  display: flex;
+  gap: 40rpx;
+}
+
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.icon-label {
+  font-size: 20rpx;
+  color: #666;
+}
+
+.bottom-buy-btn {
+  flex: 1;
+  background-color: #FF9500;
+  color: #fff;
+  border: none;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-left: 40rpx;
 }
 </style>

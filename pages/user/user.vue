@@ -169,6 +169,9 @@ const memberStore = reactive({
 const isBalanceVisible = ref(false)
 // 用户金币余额
 const userBalance = ref(0)
+// 请求锁 - 防止重复请求
+const isLoadingBalance = ref(false)
+const isLoadingLogin = ref(false)
 
 // 处理头像加载错误
 const handleAvatarError = (e) => {
@@ -180,14 +183,20 @@ const handleAvatarError = (e) => {
 
 // 获取用户金币余额
 const getUserBalance = async () => {
+  // 防止重复请求
+  if (isLoadingBalance.value) {
+    console.log('正在加载余额，跳过重复请求')
+    return
+  }
+  
   try {
+    isLoadingBalance.value = true
     const account = getAccount()
     
     if (!account) {
       userBalance.value = 0
       return
     }
-    
     
     const response = await apiGetUserBalance({ account })
     
@@ -197,48 +206,62 @@ const getUserBalance = async () => {
       userBalance.value = 0
     }
   } catch (error) {
+    console.error('获取余额失败:', error)
     userBalance.value = 0
+  } finally {
+    isLoadingBalance.value = false
   }
 }
 
 // 检查登录状态
 const checkLoginStatus = async () => {
-  const token = getToken();
-  if (token) {
-    try {
-      // 从本地存储获取登录时保存的用户信息
-      const savedUserInfo = uni.getStorageSync('userInfo') || {}
-      const loginData = uni.getStorageSync('loginData') || {}
-      
-      // 优先使用登录时保存的完整数据
-      if (loginData.uname || loginData.account) {
-        memberStore.profile = {
-          avatar: loginData.himg || savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png', // 优先使用himg，然后是本地保存的头像
-          nickname: loginData.uname || savedUserInfo.nickname || '欢迎您' // uname 是昵称
-        };
-      } else {
-        // 如果没有登录数据，使用本地存储的用户信息
+  // 防止重复请求
+  if (isLoadingLogin.value) {
+    console.log('正在检查登录状态，跳过重复请求')
+    return
+  }
+  
+  try {
+    isLoadingLogin.value = true
+    const token = getToken();
+    if (token) {
+      try {
+        // 从本地存储获取登录时保存的用户信息
+        const savedUserInfo = uni.getStorageSync('userInfo') || {}
+        const loginData = uni.getStorageSync('loginData') || {}
+        
+        // 优先使用登录时保存的完整数据
+        if (loginData.uname || loginData.account) {
+          memberStore.profile = {
+            avatar: loginData.himg || savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png', // 优先使用himg，然后是本地保存的头像
+            nickname: loginData.uname || savedUserInfo.nickname || '欢迎您' // uname 是昵称
+          };
+        } else {
+          // 如果没有登录数据，使用本地存储的用户信息
+          memberStore.profile = {
+            avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
+            nickname: savedUserInfo.nickname || '欢迎您'
+          };
+        }
+        
+      } catch (error) {
+        // 从本地存储获取用户信息作为后备
+        const savedUserInfo = uni.getStorageSync('userInfo') || {}
         memberStore.profile = {
           avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
           nickname: savedUserInfo.nickname || '欢迎您'
         };
       }
       
-    } catch (error) {
-      // 从本地存储获取用户信息作为后备
-      const savedUserInfo = uni.getStorageSync('userInfo') || {}
-      memberStore.profile = {
-        avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
-        nickname: savedUserInfo.nickname || '欢迎您'
-      };
+      // 获取用户余额
+      getUserBalance()
+    } else {
+      // 没有token表示未登录
+      memberStore.profile = null;
+      userBalance.value = 0
     }
-    
-    // 获取用户余额
-    getUserBalance()
-  } else {
-    // 没有token表示未登录
-    memberStore.profile = null;
-    userBalance.value = 0
+  } finally {
+    isLoadingLogin.value = false
   }
 }
 
@@ -398,11 +421,8 @@ onMounted(() => {
 
 // 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
 onShow(() => {
+  // 只刷新登录状态，避免重复请求余额
   checkLoginStatus();
-  // 如果已登录，刷新余额数据
-  if (memberStore.profile) {
-    getUserBalance();
-  }
 });
 </script>
 
