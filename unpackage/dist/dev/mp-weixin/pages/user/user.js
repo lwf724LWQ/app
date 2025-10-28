@@ -20,13 +20,20 @@ const _sfc_main = {
     });
     const isBalanceVisible = common_vendor.ref(false);
     const userBalance = common_vendor.ref(0);
+    const isLoadingBalance = common_vendor.ref(false);
+    const isLoadingLogin = common_vendor.ref(false);
     const handleAvatarError = (e) => {
       if (memberStore.profile) {
         memberStore.profile.avatar = "http://video.caimizm.com/himg/user.png";
       }
     };
     const getUserBalance = async () => {
+      if (isLoadingBalance.value) {
+        common_vendor.index.__f__("log", "at pages/user/user.vue:188", "正在加载余额，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingBalance.value = true;
         const account = utils_request.getAccount();
         if (!account) {
           userBalance.value = 0;
@@ -39,39 +46,51 @@ const _sfc_main = {
           userBalance.value = 0;
         }
       } catch (error) {
+        common_vendor.index.__f__("error", "at pages/user/user.vue:209", "获取余额失败:", error);
         userBalance.value = 0;
+      } finally {
+        isLoadingBalance.value = false;
       }
     };
     const checkLoginStatus = async () => {
-      const token = utils_request.getToken();
-      if (token) {
-        try {
-          const savedUserInfo = common_vendor.index.getStorageSync("userInfo") || {};
-          const loginData = common_vendor.index.getStorageSync("loginData") || {};
-          if (loginData.uname || loginData.account) {
-            memberStore.profile = {
-              avatar: loginData.himg || savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
-              // 优先使用himg，然后是本地保存的头像
-              nickname: loginData.uname || savedUserInfo.nickname || "欢迎您"
-              // uname 是昵称
-            };
-          } else {
+      if (isLoadingLogin.value) {
+        common_vendor.index.__f__("log", "at pages/user/user.vue:220", "正在检查登录状态，跳过重复请求");
+        return;
+      }
+      try {
+        isLoadingLogin.value = true;
+        const token = utils_request.getToken();
+        if (token) {
+          try {
+            const savedUserInfo = common_vendor.index.getStorageSync("userInfo") || {};
+            const loginData = common_vendor.index.getStorageSync("loginData") || {};
+            if (loginData.uname || loginData.account) {
+              memberStore.profile = {
+                avatar: loginData.himg || savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
+                // 优先使用himg，然后是本地保存的头像
+                nickname: loginData.uname || savedUserInfo.nickname || "欢迎您"
+                // uname 是昵称
+              };
+            } else {
+              memberStore.profile = {
+                avatar: savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
+                nickname: savedUserInfo.nickname || "欢迎您"
+              };
+            }
+          } catch (error) {
+            const savedUserInfo = common_vendor.index.getStorageSync("userInfo") || {};
             memberStore.profile = {
               avatar: savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
               nickname: savedUserInfo.nickname || "欢迎您"
             };
           }
-        } catch (error) {
-          const savedUserInfo = common_vendor.index.getStorageSync("userInfo") || {};
-          memberStore.profile = {
-            avatar: savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
-            nickname: savedUserInfo.nickname || "欢迎您"
-          };
+          getUserBalance();
+        } else {
+          memberStore.profile = null;
+          userBalance.value = 0;
         }
-        getUserBalance();
-      } else {
-        memberStore.profile = null;
-        userBalance.value = 0;
+      } finally {
+        isLoadingLogin.value = false;
       }
     };
     const logout = () => {
@@ -174,9 +193,6 @@ const _sfc_main = {
     });
     common_vendor.onShow(() => {
       checkLoginStatus();
-      if (memberStore.profile) {
-        getUserBalance();
-      }
     });
     return (_ctx, _cache) => {
       var _a, _b;

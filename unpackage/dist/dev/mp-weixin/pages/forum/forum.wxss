@@ -1,9 +1,4 @@
 
-/* 全局触摸事件优化 */
-*.data-v-aeadbf01 {
-  touch-action: manipulation;
-}
-
 /* 滚动容器特殊处理 */
 .scroll-container.data-v-aeadbf01 {
   touch-action: pan-y;

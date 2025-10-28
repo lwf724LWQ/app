@@ -398,9 +398,7 @@
 		border-radius: 12rpx;
 	}
 
-	.status-bar {
-		height: ;
-	}
+	
 
 	.photo {
 		width: 100%;

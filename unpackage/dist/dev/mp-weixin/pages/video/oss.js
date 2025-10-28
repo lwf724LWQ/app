@@ -41,10 +41,6 @@ const _sfc_main = {
           fileList.value = res.tempFiles;
           statusMessage.value = `已选择${fileList.value.length}个文件，点击"开始上传"按钮上传`;
           statusClass.value = "status-warning";
-          if (!videoTitle.value && fileList.value.length > 0) {
-            const fileName = fileList.value[0].name;
-            videoTitle.value = fileName.replace(/\.[^/.]+$/, "");
-          }
         }
       });
     };
@@ -90,7 +86,7 @@ const _sfc_main = {
               statusMessage.value = `视频上传中: ${uploadProgress.value}%`;
             }
           });
-          common_vendor.index.__f__("log", "at pages/video/oss.vue:213", "视频上传成功:", videoResult.name);
+          common_vendor.index.__f__("log", "at pages/video/oss.vue:209", "视频上传成功:", videoResult.name);
           let coverUrl = "";
           if (coverFile.value) {
             statusMessage.value = "正在上传封面...";
@@ -102,7 +98,7 @@ const _sfc_main = {
               // 封面上传不需要显示进度
             });
             coverUrl = coverResult.name;
-            common_vendor.index.__f__("log", "at pages/video/oss.vue:229", "封面上传成功:", coverUrl);
+            common_vendor.index.__f__("log", "at pages/video/oss.vue:225", "封面上传成功:", coverUrl);
           }
           const videoData = {
             title: videoTitle.value,
@@ -114,7 +110,7 @@ const _sfc_main = {
             // 添加封面URL
           };
           const submitResult = await api_apis.apiSubmitVideo(videoData);
-          common_vendor.index.__f__("log", "at pages/video/oss.vue:244", "视频信息提交成功:", submitResult);
+          common_vendor.index.__f__("log", "at pages/video/oss.vue:240", "视频信息提交成功:", submitResult);
           uploadResults.value.push({
             name: file.name,
             size: file.size,

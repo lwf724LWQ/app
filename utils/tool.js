@@ -1,5 +1,5 @@
 import { client, initOSS } from "./alioss.js";
-import { nanoid } from 'nanoid';
+import { nanoid } from 'nanoid/non-secure';
 
 const tool = {
   oss: {

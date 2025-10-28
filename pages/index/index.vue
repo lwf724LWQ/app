@@ -78,6 +78,10 @@
 					<image src="/static/huagui.png" mode="aspectFit"></image>
 					<text>画规</text>
 				</view>
+				<!-- <view class="icon-item" >
+					<image src="/static/huagui.png" mode="aspectFit"></image>
+					<text>画规</text>
+				</view> -->
 				<view class="icon-item">
 					<image src="/static/icons/list.png" mode="aspectFit"></image>
 					<text>长条</text>

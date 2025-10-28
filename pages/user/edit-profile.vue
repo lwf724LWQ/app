@@ -16,7 +16,7 @@
       <!-- 主要内容区域 -->
       <view class="main-content">
         <!-- 头像显示区域 -->
-        <view class="avatar-section">
+       <view class="avatar-section">
           <view class="avatar-container" @click="handleAvatarClick">
             <image 
               :src="userInfo.avatar" 
@@ -30,6 +30,20 @@
             </view>
           </view>
         </view>
+		<!-- <view class="avatar-section">
+		   <view class="avatar-container">
+		     <image 
+		       :src="userInfo.avatar" 
+		       mode="aspectFill" 
+		       class="avatar-image"
+		       @error="handleImageError"
+		     ></image>
+		     <view class="avatar-overlay">
+		       <uni-icons type="camera" size="24" color="#fff"></uni-icons>
+		       <text class="avatar-text">点击上传头像</text>
+		     </view>
+		   </view>
+		 </view> -->
         
         <!-- 用户信息表单 -->
         <view class="form-section">

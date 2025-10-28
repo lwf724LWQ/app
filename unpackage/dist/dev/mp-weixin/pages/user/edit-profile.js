@@ -19,109 +19,11 @@ const _sfc_main = {
       phone: ""
     });
     const isSaving = common_vendor.ref(false);
-    const uploadObject = async (file, callback) => {
-      try {
-        let fileName = file.name || "";
-        const origin_file_name = fileName.split(".").slice(0, fileName.split(".").length - 1).join(".");
-        const upload_file_name = (/* @__PURE__ */ new Date()).getTime() + "." + fileName.split(".")[fileName.split(".").length - 1];
-        let res = await api_apis.getCOSSecretKey({});
-        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:99", "STS接口返回数据:", res);
-        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:100", "STS接口返回的data字段:", res.data);
-        if (res.code !== 200) {
-          throw new Error("获取上传凭证失败");
-        }
-        const OSS = await "../../common/vendor.js".then((n) => n.aliyunOssSdk);
-        const ossConfig = {
-          region: res.data.region || "cn-guangzhou",
-          accessKeyId: res.data.STSaccessKeyId,
-          accessKeySecret: res.data.STSsecretAccessKey,
-          stsToken: res.data.security_token,
-          bucket: res.data.bucket || "cjvd",
-          // 使用正确的endpoint
-          endpoint: "https://oss-cn-guangzhou.aliyuncs.com",
-          // 添加STS token刷新机制
-          refreshSTSToken: async () => {
-            const newRes = await api_apis.getCOSSecretKey({});
-            return {
-              accessKeyId: newRes.data.STSaccessKeyId,
-              accessKeySecret: newRes.data.STSsecretAccessKey,
-              stsToken: newRes.data.security_token
-            };
-          },
-          refreshSTSTokenInterval: 3e5
-          // 5分钟刷新一次
-        };
-        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:130", "OSS配置:", {
-          region: ossConfig.region,
-          bucket: ossConfig.bucket,
-          endpoint: ossConfig.endpoint,
-          accessKeyId: ossConfig.accessKeyId ? "***" : "MISSING",
-          accessKeySecret: ossConfig.accessKeySecret ? "***" : "MISSING",
-          stsToken: ossConfig.stsToken ? "***" : "MISSING"
-        });
-        const client = new OSS.default(ossConfig);
-        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:141", "开始上传文件:", upload_file_name);
-        const result = await client.put(`himg/${upload_file_name}`, file);
-        if (result && result.url) {
-          const customUrl = `http://video.caimizm.com/himg/${upload_file_name}`;
-          common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:149", "上传成功，生成的自定义URL:", customUrl);
-          callback(customUrl);
-        } else {
-          throw new Error("上传失败");
-        }
-      } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:156", "OSS上传失败:", error);
-        throw error;
-      }
-    };
     const goBack = () => {
       common_vendor.index.navigateBack();
     };
     const handleImageError = () => {
       userInfo.avatar = "http://video.caimizm.com/himg/user.png";
-    };
-    const handleAvatarClick = async () => {
-      try {
-        const chooseResult = await common_vendor.index.chooseImage({
-          count: 1,
-          sizeType: ["compressed"],
-          sourceType: ["album", "camera"]
-        });
-        if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
-          const tempFilePath = chooseResult.tempFilePaths[0];
-          common_vendor.index.showLoading({
-            title: "上传头像中..."
-          });
-          let fileToUpload;
-          if (true) {
-            const response = await fetch(tempFilePath);
-            const blob = await response.blob();
-            fileToUpload = new File([blob], "avatar.jpg", { type: "image/jpeg" });
-          }
-          await uploadObject(fileToUpload, (url) => {
-            userInfo.avatar = url;
-            common_vendor.index.hideLoading();
-            common_vendor.index.showToast({
-              title: "头像上传成功",
-              icon: "success"
-            });
-            common_vendor.index.setStorageSync("userInfo", {
-              nickname: userInfo.nickname,
-              avatar: userInfo.avatar
-            });
-            const loginData = common_vendor.index.getStorageSync("loginData") || {};
-            loginData.himg = userInfo.avatar;
-            common_vendor.index.setStorageSync("loginData", loginData);
-          });
-        }
-      } catch (error) {
-        common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:227", "头像上传失败:", error);
-        common_vendor.index.showToast({
-          title: "头像上传失败",
-          icon: "none"
-        });
-      }
     };
     const validateForm = () => {
       if (!userInfo.nickname.trim()) {
@@ -181,7 +83,7 @@ const _sfc_main = {
         }, 1500);
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:320", "保存失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:334", "保存失败:", error);
         common_vendor.index.showToast({
           title: "保存失败，请重试",
           icon: "none"
@@ -215,14 +117,14 @@ const _sfc_main = {
           userInfo.phone = account || "13637666646";
           userInfo.avatar = savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png";
         }
-        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:362", "加载的用户信息:", {
+        common_vendor.index.__f__("log", "at pages/user/edit-profile.vue:376", "加载的用户信息:", {
           nickname: userInfo.nickname,
           phone: userInfo.phone,
           avatar: userInfo.avatar,
           loginData
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:370", "加载用户信息失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/edit-profile.vue:384", "加载用户信息失败:", error);
         userInfo.nickname = account || "用户";
         userInfo.phone = account || "13637666646";
         userInfo.avatar = "http://video.caimizm.com/himg/user.png";
@@ -242,23 +144,22 @@ const _sfc_main = {
           size: "24",
           color: "#fff"
         }),
-        f: common_vendor.o(handleAvatarClick),
-        g: userInfo.nickname,
-        h: common_vendor.o(($event) => userInfo.nickname = $event.detail.value),
-        i: userInfo.phone,
-        j: common_vendor.o(($event) => userInfo.phone = $event.detail.value),
-        k: isSaving.value
+        f: userInfo.nickname,
+        g: common_vendor.o(($event) => userInfo.nickname = $event.detail.value),
+        h: userInfo.phone,
+        i: common_vendor.o(($event) => userInfo.phone = $event.detail.value),
+        j: isSaving.value
       }, isSaving.value ? {
-        l: common_vendor.p({
+        k: common_vendor.p({
           type: "spinner-cycle",
           size: "16",
           color: "#fff"
         })
       } : {
-        m: common_vendor.t(isSaving.value ? "保存中..." : "保存修改")
+        l: common_vendor.t(isSaving.value ? "保存中..." : "保存修改")
       }, {
-        n: common_vendor.o(saveProfile),
-        o: isSaving.value
+        m: common_vendor.o(saveProfile),
+        n: isSaving.value
       });
     };
   }

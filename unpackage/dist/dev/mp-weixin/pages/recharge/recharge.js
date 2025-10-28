@@ -18,6 +18,7 @@ const _sfc_main = {
     const isCheckingPayment = common_vendor.ref(false);
     const isRefreshing = common_vendor.ref(false);
     const currentOrderNo = common_vendor.ref("");
+    const isLoadingUserInfo = common_vendor.ref(false);
     const paymentAmount = common_vendor.computed(() => {
       if (customAmount.value && customAmount.value > 0) {
         return customAmount.value;
@@ -140,7 +141,12 @@ const _sfc_main = {
       }
     };
     const getUserInfo = async () => {
+      if (isLoadingUserInfo.value) {
+        common_vendor.index.__f__("log", "at pages/recharge/recharge.vue:333", "正在加载用户信息，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingUserInfo.value = true;
         const account = utils_request.getAccount();
         if (account) {
           currentUser.value = account;
@@ -150,6 +156,9 @@ const _sfc_main = {
           }
         }
       } catch (error) {
+        common_vendor.index.__f__("error", "at pages/recharge/recharge.vue:350", "获取用户信息失败:", error);
+      } finally {
+        isLoadingUserInfo.value = false;
       }
     };
     const generateQRCode = (url) => {

@@ -44,22 +44,22 @@ const remove = (arr, el) => {
 };
 const hasOwnProperty$2 = Object.prototype.hasOwnProperty;
 const hasOwn$1 = (val, key) => hasOwnProperty$2.call(val, key);
-const isArray$1 = Array.isArray;
+const isArray = Array.isArray;
 const isMap = (val) => toTypeString(val) === "[object Map]";
 const isSet = (val) => toTypeString(val) === "[object Set]";
 const isFunction = (val) => typeof val === "function";
 const isString = (val) => typeof val === "string";
 const isSymbol = (val) => typeof val === "symbol";
-const isObject$3 = (val) => val !== null && typeof val === "object";
+const isObject$2 = (val) => val !== null && typeof val === "object";
 const isPromise$1 = (val) => {
-  return (isObject$3(val) || isFunction(val)) && isFunction(val.then) && isFunction(val.catch);
+  return (isObject$2(val) || isFunction(val)) && isFunction(val.then) && isFunction(val.catch);
 };
 const objectToString = Object.prototype.toString;
 const toTypeString = (value) => objectToString.call(value);
 const toRawType = (value) => {
   return toTypeString(value).slice(8, -1);
 };
-const isPlainObject$2 = (val) => toTypeString(val) === "[object Object]";
+const isPlainObject$1 = (val) => toTypeString(val) === "[object Object]";
 const isIntegerKey = (key) => isString(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
 const isReservedProp = /* @__PURE__ */ makeMap(
   // the leading comma is intentional so empty string "" is also included
@@ -108,7 +108,7 @@ const looseToNumber = (val) => {
   return isNaN(n2) ? val : n2;
 };
 function normalizeStyle(value) {
-  if (isArray$1(value)) {
+  if (isArray(value)) {
     const res = {};
     for (let i = 0; i < value.length; i++) {
       const item = value[i];
@@ -120,7 +120,7 @@ function normalizeStyle(value) {
       }
     }
     return res;
-  } else if (isString(value) || isObject$3(value)) {
+  } else if (isString(value) || isObject$2(value)) {
     return value;
   }
 }
@@ -141,14 +141,14 @@ function normalizeClass(value) {
   let res = "";
   if (isString(value)) {
     res = value;
-  } else if (isArray$1(value)) {
+  } else if (isArray(value)) {
     for (let i = 0; i < value.length; i++) {
       const normalized = normalizeClass(value[i]);
       if (normalized) {
         res += normalized + " ";
       }
     }
-  } else if (isObject$3(value)) {
+  } else if (isObject$2(value)) {
     for (const name in value) {
       if (value[name]) {
         res += name + " ";
@@ -158,7 +158,7 @@ function normalizeClass(value) {
   return res.trim();
 }
 const toDisplayString = (val) => {
-  return isString(val) ? val : val == null ? "" : isArray$1(val) || isObject$3(val) && (val.toString === objectToString || !isFunction(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
+  return isString(val) ? val : val == null ? "" : isArray(val) || isObject$2(val) && (val.toString === objectToString || !isFunction(val.toString)) ? JSON.stringify(val, replacer, 2) : String(val);
 };
 const replacer = (_key, val) => {
   if (val && val.__v_isRef) {
@@ -179,7 +179,7 @@ const replacer = (_key, val) => {
     };
   } else if (isSymbol(val)) {
     return stringifySymbol(val);
-  } else if (isObject$3(val) && !isArray$1(val) && !isPlainObject$2(val)) {
+  } else if (isObject$2(val) && !isArray(val) && !isPlainObject$1(val)) {
     return String(val);
   }
   return val;
@@ -188,7 +188,7 @@ const stringifySymbol = (v, i = "") => {
   var _a;
   return isSymbol(v) ? `Symbol(${(_a = v.description) != null ? _a : i})` : v;
 };
-const isObject$2 = (val) => val !== null && typeof val === "object";
+const isObject$1 = (val) => val !== null && typeof val === "object";
 const defaultDelimiters = ["{", "}"];
 class BaseFormatter {
   constructor() {
@@ -200,7 +200,7 @@ class BaseFormatter {
     }
     let tokens = this._caches[message];
     if (!tokens) {
-      tokens = parse$2(message, delimiters);
+      tokens = parse$1(message, delimiters);
       this._caches[message] = tokens;
     }
     return compile$1(tokens, values);
@@ -208,17 +208,17 @@ class BaseFormatter {
 }
 const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
 const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
-function parse$2(format, [startDelimiter, endDelimiter]) {
+function parse$1(format, [startDelimiter, endDelimiter]) {
   const tokens = [];
   let position2 = 0;
-  let text2 = "";
+  let text = "";
   while (position2 < format.length) {
     let char = format[position2++];
     if (char === startDelimiter) {
-      if (text2) {
-        tokens.push({ type: "text", value: text2 });
+      if (text) {
+        tokens.push({ type: "text", value: text });
       }
-      text2 = "";
+      text = "";
       let sub = "";
       char = format[position2++];
       while (char !== void 0 && char !== endDelimiter) {
@@ -229,16 +229,16 @@ function parse$2(format, [startDelimiter, endDelimiter]) {
       const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
       tokens.push({ value: sub, type });
     } else {
-      text2 += char;
+      text += char;
     }
   }
-  text2 && tokens.push({ type: "text", value: text2 });
+  text && tokens.push({ type: "text", value: text });
   return tokens;
 }
 function compile$1(tokens, values) {
   const compiled = [];
   let index2 = 0;
-  const mode2 = Array.isArray(values) ? "list" : isObject$2(values) ? "named" : "unknown";
+  const mode2 = Array.isArray(values) ? "list" : isObject$1(values) ? "named" : "unknown";
   if (mode2 === "unknown") {
     return compiled;
   }
@@ -402,8 +402,8 @@ function watchAppLocale(appVm, i18n) {
   }
 }
 function getDefaultLocale() {
-  if (typeof index$2 !== "undefined" && index$2.getLocale) {
-    return index$2.getLocale();
+  if (typeof index$1 !== "undefined" && index$1.getLocale) {
+    return index$1.getLocale();
   }
   if (typeof global !== "undefined" && global.getLocale) {
     return global.getLocale();
@@ -547,7 +547,7 @@ function getValueByDataPath(obj, path) {
 }
 function sortObject(obj) {
   let sortObj = {};
-  if (isPlainObject$2(obj)) {
+  if (isPlainObject$1(obj)) {
     Object.keys(obj).sort().forEach((key) => {
       const _key = key;
       sortObj[_key] = obj[_key];
@@ -559,13 +559,13 @@ const customizeRE = /:/g;
 function customizeEvent(str) {
   return camelize(str.replace(customizeRE, "-"));
 }
-const encode$1 = encodeURIComponent;
-function stringifyQuery(obj, encodeStr = encode$1) {
+const encode = encodeURIComponent;
+function stringifyQuery(obj, encodeStr = encode) {
   const res = obj ? Object.keys(obj).map((key) => {
     let val = obj[key];
     if (typeof val === void 0 || val === null) {
       val = "";
-    } else if (isPlainObject$2(val)) {
+    } else if (isPlainObject$1(val)) {
       val = JSON.stringify(val);
     }
     return encodeStr(key) + "=" + encodeStr(val);
@@ -1001,7 +1001,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   let deps = [];
   if (type === "clear") {
     deps = [...depsMap.values()];
-  } else if (key === "length" && isArray$1(target)) {
+  } else if (key === "length" && isArray(target)) {
     const newLength = Number(newValue);
     depsMap.forEach((dep, key2) => {
       if (key2 === "length" || !isSymbol(key2) && key2 >= newLength) {
@@ -1014,7 +1014,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
     }
     switch (type) {
       case "add":
-        if (!isArray$1(target)) {
+        if (!isArray(target)) {
           deps.push(depsMap.get(ITERATE_KEY));
           if (isMap(target)) {
             deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
@@ -1024,7 +1024,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
         }
         break;
       case "delete":
-        if (!isArray$1(target)) {
+        if (!isArray(target)) {
           deps.push(depsMap.get(ITERATE_KEY));
           if (isMap(target)) {
             deps.push(depsMap.get(MAP_KEY_ITERATE_KEY));
@@ -1057,9 +1057,9 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   }
   resetScheduling();
 }
-function getDepFromReactive(object2, key) {
+function getDepFromReactive(object, key) {
   var _a;
-  return (_a = targetMap.get(object2)) == null ? void 0 : _a.get(key);
+  return (_a = targetMap.get(object)) == null ? void 0 : _a.get(key);
 }
 const isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
 const builtInSymbols = new Set(
@@ -1120,7 +1120,7 @@ class BaseReactiveHandler {
       }
       return;
     }
-    const targetIsArray = isArray$1(target);
+    const targetIsArray = isArray(target);
     if (!isReadonly2) {
       if (targetIsArray && hasOwn$1(arrayInstrumentations, key)) {
         return Reflect.get(arrayInstrumentations, key, receiver);
@@ -1142,7 +1142,7 @@ class BaseReactiveHandler {
     if (isRef(res)) {
       return targetIsArray && isIntegerKey(key) ? res : res.value;
     }
-    if (isObject$3(res)) {
+    if (isObject$2(res)) {
       return isReadonly2 ? readonly(res) : reactive(res);
     }
     return res;
@@ -1160,7 +1160,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         oldValue = toRaw(oldValue);
         value = toRaw(value);
       }
-      if (!isArray$1(target) && isRef(oldValue) && !isRef(value)) {
+      if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
         if (isOldValueReadonly) {
           return false;
         } else {
@@ -1169,7 +1169,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
         }
       }
     }
-    const hadKey = isArray$1(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn$1(target, key);
+    const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn$1(target, key);
     const result = Reflect.set(target, key, value, receiver);
     if (target === toRaw(receiver)) {
       if (!hadKey) {
@@ -1200,7 +1200,7 @@ class MutableReactiveHandler extends BaseReactiveHandler {
     track(
       target,
       "iterate",
-      isArray$1(target) ? "length" : ITERATE_KEY
+      isArray(target) ? "length" : ITERATE_KEY
     );
     return Reflect.ownKeys(target);
   }
@@ -1332,7 +1332,7 @@ function clear() {
   return result;
 }
 function createForEach(isReadonly2, isShallow2) {
-  return function forEach3(callback, thisArg) {
+  return function forEach(callback, thisArg) {
     const observed = this;
     const target = observed["__v_raw"];
     const rawTarget = toRaw(target);
@@ -1574,7 +1574,7 @@ function shallowReadonly(target) {
   );
 }
 function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandlers, proxyMap) {
-  if (!isObject$3(target)) {
+  if (!isObject$2(target)) {
     {
       warn$2(`value cannot be made reactive: ${String(target)}`);
     }
@@ -1623,8 +1623,8 @@ function markRaw(value) {
   }
   return value;
 }
-const toReactive = (value) => isObject$3(value) ? reactive(value) : value;
-const toReadonly = (value) => isObject$3(value) ? readonly(value) : value;
+const toReactive = (value) => isObject$2(value) ? reactive(value) : value;
+const toReadonly = (value) => isObject$2(value) ? readonly(value) : value;
 const COMPUTED_SIDE_EFFECT_WARN = `Computed is still dirty after getter evaluation, likely because a computed is mutating its own dependency in its getter. State mutations in computed getters should be avoided.  Check the docs for more details: https://vuejs.org/guide/essentials/computed.html#getters-should-be-side-effect-free`;
 class ComputedRefImpl {
   constructor(getter, _setter, isReadonly2, isSSR) {
@@ -1778,13 +1778,13 @@ const shallowUnwrapHandlers = {
 function proxyRefs(objectWithRefs) {
   return isReactive(objectWithRefs) ? objectWithRefs : new Proxy(objectWithRefs, shallowUnwrapHandlers);
 }
-function toRefs(object2) {
-  if (!isProxy(object2)) {
+function toRefs(object) {
+  if (!isProxy(object)) {
     warn$2(`toRefs() expects a reactive object but received a plain one.`);
   }
-  const ret = isArray$1(object2) ? new Array(object2.length) : {};
-  for (const key in object2) {
-    ret[key] = propertyToRef(object2, key);
+  const ret = isArray(object) ? new Array(object.length) : {};
+  for (const key in object) {
+    ret[key] = propertyToRef(object, key);
   }
   return ret;
 }
@@ -1821,7 +1821,7 @@ function toRef(source, key, defaultValue) {
     return source;
   } else if (isFunction(source)) {
     return new GetterRefImpl(source);
-  } else if (isObject$3(source) && arguments.length > 1) {
+  } else if (isObject$2(source) && arguments.length > 1) {
     return propertyToRef(source, key, defaultValue);
   } else {
     return ref(source);
@@ -1911,11 +1911,11 @@ function formatTraceEntry({ vnode, recurseCount }) {
   const close = `>` + postfix;
   return vnode.props ? [open, ...formatProps(vnode.props), close] : [open + close];
 }
-function formatProps(props2) {
+function formatProps(props) {
   const res = [];
-  const keys = Object.keys(props2);
+  const keys = Object.keys(props);
   keys.slice(0, 3).forEach((key) => {
-    res.push(...formatProp(key, props2[key]));
+    res.push(...formatProp(key, props[key]));
   });
   if (keys.length > 3) {
     res.push(` ...`);
@@ -2097,7 +2097,7 @@ function invalidateJob(job) {
   }
 }
 function queuePostFlushCb(cb) {
-  if (!isArray$1(cb)) {
+  if (!isArray(cb)) {
     if (!activePostFlushCbs || !activePostFlushCbs.includes(
       cb,
       cb.allowRecurse ? postFlushIndex + 1 : postFlushIndex
@@ -2315,7 +2315,7 @@ function devtoolsComponentEmit(component, event, params) {
 function emit(instance, event, ...rawArgs) {
   if (instance.isUnmounted)
     return;
-  const props2 = instance.vnode.props || EMPTY_OBJ;
+  const props = instance.vnode.props || EMPTY_OBJ;
   {
     const {
       emitsOptions,
@@ -2344,13 +2344,13 @@ function emit(instance, event, ...rawArgs) {
   let args = rawArgs;
   const isModelListener2 = event.startsWith("update:");
   const modelArg = isModelListener2 && event.slice(7);
-  if (modelArg && modelArg in props2) {
+  if (modelArg && modelArg in props) {
     const modifiersKey = `${modelArg === "modelValue" ? "model" : modelArg}Modifiers`;
-    const { number: number2, trim: trim2 } = props2[modifiersKey] || EMPTY_OBJ;
-    if (trim2) {
+    const { number, trim } = props[modifiersKey] || EMPTY_OBJ;
+    if (trim) {
       args = rawArgs.map((a2) => isString(a2) ? a2.trim() : a2);
     }
-    if (number2) {
+    if (number) {
       args = rawArgs.map(looseToNumber);
     }
   }
@@ -2359,7 +2359,7 @@ function emit(instance, event, ...rawArgs) {
   }
   {
     const lowerCaseEvent = event.toLowerCase();
-    if (lowerCaseEvent !== event && props2[toHandlerKey(lowerCaseEvent)]) {
+    if (lowerCaseEvent !== event && props[toHandlerKey(lowerCaseEvent)]) {
       warn$1(
         `Event "${lowerCaseEvent}" is emitted in component ${formatComponentName(
           instance,
@@ -2371,10 +2371,10 @@ function emit(instance, event, ...rawArgs) {
     }
   }
   let handlerName;
-  let handler = props2[handlerName = toHandlerKey(event)] || // also try camelCase event handler (#2249)
-  props2[handlerName = toHandlerKey(camelize(event))];
+  let handler = props[handlerName = toHandlerKey(event)] || // also try camelCase event handler (#2249)
+  props[handlerName = toHandlerKey(camelize(event))];
   if (!handler && isModelListener2) {
-    handler = props2[handlerName = toHandlerKey(hyphenate(event))];
+    handler = props[handlerName = toHandlerKey(hyphenate(event))];
   }
   if (handler) {
     callWithAsyncErrorHandling(
@@ -2384,7 +2384,7 @@ function emit(instance, event, ...rawArgs) {
       args
     );
   }
-  const onceHandler = props2[handlerName + `Once`];
+  const onceHandler = props[handlerName + `Once`];
   if (onceHandler) {
     if (!instance.emitted) {
       instance.emitted = {};
@@ -2428,17 +2428,17 @@ function normalizeEmitsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$3(comp)) {
+    if (isObject$2(comp)) {
       cache.set(comp, null);
     }
     return null;
   }
-  if (isArray$1(raw)) {
+  if (isArray(raw)) {
     raw.forEach((key) => normalized[key] = null);
   } else {
     extend(normalized, raw);
   }
-  if (isObject$3(comp)) {
+  if (isObject$2(comp)) {
     cache.set(comp, normalized);
   }
   return normalized;
@@ -2565,7 +2565,7 @@ function doWatch(source, cb, {
   } else if (isReactive(source)) {
     getter = () => reactiveGetter(source);
     forceTrigger = true;
-  } else if (isArray$1(source)) {
+  } else if (isArray(source)) {
     isMultiSource = true;
     forceTrigger = source.some((s2) => isReactive(s2) || isShallow(s2));
     getter = () => source.map((s2) => {
@@ -2699,7 +2699,7 @@ function createPathGetter(ctx, path) {
   };
 }
 function traverse(value, depth, currentDepth = 0, seen) {
-  if (!isObject$3(value) || value["__v_skip"]) {
+  if (!isObject$2(value) || value["__v_skip"]) {
     return value;
   }
   if (depth && depth > 0) {
@@ -2715,7 +2715,7 @@ function traverse(value, depth, currentDepth = 0, seen) {
   seen.add(value);
   if (isRef(value)) {
     traverse(value.value, depth, currentDepth, seen);
-  } else if (isArray$1(value)) {
+  } else if (isArray(value)) {
     for (let i = 0; i < value.length; i++) {
       traverse(value[i], depth, currentDepth, seen);
     }
@@ -2723,7 +2723,7 @@ function traverse(value, depth, currentDepth = 0, seen) {
     value.forEach((v) => {
       traverse(v, depth, currentDepth, seen);
     });
-  } else if (isPlainObject$2(value)) {
+  } else if (isPlainObject$1(value)) {
     for (const key in value) {
       traverse(value[key], depth, currentDepth, seen);
     }
@@ -2762,7 +2762,7 @@ function createAppAPI(render2, hydrate) {
     if (!isFunction(rootComponent)) {
       rootComponent = extend({}, rootComponent);
     }
-    if (rootProps != null && !isObject$3(rootProps)) {
+    if (rootProps != null && !isObject$2(rootProps)) {
       warn$1(`root props passed to app.mount() must be an object.`);
       rootProps = null;
     }
@@ -2775,7 +2775,7 @@ function createAppAPI(render2, hydrate) {
       _container: null,
       _context: context,
       _instance: null,
-      version: version$2,
+      version: version$1,
       get config() {
         return context.config;
       },
@@ -2802,13 +2802,13 @@ function createAppAPI(render2, hydrate) {
         }
         return app;
       },
-      mixin(mixin2) {
+      mixin(mixin) {
         {
-          if (!context.mixins.includes(mixin2)) {
-            context.mixins.push(mixin2);
+          if (!context.mixins.includes(mixin)) {
+            context.mixins.push(mixin);
           } else {
             warn$1(
-              "Mixin has already been applied to target app" + (mixin2.name ? `: ${mixin2.name}` : "")
+              "Mixin has already been applied to target app" + (mixin.name ? `: ${mixin.name}` : "")
             );
           }
         }
@@ -3046,7 +3046,7 @@ const isReservedPrefix = (key) => key === "_" || key === "$";
 const hasSetupBinding = (state, key) => state !== EMPTY_OBJ && !state.__isScriptSetup && hasOwn$1(state, key);
 const PublicInstanceProxyHandlers = {
   get({ _: instance }, key) {
-    const { ctx, setupState, data, props: props2, accessCache, type, appContext } = instance;
+    const { ctx, setupState, data, props, accessCache, type, appContext } = instance;
     if (key === "__isVue") {
       return true;
     }
@@ -3062,7 +3062,7 @@ const PublicInstanceProxyHandlers = {
           case 4:
             return ctx[key];
           case 3:
-            return props2[key];
+            return props[key];
         }
       } else if (hasSetupBinding(setupState, key)) {
         accessCache[key] = 1;
@@ -3076,7 +3076,7 @@ const PublicInstanceProxyHandlers = {
         (normalizedProps = instance.propsOptions[0]) && hasOwn$1(normalizedProps, key)
       ) {
         accessCache[key] = 3;
-        return props2[key];
+        return props[key];
       } else if (ctx !== EMPTY_OBJ && hasOwn$1(ctx, key)) {
         accessCache[key] = 4;
         return ctx[key];
@@ -3236,11 +3236,11 @@ function exposeSetupStateOnRenderContext(instance) {
     }
   });
 }
-function normalizePropsOrEmits(props2) {
-  return isArray$1(props2) ? props2.reduce(
+function normalizePropsOrEmits(props) {
+  return isArray(props) ? props.reduce(
     (normalized, p2) => (normalized[p2] = null, normalized),
     {}
-  ) : props2;
+  ) : props;
 }
 function createDuplicateChecker() {
   const cache = /* @__PURE__ */ Object.create(null);
@@ -3345,7 +3345,7 @@ function applyOptions$1(instance) {
         `data() returned a Promise - note data() cannot be async; If you intend to perform data fetching before component renders, use async setup() + <Suspense>.`
       );
     }
-    if (!isObject$3(data)) {
+    if (!isObject$2(data)) {
       warn$1(`data() should return an object.`);
     } else {
       instance.data = reactive(data);
@@ -3414,7 +3414,7 @@ function applyOptions$1(instance) {
     }
   }
   function registerLifecycleHook(register2, hook) {
-    if (isArray$1(hook)) {
+    if (isArray(hook)) {
       hook.forEach((_hook) => register2(_hook.bind(publicThis)));
     } else if (hook) {
       register2(hook.bind(publicThis));
@@ -3432,7 +3432,7 @@ function applyOptions$1(instance) {
   registerLifecycleHook(onBeforeUnmount, beforeUnmount);
   registerLifecycleHook(onUnmounted, unmounted);
   registerLifecycleHook(onServerPrefetch, serverPrefetch);
-  if (isArray$1(expose)) {
+  if (isArray(expose)) {
     if (expose.length) {
       const exposed = instance.exposed || (instance.exposed = {});
       expose.forEach((key) => {
@@ -3460,13 +3460,13 @@ function applyOptions$1(instance) {
   }
 }
 function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) {
-  if (isArray$1(injectOptions)) {
+  if (isArray(injectOptions)) {
     injectOptions = normalizeInject(injectOptions);
   }
   for (const key in injectOptions) {
     const opt = injectOptions[key];
     let injected;
-    if (isObject$3(opt)) {
+    if (isObject$2(opt)) {
       if ("default" in opt) {
         injected = inject(
           opt.from || key,
@@ -3496,7 +3496,7 @@ function resolveInjections(injectOptions, ctx, checkDuplicateProperties = NOOP) 
 }
 function callHook$1(hook, instance, type) {
   callWithAsyncErrorHandling(
-    isArray$1(hook) ? hook.map((h2) => h2.bind(instance.proxy)) : hook.bind(instance.proxy),
+    isArray(hook) ? hook.map((h2) => h2.bind(instance.proxy)) : hook.bind(instance.proxy),
     instance,
     type
   );
@@ -3512,8 +3512,8 @@ function createWatcher(raw, ctx, publicThis, key) {
     }
   } else if (isFunction(raw)) {
     watch(getter, raw.bind(publicThis));
-  } else if (isObject$3(raw)) {
-    if (isArray$1(raw)) {
+  } else if (isObject$2(raw)) {
+    if (isArray(raw)) {
       raw.forEach((r2) => createWatcher(r2, ctx, publicThis, key));
     } else {
       const handler = isFunction(raw.handler) ? raw.handler.bind(publicThis) : ctx[raw.handler];
@@ -3552,7 +3552,7 @@ function resolveMergedOptions(instance) {
     }
     mergeOptions(resolved, base, optionMergeStrategies);
   }
-  if (isObject$3(base)) {
+  if (isObject$2(base)) {
     cache.set(base, resolved);
   }
   return resolved;
@@ -3628,7 +3628,7 @@ function mergeInject(to, from) {
   return mergeObjectOptions(normalizeInject(to), normalizeInject(from));
 }
 function normalizeInject(raw) {
-  if (isArray$1(raw)) {
+  if (isArray(raw)) {
     const res = {};
     for (let i = 0; i < raw.length; i++) {
       res[raw[i]] = raw[i];
@@ -3645,7 +3645,7 @@ function mergeObjectOptions(to, from) {
 }
 function mergeEmitsOrPropsOptions(to, from) {
   if (to) {
-    if (isArray$1(to) && isArray$1(from)) {
+    if (isArray(to) && isArray(from)) {
       return [.../* @__PURE__ */ new Set([...to, ...from])];
     }
     return extend(
@@ -3669,25 +3669,25 @@ function mergeWatchOptions(to, from) {
   return merged;
 }
 function initProps$1(instance, rawProps, isStateful, isSSR = false) {
-  const props2 = {};
+  const props = {};
   const attrs = {};
   instance.propsDefaults = /* @__PURE__ */ Object.create(null);
-  setFullProps(instance, rawProps, props2, attrs);
+  setFullProps(instance, rawProps, props, attrs);
   for (const key in instance.propsOptions[0]) {
-    if (!(key in props2)) {
-      props2[key] = void 0;
+    if (!(key in props)) {
+      props[key] = void 0;
     }
   }
   {
-    validateProps(rawProps || {}, props2, instance);
+    validateProps(rawProps || {}, props, instance);
   }
   if (isStateful) {
-    instance.props = isSSR ? props2 : shallowReactive(props2);
+    instance.props = isSSR ? props : shallowReactive(props);
   } else {
     if (!instance.type.props) {
       instance.props = attrs;
     } else {
-      instance.props = props2;
+      instance.props = props;
     }
   }
   instance.attrs = attrs;
@@ -3696,11 +3696,11 @@ function isInHmrContext(instance) {
 }
 function updateProps(instance, rawProps, rawPrevProps, optimized) {
   const {
-    props: props2,
+    props,
     attrs,
     vnode: { patchFlag }
   } = instance;
-  const rawCurrentProps = toRaw(props2);
+  const rawCurrentProps = toRaw(props);
   const [options] = instance.propsOptions;
   let hasAttrsChanged = false;
   if (
@@ -3725,7 +3725,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
             }
           } else {
             const camelizedKey = camelize(key);
-            props2[camelizedKey] = resolvePropValue$1(
+            props[camelizedKey] = resolvePropValue$1(
               options,
               rawCurrentProps,
               camelizedKey,
@@ -3743,7 +3743,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
       }
     }
   } else {
-    if (setFullProps(instance, rawProps, props2, attrs)) {
+    if (setFullProps(instance, rawProps, props, attrs)) {
       hasAttrsChanged = true;
     }
     let kebabKey;
@@ -3756,7 +3756,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
           if (rawPrevProps && // for camelCase
           (rawPrevProps[key] !== void 0 || // for kebab-case
           rawPrevProps[kebabKey] !== void 0)) {
-            props2[key] = resolvePropValue$1(
+            props[key] = resolvePropValue$1(
               options,
               rawCurrentProps,
               key,
@@ -3766,7 +3766,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
             );
           }
         } else {
-          delete props2[key];
+          delete props[key];
         }
       }
     }
@@ -3783,10 +3783,10 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
     trigger(instance, "set", "$attrs");
   }
   {
-    validateProps(rawProps || {}, props2, instance);
+    validateProps(rawProps || {}, props, instance);
   }
 }
-function setFullProps(instance, rawProps, props2, attrs) {
+function setFullProps(instance, rawProps, props, attrs) {
   const [options, needCastKeys] = instance.propsOptions;
   let hasAttrsChanged = false;
   let rawCastValues;
@@ -3799,7 +3799,7 @@ function setFullProps(instance, rawProps, props2, attrs) {
       let camelKey;
       if (options && hasOwn$1(options, camelKey = camelize(key))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
-          props2[camelKey] = value;
+          props[camelKey] = value;
         } else {
           (rawCastValues || (rawCastValues = {}))[camelKey] = value;
         }
@@ -3812,11 +3812,11 @@ function setFullProps(instance, rawProps, props2, attrs) {
     }
   }
   if (needCastKeys) {
-    const rawCurrentProps = toRaw(props2);
+    const rawCurrentProps = toRaw(props);
     const castValues = rawCastValues || EMPTY_OBJ;
     for (let i = 0; i < needCastKeys.length; i++) {
       const key = needCastKeys[i];
-      props2[key] = resolvePropValue$1(
+      props[key] = resolvePropValue$1(
         options,
         rawCurrentProps,
         key,
@@ -3828,7 +3828,7 @@ function setFullProps(instance, rawProps, props2, attrs) {
   }
   return hasAttrsChanged;
 }
-function resolvePropValue$1(options, props2, key, value, instance, isAbsent) {
+function resolvePropValue$1(options, props, key, value, instance, isAbsent) {
   const opt = options[key];
   if (opt != null) {
     const hasDefault = hasOwn$1(opt, "default");
@@ -3842,7 +3842,7 @@ function resolvePropValue$1(options, props2, key, value, instance, isAbsent) {
           const reset = setCurrentInstance(instance);
           value = propsDefaults[key] = defaultValue.call(
             null,
-            props2
+            props
           );
           reset();
         }
@@ -3879,8 +3879,8 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
   if (!isFunction(comp)) {
     const extendProps = (raw2) => {
       hasExtends = true;
-      const [props2, keys] = normalizePropsOptions(raw2, appContext, true);
-      extend(normalized, props2);
+      const [props, keys] = normalizePropsOptions(raw2, appContext, true);
+      extend(normalized, props);
       if (keys)
         needCastKeys.push(...keys);
     };
@@ -3895,12 +3895,12 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   if (!raw && !hasExtends) {
-    if (isObject$3(comp)) {
+    if (isObject$2(comp)) {
       cache.set(comp, EMPTY_ARR);
     }
     return EMPTY_ARR;
   }
-  if (isArray$1(raw)) {
+  if (isArray(raw)) {
     for (let i = 0; i < raw.length; i++) {
       if (!isString(raw[i])) {
         warn$1(`props must be strings when using array syntax.`, raw[i]);
@@ -3911,14 +3911,14 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
       }
     }
   } else if (raw) {
-    if (!isObject$3(raw)) {
+    if (!isObject$2(raw)) {
       warn$1(`invalid props options`, raw);
     }
     for (const key in raw) {
       const normalizedKey = camelize(key);
       if (validatePropName(normalizedKey)) {
         const opt = raw[key];
-        const prop = normalized[normalizedKey] = isArray$1(opt) || isFunction(opt) ? { type: opt } : extend({}, opt);
+        const prop = normalized[normalizedKey] = isArray(opt) || isFunction(opt) ? { type: opt } : extend({}, opt);
         if (prop) {
           const booleanIndex = getTypeIndex(Boolean, prop.type);
           const stringIndex = getTypeIndex(String, prop.type);
@@ -3938,7 +3938,7 @@ function normalizePropsOptions(comp, appContext, asMixin = false) {
     }
   }
   const res = [normalized, needCastKeys];
-  if (isObject$3(comp)) {
+  if (isObject$2(comp)) {
     cache.set(comp, res);
   }
   return res;
@@ -3967,15 +3967,15 @@ function isSameType(a2, b) {
   return getType$1(a2) === getType$1(b);
 }
 function getTypeIndex(type, expectedTypes) {
-  if (isArray$1(expectedTypes)) {
+  if (isArray(expectedTypes)) {
     return expectedTypes.findIndex((t2) => isSameType(t2, type));
   } else if (isFunction(expectedTypes)) {
     return isSameType(expectedTypes, type) ? 0 : -1;
   }
   return -1;
 }
-function validateProps(rawProps, props2, instance) {
-  const resolvedValues = toRaw(props2);
+function validateProps(rawProps, props, instance) {
+  const resolvedValues = toRaw(props);
   const options = instance.propsOptions[0];
   for (const key in options) {
     let opt = options[key];
@@ -3990,7 +3990,7 @@ function validateProps(rawProps, props2, instance) {
     );
   }
 }
-function validateProp$1(name, value, prop, props2, isAbsent) {
+function validateProp$1(name, value, prop, props, isAbsent) {
   const { type, required, validator, skipCheck } = prop;
   if (required && isAbsent) {
     warn$1('Missing required prop: "' + name + '"');
@@ -4001,7 +4001,7 @@ function validateProp$1(name, value, prop, props2, isAbsent) {
   }
   if (type != null && type !== true && !skipCheck) {
     let isValid2 = false;
-    const types = isArray$1(type) ? type : [type];
+    const types = isArray(type) ? type : [type];
     const expectedTypes = [];
     for (let i = 0; i < types.length && !isValid2; i++) {
       const { valid, expectedType } = assertType$1(value, types[i]);
@@ -4013,7 +4013,7 @@ function validateProp$1(name, value, prop, props2, isAbsent) {
       return;
     }
   }
-  if (validator && !validator(value, props2)) {
+  if (validator && !validator(value, props)) {
     warn$1('Invalid prop: custom validator check failed for prop "' + name + '".');
   }
 }
@@ -4030,9 +4030,9 @@ function assertType$1(value, type) {
       valid = value instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$3(value);
+    valid = isObject$2(value);
   } else if (expectedType === "Array") {
-    valid = isArray$1(value);
+    valid = isArray(value);
   } else if (expectedType === "null") {
     valid = value === null;
   } else {
@@ -4125,10 +4125,10 @@ function isVNode(value) {
   return value ? value.__v_isVNode === true : false;
 }
 const InternalObjectKey = `__vInternal`;
-function guardReactiveProps(props2) {
-  if (!props2)
+function guardReactiveProps(props) {
+  if (!props)
     return null;
-  return isProxy(props2) || InternalObjectKey in props2 ? extend({}, props2) : props2;
+  return isProxy(props) || InternalObjectKey in props ? extend({}, props) : props;
 }
 const emptyAppContext = createAppContext();
 let uid = 0;
@@ -4267,11 +4267,11 @@ let isInSSRComponentSetup = false;
 function setupComponent(instance, isSSR = false) {
   isSSR && setInSSRSetupState(isSSR);
   const {
-    props: props2
+    props
     /*, children*/
   } = instance.vnode;
   const isStateful = isStatefulComponent(instance);
-  initProps$1(instance, props2, isStateful, isSSR);
+  initProps$1(instance, props, isStateful, isSSR);
   const setupResult = isStateful ? setupStatefulComponent(instance, isSSR) : void 0;
   isSSR && setInSSRSetupState(false);
   return setupResult;
@@ -4340,7 +4340,7 @@ function handleSetupResult(instance, setupResult, isSSR) {
     {
       instance.render = setupResult;
     }
-  } else if (isObject$3(setupResult)) {
+  } else if (isObject$2(setupResult)) {
     if (isVNode(setupResult)) {
       warn$1(
         `setup() should not return VNodes directly - return a render function instead.`
@@ -4423,7 +4423,7 @@ function createSetupContext(instance) {
       if (exposed != null) {
         let exposedType = typeof exposed;
         if (exposedType === "object") {
-          if (isArray$1(exposed)) {
+          if (isArray(exposed)) {
             exposedType = "array";
           } else if (isRef(exposed)) {
             exposedType = "ref";
@@ -4505,7 +4505,7 @@ const computed = (getterOrOptions, debugOptions) => {
   }
   return c2;
 };
-const version$2 = "3.4.21";
+const version$1 = "3.4.21";
 const warn = warn$1;
 function unwrapper(target) {
   return unref(target);
@@ -4666,7 +4666,7 @@ function nextTick(instance, fn) {
     _resolve = resolve2;
   });
 }
-function clone$1(src, seen) {
+function clone(src, seen) {
   src = unwrapper(src);
   const type = typeof src;
   if (type === "object" && src !== null) {
@@ -4674,19 +4674,19 @@ function clone$1(src, seen) {
     if (typeof copy !== "undefined") {
       return copy;
     }
-    if (isArray$1(src)) {
+    if (isArray(src)) {
       const len = src.length;
       copy = new Array(len);
       seen.set(src, copy);
       for (let i = 0; i < len; i++) {
-        copy[i] = clone$1(src[i], seen);
+        copy[i] = clone(src[i], seen);
       }
     } else {
       copy = {};
       seen.set(src, copy);
       for (const name in src) {
         if (hasOwn$1(src, name)) {
-          copy[name] = clone$1(src[name], seen);
+          copy[name] = clone(src[name], seen);
         }
       }
     }
@@ -4697,7 +4697,7 @@ function clone$1(src, seen) {
   }
 }
 function deepCopy$1(src) {
-  return clone$1(src, typeof WeakMap !== "undefined" ? /* @__PURE__ */ new WeakMap() : /* @__PURE__ */ new Map());
+  return clone(src, typeof WeakMap !== "undefined" ? /* @__PURE__ */ new WeakMap() : /* @__PURE__ */ new Map());
 }
 function getMPInstanceData(instance, keys) {
   const data = instance.data;
@@ -4813,7 +4813,7 @@ function setRef$1(instance, isUnmount = false) {
   if ($templateUniElementRefs && $templateUniElementRefs.length) {
     nextTick(instance, () => {
       $templateUniElementRefs.forEach((templateRef) => {
-        if (isArray$1(templateRef.v)) {
+        if (isArray(templateRef.v)) {
           templateRef.v.forEach((v) => {
             setTemplateRef(templateRef, v, setupState);
           });
@@ -4830,7 +4830,7 @@ function setRef$1(instance, isUnmount = false) {
   }
 }
 function toSkip(value) {
-  if (isObject$3(value)) {
+  if (isObject$2(value)) {
     markRaw(value);
   }
   return value;
@@ -4859,7 +4859,7 @@ function setTemplateRef({ r: r2, f: f2 }, refValue, setupState) {
         if (!_isRef) {
           return;
         }
-        if (!isArray$1(r2.value)) {
+        if (!isArray(r2.value)) {
           r2.value = [];
         }
         const existing = r2.value;
@@ -4941,7 +4941,7 @@ function renderComponentRoot(instance) {
     vnode,
     proxy,
     withProxy,
-    props: props2,
+    props,
     propsOptions: [propsOptions],
     slots,
     attrs,
@@ -4972,13 +4972,13 @@ function renderComponentRoot(instance) {
   const prev = setCurrentRenderingInstance(instance);
   try {
     if (vnode.shapeFlag & 4) {
-      fallthroughAttrs(inheritAttrs, props2, propsOptions, attrs);
+      fallthroughAttrs(inheritAttrs, props, propsOptions, attrs);
       const proxyToUse = withProxy || proxy;
       result = render2.call(
         proxyToUse,
         proxyToUse,
         renderCache,
-        props2,
+        props,
         setupState,
         data,
         ctx
@@ -4986,13 +4986,13 @@ function renderComponentRoot(instance) {
     } else {
       fallthroughAttrs(
         inheritAttrs,
-        props2,
+        props,
         propsOptions,
         Component2.props ? attrs : getFunctionalFallthrough(attrs)
       );
       const render22 = Component2;
-      result = render22.length > 1 ? render22(props2, { attrs, slots, emit: emit2 }) : render22(
-        props2,
+      result = render22.length > 1 ? render22(props, { attrs, slots, emit: emit2 }) : render22(
+        props,
         null
         /* we know it doesn't need it */
       );
@@ -5005,8 +5005,8 @@ function renderComponentRoot(instance) {
   setCurrentRenderingInstance(prev);
   return result;
 }
-function fallthroughAttrs(inheritAttrs, props2, propsOptions, fallthroughAttrs2) {
-  if (props2 && fallthroughAttrs2 && inheritAttrs !== false) {
+function fallthroughAttrs(inheritAttrs, props, propsOptions, fallthroughAttrs2) {
+  if (props && fallthroughAttrs2 && inheritAttrs !== false) {
     const keys = Object.keys(fallthroughAttrs2).filter(
       (key) => key !== "class" && key !== "style"
     );
@@ -5016,11 +5016,11 @@ function fallthroughAttrs(inheritAttrs, props2, propsOptions, fallthroughAttrs2)
     if (propsOptions && keys.some(isModelListener)) {
       keys.forEach((key) => {
         if (!isModelListener(key) || !(key.slice(9) in propsOptions)) {
-          props2[key] = fallthroughAttrs2[key];
+          props[key] = fallthroughAttrs2[key];
         }
       });
     } else {
-      keys.forEach((key) => props2[key] = fallthroughAttrs2[key]);
+      keys.forEach((key) => props[key] = fallthroughAttrs2[key]);
     }
   }
 }
@@ -5211,7 +5211,7 @@ function createVueApp(rootComponent, rootProps = null) {
     );
     app._instance = instance.$;
     {
-      devtoolsInitApp(app, version$2);
+      devtoolsInitApp(app, version$1);
     }
     instance.$app = app;
     instance.$createComponent = createComponent2;
@@ -5238,7 +5238,7 @@ function initHooks$1(options, instance, publicThis) {
   Object.keys(options).forEach((name) => {
     if (isUniLifecycleHook(name, options[name], false)) {
       const hooks = options[name];
-      if (isArray$1(hooks)) {
+      if (isArray(hooks)) {
         hooks.forEach((hook) => injectLifecycleHook(name, hook, publicThis, instance));
       } else {
         injectLifecycleHook(name, hooks, publicThis, instance);
@@ -5317,7 +5317,7 @@ function b64DecodeUnicode(str) {
   }).join(""));
 }
 function getCurrentUserInfo() {
-  const token = index$2.getStorageSync("uni_id_token") || "";
+  const token = index$1.getStorageSync("uni_id_token") || "";
   const tokenArr = token.split(".");
   if (!token || tokenArr.length !== 3) {
     return {
@@ -5330,8 +5330,8 @@ function getCurrentUserInfo() {
   let userInfo;
   try {
     userInfo = JSON.parse(b64DecodeUnicode(tokenArr[1]));
-  } catch (error2) {
-    throw new Error("获取当前用户信息出错，详细错误信息为：" + error2.message);
+  } catch (error) {
+    throw new Error("获取当前用户信息出错，详细错误信息为：" + error.message);
   }
   userInfo.tokenExpired = userInfo.exp * 1e3;
   delete userInfo.exp;
@@ -5366,13 +5366,13 @@ function initApp(app) {
     globalProperties.$callMethod = $callMethod;
   }
   {
-    index$2.invokeCreateVueAppHook(app);
+    index$1.invokeCreateVueAppHook(app);
   }
 }
 const propsCaches = /* @__PURE__ */ Object.create(null);
-function renderProps(props2) {
+function renderProps(props) {
   const { uid: uid2, __counter } = getCurrentInstance();
-  const propsId = (propsCaches[uid2] || (propsCaches[uid2] = [])).push(guardReactiveProps(props2)) - 1;
+  const propsId = (propsCaches[uid2] || (propsCaches[uid2] = [])).push(guardReactiveProps(props)) - 1;
   return uid2 + "," + propsId + "," + __counter;
 }
 function pruneComponentPropsCache(uid2) {
@@ -5469,7 +5469,7 @@ function createInvoker(initialValue, instance) {
       setTimeout(invoke);
     } else {
       const res = invoke();
-      if (e2.type === "input" && (isArray$1(res) || isPromise$1(res))) {
+      if (e2.type === "input" && (isArray(res) || isPromise$1(res))) {
         return;
       }
       return res;
@@ -5505,16 +5505,16 @@ function patchMPEvent(event, instance) {
       event.detail = typeof event.detail === "object" ? event.detail : {};
       event.detail.markerId = event.markerId;
     }
-    if (isPlainObject$2(event.detail) && hasOwn$1(event.detail, "checked") && !hasOwn$1(event.detail, "value")) {
+    if (isPlainObject$1(event.detail) && hasOwn$1(event.detail, "checked") && !hasOwn$1(event.detail, "value")) {
       event.detail.value = event.detail.checked;
     }
-    if (isPlainObject$2(event.detail)) {
+    if (isPlainObject$1(event.detail)) {
       event.target = extend({}, event.target, event.detail);
     }
   }
 }
 function patchStopImmediatePropagation(e2, value) {
-  if (isArray$1(value)) {
+  if (isArray(value)) {
     const originalStop = e2.stopImmediatePropagation;
     e2.stopImmediatePropagation = () => {
       originalStop && originalStop.call(e2);
@@ -5527,7 +5527,7 @@ function patchStopImmediatePropagation(e2, value) {
 }
 function vFor(source, renderItem) {
   let ret;
-  if (isArray$1(source) || isString(source)) {
+  if (isArray(source) || isString(source)) {
     ret = new Array(source.length);
     for (let i = 0, l = source.length; i < l; i++) {
       ret[i] = renderItem(source[i], i, i);
@@ -5541,7 +5541,7 @@ function vFor(source, renderItem) {
     for (let i = 0; i < source; i++) {
       ret[i] = renderItem(i + 1, i, i);
     }
-  } else if (isObject$3(source)) {
+  } else if (isObject$2(source)) {
     if (source[Symbol.iterator]) {
       ret = Array.from(source, (item, i) => renderItem(item, i, i));
     } else {
@@ -5567,7 +5567,7 @@ const s = (value) => stringifyStyle(value);
 const e$1 = (target, ...sources) => extend(target, ...sources);
 const n = (value) => normalizeClass(value);
 const t = (val) => toDisplayString(val);
-const p = (props2) => renderProps(props2);
+const p = (props) => renderProps(props);
 const sr = (ref2, id, opts) => setRef(ref2, id, opts);
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -5602,7 +5602,7 @@ function validateProtocols(name, args, protocol, onFail) {
   if (!protocol) {
     return;
   }
-  if (!isArray$1(protocol)) {
+  if (!isArray(protocol)) {
     return validateProtocol(name, args[0] || /* @__PURE__ */ Object.create(null), protocol, onFail);
   }
   const len = protocol.length;
@@ -5617,7 +5617,7 @@ function validateProtocols(name, args, protocol, onFail) {
   }
 }
 function validateProp(name, value, prop, isAbsent) {
-  if (!isPlainObject$2(prop)) {
+  if (!isPlainObject$1(prop)) {
     prop = { type: prop };
   }
   const { type, required, validator } = prop;
@@ -5629,7 +5629,7 @@ function validateProp(name, value, prop, isAbsent) {
   }
   if (type != null) {
     let isValid2 = false;
-    const types = isArray$1(type) ? type : [type];
+    const types = isArray(type) ? type : [type];
     const expectedTypes = [];
     for (let i = 0; i < types.length && !isValid2; i++) {
       const { valid, expectedType } = assertType(value, types[i]);
@@ -5655,9 +5655,9 @@ function assertType(value, type) {
       valid = value instanceof type;
     }
   } else if (expectedType === "Object") {
-    valid = isObject$3(value);
+    valid = isObject$2(value);
   } else if (expectedType === "Array") {
-    valid = isArray$1(value);
+    valid = isArray(value);
   } else {
     {
       valid = value instanceof type;
@@ -5755,7 +5755,7 @@ function normalizeErrMsg(errMsg, name) {
   return name + errMsg.substring(errMsg.indexOf(":fail"));
 }
 function createAsyncApiCallback(name, args = {}, { beforeAll, beforeSuccess } = {}) {
-  if (!isPlainObject$2(args)) {
+  if (!isPlainObject$1(args)) {
     args = {};
   }
   const { success, fail, complete } = getApiCallbacks(args);
@@ -5788,15 +5788,15 @@ function wrapperHook(hook, params) {
   };
 }
 function queue(hooks, data, params) {
-  let promise2 = false;
+  let promise = false;
   for (let i = 0; i < hooks.length; i++) {
     const hook = hooks[i];
-    if (promise2) {
-      promise2 = Promise.resolve(wrapperHook(hook, params));
+    if (promise) {
+      promise = Promise.resolve(wrapperHook(hook, params));
     } else {
       const res = hook(data, params);
       if (isPromise$1(res)) {
-        promise2 = Promise.resolve(res);
+        promise = Promise.resolve(res);
       }
       if (res === false) {
         return {
@@ -5808,7 +5808,7 @@ function queue(hooks, data, params) {
       }
     }
   }
-  return promise2 || {
+  return promise || {
     then(callback) {
       return callback(data);
     },
@@ -5819,7 +5819,7 @@ function queue(hooks, data, params) {
 function wrapperOptions(interceptors2, options = {}) {
   [HOOK_SUCCESS, HOOK_FAIL, HOOK_COMPLETE].forEach((name) => {
     const hooks = interceptors2[name];
-    if (!isArray$1(hooks)) {
+    if (!isArray(hooks)) {
       return;
     }
     const oldCallback = options[name];
@@ -5833,11 +5833,11 @@ function wrapperOptions(interceptors2, options = {}) {
 }
 function wrapperReturnValue(method, returnValue) {
   const returnValueHooks = [];
-  if (isArray$1(globalInterceptors.returnValue)) {
+  if (isArray(globalInterceptors.returnValue)) {
     returnValueHooks.push(...globalInterceptors.returnValue);
   }
   const interceptor = scopedInterceptors[method];
-  if (interceptor && isArray$1(interceptor.returnValue)) {
+  if (interceptor && isArray(interceptor.returnValue)) {
     returnValueHooks.push(...interceptor.returnValue);
   }
   returnValueHooks.forEach((hook) => {
@@ -5865,7 +5865,7 @@ function getApiInterceptorHooks(method) {
 function invokeApi(method, api, options, params) {
   const interceptor = getApiInterceptorHooks(method);
   if (interceptor && Object.keys(interceptor).length) {
-    if (isArray$1(interceptor.invoke)) {
+    if (isArray(interceptor.invoke)) {
       const res = queue(interceptor.invoke, options);
       return res.then((options2) => {
         return api(wrapperOptions(getApiInterceptorHooks(method), options2), ...params);
@@ -5877,13 +5877,13 @@ function invokeApi(method, api, options, params) {
   return api(options, ...params);
 }
 function hasCallback(args) {
-  if (isPlainObject$2(args) && [API_SUCCESS, API_FAIL, API_COMPLETE].find((cb) => isFunction(args[cb]))) {
+  if (isPlainObject$1(args) && [API_SUCCESS, API_FAIL, API_COMPLETE].find((cb) => isFunction(args[cb]))) {
     return true;
   }
   return false;
 }
-function handlePromise(promise2) {
-  return promise2;
+function handlePromise(promise) {
+  return promise;
 }
 function promisify$1(name, fn) {
   return (args = {}, ...rest) => {
@@ -5990,28 +5990,28 @@ let deviceWidth = 0;
 let deviceDPR = 0;
 function checkDeviceWidth() {
   var _a, _b;
-  let windowWidth, pixelRatio, platform2;
+  let windowWidth, pixelRatio, platform;
   {
     const windowInfo = ((_a = wx.getWindowInfo) === null || _a === void 0 ? void 0 : _a.call(wx)) || wx.getSystemInfoSync();
     const deviceInfo = ((_b = wx.getDeviceInfo) === null || _b === void 0 ? void 0 : _b.call(wx)) || wx.getSystemInfoSync();
     windowWidth = windowInfo.windowWidth;
     pixelRatio = windowInfo.pixelRatio;
-    platform2 = deviceInfo.platform;
+    platform = deviceInfo.platform;
   }
   deviceWidth = windowWidth;
   deviceDPR = pixelRatio;
-  isIOS = platform2 === "ios";
+  isIOS = platform === "ios";
 }
-const upx2px = defineSyncApi(API_UPX2PX, (number2, newDeviceWidth) => {
+const upx2px = defineSyncApi(API_UPX2PX, (number, newDeviceWidth) => {
   if (deviceWidth === 0) {
     checkDeviceWidth();
   }
-  number2 = Number(number2);
-  if (number2 === 0) {
+  number = Number(number);
+  if (number === 0) {
     return 0;
   }
   let width = newDeviceWidth || deviceWidth;
-  let result = number2 / BASE_DEVICE_WIDTH * width;
+  let result = number / BASE_DEVICE_WIDTH * width;
   if (result < 0) {
     result = -result;
   }
@@ -6023,7 +6023,7 @@ const upx2px = defineSyncApi(API_UPX2PX, (number2, newDeviceWidth) => {
       result = 0.5;
     }
   }
-  return number2 < 0 ? -result : result;
+  return number < 0 ? -result : result;
 }, Upx2pxProtocol);
 function __f__(type, filename, ...args) {
   if (filename) {
@@ -6055,13 +6055,13 @@ function removeInterceptorHook(interceptors2, interceptor) {
   Object.keys(interceptor).forEach((name) => {
     const hooks = interceptors2[name];
     const hook = interceptor[name];
-    if (isArray$1(hooks) && isFunction(hook)) {
+    if (isArray(hooks) && isFunction(hook)) {
       remove(hooks, hook);
     }
   });
 }
 function mergeHook(parentVal, childVal) {
-  const res = childVal ? parentVal ? parentVal.concat(childVal) : isArray$1(childVal) ? childVal : [childVal] : parentVal;
+  const res = childVal ? parentVal ? parentVal.concat(childVal) : isArray(childVal) ? childVal : [childVal] : parentVal;
   return res ? dedupeHooks(res) : res;
 }
 function dedupeHooks(hooks) {
@@ -6074,20 +6074,20 @@ function dedupeHooks(hooks) {
   return res;
 }
 const addInterceptor = defineSyncApi(API_ADD_INTERCEPTOR, (method, interceptor) => {
-  if (isString(method) && isPlainObject$2(interceptor)) {
+  if (isString(method) && isPlainObject$1(interceptor)) {
     mergeInterceptorHook(scopedInterceptors[method] || (scopedInterceptors[method] = {}), interceptor);
-  } else if (isPlainObject$2(method)) {
+  } else if (isPlainObject$1(method)) {
     mergeInterceptorHook(globalInterceptors, method);
   }
 }, AddInterceptorProtocol);
 const removeInterceptor = defineSyncApi(API_REMOVE_INTERCEPTOR, (method, interceptor) => {
   if (isString(method)) {
-    if (isPlainObject$2(interceptor)) {
+    if (isPlainObject$1(interceptor)) {
       removeInterceptorHook(scopedInterceptors[method], interceptor);
     } else {
       delete scopedInterceptors[method];
     }
-  } else if (isPlainObject$2(method)) {
+  } else if (isPlainObject$1(method)) {
     removeInterceptorHook(globalInterceptors, method);
   }
 }, RemoveInterceptorProtocol);
@@ -6157,7 +6157,7 @@ const $once = defineSyncApi(API_ONCE, (name, callback) => {
   return () => eventBus.off(name, callback);
 }, OnceProtocol);
 const $off = defineSyncApi(API_OFF, (name, callback) => {
-  if (!isArray$1(name))
+  if (!isArray(name))
     name = name ? [name] : [];
   name.forEach((n2) => {
     eventBus.off(n2, callback);
@@ -6273,8 +6273,8 @@ function shouldPromise(name) {
 }
 if (!Promise.prototype.finally) {
   Promise.prototype.finally = function(onfinally) {
-    const promise2 = this.constructor;
-    return this.then((value) => promise2.resolve(onfinally && onfinally()).then(() => value), (reason) => promise2.resolve(onfinally && onfinally()).then(() => {
+    const promise = this.constructor;
+    return this.then((value) => promise.resolve(onfinally && onfinally()).then(() => value), (reason) => promise.resolve(onfinally && onfinally()).then(() => {
       throw reason;
     }));
   };
@@ -6306,7 +6306,7 @@ function initWrapper(protocols2) {
     };
   }
   function processArgs(methodName, fromArgs, argsOption = {}, returnValue = {}, keepFromArgs = false) {
-    if (isPlainObject$2(fromArgs)) {
+    if (isPlainObject$1(fromArgs)) {
       const toArgs = keepFromArgs === true ? fromArgs : {};
       if (isFunction(argsOption)) {
         argsOption = argsOption(fromArgs, toArgs) || {};
@@ -6321,7 +6321,7 @@ function initWrapper(protocols2) {
             console.warn(`微信小程序 ${methodName} 暂不支持 ${key}`);
           } else if (isString(keyOption)) {
             toArgs[keyOption] = fromArgs[key];
-          } else if (isPlainObject$2(keyOption)) {
+          } else if (isPlainObject$1(keyOption)) {
             toArgs[keyOption.name ? keyOption.name : key] = keyOption.value;
           }
         } else if (CALLBACKS.indexOf(key) !== -1) {
@@ -6445,14 +6445,14 @@ function addSafeAreaInsets(fromRes, toRes) {
     };
   }
 }
-function getOSInfo(system, platform2) {
+function getOSInfo(system, platform) {
   let osName = "";
   let osVersion = "";
-  if (platform2 && false) {
-    osName = platform2;
+  if (platform && false) {
+    osName = platform;
     osVersion = system;
   } else {
-    osName = system.split(" ")[0] || platform2;
+    osName = system.split(" ")[0] || platform;
     osVersion = system.split(" ")[1] || "";
   }
   osName = osName.toLowerCase();
@@ -6479,8 +6479,8 @@ function getOSInfo(system, platform2) {
   };
 }
 function populateParameters(fromRes, toRes) {
-  const { brand = "", model = "", system = "", language = "", theme, version: version2, platform: platform2, fontSizeSetting, SDKVersion, pixelRatio, deviceOrientation } = fromRes;
-  const { osName, osVersion } = getOSInfo(system, platform2);
+  const { brand = "", model = "", system = "", language = "", theme, version: version2, platform, fontSizeSetting, SDKVersion, pixelRatio, deviceOrientation } = fromRes;
+  const { osName, osVersion } = getOSInfo(system, platform);
   let hostVersion = version2;
   let deviceType = getGetDeviceType(fromRes, model);
   let deviceBrand = getDeviceBrand(brand);
@@ -6583,7 +6583,7 @@ const previewImage = {
       return;
     }
     const urls = fromArgs.urls;
-    if (!isArray$1(urls)) {
+    if (!isArray(urls)) {
       return;
     }
     const len = urls.length;
@@ -6614,11 +6614,11 @@ const showActionSheet = {
 };
 const getDeviceInfo = {
   returnValue: (fromRes, toRes) => {
-    const { brand, model, system = "", platform: platform2 = "" } = fromRes;
+    const { brand, model, system = "", platform = "" } = fromRes;
     let deviceType = getGetDeviceType(fromRes, model);
     let deviceBrand = getDeviceBrand(brand);
     useDeviceId()(fromRes, toRes);
-    const { osName, osVersion } = getOSInfo(system, platform2);
+    const { osName, osVersion } = getOSInfo(system, platform);
     toRes = sortObject(extend(toRes, {
       deviceType,
       deviceBrand,
@@ -6741,7 +6741,7 @@ const baseApis = {
   invokePushCallback,
   __f__
 };
-function initUni(api, protocols2, platform2 = wx) {
+function initUni(api, protocols2, platform = wx) {
   const wrapper = initWrapper(protocols2);
   const UniProxyHandlers = {
     get(target, key) {
@@ -6754,7 +6754,7 @@ function initUni(api, protocols2, platform2 = wx) {
       if (hasOwn$1(baseApis, key)) {
         return promisify(key, baseApis[key]);
       }
-      return promisify(key, wrapper(key, platform2[key]));
+      return promisify(key, wrapper(key, platform[key]));
     }
   };
   return new Proxy({}, UniProxyHandlers);
@@ -6885,12 +6885,12 @@ var protocols = /* @__PURE__ */ Object.freeze({
   showActionSheet
 });
 const wx$1 = initWx();
-var index$2 = initUni(shims, protocols, wx$1);
+var index$1 = initUni(shims, protocols, wx$1);
 function initRuntimeSocket(hosts, port, id) {
   if (hosts == "" || port == "" || id == "")
     return Promise.resolve(null);
-  return hosts.split(",").reduce((promise2, host2) => {
-    return promise2.then((socket) => {
+  return hosts.split(",").reduce((promise, host2) => {
+    return promise.then((socket) => {
       if (socket != null)
         return Promise.resolve(socket);
       return tryConnectSocket(host2, port, id);
@@ -6900,7 +6900,7 @@ function initRuntimeSocket(hosts, port, id) {
 const SOCKET_TIMEOUT = 500;
 function tryConnectSocket(host2, port, id) {
   return new Promise((resolve2, reject) => {
-    const socket = index$2.connectSocket({
+    const socket = index$1.connectSocket({
       url: `ws://${host2}:${port}/${id}`,
       multiple: true,
       // 支付宝小程序 是否开启多实例
@@ -6939,8 +6939,8 @@ const errorQueue = /* @__PURE__ */ new Set();
 const errorExtra = {};
 function sendErrorMessages(errors) {
   if (sendError == null) {
-    errors.forEach((error2) => {
-      errorQueue.add(error2);
+    errors.forEach((error) => {
+      errorQueue.add(error);
     });
     return;
   }
@@ -6986,31 +6986,31 @@ function setSendError(value, extra = {}) {
   }
 }
 function initOnError() {
-  function onError2(error2) {
+  function onError2(error) {
     try {
-      if (typeof PromiseRejectionEvent !== "undefined" && error2 instanceof PromiseRejectionEvent && error2.reason instanceof Error && error2.reason.message && error2.reason.message.includes(`Cannot create property 'errMsg' on string 'taskId`)) {
+      if (typeof PromiseRejectionEvent !== "undefined" && error instanceof PromiseRejectionEvent && error.reason instanceof Error && error.reason.message && error.reason.message.includes(`Cannot create property 'errMsg' on string 'taskId`)) {
         return;
       }
       if (true) {
-        originalConsole.error(error2);
+        originalConsole.error(error);
       }
-      sendErrorMessages([error2]);
+      sendErrorMessages([error]);
     } catch (err) {
       originalConsole.error(err);
     }
   }
-  if (typeof index$2.onError === "function") {
-    index$2.onError(onError2);
+  if (typeof index$1.onError === "function") {
+    index$1.onError(onError2);
   }
-  if (typeof index$2.onUnhandledRejection === "function") {
-    index$2.onUnhandledRejection(onError2);
+  if (typeof index$1.onUnhandledRejection === "function") {
+    index$1.onUnhandledRejection(onError2);
   }
   return function offError2() {
-    if (typeof index$2.offError === "function") {
-      index$2.offError(onError2);
+    if (typeof index$1.offError === "function") {
+      index$1.offError(onError2);
     }
-    if (typeof index$2.offUnhandledRejection === "function") {
-      index$2.offUnhandledRejection(onError2);
+    if (typeof index$1.offUnhandledRejection === "function") {
+      index$1.offUnhandledRejection(onError2);
     }
   };
 }
@@ -7357,16 +7357,16 @@ function rewriteConsole() {
     };
   } else {
     {
-      if (typeof index$2 !== "undefined" && index$2.__f__) {
-        const oldLog = index$2.__f__;
+      if (typeof index$1 !== "undefined" && index$1.__f__) {
+        const oldLog = index$1.__f__;
         if (oldLog) {
-          index$2.__f__ = function(...args) {
+          index$1.__f__ = function(...args) {
             const [type, filename, ...rest] = args;
             oldLog(type, "", ...rest);
             sendConsoleMessages([formatMessage(type, [...rest, filename])]);
           };
           return function restoreConsole() {
-            index$2.__f__ = oldLog;
+            index$1.__f__ = oldLog;
           };
         }
       }
@@ -7390,7 +7390,7 @@ function isConsoleWritable() {
 function initRuntimeSocketService() {
   const hosts = "192.168.31.181,192.168.122.1,192.168.140.1,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_WDJdxz";
+  const id = "mp-weixin_lGrV1u";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -7437,8 +7437,8 @@ function initRuntimeSocketService() {
   });
 }
 const ERROR_CHAR = "‌";
-function wrapError(error2) {
-  return `${ERROR_CHAR}${error2}${ERROR_CHAR}`;
+function wrapError(error) {
+  return `${ERROR_CHAR}${error}${ERROR_CHAR}`;
 }
 function initMiniProgramGlobalFlag() {
   if (typeof wx$1 !== "undefined") {
@@ -7464,9 +7464,9 @@ function initMiniProgramGlobalFlag() {
   }
 }
 initRuntimeSocketService();
-const _export_sfc = (sfc, props2) => {
+const _export_sfc = (sfc, props) => {
   const target = sfc.__vccOpts || sfc;
-  for (const [key, val] of props2) {
+  for (const [key, val] of props) {
     target[key] = val;
   }
   return target;
@@ -7506,7 +7506,7 @@ function initWorkletMethods(mpMethods, vueMethods) {
   }
 }
 function initWxsCallMethods(methods, wxsCallMethods) {
-  if (!isArray$1(wxsCallMethods)) {
+  if (!isArray(wxsCallMethods)) {
     return;
   }
   wxsCallMethods.forEach((callMethod) => {
@@ -7608,7 +7608,7 @@ function initBaseInstance(instance, options) {
     ctx._self = {};
   }
   instance.slots = {};
-  if (isArray$1(options.slots) && options.slots.length) {
+  if (isArray(options.slots) && options.slots.length) {
     options.slots.forEach((name) => {
       instance.slots[name] = true;
     });
@@ -7686,7 +7686,7 @@ function findHooks(vueOptions, hooks = /* @__PURE__ */ new Set()) {
     {
       const { extends: extendsOptions, mixins } = vueOptions;
       if (mixins) {
-        mixins.forEach((mixin2) => findHooks(mixin2, hooks));
+        mixins.forEach((mixin) => findHooks(mixin, hooks));
       }
       if (extendsOptions) {
         findHooks(extendsOptions, hooks);
@@ -7725,11 +7725,11 @@ const findMixinRuntimeHooks = /* @__PURE__ */ once(() => {
   const app = isFunction(getApp) && getApp({ allowDefault: true });
   if (app && app.$vm && app.$vm.$) {
     const mixins = app.$vm.$.appContext.mixins;
-    if (isArray$1(mixins)) {
+    if (isArray(mixins)) {
       const hooks = Object.keys(MINI_PROGRAM_PAGE_RUNTIME_HOOKS);
-      mixins.forEach((mixin2) => {
+      mixins.forEach((mixin) => {
         hooks.forEach((hook) => {
-          if (hasOwn$1(mixin2, hook) && !runtimeHooks.includes(hook)) {
+          if (hasOwn$1(mixin, hook) && !runtimeHooks.includes(hook)) {
             runtimeHooks.push(hook);
           }
         });
@@ -7937,7 +7937,7 @@ function initProps(mpComponentOptions) {
 }
 const PROP_TYPES = [String, Number, Boolean, Object, Array, null];
 function parsePropType(type, defaultValue) {
-  if (isArray$1(type) && type.length === 1) {
+  if (isArray(type) && type.length === 1) {
     return type[0];
   }
   return type;
@@ -7947,17 +7947,17 @@ function normalizePropType(type, defaultValue) {
   return PROP_TYPES.indexOf(res) !== -1 ? res : null;
 }
 function initPageProps({ properties }, rawProps) {
-  if (isArray$1(rawProps)) {
+  if (isArray(rawProps)) {
     rawProps.forEach((key) => {
       properties[key] = {
         type: String,
         value: ""
       };
     });
-  } else if (isPlainObject$2(rawProps)) {
+  } else if (isPlainObject$1(rawProps)) {
     Object.keys(rawProps).forEach((key) => {
       const opts = rawProps[key];
-      if (isPlainObject$2(opts)) {
+      if (isPlainObject$1(opts)) {
         let value = opts.default;
         if (isFunction(value)) {
           value = value();
@@ -7981,7 +7981,7 @@ function findPropsData(properties, isPage2) {
 }
 function findPagePropsData(properties) {
   const propsData = {};
-  if (isPlainObject$2(properties)) {
+  if (isPlainObject$1(properties)) {
     Object.keys(properties).forEach((name) => {
       if (builtInProps.indexOf(name) === -1) {
         propsData[name] = resolvePropValue(properties[name]);
@@ -7992,7 +7992,7 @@ function findPagePropsData(properties) {
 }
 function initFormField(vm) {
   const vueOptions = vm.$options;
-  if (isArray$1(vueOptions.behaviors) && vueOptions.behaviors.includes("uni://form-field")) {
+  if (isArray(vueOptions.behaviors) && vueOptions.behaviors.includes("uni://form-field")) {
     vm.$watch("modelValue", () => {
       vm.$scope && vm.$scope.setData({
         name: vm.name,
@@ -8068,11 +8068,11 @@ function initBehaviors(vueOptions) {
     vueOptions.props = vueProps = [];
   }
   const behaviors = [];
-  if (isArray$1(vueBehaviors)) {
+  if (isArray(vueBehaviors)) {
     vueBehaviors.forEach((behavior) => {
       behaviors.push(behavior.replace("uni://", "wx://"));
       if (behavior === "uni://form-field") {
-        if (isArray$1(vueProps)) {
+        if (isArray(vueProps)) {
           vueProps.push("name");
           vueProps.push("modelValue");
         } else {
@@ -8102,9 +8102,9 @@ function parseComponent(vueOptions, { parse: parse2, mocks: mocks2, isPage: isPa
     addGlobalClass: true,
     pureDataPattern: /^uP$/
   };
-  if (isArray$1(vueOptions.mixins)) {
+  if (isArray(vueOptions.mixins)) {
     vueOptions.mixins.forEach((item) => {
-      if (isObject$3(item.options)) {
+      if (isObject$2(item.options)) {
         extend(options, item.options);
       }
     });
@@ -8220,7 +8220,7 @@ function initTriggerEvent(mpInstance) {
   };
   try {
     mpInstance.triggerEvent = newTriggerEvent;
-  } catch (error2) {
+  } catch (error) {
     mpInstance._triggerEvent = newTriggerEvent;
   }
 }
@@ -8347,8 +8347,8 @@ function useStore(key) {
     key = null;
   return inject(key !== null ? key : storeKey);
 }
-function find(list2, f2) {
-  return list2.filter(f2)[0];
+function find(list, f2) {
+  return list.filter(f2)[0];
 }
 function deepCopy(obj, cache) {
   if (cache === void 0)
@@ -8377,7 +8377,7 @@ function forEachValue(obj, fn) {
     return fn(obj[key], key);
   });
 }
-function isObject$1(obj) {
+function isObject(obj) {
   return obj !== null && typeof obj === "object";
 }
 function isPromise(val) {
@@ -8629,7 +8629,7 @@ function getNestedState(state, path) {
   }, state);
 }
 function unifyObjectStyle(type, payload, options) {
-  if (isObject$1(type) && type.type) {
+  if (isObject(type) && type.type) {
     options = payload;
     payload = type;
     type = type.type;
@@ -8950,12 +8950,12 @@ Store.prototype.dispatch = function dispatch(_type, _payload) {
         }
       }
       resolve2(res);
-    }, function(error2) {
+    }, function(error) {
       try {
         this$1$1._actionSubscribers.filter(function(sub) {
           return sub.error;
         }).forEach(function(sub) {
-          return sub.error(action, this$1$1.state, error2);
+          return sub.error(action, this$1$1.state, error);
         });
       } catch (e2) {
         {
@@ -8963,7 +8963,7 @@ Store.prototype.dispatch = function dispatch(_type, _payload) {
           console.error(e2);
         }
       }
-      reject(error2);
+      reject(error);
     });
   });
 };
@@ -9155,7 +9155,7 @@ function normalizeMap(map) {
   });
 }
 function isValidMap(map) {
-  return Array.isArray(map) || isObject$1(map);
+  return Array.isArray(map) || isObject(map);
 }
 function normalizeNamespace(fn) {
   return function(namespace, map) {
@@ -9269,13 +9269,13 @@ function getFormattedTime() {
   var time2 = /* @__PURE__ */ new Date();
   return " @ " + pad(time2.getHours(), 2) + ":" + pad(time2.getMinutes(), 2) + ":" + pad(time2.getSeconds(), 2) + "." + pad(time2.getMilliseconds(), 3);
 }
-function repeat(str, times2) {
-  return new Array(times2 + 1).join(str);
+function repeat(str, times) {
+  return new Array(times + 1).join(str);
 }
 function pad(num, maxLength) {
   return repeat("0", maxLength - num.toString().length) + num;
 }
-var index$1 = {
+var index = {
   version: "4.1.0",
   Store,
   storeKey,
@@ -9314,7 +9314,7 @@ let activePinia;
 const setActivePinia = (pinia) => activePinia = pinia;
 const getActivePinia = () => hasInjectionContext() && inject(piniaSymbol) || activePinia;
 const piniaSymbol = Symbol("pinia");
-function isPlainObject$1(o2) {
+function isPlainObject(o2) {
   return o2 && typeof o2 === "object" && Object.prototype.toString.call(o2) === "[object Object]" && typeof o2.toJSON !== "function";
 }
 var MutationType;
@@ -9418,7 +9418,7 @@ function patchObject(newState, oldState) {
       continue;
     }
     const targetValue = newState[key];
-    if (isPlainObject$1(targetValue) && isPlainObject$1(subPatch) && !isRef(subPatch) && !isReactive(subPatch)) {
+    if (isPlainObject(targetValue) && isPlainObject(subPatch) && !isRef(subPatch) && !isReactive(subPatch)) {
       newState[key] = patchObject(targetValue, subPatch);
     } else {
       {
@@ -9487,7 +9487,7 @@ function mergeReactiveObjects(target, patchToApply) {
       continue;
     const subPatch = patchToApply[key];
     const targetValue = target[key];
-    if (isPlainObject$1(targetValue) && isPlainObject$1(subPatch) && target.hasOwnProperty(key) && !isRef(subPatch) && !isReactive(subPatch)) {
+    if (isPlainObject(targetValue) && isPlainObject(subPatch) && target.hasOwnProperty(key) && !isRef(subPatch) && !isReactive(subPatch)) {
       target[key] = mergeReactiveObjects(targetValue, subPatch);
     } else {
       target[key] = subPatch;
@@ -9500,7 +9500,7 @@ function skipHydrate(obj) {
   return Object.defineProperty(obj, skipHydrateSymbol, {});
 }
 function shouldHydrate(obj) {
-  return !isPlainObject$1(obj) || !obj.hasOwnProperty(skipHydrateSymbol);
+  return !isPlainObject(obj) || !obj.hasOwnProperty(skipHydrateSymbol);
 }
 const { assign } = Object;
 function isComputed(o2) {
@@ -9642,17 +9642,17 @@ function createSetupStore($id, setup, options = {}, pinia, hot, isOptionsStore) 
       let ret;
       try {
         ret = action.apply(this && this.$id === $id ? this : store, args);
-      } catch (error2) {
-        triggerSubscriptions(onErrorCallbackList, error2);
-        throw error2;
+      } catch (error) {
+        triggerSubscriptions(onErrorCallbackList, error);
+        throw error;
       }
       if (ret instanceof Promise) {
         return ret.then((value) => {
           triggerSubscriptions(afterCallbackList, value);
           return value;
-        }).catch((error2) => {
-          triggerSubscriptions(onErrorCallbackList, error2);
-          return Promise.reject(error2);
+        }).catch((error) => {
+          triggerSubscriptions(onErrorCallbackList, error);
+          return Promise.reject(error);
         });
       }
       triggerSubscriptions(afterCallbackList, ret);
@@ -9765,7 +9765,7 @@ function createSetupStore($id, setup, options = {}, pinia, hot, isOptionsStore) 
         if (stateKey in store.$state) {
           const newStateTarget = newStore.$state[stateKey];
           const oldStateSource = store.$state[stateKey];
-          if (typeof newStateTarget === "object" && isPlainObject$1(newStateTarget) && isPlainObject$1(oldStateSource)) {
+          if (typeof newStateTarget === "object" && isPlainObject(newStateTarget) && isPlainObject(oldStateSource)) {
             patchObject(newStateTarget, oldStateSource);
           } else {
             newStore.$state[stateKey] = oldStateSource;
@@ -10056,7 +10056,7 @@ const Pinia = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
   skipHydrate,
   storeToRefs
 }, Symbol.toStringTag, { value: "Module" }));
-const createLifeCycleHook = (lifecycle, flag2 = 0) => (hook, target = getCurrentInstance()) => {
+const createLifeCycleHook = (lifecycle, flag = 0) => (hook, target = getCurrentInstance()) => {
   !isInSSRComponentSetup && injectHook(lifecycle, hook, target);
 };
 const onShow = /* @__PURE__ */ createLifeCycleHook(
@@ -11287,28 +11287,28 @@ var Tokenizer = (
       return this._value[delta];
     };
     Tokenizer2.prototype.consumeUnicodeRangeToken = function() {
-      var digits2 = [];
+      var digits = [];
       var codePoint = this.consumeCodePoint();
-      while (isHex(codePoint) && digits2.length < 6) {
-        digits2.push(codePoint);
+      while (isHex(codePoint) && digits.length < 6) {
+        digits.push(codePoint);
         codePoint = this.consumeCodePoint();
       }
       var questionMarks = false;
-      while (codePoint === QUESTION_MARK && digits2.length < 6) {
-        digits2.push(codePoint);
+      while (codePoint === QUESTION_MARK && digits.length < 6) {
+        digits.push(codePoint);
         codePoint = this.consumeCodePoint();
         questionMarks = true;
       }
       if (questionMarks) {
-        var start_1 = parseInt(fromCodePoint$1.apply(void 0, digits2.map(function(digit) {
+        var start_1 = parseInt(fromCodePoint$1.apply(void 0, digits.map(function(digit) {
           return digit === QUESTION_MARK ? ZERO : digit;
         })), 16);
-        var end = parseInt(fromCodePoint$1.apply(void 0, digits2.map(function(digit) {
+        var end = parseInt(fromCodePoint$1.apply(void 0, digits.map(function(digit) {
           return digit === QUESTION_MARK ? F : digit;
         })), 16);
         return { type: 30, start: start_1, end };
       }
-      var start = parseInt(fromCodePoint$1.apply(void 0, digits2), 16);
+      var start = parseInt(fromCodePoint$1.apply(void 0, digits), 16);
       if (this.peekCodePoint(0) === HYPHEN_MINUS && isHex(this.peekCodePoint(1))) {
         this.consumeCodePoint();
         codePoint = this.consumeCodePoint();
@@ -11400,9 +11400,9 @@ var Tokenizer = (
       var SLICE_STACK_SIZE = 5e4;
       var value = "";
       while (count > 0) {
-        var amount2 = Math.min(SLICE_STACK_SIZE, count);
-        value += fromCodePoint$1.apply(void 0, this._value.splice(0, amount2));
-        count -= amount2;
+        var amount = Math.min(SLICE_STACK_SIZE, count);
+        value += fromCodePoint$1.apply(void 0, this._value.splice(0, amount));
+        count -= amount;
       }
       this._value.shift();
       return value;
@@ -11469,19 +11469,19 @@ var Tokenizer = (
       return [stringToNumber(repr), type];
     };
     Tokenizer2.prototype.consumeNumericToken = function() {
-      var _a = this.consumeNumber(), number2 = _a[0], flags = _a[1];
+      var _a = this.consumeNumber(), number = _a[0], flags = _a[1];
       var c1 = this.peekCodePoint(0);
       var c2 = this.peekCodePoint(1);
       var c3 = this.peekCodePoint(2);
       if (isIdentifierStart(c1, c2, c3)) {
         var unit = this.consumeName();
-        return { type: 15, number: number2, flags, unit };
+        return { type: 15, number, flags, unit };
       }
       if (c1 === PERCENTAGE_SIGN) {
         this.consumeCodePoint();
-        return { type: 16, number: number2, flags };
+        return { type: 16, number, flags };
       }
-      return { type: 17, number: number2, flags };
+      return { type: 17, number, flags };
     };
     Tokenizer2.prototype.consumeEscapedCodePoint = function() {
       var codePoint = this.consumeCodePoint();
@@ -11785,7 +11785,7 @@ var parseNamedSide = function(tokens) {
 var deg = function(deg2) {
   return Math.PI * deg2 / 180;
 };
-var color$1$1 = {
+var color$1 = {
   name: "color",
   parse: function(context, value) {
     if (value.type === 18) {
@@ -11908,7 +11908,7 @@ var SUPPORTED_COLOR_FUNCTIONS = {
   rgba: rgb
 };
 var parseColor = function(context, value) {
-  return color$1$1.parse(context, Parser.create(value).parseComponentValue());
+  return color$1.parse(context, Parser.create(value).parseComponentValue());
 };
 var COLORS = {
   ALICEBLUE: 4042850303,
@@ -12088,7 +12088,7 @@ var backgroundColor = {
   format: "color"
 };
 var parseColorStop = function(context, args) {
-  var color2 = color$1$1.parse(context, args[0]);
+  var color2 = color$1.parse(context, args[0]);
   var stop = args[1];
   return stop && isLengthPercentage(stop) ? { color: color2, stop } : { color: color2, stop: null };
 };
@@ -12296,15 +12296,15 @@ var webkitGradient = function(context, tokens) {
     }
     if (firstToken.type === 18) {
       if (firstToken.name === "from") {
-        var color2 = color$1$1.parse(context, firstToken.values[0]);
+        var color2 = color$1.parse(context, firstToken.values[0]);
         stops.push({ stop: ZERO_LENGTH, color: color2 });
       } else if (firstToken.name === "to") {
-        var color2 = color$1$1.parse(context, firstToken.values[0]);
+        var color2 = color$1.parse(context, firstToken.values[0]);
         stops.push({ stop: HUNDRED_PERCENT, color: color2 });
       } else if (firstToken.name === "color-stop") {
         var values = firstToken.values.filter(nonFunctionArgSeparator);
         if (values.length === 2) {
-          var color2 = color$1$1.parse(context, values[1]);
+          var color2 = color$1.parse(context, values[1]);
           var stop_1 = values[0];
           if (isNumberToken(stop_1)) {
             stops.push({
@@ -12492,7 +12492,7 @@ var isLinearGradient = function(background) {
 var isRadialGradient = function(background) {
   return background.type === 2;
 };
-var image$2 = {
+var image = {
   name: "image",
   parse: function(context, value) {
     if (value.type === 22) {
@@ -12546,7 +12546,7 @@ var backgroundImage = {
     return tokens.filter(function(value) {
       return nonFunctionArgSeparator(value) && isSupportedImage(value);
     }).map(function(value) {
-      return image$2.parse(context, value);
+      return image.parse(context, value);
     });
   }
 };
@@ -12699,7 +12699,7 @@ var borderTopWidth = borderWidthForSide("top");
 var borderRightWidth = borderWidthForSide("right");
 var borderBottomWidth = borderWidthForSide("bottom");
 var borderLeftWidth = borderWidthForSide("left");
-var color$4 = {
+var color = {
   name: "color",
   initialValue: "transparent",
   prefix: false,
@@ -12885,7 +12885,7 @@ var listStyleImage = {
     if (token.type === 20 && token.value === "none") {
       return null;
     }
-    return image$2.parse(context, token);
+    return image.parse(context, token);
   }
 };
 var listStylePosition = {
@@ -13152,7 +13152,7 @@ var textShadow = {
           }
           c++;
         } else {
-          shadow.color = color$1$1.parse(context, token);
+          shadow.color = color$1.parse(context, token);
         }
       }
       return shadow;
@@ -13287,7 +13287,7 @@ var wordBreak = {
     }
   }
 };
-var zIndex$1 = {
+var zIndex = {
   name: "z-index",
   initialValue: "auto",
   prefix: false,
@@ -13353,8 +13353,8 @@ var textDecorationLine = {
           return 4;
       }
       return 0;
-    }).filter(function(line2) {
-      return line2 !== 0;
+    }).filter(function(line) {
+      return line !== 0;
     });
   }
 };
@@ -13445,7 +13445,7 @@ var fontStyle = {
     }
   }
 };
-var contains$1 = function(bit, value) {
+var contains = function(bit, value) {
   return (bit & value) !== 0;
 };
 var content = {
@@ -13594,7 +13594,7 @@ var boxShadow = {
           }
           c++;
         } else {
-          shadow.color = color$1$1.parse(context, token);
+          shadow.color = color$1.parse(context, token);
         }
       }
       return shadow;
@@ -13668,73 +13668,73 @@ var CSSParsedDeclaration = (
   function() {
     function CSSParsedDeclaration2(context, declaration) {
       var _a, _b;
-      this.animationDuration = parse$1(context, duration, declaration.animationDuration);
-      this.backgroundClip = parse$1(context, backgroundClip, declaration.backgroundClip);
-      this.backgroundColor = parse$1(context, backgroundColor, declaration.backgroundColor);
-      this.backgroundImage = parse$1(context, backgroundImage, declaration.backgroundImage);
-      this.backgroundOrigin = parse$1(context, backgroundOrigin, declaration.backgroundOrigin);
-      this.backgroundPosition = parse$1(context, backgroundPosition, declaration.backgroundPosition);
-      this.backgroundRepeat = parse$1(context, backgroundRepeat, declaration.backgroundRepeat);
-      this.backgroundSize = parse$1(context, backgroundSize, declaration.backgroundSize);
-      this.borderTopColor = parse$1(context, borderTopColor, declaration.borderTopColor);
-      this.borderRightColor = parse$1(context, borderRightColor, declaration.borderRightColor);
-      this.borderBottomColor = parse$1(context, borderBottomColor, declaration.borderBottomColor);
-      this.borderLeftColor = parse$1(context, borderLeftColor, declaration.borderLeftColor);
-      this.borderTopLeftRadius = parse$1(context, borderTopLeftRadius, declaration.borderTopLeftRadius);
-      this.borderTopRightRadius = parse$1(context, borderTopRightRadius, declaration.borderTopRightRadius);
-      this.borderBottomRightRadius = parse$1(context, borderBottomRightRadius, declaration.borderBottomRightRadius);
-      this.borderBottomLeftRadius = parse$1(context, borderBottomLeftRadius, declaration.borderBottomLeftRadius);
-      this.borderTopStyle = parse$1(context, borderTopStyle, declaration.borderTopStyle);
-      this.borderRightStyle = parse$1(context, borderRightStyle, declaration.borderRightStyle);
-      this.borderBottomStyle = parse$1(context, borderBottomStyle, declaration.borderBottomStyle);
-      this.borderLeftStyle = parse$1(context, borderLeftStyle, declaration.borderLeftStyle);
-      this.borderTopWidth = parse$1(context, borderTopWidth, declaration.borderTopWidth);
-      this.borderRightWidth = parse$1(context, borderRightWidth, declaration.borderRightWidth);
-      this.borderBottomWidth = parse$1(context, borderBottomWidth, declaration.borderBottomWidth);
-      this.borderLeftWidth = parse$1(context, borderLeftWidth, declaration.borderLeftWidth);
-      this.boxShadow = parse$1(context, boxShadow, declaration.boxShadow);
-      this.color = parse$1(context, color$4, declaration.color);
-      this.direction = parse$1(context, direction, declaration.direction);
-      this.display = parse$1(context, display, declaration.display);
-      this.float = parse$1(context, float, declaration.cssFloat);
-      this.fontFamily = parse$1(context, fontFamily, declaration.fontFamily);
-      this.fontSize = parse$1(context, fontSize, declaration.fontSize);
-      this.fontStyle = parse$1(context, fontStyle, declaration.fontStyle);
-      this.fontVariant = parse$1(context, fontVariant, declaration.fontVariant);
-      this.fontWeight = parse$1(context, fontWeight, declaration.fontWeight);
-      this.letterSpacing = parse$1(context, letterSpacing, declaration.letterSpacing);
-      this.lineBreak = parse$1(context, lineBreak, declaration.lineBreak);
-      this.lineHeight = parse$1(context, lineHeight, declaration.lineHeight);
-      this.listStyleImage = parse$1(context, listStyleImage, declaration.listStyleImage);
-      this.listStylePosition = parse$1(context, listStylePosition, declaration.listStylePosition);
-      this.listStyleType = parse$1(context, listStyleType, declaration.listStyleType);
-      this.marginTop = parse$1(context, marginTop, declaration.marginTop);
-      this.marginRight = parse$1(context, marginRight, declaration.marginRight);
-      this.marginBottom = parse$1(context, marginBottom, declaration.marginBottom);
-      this.marginLeft = parse$1(context, marginLeft, declaration.marginLeft);
-      this.opacity = parse$1(context, opacity, declaration.opacity);
-      var overflowTuple = parse$1(context, overflow, declaration.overflow);
+      this.animationDuration = parse(context, duration, declaration.animationDuration);
+      this.backgroundClip = parse(context, backgroundClip, declaration.backgroundClip);
+      this.backgroundColor = parse(context, backgroundColor, declaration.backgroundColor);
+      this.backgroundImage = parse(context, backgroundImage, declaration.backgroundImage);
+      this.backgroundOrigin = parse(context, backgroundOrigin, declaration.backgroundOrigin);
+      this.backgroundPosition = parse(context, backgroundPosition, declaration.backgroundPosition);
+      this.backgroundRepeat = parse(context, backgroundRepeat, declaration.backgroundRepeat);
+      this.backgroundSize = parse(context, backgroundSize, declaration.backgroundSize);
+      this.borderTopColor = parse(context, borderTopColor, declaration.borderTopColor);
+      this.borderRightColor = parse(context, borderRightColor, declaration.borderRightColor);
+      this.borderBottomColor = parse(context, borderBottomColor, declaration.borderBottomColor);
+      this.borderLeftColor = parse(context, borderLeftColor, declaration.borderLeftColor);
+      this.borderTopLeftRadius = parse(context, borderTopLeftRadius, declaration.borderTopLeftRadius);
+      this.borderTopRightRadius = parse(context, borderTopRightRadius, declaration.borderTopRightRadius);
+      this.borderBottomRightRadius = parse(context, borderBottomRightRadius, declaration.borderBottomRightRadius);
+      this.borderBottomLeftRadius = parse(context, borderBottomLeftRadius, declaration.borderBottomLeftRadius);
+      this.borderTopStyle = parse(context, borderTopStyle, declaration.borderTopStyle);
+      this.borderRightStyle = parse(context, borderRightStyle, declaration.borderRightStyle);
+      this.borderBottomStyle = parse(context, borderBottomStyle, declaration.borderBottomStyle);
+      this.borderLeftStyle = parse(context, borderLeftStyle, declaration.borderLeftStyle);
+      this.borderTopWidth = parse(context, borderTopWidth, declaration.borderTopWidth);
+      this.borderRightWidth = parse(context, borderRightWidth, declaration.borderRightWidth);
+      this.borderBottomWidth = parse(context, borderBottomWidth, declaration.borderBottomWidth);
+      this.borderLeftWidth = parse(context, borderLeftWidth, declaration.borderLeftWidth);
+      this.boxShadow = parse(context, boxShadow, declaration.boxShadow);
+      this.color = parse(context, color, declaration.color);
+      this.direction = parse(context, direction, declaration.direction);
+      this.display = parse(context, display, declaration.display);
+      this.float = parse(context, float, declaration.cssFloat);
+      this.fontFamily = parse(context, fontFamily, declaration.fontFamily);
+      this.fontSize = parse(context, fontSize, declaration.fontSize);
+      this.fontStyle = parse(context, fontStyle, declaration.fontStyle);
+      this.fontVariant = parse(context, fontVariant, declaration.fontVariant);
+      this.fontWeight = parse(context, fontWeight, declaration.fontWeight);
+      this.letterSpacing = parse(context, letterSpacing, declaration.letterSpacing);
+      this.lineBreak = parse(context, lineBreak, declaration.lineBreak);
+      this.lineHeight = parse(context, lineHeight, declaration.lineHeight);
+      this.listStyleImage = parse(context, listStyleImage, declaration.listStyleImage);
+      this.listStylePosition = parse(context, listStylePosition, declaration.listStylePosition);
+      this.listStyleType = parse(context, listStyleType, declaration.listStyleType);
+      this.marginTop = parse(context, marginTop, declaration.marginTop);
+      this.marginRight = parse(context, marginRight, declaration.marginRight);
+      this.marginBottom = parse(context, marginBottom, declaration.marginBottom);
+      this.marginLeft = parse(context, marginLeft, declaration.marginLeft);
+      this.opacity = parse(context, opacity, declaration.opacity);
+      var overflowTuple = parse(context, overflow, declaration.overflow);
       this.overflowX = overflowTuple[0];
       this.overflowY = overflowTuple[overflowTuple.length > 1 ? 1 : 0];
-      this.overflowWrap = parse$1(context, overflowWrap, declaration.overflowWrap);
-      this.paddingTop = parse$1(context, paddingTop, declaration.paddingTop);
-      this.paddingRight = parse$1(context, paddingRight, declaration.paddingRight);
-      this.paddingBottom = parse$1(context, paddingBottom, declaration.paddingBottom);
-      this.paddingLeft = parse$1(context, paddingLeft, declaration.paddingLeft);
-      this.paintOrder = parse$1(context, paintOrder, declaration.paintOrder);
-      this.position = parse$1(context, position, declaration.position);
-      this.textAlign = parse$1(context, textAlign, declaration.textAlign);
-      this.textDecorationColor = parse$1(context, textDecorationColor, (_a = declaration.textDecorationColor) !== null && _a !== void 0 ? _a : declaration.color);
-      this.textDecorationLine = parse$1(context, textDecorationLine, (_b = declaration.textDecorationLine) !== null && _b !== void 0 ? _b : declaration.textDecoration);
-      this.textShadow = parse$1(context, textShadow, declaration.textShadow);
-      this.textTransform = parse$1(context, textTransform, declaration.textTransform);
-      this.transform = parse$1(context, transform$1, declaration.transform);
-      this.transformOrigin = parse$1(context, transformOrigin, declaration.transformOrigin);
-      this.visibility = parse$1(context, visibility, declaration.visibility);
-      this.webkitTextStrokeColor = parse$1(context, webkitTextStrokeColor, declaration.webkitTextStrokeColor);
-      this.webkitTextStrokeWidth = parse$1(context, webkitTextStrokeWidth, declaration.webkitTextStrokeWidth);
-      this.wordBreak = parse$1(context, wordBreak, declaration.wordBreak);
-      this.zIndex = parse$1(context, zIndex$1, declaration.zIndex);
+      this.overflowWrap = parse(context, overflowWrap, declaration.overflowWrap);
+      this.paddingTop = parse(context, paddingTop, declaration.paddingTop);
+      this.paddingRight = parse(context, paddingRight, declaration.paddingRight);
+      this.paddingBottom = parse(context, paddingBottom, declaration.paddingBottom);
+      this.paddingLeft = parse(context, paddingLeft, declaration.paddingLeft);
+      this.paintOrder = parse(context, paintOrder, declaration.paintOrder);
+      this.position = parse(context, position, declaration.position);
+      this.textAlign = parse(context, textAlign, declaration.textAlign);
+      this.textDecorationColor = parse(context, textDecorationColor, (_a = declaration.textDecorationColor) !== null && _a !== void 0 ? _a : declaration.color);
+      this.textDecorationLine = parse(context, textDecorationLine, (_b = declaration.textDecorationLine) !== null && _b !== void 0 ? _b : declaration.textDecoration);
+      this.textShadow = parse(context, textShadow, declaration.textShadow);
+      this.textTransform = parse(context, textTransform, declaration.textTransform);
+      this.transform = parse(context, transform$1, declaration.transform);
+      this.transformOrigin = parse(context, transformOrigin, declaration.transformOrigin);
+      this.visibility = parse(context, visibility, declaration.visibility);
+      this.webkitTextStrokeColor = parse(context, webkitTextStrokeColor, declaration.webkitTextStrokeColor);
+      this.webkitTextStrokeWidth = parse(context, webkitTextStrokeWidth, declaration.webkitTextStrokeWidth);
+      this.wordBreak = parse(context, wordBreak, declaration.wordBreak);
+      this.zIndex = parse(context, zIndex, declaration.zIndex);
     }
     CSSParsedDeclaration2.prototype.isVisible = function() {
       return this.display > 0 && this.opacity > 0 && this.visibility === 0;
@@ -13755,27 +13755,27 @@ var CSSParsedDeclaration = (
       return this.float !== 0;
     };
     CSSParsedDeclaration2.prototype.isInlineLevel = function() {
-      return contains$1(
+      return contains(
         this.display,
         4
         /* INLINE */
-      ) || contains$1(
+      ) || contains(
         this.display,
         33554432
         /* INLINE_BLOCK */
-      ) || contains$1(
+      ) || contains(
         this.display,
         268435456
         /* INLINE_FLEX */
-      ) || contains$1(
+      ) || contains(
         this.display,
         536870912
         /* INLINE_GRID */
-      ) || contains$1(
+      ) || contains(
         this.display,
         67108864
         /* INLINE_LIST_ITEM */
-      ) || contains$1(
+      ) || contains(
         this.display,
         134217728
         /* INLINE_TABLE */
@@ -13788,8 +13788,8 @@ var CSSParsedPseudoDeclaration = (
   /** @class */
   /* @__PURE__ */ function() {
     function CSSParsedPseudoDeclaration2(context, declaration) {
-      this.content = parse$1(context, content, declaration.content);
-      this.quotes = parse$1(context, quotes, declaration.quotes);
+      this.content = parse(context, content, declaration.content);
+      this.quotes = parse(context, quotes, declaration.quotes);
     }
     return CSSParsedPseudoDeclaration2;
   }()
@@ -13798,13 +13798,13 @@ var CSSParsedCounterDeclaration = (
   /** @class */
   /* @__PURE__ */ function() {
     function CSSParsedCounterDeclaration2(context, declaration) {
-      this.counterIncrement = parse$1(context, counterIncrement, declaration.counterIncrement);
-      this.counterReset = parse$1(context, counterReset, declaration.counterReset);
+      this.counterIncrement = parse(context, counterIncrement, declaration.counterIncrement);
+      this.counterReset = parse(context, counterReset, declaration.counterReset);
     }
     return CSSParsedCounterDeclaration2;
   }()
 );
-var parse$1 = function(context, descriptor, style) {
+var parse = function(context, descriptor, style) {
   var tokenizer = new Tokenizer();
   var value = style !== null && typeof style !== "undefined" ? style.toString() : descriptor.initialValue;
   tokenizer.write(value);
@@ -13824,9 +13824,9 @@ var parse$1 = function(context, descriptor, style) {
         case "angle":
           return angle.parse(context, parser.parseComponentValue());
         case "color":
-          return color$1$1.parse(context, parser.parseComponentValue());
+          return color$1.parse(context, parser.parseComponentValue());
         case "image":
-          return image$2.parse(context, parser.parseComponentValue());
+          return image.parse(context, parser.parseComponentValue());
         case "length":
           var length_1 = parser.parseComponentValue();
           return isLength(length_1) ? length_1 : ZERO_LENGTH;
@@ -14181,14 +14181,14 @@ var splitGraphemes = function(str) {
 var testRangeBounds = function(document2) {
   var TEST_HEIGHT = 123;
   if (document2.createRange) {
-    var range2 = document2.createRange();
-    if (range2.getBoundingClientRect) {
+    var range = document2.createRange();
+    if (range.getBoundingClientRect) {
       var testElement = document2.createElement("boundtest");
       testElement.style.height = TEST_HEIGHT + "px";
       testElement.style.display = "block";
       document2.body.appendChild(testElement);
-      range2.selectNode(testElement);
-      var rangeBounds = range2.getBoundingClientRect();
+      range.selectNode(testElement);
+      var rangeBounds = range.getBoundingClientRect();
       var rangeHeight = Math.round(rangeBounds.height);
       document2.body.removeChild(testElement);
       if (rangeHeight === TEST_HEIGHT) {
@@ -14206,7 +14206,7 @@ var testIOSLineBreak = function(document2) {
   testElement.style.letterSpacing = "0px";
   testElement.style.wordSpacing = "0px";
   document2.body.appendChild(testElement);
-  var range2 = document2.createRange();
+  var range = document2.createRange();
   testElement.innerHTML = typeof "".repeat === "function" ? "&#128104;".repeat(10) : "";
   var node = testElement.firstChild;
   var textList = toCodePoints$1(node.data).map(function(i) {
@@ -14214,11 +14214,11 @@ var testIOSLineBreak = function(document2) {
   });
   var offset = 0;
   var prev = {};
-  var supports = textList.every(function(text2, i) {
-    range2.setStart(node, offset);
-    range2.setEnd(node, offset + text2.length);
-    var rect = range2.getBoundingClientRect();
-    offset += text2.length;
+  var supports = textList.every(function(text, i) {
+    range.setStart(node, offset);
+    range.setEnd(node, offset + text.length);
+    var rect = range.getBoundingClientRect();
+    offset += text.length;
     var boundAhead = rect.x > prev.x || rect.y > prev.y;
     prev = rect;
     if (i === 0) {
@@ -14357,8 +14357,8 @@ var FEATURES = {
 var TextBounds = (
   /** @class */
   /* @__PURE__ */ function() {
-    function TextBounds2(text2, bounds) {
-      this.text = text2;
+    function TextBounds2(text, bounds) {
+      this.text = text;
       this.bounds = bounds;
     }
     return TextBounds2;
@@ -14368,29 +14368,29 @@ var parseTextBounds = function(context, value, styles, node) {
   var textList = breakText(value, styles);
   var textBounds = [];
   var offset = 0;
-  textList.forEach(function(text2) {
-    if (styles.textDecorationLine.length || text2.trim().length > 0) {
+  textList.forEach(function(text) {
+    if (styles.textDecorationLine.length || text.trim().length > 0) {
       if (FEATURES.SUPPORT_RANGE_BOUNDS) {
-        var clientRects = createRange(node, offset, text2.length).getClientRects();
+        var clientRects = createRange(node, offset, text.length).getClientRects();
         if (clientRects.length > 1) {
-          var subSegments = segmentGraphemes(text2);
+          var subSegments = segmentGraphemes(text);
           var subOffset_1 = 0;
           subSegments.forEach(function(subSegment) {
             textBounds.push(new TextBounds(subSegment, Bounds.fromDOMRectList(context, createRange(node, subOffset_1 + offset, subSegment.length).getClientRects())));
             subOffset_1 += subSegment.length;
           });
         } else {
-          textBounds.push(new TextBounds(text2, Bounds.fromDOMRectList(context, clientRects)));
+          textBounds.push(new TextBounds(text, Bounds.fromDOMRectList(context, clientRects)));
         }
       } else {
-        var replacementNode = node.splitText(text2.length);
-        textBounds.push(new TextBounds(text2, getWrapperBounds(context, node)));
+        var replacementNode = node.splitText(text.length);
+        textBounds.push(new TextBounds(text, getWrapperBounds(context, node)));
         node = replacementNode;
       }
     } else if (!FEATURES.SUPPORT_RANGE_BOUNDS) {
-      node = node.splitText(text2.length);
+      node = node.splitText(text.length);
     }
-    offset += text2.length;
+    offset += text.length;
   });
   return textBounds;
 };
@@ -14416,10 +14416,10 @@ var createRange = function(node, offset, length) {
   if (!ownerDocument) {
     throw new Error("Node has no owner document");
   }
-  var range2 = ownerDocument.createRange();
-  range2.setStart(node, offset);
-  range2.setEnd(node, offset + length);
-  return range2;
+  var range = ownerDocument.createRange();
+  range.setStart(node, offset);
+  range.setEnd(node, offset + length);
+  return range;
 };
 var segmentGraphemes = function(value) {
   if (FEATURES.SUPPORT_NATIVE_TEXT_SEGMENTATION) {
@@ -14488,16 +14488,16 @@ var TextContainer = (
     return TextContainer2;
   }()
 );
-var transform = function(text2, transform2) {
+var transform = function(text, transform2) {
   switch (transform2) {
     case 1:
-      return text2.toLowerCase();
+      return text.toLowerCase();
     case 3:
-      return text2.replace(CAPITALIZE, capitalize);
+      return text.replace(CAPITALIZE, capitalize);
     case 2:
-      return text2.toUpperCase();
+      return text.toUpperCase();
     default:
-      return text2;
+      return text;
   }
 };
 var CAPITALIZE = /(^|\s|:|-|\(|\))([a-z])/g;
@@ -14615,11 +14615,11 @@ var InputElementContainer = (
   /** @class */
   function(_super) {
     __extends(InputElementContainer2, _super);
-    function InputElementContainer2(context, input2) {
-      var _this = _super.call(this, context, input2) || this;
-      _this.type = input2.type.toLowerCase();
-      _this.checked = input2.checked;
-      _this.value = getInputValue(input2);
+    function InputElementContainer2(context, input) {
+      var _this = _super.call(this, context, input) || this;
+      _this.type = input.type.toLowerCase();
+      _this.checked = input.checked;
+      _this.value = getInputValue(input);
       if (_this.type === CHECKBOX || _this.type === RADIO) {
         _this.styles.backgroundColor = 3739148031;
         _this.styles.borderTopColor = _this.styles.borderRightColor = _this.styles.borderBottomColor = _this.styles.borderLeftColor = 2779096575;
@@ -15135,24 +15135,24 @@ var createAdditiveCounter = function(value, min, max, symbols, fallback, suffix)
   if (value < min || value > max) {
     return createCounterText(value, fallback, suffix.length > 0);
   }
-  return symbols.integers.reduce(function(string2, integer, index2) {
+  return symbols.integers.reduce(function(string, integer, index2) {
     while (value >= integer) {
       value -= integer;
-      string2 += symbols.values[index2];
+      string += symbols.values[index2];
     }
-    return string2;
+    return string;
   }, "") + suffix;
 };
 var createCounterStyleWithSymbolResolver = function(value, codePointRangeLength, isNumeric, resolver) {
-  var string2 = "";
+  var string = "";
   do {
     if (!isNumeric) {
       value--;
     }
-    string2 = resolver(value) + string2;
+    string = resolver(value) + string;
     value /= codePointRangeLength;
   } while (value * codePointRangeLength >= codePointRangeLength);
-  return string2;
+  return string;
 };
 var createCounterStyleFromRange = function(value, codePointRangeStart, codePointRangeEnd, isNumeric, suffix) {
   var codePointRangeLength = codePointRangeEnd - codePointRangeStart + 1;
@@ -15178,22 +15178,22 @@ var createCJKCounter = function(value, numbers, multipliers, negativeSign, suffi
     return createCounterText(value, 4, suffix.length > 0);
   }
   var tmp = Math.abs(value);
-  var string2 = suffix;
+  var string = suffix;
   if (tmp === 0) {
-    return numbers[0] + string2;
+    return numbers[0] + string;
   }
   for (var digit = 0; tmp > 0 && digit <= 4; digit++) {
     var coefficient = tmp % 10;
-    if (coefficient === 0 && contains$1(flags, CJK_ZEROS) && string2 !== "") {
-      string2 = numbers[coefficient] + string2;
-    } else if (coefficient > 1 || coefficient === 1 && digit === 0 || coefficient === 1 && digit === 1 && contains$1(flags, CJK_TEN_COEFFICIENTS) || coefficient === 1 && digit === 1 && contains$1(flags, CJK_TEN_HIGH_COEFFICIENTS) && value > 100 || coefficient === 1 && digit > 1 && contains$1(flags, CJK_HUNDRED_COEFFICIENTS)) {
-      string2 = numbers[coefficient] + (digit > 0 ? multipliers[digit - 1] : "") + string2;
+    if (coefficient === 0 && contains(flags, CJK_ZEROS) && string !== "") {
+      string = numbers[coefficient] + string;
+    } else if (coefficient > 1 || coefficient === 1 && digit === 0 || coefficient === 1 && digit === 1 && contains(flags, CJK_TEN_COEFFICIENTS) || coefficient === 1 && digit === 1 && contains(flags, CJK_TEN_HIGH_COEFFICIENTS) && value > 100 || coefficient === 1 && digit > 1 && contains(flags, CJK_HUNDRED_COEFFICIENTS)) {
+      string = numbers[coefficient] + (digit > 0 ? multipliers[digit - 1] : "") + string;
     } else if (coefficient === 1 && digit > 0) {
-      string2 = multipliers[digit - 1] + string2;
+      string = multipliers[digit - 1] + string;
     }
     tmp = Math.floor(tmp / 10);
   }
-  return (value < 0 ? negativeSign : "") + string2;
+  return (value < 0 ? negativeSign : "") + string;
 };
 var CHINESE_INFORMAL_MULTIPLIERS = "十百千萬";
 var CHINESE_FORMAL_MULTIPLIERS = "拾佰仟萬";
@@ -15212,8 +15212,8 @@ var createCounterText = function(value, type, appendSuffix) {
     case 2:
       return "◾" + spaceSuffix;
     case 5:
-      var string2 = createCounterStyleFromRange(value, 48, 57, true, defaultSuffix);
-      return string2.length < 4 ? "0" + string2 : string2;
+      var string = createCounterStyleFromRange(value, 48, 57, true, defaultSuffix);
+      return string.length < 4 ? "0" + string : string;
     case 4:
       return createCounterStyleFromSymbols(value, "〇一二三四五六七八九", cjkSuffix);
     case 6:
@@ -15478,25 +15478,25 @@ var DocumentCloner = (
       }
       return clonedCanvas;
     };
-    DocumentCloner2.prototype.createVideoClone = function(video2) {
-      var canvas2 = video2.ownerDocument.createElement("canvas");
-      canvas2.width = video2.offsetWidth;
-      canvas2.height = video2.offsetHeight;
+    DocumentCloner2.prototype.createVideoClone = function(video) {
+      var canvas2 = video.ownerDocument.createElement("canvas");
+      canvas2.width = video.offsetWidth;
+      canvas2.height = video.offsetHeight;
       var ctx = canvas2.getContext("2d");
       try {
         if (ctx) {
-          ctx.drawImage(video2, 0, 0, canvas2.width, canvas2.height);
+          ctx.drawImage(video, 0, 0, canvas2.width, canvas2.height);
           if (!this.options.allowTaint) {
             ctx.getImageData(0, 0, canvas2.width, canvas2.height);
           }
         }
         return canvas2;
       } catch (e2) {
-        this.context.logger.info("Unable to clone video as it is tainted", video2);
+        this.context.logger.info("Unable to clone video as it is tainted", video);
       }
-      var blankCanvas = video2.ownerDocument.createElement("canvas");
-      blankCanvas.width = video2.offsetWidth;
-      blankCanvas.height = video2.offsetHeight;
+      var blankCanvas = video.ownerDocument.createElement("canvas");
+      blankCanvas.width = video.offsetWidth;
+      blankCanvas.height = video.offsetHeight;
       return blankCanvas;
     };
     DocumentCloner2.prototype.appendChildNode = function(clone2, child, copyStyles) {
@@ -15611,10 +15611,10 @@ var DocumentCloner = (
               var counterStates = _this.counters.getCounterValues(counter.value);
               var counterType_1 = counterStyle && isIdentToken(counterStyle) ? listStyleType.parse(_this.context, counterStyle.value) : 3;
               var separator = delim && delim.type === 0 ? delim.value : "";
-              var text2 = counterStates.map(function(value2) {
+              var text = counterStates.map(function(value2) {
                 return createCounterText(value2, counterType_1, false);
               }).join(separator);
-              anonymousReplacedElement.appendChild(document2.createTextNode(text2));
+              anonymousReplacedElement.appendChild(document2.createTextNode(text));
             }
           } else
             ;
@@ -15771,14 +15771,14 @@ var CacheStorage = (
   function() {
     function CacheStorage2() {
     }
-    CacheStorage2.getOrigin = function(url2) {
-      var link2 = CacheStorage2._link;
-      if (!link2) {
+    CacheStorage2.getOrigin = function(url) {
+      var link = CacheStorage2._link;
+      if (!link) {
         return "about:blank";
       }
-      link2.href = url2;
-      link2.href = link2.href;
-      return link2.protocol + link2.hostname + link2.port;
+      link.href = url;
+      link.href = link.href;
+      return link.protocol + link.hostname + link.port;
     };
     CacheStorage2.isSameOrigin = function(src) {
       return CacheStorage2.getOrigin(src) === CacheStorage2._origin;
@@ -16254,7 +16254,7 @@ var ElementPaint = (
         parent = parent.parent;
       }
       return effects.filter(function(effect) {
-        return contains$1(effect.target, target);
+        return contains(effect.target, target);
       });
     };
     return ElementPaint2;
@@ -16262,25 +16262,25 @@ var ElementPaint = (
 );
 var parseStackTree = function(parent, stackingContext, realStackingContext, listItems) {
   parent.container.elements.forEach(function(child) {
-    var treatAsRealStackingContext = contains$1(
+    var treatAsRealStackingContext = contains(
       child.flags,
       4
       /* CREATES_REAL_STACKING_CONTEXT */
     );
-    var createsStackingContext2 = contains$1(
+    var createsStackingContext2 = contains(
       child.flags,
       2
       /* CREATES_STACKING_CONTEXT */
     );
     var paintContainer = new ElementPaint(child, parent);
-    if (contains$1(
+    if (contains(
       child.styles.display,
       2048
       /* LIST_ITEM */
     )) {
       listItems.push(paintContainer);
     }
-    var listOwnerItems = contains$1(
+    var listOwnerItems = contains(
       child.flags,
       8
       /* IS_LIST_OWNER */
@@ -16333,7 +16333,7 @@ var parseStackTree = function(parent, stackingContext, realStackingContext, list
       }
       parseStackTree(paintContainer, stackingContext, realStackingContext, listOwnerItems);
     }
-    if (contains$1(
+    if (contains(
       child.flags,
       8
       /* IS_LIST_OWNER */
@@ -16754,7 +16754,7 @@ var CanvasRenderer$1 = (
         return __generator(this, function(_a) {
           switch (_a.label) {
             case 0:
-              if (contains$1(
+              if (contains(
                 paint.container.flags,
                 16
                 /* DEBUG_RENDER */
@@ -16779,16 +16779,16 @@ var CanvasRenderer$1 = (
         });
       });
     };
-    CanvasRenderer2.prototype.renderTextWithLetterSpacing = function(text2, letterSpacing2, baseline) {
+    CanvasRenderer2.prototype.renderTextWithLetterSpacing = function(text, letterSpacing2, baseline) {
       var _this = this;
       if (letterSpacing2 === 0) {
-        this.ctx.fillText(text2.text, text2.bounds.left, text2.bounds.top + baseline);
+        this.ctx.fillText(text.text, text.bounds.left, text.bounds.top + baseline);
       } else {
-        var letters = segmentGraphemes(text2.text);
-        letters.reduce(function(left, letter2) {
-          _this.ctx.fillText(letter2, left, text2.bounds.top + baseline);
-          return left + _this.ctx.measureText(letter2).width;
-        }, text2.bounds.left);
+        var letters = segmentGraphemes(text.text);
+        letters.reduce(function(left, letter) {
+          _this.ctx.fillText(letter, left, text.bounds.top + baseline);
+          return left + _this.ctx.measureText(letter).width;
+        }, text.bounds.left);
       }
     };
     CanvasRenderer2.prototype.createFontStyle = function(styles) {
@@ -16803,7 +16803,7 @@ var CanvasRenderer$1 = (
         fontSize2
       ];
     };
-    CanvasRenderer2.prototype.renderTextNode = function(text2, styles) {
+    CanvasRenderer2.prototype.renderTextNode = function(text, styles) {
       return __awaiter(this, void 0, void 0, function() {
         var _a, font, fontFamily2, fontSize2, _b, baseline, middle, paintOrder2;
         var _this = this;
@@ -16815,20 +16815,20 @@ var CanvasRenderer$1 = (
           this.ctx.textBaseline = "alphabetic";
           _b = this.fontMetrics.getMetrics(fontFamily2, fontSize2), baseline = _b.baseline, middle = _b.middle;
           paintOrder2 = styles.paintOrder;
-          text2.textBounds.forEach(function(text3) {
+          text.textBounds.forEach(function(text2) {
             paintOrder2.forEach(function(paintOrderLayer) {
               switch (paintOrderLayer) {
                 case 0:
                   _this.ctx.fillStyle = asString(styles.color);
-                  _this.renderTextWithLetterSpacing(text3, styles.letterSpacing, baseline);
+                  _this.renderTextWithLetterSpacing(text2, styles.letterSpacing, baseline);
                   var textShadows = styles.textShadow;
-                  if (textShadows.length && text3.text.trim().length) {
+                  if (textShadows.length && text2.text.trim().length) {
                     textShadows.slice(0).reverse().forEach(function(textShadow2) {
                       _this.ctx.shadowColor = asString(textShadow2.color);
                       _this.ctx.shadowOffsetX = textShadow2.offsetX.number * _this.options.scale;
                       _this.ctx.shadowOffsetY = textShadow2.offsetY.number * _this.options.scale;
                       _this.ctx.shadowBlur = textShadow2.blur.number;
-                      _this.renderTextWithLetterSpacing(text3, styles.letterSpacing, baseline);
+                      _this.renderTextWithLetterSpacing(text2, styles.letterSpacing, baseline);
                     });
                     _this.ctx.shadowColor = "";
                     _this.ctx.shadowOffsetX = 0;
@@ -16840,24 +16840,24 @@ var CanvasRenderer$1 = (
                     styles.textDecorationLine.forEach(function(textDecorationLine2) {
                       switch (textDecorationLine2) {
                         case 1:
-                          _this.ctx.fillRect(text3.bounds.left, Math.round(text3.bounds.top + baseline), text3.bounds.width, 1);
+                          _this.ctx.fillRect(text2.bounds.left, Math.round(text2.bounds.top + baseline), text2.bounds.width, 1);
                           break;
                         case 2:
-                          _this.ctx.fillRect(text3.bounds.left, Math.round(text3.bounds.top), text3.bounds.width, 1);
+                          _this.ctx.fillRect(text2.bounds.left, Math.round(text2.bounds.top), text2.bounds.width, 1);
                           break;
                         case 3:
-                          _this.ctx.fillRect(text3.bounds.left, Math.ceil(text3.bounds.top + middle), text3.bounds.width, 1);
+                          _this.ctx.fillRect(text2.bounds.left, Math.ceil(text2.bounds.top + middle), text2.bounds.width, 1);
                           break;
                       }
                     });
                   }
                   break;
                 case 1:
-                  if (styles.webkitTextStrokeWidth && text3.text.trim().length) {
+                  if (styles.webkitTextStrokeWidth && text2.text.trim().length) {
                     _this.ctx.strokeStyle = asString(styles.webkitTextStrokeColor);
                     _this.ctx.lineWidth = styles.webkitTextStrokeWidth;
                     _this.ctx.lineJoin = !!window.chrome ? "miter" : "round";
-                    _this.ctx.strokeText(text3.text, text3.bounds.left, text3.bounds.top + baseline);
+                    _this.ctx.strokeText(text2.text, text2.bounds.left, text2.bounds.top + baseline);
                   }
                   _this.ctx.strokeStyle = "";
                   _this.ctx.lineWidth = 0;
@@ -16886,7 +16886,7 @@ var CanvasRenderer$1 = (
     };
     CanvasRenderer2.prototype.renderNodeContent = function(paint) {
       return __awaiter(this, void 0, void 0, function() {
-        var container, curves, styles, _i, _a, child, image2, image2, iframeRenderer, canvas2, size2, _b, fontFamily2, fontSize2, baseline, bounds, x, textBounds, img, image2, url2, fontFamily2, bounds;
+        var container, curves, styles, _i, _a, child, image2, image2, iframeRenderer, canvas2, size2, _b, fontFamily2, fontSize2, baseline, bounds, x, textBounds, img, image2, url, fontFamily2, bounds;
         return __generator(this, function(_c) {
           switch (_c.label) {
             case 0:
@@ -17022,7 +17022,7 @@ var CanvasRenderer$1 = (
                 this.ctx.textBaseline = "alphabetic";
                 this.ctx.textAlign = "left";
               }
-              if (!contains$1(
+              if (!contains(
                 container.styles.display,
                 2048
                 /* LIST_ITEM */
@@ -17034,18 +17034,18 @@ var CanvasRenderer$1 = (
               if (!(img.type === 0))
                 return [3, 18];
               image2 = void 0;
-              url2 = img.url;
+              url = img.url;
               _c.label = 15;
             case 15:
               _c.trys.push([15, 17, , 18]);
-              return [4, this.context.cache.match(url2)];
+              return [4, this.context.cache.match(url)];
             case 16:
               image2 = _c.sent();
               this.ctx.drawImage(image2, container.bounds.left - (image2.width + 10), container.bounds.top);
               return [3, 18];
             case 17:
               _c.sent();
-              this.context.logger.error("Error loading list-style-image " + url2);
+              this.context.logger.error("Error loading list-style-image " + url);
               return [3, 18];
             case 18:
               return [3, 20];
@@ -17077,7 +17077,7 @@ var CanvasRenderer$1 = (
         return __generator(this, function(_p) {
           switch (_p.label) {
             case 0:
-              if (contains$1(
+              if (contains(
                 stack2.element.container.flags,
                 16
                 /* DEBUG_RENDER */
@@ -17253,24 +17253,24 @@ var CanvasRenderer$1 = (
             case 0:
               index2 = container.styles.backgroundImage.length - 1;
               _loop_1 = function(backgroundImage3) {
-                var image2, url2, _c, path, x, y, width, height, pattern, _d, path, x, y, width, height, _e, lineLength, x0, x1, y0, y1, canvas2, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x, y, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
+                var image2, url, _c, path, x, y, width, height, pattern, _d, path, x, y, width, height, _e, lineLength, x0, x1, y0, y1, canvas2, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x, y, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
                 return __generator(this, function(_h) {
                   switch (_h.label) {
                     case 0:
                       if (!(backgroundImage3.type === 0))
                         return [3, 5];
                       image2 = void 0;
-                      url2 = backgroundImage3.url;
+                      url = backgroundImage3.url;
                       _h.label = 1;
                     case 1:
                       _h.trys.push([1, 3, , 4]);
-                      return [4, this_1.context.cache.match(url2)];
+                      return [4, this_1.context.cache.match(url)];
                     case 2:
                       image2 = _h.sent();
                       return [3, 4];
                     case 3:
                       _h.sent();
-                      this_1.context.logger.error("Error loading background-image " + url2);
+                      this_1.context.logger.error("Error loading background-image " + url);
                       return [3, 4];
                     case 4:
                       if (image2) {
@@ -17931,3279 +17931,6 @@ var parseBackgroundColor = function(context, element, backgroundColorOverride) {
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
-var mixin = {
-  // 定义每个组件都可能需要用到的外部样式以及类名
-  props: {
-    // 每个组件都有的父组件传递的样式，可以为字符串或者对象形式
-    customStyle: {
-      type: [Object, String],
-      default: () => ({})
-    },
-    customClass: {
-      type: String,
-      default: ""
-    },
-    // 跳转的页面路径
-    url: {
-      type: String,
-      default: ""
-    },
-    // 页面跳转的类型
-    linkType: {
-      type: String,
-      default: "navigateTo"
-    }
-  },
-  data() {
-    return {};
-  },
-  onLoad() {
-    this.$u.getRect = this.$uGetRect;
-  },
-  created() {
-    this.$u.getRect = this.$uGetRect;
-  },
-  computed: {
-    // 在2.x版本中，将会把$u挂载到uni对象下，导致在模板中无法使用uni.$u.xxx形式
-    // 所以这里通过computed计算属性将其附加到this.$u上，就可以在模板或者js中使用uni.$u.xxx
-    // 只在nvue环境通过此方式引入完整的$u，其他平台会出现性能问题，非nvue则按需引入（主要原因是props过大）
-    $u() {
-      return index$2.$u.deepMerge(index$2.$u, {
-        props: void 0,
-        http: void 0,
-        mixin: void 0
-      });
-    },
-    /**
-     * 生成bem规则类名
-     * 由于微信小程序，H5，nvue之间绑定class的差异，无法通过:class="[bem()]"的形式进行同用
-     * 故采用如下折中做法，最后返回的是数组（一般平台）或字符串（支付宝和字节跳动平台），类似['a', 'b', 'c']或'a b c'的形式
-     * @param {String} name 组件名称
-     * @param {Array} fixed 一直会存在的类名
-     * @param {Array} change 会根据变量值为true或者false而出现或者隐藏的类名
-     * @returns {Array|string}
-     */
-    bem() {
-      return function(name, fixed, change) {
-        const prefix = `u-${name}--`;
-        const classes = {};
-        if (fixed) {
-          fixed.map((item) => {
-            classes[prefix + this[item]] = true;
-          });
-        }
-        if (change) {
-          change.map((item) => {
-            this[item] ? classes[prefix + item] = this[item] : delete classes[prefix + item];
-          });
-        }
-        return Object.keys(classes);
-      };
-    }
-  },
-  methods: {
-    // 跳转某一个页面
-    openPage(urlKey = "url") {
-      const url2 = this[urlKey];
-      if (url2) {
-        index$2[this.linkType]({
-          url: url2
-        });
-      }
-    },
-    // 查询节点信息
-    // 目前此方法在支付宝小程序中无法获取组件跟接点的尺寸，为支付宝的bug(2020-07-21)
-    // 解决办法为在组件根部再套一个没有任何作用的view元素
-    $uGetRect(selector, all) {
-      return new Promise((resolve2) => {
-        index$2.createSelectorQuery().in(this)[all ? "selectAll" : "select"](selector).boundingClientRect((rect) => {
-          if (all && Array.isArray(rect) && rect.length) {
-            resolve2(rect);
-          }
-          if (!all && rect) {
-            resolve2(rect);
-          }
-        }).exec();
-      });
-    },
-    getParentData(parentName = "") {
-      if (!this.parent)
-        this.parent = {};
-      this.parent = index$2.$u.$parent.call(this, parentName);
-      if (this.parent.children) {
-        this.parent.children.indexOf(this) === -1 && this.parent.children.push(this);
-      }
-      if (this.parent && this.parentData) {
-        Object.keys(this.parentData).map((key) => {
-          this.parentData[key] = this.parent[key];
-        });
-      }
-    },
-    // 阻止事件冒泡
-    preventEvent(e2) {
-      e2 && typeof e2.stopPropagation === "function" && e2.stopPropagation();
-    },
-    // 空操作
-    noop(e2) {
-      this.preventEvent(e2);
-    }
-  },
-  onReachBottom() {
-    index$2.$emit("uOnReachBottom");
-  },
-  beforeDestroy() {
-    if (this.parent && index$2.$u.test.array(this.parent.children)) {
-      const childrenList = this.parent.children;
-      childrenList.map((child, index2) => {
-        if (child === this) {
-          childrenList.splice(index2, 1);
-        }
-      });
-    }
-  }
-};
-const mixin$1 = /* @__PURE__ */ getDefaultExportFromCjs(mixin);
-const mpMixin = {
-  // 将自定义节点设置成虚拟的，更加接近Vue组件的表现，能更好的使用flex属性
-  options: {
-    virtualHost: true
-  }
-};
-const { toString: toString$1 } = Object.prototype;
-function isArray(val) {
-  return toString$1.call(val) === "[object Array]";
-}
-function isObject(val) {
-  return val !== null && typeof val === "object";
-}
-function isDate(val) {
-  return toString$1.call(val) === "[object Date]";
-}
-function isURLSearchParams(val) {
-  return typeof URLSearchParams !== "undefined" && val instanceof URLSearchParams;
-}
-function forEach(obj, fn) {
-  if (obj === null || typeof obj === "undefined") {
-    return;
-  }
-  if (typeof obj !== "object") {
-    obj = [obj];
-  }
-  if (isArray(obj)) {
-    for (let i = 0, l = obj.length; i < l; i++) {
-      fn.call(null, obj[i], i, obj);
-    }
-  } else {
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        fn.call(null, obj[key], key, obj);
-      }
-    }
-  }
-}
-function isPlainObject(obj) {
-  return Object.prototype.toString.call(obj) === "[object Object]";
-}
-function deepMerge$1() {
-  const result = {};
-  function assignValue(val, key) {
-    if (typeof result[key] === "object" && typeof val === "object") {
-      result[key] = deepMerge$1(result[key], val);
-    } else if (typeof val === "object") {
-      result[key] = deepMerge$1({}, val);
-    } else {
-      result[key] = val;
-    }
-  }
-  for (let i = 0, l = arguments.length; i < l; i++) {
-    forEach(arguments[i], assignValue);
-  }
-  return result;
-}
-function isUndefined(val) {
-  return typeof val === "undefined";
-}
-function encode(val) {
-  return encodeURIComponent(val).replace(/%40/gi, "@").replace(/%3A/gi, ":").replace(/%24/g, "$").replace(/%2C/gi, ",").replace(/%20/g, "+").replace(/%5B/gi, "[").replace(/%5D/gi, "]");
-}
-function buildURL(url2, params) {
-  if (!params) {
-    return url2;
-  }
-  let serializedParams;
-  if (isURLSearchParams(params)) {
-    serializedParams = params.toString();
-  } else {
-    const parts = [];
-    forEach(params, (val, key) => {
-      if (val === null || typeof val === "undefined") {
-        return;
-      }
-      if (isArray(val)) {
-        key = `${key}[]`;
-      } else {
-        val = [val];
-      }
-      forEach(val, (v) => {
-        if (isDate(v)) {
-          v = v.toISOString();
-        } else if (isObject(v)) {
-          v = JSON.stringify(v);
-        }
-        parts.push(`${encode(key)}=${encode(v)}`);
-      });
-    });
-    serializedParams = parts.join("&");
-  }
-  if (serializedParams) {
-    const hashmarkIndex = url2.indexOf("#");
-    if (hashmarkIndex !== -1) {
-      url2 = url2.slice(0, hashmarkIndex);
-    }
-    url2 += (url2.indexOf("?") === -1 ? "?" : "&") + serializedParams;
-  }
-  return url2;
-}
-function isAbsoluteURL(url2) {
-  return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url2);
-}
-function combineURLs(baseURL, relativeURL) {
-  return relativeURL ? `${baseURL.replace(/\/+$/, "")}/${relativeURL.replace(/^\/+/, "")}` : baseURL;
-}
-function buildFullPath(baseURL, requestedURL) {
-  if (baseURL && !isAbsoluteURL(requestedURL)) {
-    return combineURLs(baseURL, requestedURL);
-  }
-  return requestedURL;
-}
-function settle(resolve2, reject, response) {
-  const { validateStatus: validateStatus2 } = response.config;
-  const status = response.statusCode;
-  if (status && (!validateStatus2 || validateStatus2(status))) {
-    resolve2(response);
-  } else {
-    reject(response);
-  }
-}
-const mergeKeys$1 = (keys, config2) => {
-  const config3 = {};
-  keys.forEach((prop) => {
-    if (!isUndefined(config2[prop])) {
-      config3[prop] = config2[prop];
-    }
-  });
-  return config3;
-};
-const adapter = (config2) => new Promise((resolve2, reject) => {
-  const fullPath = buildURL(buildFullPath(config2.baseURL, config2.url), config2.params);
-  const _config = {
-    url: fullPath,
-    header: config2.header,
-    complete: (response) => {
-      config2.fullPath = fullPath;
-      response.config = config2;
-      try {
-        if (typeof response.data === "string") {
-          response.data = JSON.parse(response.data);
-        }
-      } catch (e2) {
-      }
-      settle(resolve2, reject, response);
-    }
-  };
-  let requestTask;
-  if (config2.method === "UPLOAD") {
-    delete _config.header["content-type"];
-    delete _config.header["Content-Type"];
-    const otherConfig = {
-      filePath: config2.filePath,
-      name: config2.name
-    };
-    const optionalKeys = [
-      "formData"
-    ];
-    requestTask = index$2.uploadFile({ ..._config, ...otherConfig, ...mergeKeys$1(optionalKeys, config2) });
-  } else if (config2.method === "DOWNLOAD") {
-    requestTask = index$2.downloadFile(_config);
-  } else {
-    const optionalKeys = [
-      "data",
-      "method",
-      "timeout",
-      "dataType",
-      "responseType"
-    ];
-    requestTask = index$2.request({ ..._config, ...mergeKeys$1(optionalKeys, config2) });
-  }
-  if (config2.getTask) {
-    config2.getTask(requestTask, config2);
-  }
-});
-const dispatchRequest = (config2) => adapter(config2);
-function InterceptorManager() {
-  this.handlers = [];
-}
-InterceptorManager.prototype.use = function use(fulfilled, rejected) {
-  this.handlers.push({
-    fulfilled,
-    rejected
-  });
-  return this.handlers.length - 1;
-};
-InterceptorManager.prototype.eject = function eject(id) {
-  if (this.handlers[id]) {
-    this.handlers[id] = null;
-  }
-};
-InterceptorManager.prototype.forEach = function forEach2(fn) {
-  this.handlers.forEach((h) => {
-    if (h !== null) {
-      fn(h);
-    }
-  });
-};
-const mergeKeys = (keys, globalsConfig, config2) => {
-  const config3 = {};
-  keys.forEach((prop) => {
-    if (!isUndefined(config2[prop])) {
-      config3[prop] = config2[prop];
-    } else if (!isUndefined(globalsConfig[prop])) {
-      config3[prop] = globalsConfig[prop];
-    }
-  });
-  return config3;
-};
-const mergeConfig = (globalsConfig, config2 = {}) => {
-  const method = config2.method || globalsConfig.method || "GET";
-  let config3 = {
-    baseURL: globalsConfig.baseURL || "",
-    method,
-    url: config2.url || "",
-    params: config2.params || {},
-    custom: { ...globalsConfig.custom || {}, ...config2.custom || {} },
-    header: deepMerge$1(globalsConfig.header || {}, config2.header || {})
-  };
-  const defaultToConfig2Keys = ["getTask", "validateStatus"];
-  config3 = { ...config3, ...mergeKeys(defaultToConfig2Keys, globalsConfig, config2) };
-  if (method === "DOWNLOAD")
-    ;
-  else if (method === "UPLOAD") {
-    delete config3.header["content-type"];
-    delete config3.header["Content-Type"];
-    const uploadKeys = [
-      "filePath",
-      "name",
-      "formData"
-    ];
-    uploadKeys.forEach((prop) => {
-      if (!isUndefined(config2[prop])) {
-        config3[prop] = config2[prop];
-      }
-    });
-  } else {
-    const defaultsKeys = [
-      "data",
-      "timeout",
-      "dataType",
-      "responseType"
-    ];
-    config3 = { ...config3, ...mergeKeys(defaultsKeys, globalsConfig, config2) };
-  }
-  return config3;
-};
-const defaults = {
-  baseURL: "",
-  header: {},
-  method: "GET",
-  dataType: "json",
-  responseType: "text",
-  custom: {},
-  timeout: 6e4,
-  validateStatus: function validateStatus(status) {
-    return status >= 200 && status < 300;
-  }
-};
-var clone = function() {
-  function _instanceof(obj, type) {
-    return type != null && obj instanceof type;
-  }
-  var nativeMap;
-  try {
-    nativeMap = Map;
-  } catch (_) {
-    nativeMap = function() {
-    };
-  }
-  var nativeSet;
-  try {
-    nativeSet = Set;
-  } catch (_) {
-    nativeSet = function() {
-    };
-  }
-  var nativePromise;
-  try {
-    nativePromise = Promise;
-  } catch (_) {
-    nativePromise = function() {
-    };
-  }
-  function clone2(parent, circular, depth, prototype, includeNonEnumerable) {
-    if (typeof circular === "object") {
-      depth = circular.depth;
-      prototype = circular.prototype;
-      includeNonEnumerable = circular.includeNonEnumerable;
-      circular = circular.circular;
-    }
-    var allParents = [];
-    var allChildren = [];
-    var useBuffer = typeof Buffer != "undefined";
-    if (typeof circular == "undefined")
-      circular = true;
-    if (typeof depth == "undefined")
-      depth = Infinity;
-    function _clone(parent2, depth2) {
-      if (parent2 === null)
-        return null;
-      if (depth2 === 0)
-        return parent2;
-      var child;
-      var proto;
-      if (typeof parent2 != "object") {
-        return parent2;
-      }
-      if (_instanceof(parent2, nativeMap)) {
-        child = new nativeMap();
-      } else if (_instanceof(parent2, nativeSet)) {
-        child = new nativeSet();
-      } else if (_instanceof(parent2, nativePromise)) {
-        child = new nativePromise(function(resolve2, reject) {
-          parent2.then(function(value) {
-            resolve2(_clone(value, depth2 - 1));
-          }, function(err) {
-            reject(_clone(err, depth2 - 1));
-          });
-        });
-      } else if (clone2.__isArray(parent2)) {
-        child = [];
-      } else if (clone2.__isRegExp(parent2)) {
-        child = new RegExp(parent2.source, __getRegExpFlags(parent2));
-        if (parent2.lastIndex)
-          child.lastIndex = parent2.lastIndex;
-      } else if (clone2.__isDate(parent2)) {
-        child = new Date(parent2.getTime());
-      } else if (useBuffer && Buffer.isBuffer(parent2)) {
-        if (Buffer.from) {
-          child = Buffer.from(parent2);
-        } else {
-          child = new Buffer(parent2.length);
-          parent2.copy(child);
-        }
-        return child;
-      } else if (_instanceof(parent2, Error)) {
-        child = Object.create(parent2);
-      } else {
-        if (typeof prototype == "undefined") {
-          proto = Object.getPrototypeOf(parent2);
-          child = Object.create(proto);
-        } else {
-          child = Object.create(prototype);
-          proto = prototype;
-        }
-      }
-      if (circular) {
-        var index2 = allParents.indexOf(parent2);
-        if (index2 != -1) {
-          return allChildren[index2];
-        }
-        allParents.push(parent2);
-        allChildren.push(child);
-      }
-      if (_instanceof(parent2, nativeMap)) {
-        parent2.forEach(function(value, key) {
-          var keyChild = _clone(key, depth2 - 1);
-          var valueChild = _clone(value, depth2 - 1);
-          child.set(keyChild, valueChild);
-        });
-      }
-      if (_instanceof(parent2, nativeSet)) {
-        parent2.forEach(function(value) {
-          var entryChild = _clone(value, depth2 - 1);
-          child.add(entryChild);
-        });
-      }
-      for (var i in parent2) {
-        var attrs = Object.getOwnPropertyDescriptor(parent2, i);
-        if (attrs) {
-          child[i] = _clone(parent2[i], depth2 - 1);
-        }
-        try {
-          var objProperty = Object.getOwnPropertyDescriptor(parent2, i);
-          if (objProperty.set === "undefined") {
-            continue;
-          }
-          child[i] = _clone(parent2[i], depth2 - 1);
-        } catch (e2) {
-          if (e2 instanceof TypeError) {
-            continue;
-          } else if (e2 instanceof ReferenceError) {
-            continue;
-          }
-        }
-      }
-      if (Object.getOwnPropertySymbols) {
-        var symbols = Object.getOwnPropertySymbols(parent2);
-        for (var i = 0; i < symbols.length; i++) {
-          var symbol = symbols[i];
-          var descriptor = Object.getOwnPropertyDescriptor(parent2, symbol);
-          if (descriptor && !descriptor.enumerable && !includeNonEnumerable) {
-            continue;
-          }
-          child[symbol] = _clone(parent2[symbol], depth2 - 1);
-          Object.defineProperty(child, symbol, descriptor);
-        }
-      }
-      if (includeNonEnumerable) {
-        var allPropertyNames = Object.getOwnPropertyNames(parent2);
-        for (var i = 0; i < allPropertyNames.length; i++) {
-          var propertyName = allPropertyNames[i];
-          var descriptor = Object.getOwnPropertyDescriptor(parent2, propertyName);
-          if (descriptor && descriptor.enumerable) {
-            continue;
-          }
-          child[propertyName] = _clone(parent2[propertyName], depth2 - 1);
-          Object.defineProperty(child, propertyName, descriptor);
-        }
-      }
-      return child;
-    }
-    return _clone(parent, depth);
-  }
-  clone2.clonePrototype = function clonePrototype(parent) {
-    if (parent === null)
-      return null;
-    var c = function() {
-    };
-    c.prototype = parent;
-    return new c();
-  };
-  function __objToStr(o2) {
-    return Object.prototype.toString.call(o2);
-  }
-  clone2.__objToStr = __objToStr;
-  function __isDate(o2) {
-    return typeof o2 === "object" && __objToStr(o2) === "[object Date]";
-  }
-  clone2.__isDate = __isDate;
-  function __isArray(o2) {
-    return typeof o2 === "object" && __objToStr(o2) === "[object Array]";
-  }
-  clone2.__isArray = __isArray;
-  function __isRegExp(o2) {
-    return typeof o2 === "object" && __objToStr(o2) === "[object RegExp]";
-  }
-  clone2.__isRegExp = __isRegExp;
-  function __getRegExpFlags(re) {
-    var flags = "";
-    if (re.global)
-      flags += "g";
-    if (re.ignoreCase)
-      flags += "i";
-    if (re.multiline)
-      flags += "m";
-    return flags;
-  }
-  clone2.__getRegExpFlags = __getRegExpFlags;
-  return clone2;
-}();
-class Request {
-  /**
-  * @param {Object} arg - 全局配置
-  * @param {String} arg.baseURL - 全局根路径
-  * @param {Object} arg.header - 全局header
-  * @param {String} arg.method = [GET|POST|PUT|DELETE|CONNECT|HEAD|OPTIONS|TRACE] - 全局默认请求方式
-  * @param {String} arg.dataType = [json] - 全局默认的dataType
-  * @param {String} arg.responseType = [text|arraybuffer] - 全局默认的responseType。支付宝小程序不支持
-  * @param {Object} arg.custom - 全局默认的自定义参数
-  * @param {Number} arg.timeout - 全局默认的超时时间，单位 ms。默认60000。H5(HBuilderX 2.9.9+)、APP(HBuilderX 2.9.9+)、微信小程序（2.10.0）、支付宝小程序
-  * @param {Boolean} arg.sslVerify - 全局默认的是否验证 ssl 证书。默认true.仅App安卓端支持（HBuilderX 2.3.3+）
-  * @param {Boolean} arg.withCredentials - 全局默认的跨域请求时是否携带凭证（cookies）。默认false。仅H5支持（HBuilderX 2.6.15+）
-  * @param {Boolean} arg.firstIpv4 - 全DNS解析时优先使用ipv4。默认false。仅 App-Android 支持 (HBuilderX 2.8.0+)
-  * @param {Function(statusCode):Boolean} arg.validateStatus - 全局默认的自定义验证器。默认statusCode >= 200 && statusCode < 300
-  */
-  constructor(arg = {}) {
-    if (!isPlainObject(arg)) {
-      arg = {};
-      index$2.__f__("warn", "at node_modules/uview-ui/libs/luch-request/core/Request.js:39", "设置全局参数必须接收一个Object");
-    }
-    this.config = clone({ ...defaults, ...arg });
-    this.interceptors = {
-      request: new InterceptorManager(),
-      response: new InterceptorManager()
-    };
-  }
-  /**
-  * @Function
-  * @param {Request~setConfigCallback} f - 设置全局默认配置
-  */
-  setConfig(f2) {
-    this.config = f2(this.config);
-  }
-  middleware(config2) {
-    config2 = mergeConfig(this.config, config2);
-    const chain = [dispatchRequest, void 0];
-    let promise2 = Promise.resolve(config2);
-    this.interceptors.request.forEach((interceptor) => {
-      chain.unshift(interceptor.fulfilled, interceptor.rejected);
-    });
-    this.interceptors.response.forEach((interceptor) => {
-      chain.push(interceptor.fulfilled, interceptor.rejected);
-    });
-    while (chain.length) {
-      promise2 = promise2.then(chain.shift(), chain.shift());
-    }
-    return promise2;
-  }
-  /**
-  * @Function
-  * @param {Object} config - 请求配置项
-  * @prop {String} options.url - 请求路径
-  * @prop {Object} options.data - 请求参数
-  * @prop {Object} [options.responseType = config.responseType] [text|arraybuffer] - 响应的数据类型
-  * @prop {Object} [options.dataType = config.dataType] - 如果设为 json，会尝试对返回的数据做一次 JSON.parse
-  * @prop {Object} [options.header = config.header] - 请求header
-  * @prop {Object} [options.method = config.method] - 请求方法
-  * @returns {Promise<unknown>}
-  */
-  request(config2 = {}) {
-    return this.middleware(config2);
-  }
-  get(url2, options = {}) {
-    return this.middleware({
-      url: url2,
-      method: "GET",
-      ...options
-    });
-  }
-  post(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "POST",
-      ...options
-    });
-  }
-  put(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "PUT",
-      ...options
-    });
-  }
-  delete(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "DELETE",
-      ...options
-    });
-  }
-  connect(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "CONNECT",
-      ...options
-    });
-  }
-  head(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "HEAD",
-      ...options
-    });
-  }
-  options(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "OPTIONS",
-      ...options
-    });
-  }
-  trace(url2, data, options = {}) {
-    return this.middleware({
-      url: url2,
-      data,
-      method: "TRACE",
-      ...options
-    });
-  }
-  upload(url2, config2 = {}) {
-    config2.url = url2;
-    config2.method = "UPLOAD";
-    return this.middleware(config2);
-  }
-  download(url2, config2 = {}) {
-    config2.url = url2;
-    config2.method = "DOWNLOAD";
-    return this.middleware(config2);
-  }
-}
-class Router {
-  constructor() {
-    this.config = {
-      type: "navigateTo",
-      url: "",
-      delta: 1,
-      // navigateBack页面后退时,回退的层数
-      params: {},
-      // 传递的参数
-      animationType: "pop-in",
-      // 窗口动画,只在APP有效
-      animationDuration: 300,
-      // 窗口动画持续时间,单位毫秒,只在APP有效
-      intercept: false
-      // 是否需要拦截
-    };
-    this.route = this.route.bind(this);
-  }
-  // 判断url前面是否有"/"，如果没有则加上，否则无法跳转
-  addRootPath(url2) {
-    return url2[0] === "/" ? url2 : `/${url2}`;
-  }
-  // 整合路由参数
-  mixinParam(url2, params) {
-    url2 = url2 && this.addRootPath(url2);
-    let query = "";
-    if (/.*\/.*\?.*=.*/.test(url2)) {
-      query = index$2.$u.queryParams(params, false);
-      return url2 += `&${query}`;
-    }
-    query = index$2.$u.queryParams(params);
-    return url2 += query;
-  }
-  // 对外的方法名称
-  async route(options = {}, params = {}) {
-    let mergeConfig2 = {};
-    if (typeof options === "string") {
-      mergeConfig2.url = this.mixinParam(options, params);
-      mergeConfig2.type = "navigateTo";
-    } else {
-      mergeConfig2 = index$2.$u.deepMerge(this.config, options);
-      mergeConfig2.url = this.mixinParam(options.url, options.params);
-    }
-    if (mergeConfig2.url === index$2.$u.page())
-      return;
-    if (params.intercept) {
-      this.config.intercept = params.intercept;
-    }
-    mergeConfig2.params = params;
-    mergeConfig2 = index$2.$u.deepMerge(this.config, mergeConfig2);
-    if (typeof index$2.$u.routeIntercept === "function") {
-      const isNext = await new Promise((resolve2, reject) => {
-        index$2.$u.routeIntercept(mergeConfig2, resolve2);
-      });
-      isNext && this.openPage(mergeConfig2);
-    } else {
-      this.openPage(mergeConfig2);
-    }
-  }
-  // 执行路由跳转
-  openPage(config2) {
-    const {
-      url: url2,
-      type,
-      delta,
-      animationType,
-      animationDuration
-    } = config2;
-    if (config2.type == "navigateTo" || config2.type == "to") {
-      index$2.navigateTo({
-        url: url2,
-        animationType,
-        animationDuration
-      });
-    }
-    if (config2.type == "redirectTo" || config2.type == "redirect") {
-      index$2.redirectTo({
-        url: url2
-      });
-    }
-    if (config2.type == "switchTab" || config2.type == "tab") {
-      index$2.switchTab({
-        url: url2
-      });
-    }
-    if (config2.type == "reLaunch" || config2.type == "launch") {
-      index$2.reLaunch({
-        url: url2
-      });
-    }
-    if (config2.type == "navigateBack" || config2.type == "back") {
-      index$2.navigateBack({
-        delta
-      });
-    }
-  }
-}
-const route = new Router().route;
-function colorGradient(startColor = "rgb(0, 0, 0)", endColor = "rgb(255, 255, 255)", step = 10) {
-  const startRGB = hexToRgb(startColor, false);
-  const startR = startRGB[0];
-  const startG = startRGB[1];
-  const startB = startRGB[2];
-  const endRGB = hexToRgb(endColor, false);
-  const endR = endRGB[0];
-  const endG = endRGB[1];
-  const endB = endRGB[2];
-  const sR = (endR - startR) / step;
-  const sG = (endG - startG) / step;
-  const sB = (endB - startB) / step;
-  const colorArr = [];
-  for (let i = 0; i < step; i++) {
-    let hex = rgbToHex(`rgb(${Math.round(sR * i + startR)},${Math.round(sG * i + startG)},${Math.round(sB * i + startB)})`);
-    if (i === 0)
-      hex = rgbToHex(startColor);
-    if (i === step - 1)
-      hex = rgbToHex(endColor);
-    colorArr.push(hex);
-  }
-  return colorArr;
-}
-function hexToRgb(sColor, str = true) {
-  const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-  sColor = String(sColor).toLowerCase();
-  if (sColor && reg.test(sColor)) {
-    if (sColor.length === 4) {
-      let sColorNew = "#";
-      for (let i = 1; i < 4; i += 1) {
-        sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
-      }
-      sColor = sColorNew;
-    }
-    const sColorChange = [];
-    for (let i = 1; i < 7; i += 2) {
-      sColorChange.push(parseInt(`0x${sColor.slice(i, i + 2)}`));
-    }
-    if (!str) {
-      return sColorChange;
-    }
-    return `rgb(${sColorChange[0]},${sColorChange[1]},${sColorChange[2]})`;
-  }
-  if (/^(rgb|RGB)/.test(sColor)) {
-    const arr = sColor.replace(/(?:\(|\)|rgb|RGB)*/g, "").split(",");
-    return arr.map((val) => Number(val));
-  }
-  return sColor;
-}
-function rgbToHex(rgb2) {
-  const _this = rgb2;
-  const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-  if (/^(rgb|RGB)/.test(_this)) {
-    const aColor = _this.replace(/(?:\(|\)|rgb|RGB)*/g, "").split(",");
-    let strHex = "#";
-    for (let i = 0; i < aColor.length; i++) {
-      let hex = Number(aColor[i]).toString(16);
-      hex = String(hex).length == 1 ? `${0}${hex}` : hex;
-      if (hex === "0") {
-        hex += hex;
-      }
-      strHex += hex;
-    }
-    if (strHex.length !== 7) {
-      strHex = _this;
-    }
-    return strHex;
-  }
-  if (reg.test(_this)) {
-    const aNum = _this.replace(/#/, "").split("");
-    if (aNum.length === 6) {
-      return _this;
-    }
-    if (aNum.length === 3) {
-      let numHex = "#";
-      for (let i = 0; i < aNum.length; i += 1) {
-        numHex += aNum[i] + aNum[i];
-      }
-      return numHex;
-    }
-  } else {
-    return _this;
-  }
-}
-function colorToRgba(color2, alpha) {
-  color2 = rgbToHex(color2);
-  const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
-  let sColor = String(color2).toLowerCase();
-  if (sColor && reg.test(sColor)) {
-    if (sColor.length === 4) {
-      let sColorNew = "#";
-      for (let i = 1; i < 4; i += 1) {
-        sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
-      }
-      sColor = sColorNew;
-    }
-    const sColorChange = [];
-    for (let i = 1; i < 7; i += 2) {
-      sColorChange.push(parseInt(`0x${sColor.slice(i, i + 2)}`));
-    }
-    return `rgba(${sColorChange.join(",")},${alpha})`;
-  }
-  return sColor;
-}
-const colorGradient$1 = {
-  colorGradient,
-  hexToRgb,
-  rgbToHex,
-  colorToRgba
-};
-function email(value) {
-  return /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/.test(value);
-}
-function mobile(value) {
-  return /^1([3589]\d|4[5-9]|6[1-2,4-7]|7[0-8])\d{8}$/.test(value);
-}
-function url(value) {
-  return /^((https|http|ftp|rtsp|mms):\/\/)(([0-9a-zA-Z_!~*'().&=+$%-]+: )?[0-9a-zA-Z_!~*'().&=+$%-]+@)?(([0-9]{1,3}.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z].[a-zA-Z]{2,6})(:[0-9]{1,4})?((\/?)|(\/[0-9a-zA-Z_!~*'().;?:@&=+$,%#-]+)+\/?)$/.test(value);
-}
-function date(value) {
-  if (!value)
-    return false;
-  if (number(value))
-    value = +value;
-  return !/Invalid|NaN/.test(new Date(value).toString());
-}
-function dateISO(value) {
-  return /^\d{4}[\/\-](0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])$/.test(value);
-}
-function number(value) {
-  return /^[\+-]?(\d+\.?\d*|\.\d+|\d\.\d+e\+\d+)$/.test(value);
-}
-function string(value) {
-  return typeof value === "string";
-}
-function digits(value) {
-  return /^\d+$/.test(value);
-}
-function idCard(value) {
-  return /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/.test(
-    value
-  );
-}
-function carNo(value) {
-  const xreg = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z]{1}(([0-9]{5}[DF]$)|([DF][A-HJ-NP-Z0-9][0-9]{4}$))/;
-  const creg = /^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领A-Z]{1}[A-Z]{1}[A-HJ-NP-Z0-9]{4}[A-HJ-NP-Z0-9挂学警港澳]{1}$/;
-  if (value.length === 7) {
-    return creg.test(value);
-  }
-  if (value.length === 8) {
-    return xreg.test(value);
-  }
-  return false;
-}
-function amount(value) {
-  return /^[1-9]\d*(,\d{3})*(\.\d{1,2})?$|^0\.\d{1,2}$/.test(value);
-}
-function chinese(value) {
-  const reg = /^[\u4e00-\u9fa5]+$/gi;
-  return reg.test(value);
-}
-function letter(value) {
-  return /^[a-zA-Z]*$/.test(value);
-}
-function enOrNum(value) {
-  const reg = /^[0-9a-zA-Z]*$/g;
-  return reg.test(value);
-}
-function contains(value, param) {
-  return value.indexOf(param) >= 0;
-}
-function range$1(value, param) {
-  return value >= param[0] && value <= param[1];
-}
-function rangeLength(value, param) {
-  return value.length >= param[0] && value.length <= param[1];
-}
-function landline(value) {
-  const reg = /^\d{3,4}-\d{7,8}(-\d{3,4})?$/;
-  return reg.test(value);
-}
-function empty$1(value) {
-  switch (typeof value) {
-    case "undefined":
-      return true;
-    case "string":
-      if (value.replace(/(^[ \t\n\r]*)|([ \t\n\r]*$)/g, "").length == 0)
-        return true;
-      break;
-    case "boolean":
-      if (!value)
-        return true;
-      break;
-    case "number":
-      if (value === 0 || isNaN(value))
-        return true;
-      break;
-    case "object":
-      if (value === null || value.length === 0)
-        return true;
-      for (const i in value) {
-        return false;
-      }
-      return true;
-  }
-  return false;
-}
-function jsonString(value) {
-  if (typeof value === "string") {
-    try {
-      const obj = JSON.parse(value);
-      if (typeof obj === "object" && obj) {
-        return true;
-      }
-      return false;
-    } catch (e2) {
-      return false;
-    }
-  }
-  return false;
-}
-function array(value) {
-  if (typeof Array.isArray === "function") {
-    return Array.isArray(value);
-  }
-  return Object.prototype.toString.call(value) === "[object Array]";
-}
-function object(value) {
-  return Object.prototype.toString.call(value) === "[object Object]";
-}
-function code$1(value, len = 6) {
-  return new RegExp(`^\\d{${len}}$`).test(value);
-}
-function func(value) {
-  return typeof value === "function";
-}
-function promise(value) {
-  return object(value) && func(value.then) && func(value.catch);
-}
-function image$1(value) {
-  const newValue = value.split("?")[0];
-  const IMAGE_REGEXP = /\.(jpeg|jpg|gif|png|svg|webp|jfif|bmp|dpg)/i;
-  return IMAGE_REGEXP.test(newValue);
-}
-function video(value) {
-  const VIDEO_REGEXP = /\.(mp4|mpg|mpeg|dat|asf|avi|rm|rmvb|mov|wmv|flv|mkv|m3u8)/i;
-  return VIDEO_REGEXP.test(value);
-}
-function regExp(o2) {
-  return o2 && Object.prototype.toString.call(o2) === "[object RegExp]";
-}
-const test = {
-  email,
-  mobile,
-  url,
-  date,
-  dateISO,
-  number,
-  digits,
-  idCard,
-  carNo,
-  amount,
-  chinese,
-  letter,
-  enOrNum,
-  contains,
-  range: range$1,
-  rangeLength,
-  empty: empty$1,
-  isEmpty: empty$1,
-  jsonString,
-  landline,
-  object,
-  array,
-  code: code$1,
-  func,
-  promise,
-  video,
-  image: image$1,
-  regExp,
-  string
-};
-let timeout = null;
-function debounce(func2, wait = 500, immediate = false) {
-  if (timeout !== null)
-    clearTimeout(timeout);
-  if (immediate) {
-    const callNow = !timeout;
-    timeout = setTimeout(() => {
-      timeout = null;
-    }, wait);
-    if (callNow)
-      typeof func2 === "function" && func2();
-  } else {
-    timeout = setTimeout(() => {
-      typeof func2 === "function" && func2();
-    }, wait);
-  }
-}
-let flag;
-function throttle(func2, wait = 500, immediate = true) {
-  if (immediate) {
-    if (!flag) {
-      flag = true;
-      typeof func2 === "function" && func2();
-      setTimeout(() => {
-        flag = false;
-      }, wait);
-    }
-  } else if (!flag) {
-    flag = true;
-    setTimeout(() => {
-      flag = false;
-      typeof func2 === "function" && func2();
-    }, wait);
-  }
-}
-function strip(num, precision = 15) {
-  return +parseFloat(Number(num).toPrecision(precision));
-}
-function digitLength(num) {
-  const eSplit = num.toString().split(/[eE]/);
-  const len = (eSplit[0].split(".")[1] || "").length - +(eSplit[1] || 0);
-  return len > 0 ? len : 0;
-}
-function float2Fixed(num) {
-  if (num.toString().indexOf("e") === -1) {
-    return Number(num.toString().replace(".", ""));
-  }
-  const dLen = digitLength(num);
-  return dLen > 0 ? strip(Number(num) * Math.pow(10, dLen)) : Number(num);
-}
-function checkBoundary(num) {
-  {
-    if (num > Number.MAX_SAFE_INTEGER || num < Number.MIN_SAFE_INTEGER) {
-      index$2.__f__("warn", "at node_modules/uview-ui/libs/function/digit.js:45", `${num} 超出了精度限制，结果可能不正确`);
-    }
-  }
-}
-function iteratorOperation(arr, operation) {
-  const [num1, num2, ...others] = arr;
-  let res = operation(num1, num2);
-  others.forEach((num) => {
-    res = operation(res, num);
-  });
-  return res;
-}
-function times(...nums) {
-  if (nums.length > 2) {
-    return iteratorOperation(nums, times);
-  }
-  const [num1, num2] = nums;
-  const num1Changed = float2Fixed(num1);
-  const num2Changed = float2Fixed(num2);
-  const baseNum = digitLength(num1) + digitLength(num2);
-  const leftValue = num1Changed * num2Changed;
-  checkBoundary(leftValue);
-  return leftValue / Math.pow(10, baseNum);
-}
-function divide(...nums) {
-  if (nums.length > 2) {
-    return iteratorOperation(nums, divide);
-  }
-  const [num1, num2] = nums;
-  const num1Changed = float2Fixed(num1);
-  const num2Changed = float2Fixed(num2);
-  checkBoundary(num1Changed);
-  checkBoundary(num2Changed);
-  return times(num1Changed / num2Changed, strip(Math.pow(10, digitLength(num2) - digitLength(num1))));
-}
-function round(num, ratio) {
-  const base = Math.pow(10, ratio);
-  let result = divide(Math.round(Math.abs(times(num, base))), base);
-  if (num < 0 && result !== 0) {
-    result = times(result, -1);
-  }
-  return result;
-}
-function range(min = 0, max = 0, value = 0) {
-  return Math.max(min, Math.min(max, Number(value)));
-}
-function getPx(value, unit = false) {
-  if (test.number(value)) {
-    return unit ? `${value}px` : Number(value);
-  }
-  if (/(rpx|upx)$/.test(value)) {
-    return unit ? `${index$2.upx2px(parseInt(value))}px` : Number(index$2.upx2px(parseInt(value)));
-  }
-  return unit ? `${parseInt(value)}px` : parseInt(value);
-}
-function sleep(value = 30) {
-  return new Promise((resolve2) => {
-    setTimeout(() => {
-      resolve2();
-    }, value);
-  });
-}
-function os() {
-  return index$2.getSystemInfoSync().platform.toLowerCase();
-}
-function sys() {
-  return index$2.getSystemInfoSync();
-}
-function random(min, max) {
-  if (min >= 0 && max > 0 && max >= min) {
-    const gab = max - min + 1;
-    return Math.floor(Math.random() * gab + min);
-  }
-  return 0;
-}
-function guid(len = 32, firstU = true, radix = null) {
-  const chars2 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
-  const uuid = [];
-  radix = radix || chars2.length;
-  if (len) {
-    for (let i = 0; i < len; i++)
-      uuid[i] = chars2[0 | Math.random() * radix];
-  } else {
-    let r;
-    uuid[8] = uuid[13] = uuid[18] = uuid[23] = "-";
-    uuid[14] = "4";
-    for (let i = 0; i < 36; i++) {
-      if (!uuid[i]) {
-        r = 0 | Math.random() * 16;
-        uuid[i] = chars2[i == 19 ? r & 3 | 8 : r];
-      }
-    }
-  }
-  if (firstU) {
-    uuid.shift();
-    return `u${uuid.join("")}`;
-  }
-  return uuid.join("");
-}
-function $parent(name = void 0) {
-  let parent = this.$parent;
-  while (parent) {
-    if (parent.$options && parent.$options.name !== name) {
-      parent = parent.$parent;
-    } else {
-      return parent;
-    }
-  }
-  return false;
-}
-function addStyle(customStyle, target = "object") {
-  if (test.empty(customStyle) || typeof customStyle === "object" && target === "object" || target === "string" && typeof customStyle === "string") {
-    return customStyle;
-  }
-  if (target === "object") {
-    customStyle = trim(customStyle);
-    const styleArray = customStyle.split(";");
-    const style = {};
-    for (let i = 0; i < styleArray.length; i++) {
-      if (styleArray[i]) {
-        const item = styleArray[i].split(":");
-        style[trim(item[0])] = trim(item[1]);
-      }
-    }
-    return style;
-  }
-  let string2 = "";
-  for (const i in customStyle) {
-    const key = i.replace(/([A-Z])/g, "-$1").toLowerCase();
-    string2 += `${key}:${customStyle[i]};`;
-  }
-  return trim(string2);
-}
-function addUnit(value = "auto", unit = ((_b) => (_b = ((_a) => (_a = index$2 == null ? void 0 : index$2.$u) == null ? void 0 : _a.config)()) == null ? void 0 : _b.unit)() ?? "px") {
-  value = String(value);
-  return test.number(value) ? `${value}${unit}` : value;
-}
-function deepClone(obj, cache = /* @__PURE__ */ new WeakMap()) {
-  if (obj === null || typeof obj !== "object")
-    return obj;
-  if (cache.has(obj))
-    return cache.get(obj);
-  let clone2;
-  if (obj instanceof Date) {
-    clone2 = new Date(obj.getTime());
-  } else if (obj instanceof RegExp) {
-    clone2 = new RegExp(obj);
-  } else if (obj instanceof Map) {
-    clone2 = new Map(Array.from(obj, ([key, value]) => [key, deepClone(value, cache)]));
-  } else if (obj instanceof Set) {
-    clone2 = new Set(Array.from(obj, (value) => deepClone(value, cache)));
-  } else if (Array.isArray(obj)) {
-    clone2 = obj.map((value) => deepClone(value, cache));
-  } else if (Object.prototype.toString.call(obj) === "[object Object]") {
-    clone2 = Object.create(Object.getPrototypeOf(obj));
-    cache.set(obj, clone2);
-    for (const [key, value] of Object.entries(obj)) {
-      clone2[key] = deepClone(value, cache);
-    }
-  } else {
-    clone2 = Object.assign({}, obj);
-  }
-  cache.set(obj, clone2);
-  return clone2;
-}
-function deepMerge(target = {}, source = {}) {
-  target = deepClone(target);
-  if (typeof target !== "object" || target === null || typeof source !== "object" || source === null)
-    return target;
-  const merged = Array.isArray(target) ? target.slice() : Object.assign({}, target);
-  for (const prop in source) {
-    if (!source.hasOwnProperty(prop))
-      continue;
-    const sourceValue = source[prop];
-    const targetValue = merged[prop];
-    if (sourceValue instanceof Date) {
-      merged[prop] = new Date(sourceValue);
-    } else if (sourceValue instanceof RegExp) {
-      merged[prop] = new RegExp(sourceValue);
-    } else if (sourceValue instanceof Map) {
-      merged[prop] = new Map(sourceValue);
-    } else if (sourceValue instanceof Set) {
-      merged[prop] = new Set(sourceValue);
-    } else if (typeof sourceValue === "object" && sourceValue !== null) {
-      merged[prop] = deepMerge(targetValue, sourceValue);
-    } else {
-      merged[prop] = sourceValue;
-    }
-  }
-  return merged;
-}
-function error(err) {
-  {
-    index$2.__f__("error", "at node_modules/uview-ui/libs/function/index.js:250", `uView提示：${err}`);
-  }
-}
-function randomArray(array2 = []) {
-  return array2.sort(() => Math.random() - 0.5);
-}
-if (!String.prototype.padStart) {
-  String.prototype.padStart = function(maxLength, fillString = " ") {
-    if (Object.prototype.toString.call(fillString) !== "[object String]") {
-      throw new TypeError(
-        "fillString must be String"
-      );
-    }
-    const str = this;
-    if (str.length >= maxLength)
-      return String(str);
-    const fillLength = maxLength - str.length;
-    let times2 = Math.ceil(fillLength / fillString.length);
-    while (times2 >>= 1) {
-      fillString += fillString;
-      if (times2 === 1) {
-        fillString += fillString;
-      }
-    }
-    return fillString.slice(0, fillLength) + str;
-  };
-}
-function timeFormat(dateTime = null, formatStr = "yyyy-mm-dd") {
-  let date2;
-  if (!dateTime) {
-    date2 = /* @__PURE__ */ new Date();
-  } else if (/^\d{10}$/.test(dateTime == null ? void 0 : dateTime.toString().trim())) {
-    date2 = new Date(dateTime * 1e3);
-  } else if (typeof dateTime === "string" && /^\d+$/.test(dateTime.trim())) {
-    date2 = new Date(Number(dateTime));
-  } else if (typeof dateTime === "string" && dateTime.includes("-") && !dateTime.includes("T")) {
-    date2 = new Date(dateTime.replace(/-/g, "/"));
-  } else {
-    date2 = new Date(dateTime);
-  }
-  const timeSource = {
-    "y": date2.getFullYear().toString(),
-    // 年
-    "m": (date2.getMonth() + 1).toString().padStart(2, "0"),
-    // 月
-    "d": date2.getDate().toString().padStart(2, "0"),
-    // 日
-    "h": date2.getHours().toString().padStart(2, "0"),
-    // 时
-    "M": date2.getMinutes().toString().padStart(2, "0"),
-    // 分
-    "s": date2.getSeconds().toString().padStart(2, "0")
-    // 秒
-    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-  };
-  for (const key in timeSource) {
-    const [ret] = new RegExp(`${key}+`).exec(formatStr) || [];
-    if (ret) {
-      const beginIndex = key === "y" && ret.length === 2 ? 2 : 0;
-      formatStr = formatStr.replace(ret, timeSource[key].slice(beginIndex));
-    }
-  }
-  return formatStr;
-}
-function timeFrom(timestamp = null, format = "yyyy-mm-dd") {
-  if (timestamp == null)
-    timestamp = Number(/* @__PURE__ */ new Date());
-  timestamp = parseInt(timestamp);
-  if (timestamp.toString().length == 10)
-    timestamp *= 1e3;
-  let timer = (/* @__PURE__ */ new Date()).getTime() - timestamp;
-  timer = parseInt(timer / 1e3);
-  let tips = "";
-  switch (true) {
-    case timer < 300:
-      tips = "刚刚";
-      break;
-    case (timer >= 300 && timer < 3600):
-      tips = `${parseInt(timer / 60)}分钟前`;
-      break;
-    case (timer >= 3600 && timer < 86400):
-      tips = `${parseInt(timer / 3600)}小时前`;
-      break;
-    case (timer >= 86400 && timer < 2592e3):
-      tips = `${parseInt(timer / 86400)}天前`;
-      break;
-    default:
-      if (format === false) {
-        if (timer >= 2592e3 && timer < 365 * 86400) {
-          tips = `${parseInt(timer / (86400 * 30))}个月前`;
-        } else {
-          tips = `${parseInt(timer / (86400 * 365))}年前`;
-        }
-      } else {
-        tips = timeFormat(timestamp, format);
-      }
-  }
-  return tips;
-}
-function trim(str, pos = "both") {
-  str = String(str);
-  if (pos == "both") {
-    return str.replace(/^\s+|\s+$/g, "");
-  }
-  if (pos == "left") {
-    return str.replace(/^\s*/, "");
-  }
-  if (pos == "right") {
-    return str.replace(/(\s*$)/g, "");
-  }
-  if (pos == "all") {
-    return str.replace(/\s+/g, "");
-  }
-  return str;
-}
-function queryParams(data = {}, isPrefix = true, arrayFormat = "brackets") {
-  const prefix = isPrefix ? "?" : "";
-  const _result = [];
-  if (["indices", "brackets", "repeat", "comma"].indexOf(arrayFormat) == -1)
-    arrayFormat = "brackets";
-  for (const key in data) {
-    const value = data[key];
-    if (["", void 0, null].indexOf(value) >= 0) {
-      continue;
-    }
-    if (value.constructor === Array) {
-      switch (arrayFormat) {
-        case "indices":
-          for (let i = 0; i < value.length; i++) {
-            _result.push(`${key}[${i}]=${value[i]}`);
-          }
-          break;
-        case "brackets":
-          value.forEach((_value) => {
-            _result.push(`${key}[]=${_value}`);
-          });
-          break;
-        case "repeat":
-          value.forEach((_value) => {
-            _result.push(`${key}=${_value}`);
-          });
-          break;
-        case "comma":
-          let commaStr = "";
-          value.forEach((_value) => {
-            commaStr += (commaStr ? "," : "") + _value;
-          });
-          _result.push(`${key}=${commaStr}`);
-          break;
-        default:
-          value.forEach((_value) => {
-            _result.push(`${key}[]=${_value}`);
-          });
-      }
-    } else {
-      _result.push(`${key}=${value}`);
-    }
-  }
-  return _result.length ? prefix + _result.join("&") : "";
-}
-function toast$1(title, duration2 = 2e3) {
-  index$2.showToast({
-    title: String(title),
-    icon: "none",
-    duration: duration2
-  });
-}
-function type2icon(type = "success", fill = false) {
-  if (["primary", "info", "error", "warning", "success"].indexOf(type) == -1)
-    type = "success";
-  let iconName = "";
-  switch (type) {
-    case "primary":
-      iconName = "info-circle";
-      break;
-    case "info":
-      iconName = "info-circle";
-      break;
-    case "error":
-      iconName = "close-circle";
-      break;
-    case "warning":
-      iconName = "error-circle";
-      break;
-    case "success":
-      iconName = "checkmark-circle";
-      break;
-    default:
-      iconName = "checkmark-circle";
-  }
-  if (fill)
-    iconName += "-fill";
-  return iconName;
-}
-function priceFormat(number2, decimals = 0, decimalPoint = ".", thousandsSeparator = ",") {
-  number2 = `${number2}`.replace(/[^0-9+-Ee.]/g, "");
-  const n2 = !isFinite(+number2) ? 0 : +number2;
-  const prec = !isFinite(+decimals) ? 0 : Math.abs(decimals);
-  const sep = typeof thousandsSeparator === "undefined" ? "," : thousandsSeparator;
-  const dec = typeof decimalPoint === "undefined" ? "." : decimalPoint;
-  let s2 = "";
-  s2 = (prec ? round(n2, prec) + "" : `${Math.round(n2)}`).split(".");
-  const re = /(-?\d+)(\d{3})/;
-  while (re.test(s2[0])) {
-    s2[0] = s2[0].replace(re, `$1${sep}$2`);
-  }
-  if ((s2[1] || "").length < prec) {
-    s2[1] = s2[1] || "";
-    s2[1] += new Array(prec - s2[1].length + 1).join("0");
-  }
-  return s2.join(dec);
-}
-function getDuration(value, unit = true) {
-  const valueNum = parseInt(value);
-  if (unit) {
-    if (/s$/.test(value))
-      return value;
-    return value > 30 ? `${value}ms` : `${value}s`;
-  }
-  if (/ms$/.test(value))
-    return valueNum;
-  if (/s$/.test(value))
-    return valueNum > 30 ? valueNum : valueNum * 1e3;
-  return valueNum;
-}
-function padZero(value) {
-  return `00${value}`.slice(-2);
-}
-function formValidate(instance, event) {
-  const formItem2 = index$2.$u.$parent.call(instance, "u-form-item");
-  const form2 = index$2.$u.$parent.call(instance, "u-form");
-  if (formItem2 && form2) {
-    form2.validateField(formItem2.prop, () => {
-    }, event);
-  }
-}
-function getProperty(obj, key) {
-  if (!obj) {
-    return;
-  }
-  if (typeof key !== "string" || key === "") {
-    return "";
-  }
-  if (key.indexOf(".") !== -1) {
-    const keys = key.split(".");
-    let firstObj = obj[keys[0]] || {};
-    for (let i = 1; i < keys.length; i++) {
-      if (firstObj) {
-        firstObj = firstObj[keys[i]];
-      }
-    }
-    return firstObj;
-  }
-  return obj[key];
-}
-function setProperty(obj, key, value) {
-  if (!obj) {
-    return;
-  }
-  const inFn = function(_obj, keys, v) {
-    if (keys.length === 1) {
-      _obj[keys[0]] = v;
-      return;
-    }
-    while (keys.length > 1) {
-      const k = keys[0];
-      if (!_obj[k] || typeof _obj[k] !== "object") {
-        _obj[k] = {};
-      }
-      keys.shift();
-      inFn(_obj[k], keys, v);
-    }
-  };
-  if (typeof key !== "string" || key === "")
-    ;
-  else if (key.indexOf(".") !== -1) {
-    const keys = key.split(".");
-    inFn(obj, keys, value);
-  } else {
-    obj[key] = value;
-  }
-}
-function page() {
-  var _a;
-  const pages2 = getCurrentPages();
-  return `/${((_a = pages2[pages2.length - 1]) == null ? void 0 : _a.route) ?? ""}`;
-}
-function pages() {
-  const pages2 = getCurrentPages();
-  return pages2;
-}
-function getHistoryPage(back = 0) {
-  const pages2 = getCurrentPages();
-  const len = pages2.length;
-  return pages2[len - 1 + back];
-}
-function setConfig({
-  props: props2 = {},
-  config: config2 = {},
-  color: color2 = {},
-  zIndex: zIndex2 = {}
-}) {
-  const {
-    deepMerge: deepMerge2
-  } = index$2.$u;
-  index$2.$u.config = deepMerge2(index$2.$u.config, config2);
-  index$2.$u.props = deepMerge2(index$2.$u.props, props2);
-  index$2.$u.color = deepMerge2(index$2.$u.color, color2);
-  index$2.$u.zIndex = deepMerge2(index$2.$u.zIndex, zIndex2);
-}
-const index = {
-  range,
-  getPx,
-  sleep,
-  os,
-  sys,
-  random,
-  guid,
-  $parent,
-  addStyle,
-  addUnit,
-  deepClone,
-  deepMerge,
-  error,
-  randomArray,
-  timeFormat,
-  timeFrom,
-  trim,
-  queryParams,
-  toast: toast$1,
-  type2icon,
-  priceFormat,
-  getDuration,
-  padZero,
-  formValidate,
-  getProperty,
-  setProperty,
-  page,
-  pages,
-  getHistoryPage,
-  setConfig
-};
-const version$1 = "2.0.38";
-{
-  index$2.__f__("log", "at node_modules/uview-ui/libs/config/config.js:6", `
- %c uView V${version$1} %c https://uviewui.com/ 
-
-`, "color: #ffffff; background: #3c9cff; padding:5px 0; border-radius: 5px;");
-}
-const config = {
-  v: version$1,
-  version: version$1,
-  // 主题名称
-  type: [
-    "primary",
-    "success",
-    "info",
-    "error",
-    "warning"
-  ],
-  // 颜色部分，本来可以通过scss的:export导出供js使用，但是奈何nvue不支持
-  color: {
-    "u-primary": "#2979ff",
-    "u-warning": "#ff9900",
-    "u-success": "#19be6b",
-    "u-error": "#fa3534",
-    "u-info": "#909399",
-    "u-main-color": "#303133",
-    "u-content-color": "#606266",
-    "u-tips-color": "#909399",
-    "u-light-color": "#c0c4cc"
-  },
-  // 默认单位，可以通过配置为rpx，那么在用于传入组件大小参数为数值时，就默认为rpx
-  unit: "px"
-};
-const actionSheet = {
-  // action-sheet组件
-  actionSheet: {
-    show: false,
-    title: "",
-    description: "",
-    actions: () => [],
-    index: "",
-    cancelText: "",
-    closeOnClickAction: true,
-    safeAreaInsetBottom: true,
-    openType: "",
-    closeOnClickOverlay: true,
-    round: 0
-  }
-};
-const album = {
-  // album 组件
-  album: {
-    urls: () => [],
-    keyName: "",
-    singleSize: 180,
-    multipleSize: 70,
-    space: 6,
-    singleMode: "scaleToFill",
-    multipleMode: "aspectFill",
-    maxCount: 9,
-    previewFullImage: true,
-    rowCount: 3,
-    showMore: true
-  }
-};
-const alert = {
-  // alert警告组件
-  alert: {
-    title: "",
-    type: "warning",
-    description: "",
-    closable: false,
-    showIcon: false,
-    effect: "light",
-    center: false,
-    fontSize: 14
-  }
-};
-const avatar = {
-  // avatar 组件
-  avatar: {
-    src: "",
-    shape: "circle",
-    size: 40,
-    mode: "scaleToFill",
-    text: "",
-    bgColor: "#c0c4cc",
-    color: "#ffffff",
-    fontSize: 18,
-    icon: "",
-    mpAvatar: false,
-    randomBgColor: false,
-    defaultUrl: "",
-    colorIndex: "",
-    name: ""
-  }
-};
-const avatarGroup = {
-  // avatarGroup 组件
-  avatarGroup: {
-    urls: () => [],
-    maxCount: 5,
-    shape: "circle",
-    mode: "scaleToFill",
-    showMore: true,
-    size: 40,
-    keyName: "",
-    gap: 0.5,
-    extraValue: 0
-  }
-};
-const backtop = {
-  // backtop组件
-  backtop: {
-    mode: "circle",
-    icon: "arrow-upward",
-    text: "",
-    duration: 100,
-    scrollTop: 0,
-    top: 400,
-    bottom: 100,
-    right: 20,
-    zIndex: 9,
-    iconStyle: () => ({
-      color: "#909399",
-      fontSize: "19px"
-    })
-  }
-};
-const badge = {
-  // 徽标数组件
-  badge: {
-    isDot: false,
-    value: "",
-    show: true,
-    max: 999,
-    type: "error",
-    showZero: false,
-    bgColor: null,
-    color: null,
-    shape: "circle",
-    numberType: "overflow",
-    offset: () => [],
-    inverted: false,
-    absolute: false
-  }
-};
-const button = {
-  // button组件
-  button: {
-    hairline: false,
-    type: "info",
-    size: "normal",
-    shape: "square",
-    plain: false,
-    disabled: false,
-    loading: false,
-    loadingText: "",
-    loadingMode: "spinner",
-    loadingSize: 15,
-    openType: "",
-    formType: "",
-    appParameter: "",
-    hoverStopPropagation: true,
-    lang: "en",
-    sessionFrom: "",
-    sendMessageTitle: "",
-    sendMessagePath: "",
-    sendMessageImg: "",
-    showMessageCard: false,
-    dataName: "",
-    throttleTime: 0,
-    hoverStartTime: 0,
-    hoverStayTime: 200,
-    text: "",
-    icon: "",
-    iconColor: "",
-    color: ""
-  }
-};
-const calendar = {
-  // calendar 组件
-  calendar: {
-    title: "日期选择",
-    showTitle: true,
-    showSubtitle: true,
-    mode: "single",
-    startText: "开始",
-    endText: "结束",
-    customList: () => [],
-    color: "#3c9cff",
-    minDate: 0,
-    maxDate: 0,
-    defaultDate: null,
-    maxCount: Number.MAX_SAFE_INTEGER,
-    // Infinity
-    rowHeight: 56,
-    formatter: null,
-    showLunar: false,
-    showMark: true,
-    confirmText: "确定",
-    confirmDisabledText: "确定",
-    show: false,
-    closeOnClickOverlay: false,
-    readonly: false,
-    showConfirm: true,
-    maxRange: Number.MAX_SAFE_INTEGER,
-    // Infinity
-    rangePrompt: "",
-    showRangePrompt: true,
-    allowSameDay: false,
-    round: 0,
-    monthNum: 3
-  }
-};
-const carKeyboard = {
-  // 车牌号键盘
-  carKeyboard: {
-    random: false
-  }
-};
-const cell = {
-  // cell组件的props
-  cell: {
-    customClass: "",
-    title: "",
-    label: "",
-    value: "",
-    icon: "",
-    disabled: false,
-    border: true,
-    center: false,
-    url: "",
-    linkType: "navigateTo",
-    clickable: false,
-    isLink: false,
-    required: false,
-    arrowDirection: "",
-    iconStyle: {},
-    rightIconStyle: {},
-    rightIcon: "arrow-right",
-    titleStyle: {},
-    size: "",
-    stop: true,
-    name: ""
-  }
-};
-const cellGroup = {
-  // cell-group组件的props
-  cellGroup: {
-    title: "",
-    border: true,
-    customStyle: {}
-  }
-};
-const checkbox = {
-  // checkbox组件
-  checkbox: {
-    name: "",
-    shape: "",
-    size: "",
-    checkbox: false,
-    disabled: "",
-    activeColor: "",
-    inactiveColor: "",
-    iconSize: "",
-    iconColor: "",
-    label: "",
-    labelSize: "",
-    labelColor: "",
-    labelDisabled: ""
-  }
-};
-const checkboxGroup = {
-  // checkbox-group组件
-  checkboxGroup: {
-    name: "",
-    value: () => [],
-    shape: "square",
-    disabled: false,
-    activeColor: "#2979ff",
-    inactiveColor: "#c8c9cc",
-    size: 18,
-    placement: "row",
-    labelSize: 14,
-    labelColor: "#303133",
-    labelDisabled: false,
-    iconColor: "#ffffff",
-    iconSize: 12,
-    iconPlacement: "left",
-    borderBottom: false
-  }
-};
-const circleProgress = {
-  // circleProgress 组件
-  circleProgress: {
-    percentage: 30
-  }
-};
-const code = {
-  // code 组件
-  code: {
-    seconds: 60,
-    startText: "获取验证码",
-    changeText: "X秒重新获取",
-    endText: "重新获取",
-    keepRunning: false,
-    uniqueKey: ""
-  }
-};
-const codeInput = {
-  // codeInput 组件
-  codeInput: {
-    adjustPosition: true,
-    maxlength: 6,
-    dot: false,
-    mode: "box",
-    hairline: false,
-    space: 10,
-    value: "",
-    focus: false,
-    bold: false,
-    color: "#606266",
-    fontSize: 18,
-    size: 35,
-    disabledKeyboard: false,
-    borderColor: "#c9cacc",
-    disabledDot: true
-  }
-};
-const col = {
-  // col 组件
-  col: {
-    span: 12,
-    offset: 0,
-    justify: "start",
-    align: "stretch",
-    textAlign: "left"
-  }
-};
-const collapse = {
-  // collapse 组件
-  collapse: {
-    value: null,
-    accordion: false,
-    border: true
-  }
-};
-const collapseItem = {
-  // collapseItem 组件
-  collapseItem: {
-    title: "",
-    value: "",
-    label: "",
-    disabled: false,
-    isLink: true,
-    clickable: true,
-    border: true,
-    align: "left",
-    name: "",
-    icon: "",
-    duration: 300
-  }
-};
-const columnNotice = {
-  // columnNotice 组件
-  columnNotice: {
-    text: "",
-    icon: "volume",
-    mode: "",
-    color: "#f9ae3d",
-    bgColor: "#fdf6ec",
-    fontSize: 14,
-    speed: 80,
-    step: false,
-    duration: 1500,
-    disableTouch: true
-  }
-};
-const countDown = {
-  // u-count-down 计时器组件
-  countDown: {
-    time: 0,
-    format: "HH:mm:ss",
-    autoStart: true,
-    millisecond: false
-  }
-};
-const countTo = {
-  // countTo 组件
-  countTo: {
-    startVal: 0,
-    endVal: 0,
-    duration: 2e3,
-    autoplay: true,
-    decimals: 0,
-    useEasing: true,
-    decimal: ".",
-    color: "#606266",
-    fontSize: 22,
-    bold: false,
-    separator: ""
-  }
-};
-const datetimePicker = {
-  // datetimePicker 组件
-  datetimePicker: {
-    show: false,
-    showToolbar: true,
-    value: "",
-    title: "",
-    mode: "datetime",
-    maxDate: new Date((/* @__PURE__ */ new Date()).getFullYear() + 10, 0, 1).getTime(),
-    minDate: new Date((/* @__PURE__ */ new Date()).getFullYear() - 10, 0, 1).getTime(),
-    minHour: 0,
-    maxHour: 23,
-    minMinute: 0,
-    maxMinute: 59,
-    filter: null,
-    formatter: null,
-    loading: false,
-    itemHeight: 44,
-    cancelText: "取消",
-    confirmText: "确认",
-    cancelColor: "#909193",
-    confirmColor: "#3c9cff",
-    visibleItemCount: 5,
-    closeOnClickOverlay: false,
-    immediateChange: false,
-    defaultIndex: () => []
-  }
-};
-const divider = {
-  // divider组件
-  divider: {
-    dashed: false,
-    hairline: true,
-    dot: false,
-    textPosition: "center",
-    text: "",
-    textSize: 14,
-    textColor: "#909399",
-    lineColor: "#dcdfe6"
-  }
-};
-const empty = {
-  // empty组件
-  empty: {
-    icon: "",
-    text: "",
-    textColor: "#c0c4cc",
-    textSize: 14,
-    iconColor: "#c0c4cc",
-    iconSize: 90,
-    mode: "data",
-    width: 160,
-    height: 160,
-    show: true,
-    marginTop: 0
-  }
-};
-const form = {
-  // form 组件
-  form: {
-    model: () => ({}),
-    rules: () => ({}),
-    errorType: "message",
-    borderBottom: true,
-    labelPosition: "left",
-    labelWidth: 45,
-    labelAlign: "left",
-    labelStyle: () => ({})
-  }
-};
-const formItem = {
-  // formItem 组件
-  formItem: {
-    label: "",
-    prop: "",
-    borderBottom: "",
-    labelPosition: "",
-    labelWidth: "",
-    rightIcon: "",
-    leftIcon: "",
-    required: false,
-    leftIconStyle: ""
-  }
-};
-const gap = {
-  // gap组件
-  gap: {
-    bgColor: "transparent",
-    height: 20,
-    marginTop: 0,
-    marginBottom: 0,
-    customStyle: {}
-  }
-};
-const grid = {
-  // grid组件
-  grid: {
-    col: 3,
-    border: false,
-    align: "left"
-  }
-};
-const gridItem = {
-  // grid-item组件
-  gridItem: {
-    name: null,
-    bgColor: "transparent"
-  }
-};
-const {
-  color: color$3
-} = config;
-const icon = {
-  // icon组件
-  icon: {
-    name: "",
-    color: color$3["u-content-color"],
-    size: "16px",
-    bold: false,
-    index: "",
-    hoverClass: "",
-    customPrefix: "uicon",
-    label: "",
-    labelPos: "right",
-    labelSize: "15px",
-    labelColor: color$3["u-content-color"],
-    space: "3px",
-    imgMode: "",
-    width: "",
-    height: "",
-    top: 0,
-    stop: false
-  }
-};
-const image = {
-  // image组件
-  image: {
-    src: "",
-    mode: "aspectFill",
-    width: "300",
-    height: "225",
-    shape: "square",
-    radius: 0,
-    lazyLoad: true,
-    showMenuByLongpress: true,
-    loadingIcon: "photo",
-    errorIcon: "error-circle",
-    showLoading: true,
-    showError: true,
-    fade: true,
-    webp: false,
-    duration: 500,
-    bgColor: "#f3f4f6"
-  }
-};
-const indexAnchor = {
-  // indexAnchor 组件
-  indexAnchor: {
-    text: "",
-    color: "#606266",
-    size: 14,
-    bgColor: "#dedede",
-    height: 32
-  }
-};
-const indexList = {
-  // indexList 组件
-  indexList: {
-    inactiveColor: "#606266",
-    activeColor: "#5677fc",
-    indexList: () => [],
-    sticky: true,
-    customNavHeight: 0
-  }
-};
-const input = {
-  // index 组件
-  input: {
-    value: "",
-    type: "text",
-    fixed: false,
-    disabled: false,
-    disabledColor: "#f5f7fa",
-    clearable: false,
-    password: false,
-    maxlength: -1,
-    placeholder: null,
-    placeholderClass: "input-placeholder",
-    placeholderStyle: "color: #c0c4cc",
-    showWordLimit: false,
-    confirmType: "done",
-    confirmHold: false,
-    holdKeyboard: false,
-    focus: false,
-    autoBlur: false,
-    disableDefaultPadding: false,
-    cursor: -1,
-    cursorSpacing: 30,
-    selectionStart: -1,
-    selectionEnd: -1,
-    adjustPosition: true,
-    inputAlign: "left",
-    fontSize: "15px",
-    color: "#303133",
-    prefixIcon: "",
-    prefixIconStyle: "",
-    suffixIcon: "",
-    suffixIconStyle: "",
-    border: "surround",
-    readonly: false,
-    shape: "square",
-    formatter: null
-  }
-};
-const keyboard = {
-  // 键盘组件
-  keyboard: {
-    mode: "number",
-    dotDisabled: false,
-    tooltip: true,
-    showTips: true,
-    tips: "",
-    showCancel: true,
-    showConfirm: true,
-    random: false,
-    safeAreaInsetBottom: true,
-    closeOnClickOverlay: true,
-    show: false,
-    overlay: true,
-    zIndex: 10075,
-    cancelText: "取消",
-    confirmText: "确定",
-    autoChange: false
-  }
-};
-const line = {
-  // line组件
-  line: {
-    color: "#d6d7d9",
-    length: "100%",
-    direction: "row",
-    hairline: true,
-    margin: 0,
-    dashed: false
-  }
-};
-const lineProgress = {
-  // lineProgress 组件
-  lineProgress: {
-    activeColor: "#19be6b",
-    inactiveColor: "#ececec",
-    percentage: 0,
-    showText: true,
-    height: 12
-  }
-};
-const {
-  color: color$2
-} = config;
-const link = {
-  // link超链接组件props参数
-  link: {
-    color: color$2["u-primary"],
-    fontSize: 15,
-    underLine: false,
-    href: "",
-    mpTips: "链接已复制，请在浏览器打开",
-    lineColor: "",
-    text: ""
-  }
-};
-const list = {
-  // list 组件
-  list: {
-    showScrollbar: false,
-    lowerThreshold: 50,
-    upperThreshold: 0,
-    scrollTop: 0,
-    offsetAccuracy: 10,
-    enableFlex: false,
-    pagingEnabled: false,
-    scrollable: true,
-    scrollIntoView: "",
-    scrollWithAnimation: false,
-    enableBackToTop: false,
-    height: 0,
-    width: 0,
-    preLoadScreen: 1
-  }
-};
-const listItem = {
-  // listItem 组件
-  listItem: {
-    anchor: ""
-  }
-};
-const {
-  color: color$1
-} = config;
-const loadingIcon = {
-  // loading-icon加载中图标组件
-  loadingIcon: {
-    show: true,
-    color: color$1["u-tips-color"],
-    textColor: color$1["u-tips-color"],
-    vertical: false,
-    mode: "spinner",
-    size: 24,
-    textSize: 15,
-    text: "",
-    timingFunction: "ease-in-out",
-    duration: 1200,
-    inactiveColor: ""
-  }
-};
-const loadingPage = {
-  // loading-page组件
-  loadingPage: {
-    loadingText: "正在加载",
-    image: "",
-    loadingMode: "circle",
-    loading: false,
-    bgColor: "#ffffff",
-    color: "#C8C8C8",
-    fontSize: 19,
-    iconSize: 28,
-    loadingColor: "#C8C8C8"
-  }
-};
-const loadmore = {
-  // loadmore 组件
-  loadmore: {
-    status: "loadmore",
-    bgColor: "transparent",
-    icon: true,
-    fontSize: 14,
-    iconSize: 17,
-    color: "#606266",
-    loadingIcon: "spinner",
-    loadmoreText: "加载更多",
-    loadingText: "正在加载...",
-    nomoreText: "没有更多了",
-    isDot: false,
-    iconColor: "#b7b7b7",
-    marginTop: 10,
-    marginBottom: 10,
-    height: "auto",
-    line: false,
-    lineColor: "#E6E8EB",
-    dashed: false
-  }
-};
-const modal = {
-  // modal 组件
-  modal: {
-    show: false,
-    title: "",
-    content: "",
-    confirmText: "确认",
-    cancelText: "取消",
-    showConfirmButton: true,
-    showCancelButton: false,
-    confirmColor: "#2979ff",
-    cancelColor: "#606266",
-    buttonReverse: false,
-    zoom: true,
-    asyncClose: false,
-    closeOnClickOverlay: false,
-    negativeTop: 0,
-    width: "650rpx",
-    confirmButtonShape: "",
-    duration: 400
-  }
-};
-const color = {
-  primary: "#3c9cff",
-  info: "#909399",
-  default: "#909399",
-  warning: "#f9ae3d",
-  error: "#f56c6c",
-  success: "#5ac725",
-  mainColor: "#303133",
-  contentColor: "#606266",
-  tipsColor: "#909399",
-  lightColor: "#c0c4cc",
-  borderColor: "#e4e7ed"
-};
-const navbar = {
-  // navbar 组件
-  navbar: {
-    safeAreaInsetTop: true,
-    placeholder: false,
-    fixed: true,
-    border: false,
-    leftIcon: "arrow-left",
-    leftText: "",
-    rightText: "",
-    rightIcon: "",
-    title: "",
-    bgColor: "#ffffff",
-    titleWidth: "400rpx",
-    height: "44px",
-    leftIconSize: 20,
-    leftIconColor: color.mainColor,
-    autoBack: false,
-    titleStyle: ""
-  }
-};
-const noNetwork = {
-  // noNetwork
-  noNetwork: {
-    tips: "哎呀，网络信号丢失",
-    zIndex: "",
-    image: "data:image/png;base64,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"
-  }
-};
-const noticeBar = {
-  // noticeBar
-  noticeBar: {
-    text: () => [],
-    direction: "row",
-    step: false,
-    icon: "volume",
-    mode: "",
-    color: "#f9ae3d",
-    bgColor: "#fdf6ec",
-    speed: 80,
-    fontSize: 14,
-    duration: 2e3,
-    disableTouch: true,
-    url: "",
-    linkType: "navigateTo"
-  }
-};
-const notify = {
-  // notify组件
-  notify: {
-    top: 0,
-    type: "primary",
-    color: "#ffffff",
-    bgColor: "",
-    message: "",
-    duration: 3e3,
-    fontSize: 15,
-    safeAreaInsetTop: false
-  }
-};
-const numberBox = {
-  // 步进器组件
-  numberBox: {
-    name: "",
-    value: 0,
-    min: 1,
-    max: Number.MAX_SAFE_INTEGER,
-    step: 1,
-    integer: false,
-    disabled: false,
-    disabledInput: false,
-    asyncChange: false,
-    inputWidth: 35,
-    showMinus: true,
-    showPlus: true,
-    decimalLength: null,
-    longPress: true,
-    color: "#323233",
-    buttonSize: 30,
-    bgColor: "#EBECEE",
-    cursorSpacing: 100,
-    disableMinus: false,
-    disablePlus: false,
-    iconStyle: ""
-  }
-};
-const numberKeyboard = {
-  // 数字键盘
-  numberKeyboard: {
-    mode: "number",
-    dotDisabled: false,
-    random: false
-  }
-};
-const overlay = {
-  // overlay组件
-  overlay: {
-    show: false,
-    zIndex: 10070,
-    duration: 300,
-    opacity: 0.5
-  }
-};
-const parse = {
-  // parse
-  parse: {
-    copyLink: true,
-    errorImg: "",
-    lazyLoad: false,
-    loadingImg: "",
-    pauseVideo: true,
-    previewImg: true,
-    setTitle: true,
-    showImgMenu: true
-  }
-};
-const picker = {
-  // picker
-  picker: {
-    show: false,
-    showToolbar: true,
-    title: "",
-    columns: () => [],
-    loading: false,
-    itemHeight: 44,
-    cancelText: "取消",
-    confirmText: "确定",
-    cancelColor: "#909193",
-    confirmColor: "#3c9cff",
-    visibleItemCount: 5,
-    keyName: "text",
-    closeOnClickOverlay: false,
-    defaultIndex: () => [],
-    immediateChange: false
-  }
-};
-const popup = {
-  // popup组件
-  popup: {
-    show: false,
-    overlay: true,
-    mode: "bottom",
-    duration: 300,
-    closeable: false,
-    overlayStyle: () => {
-    },
-    closeOnClickOverlay: true,
-    zIndex: 10075,
-    safeAreaInsetBottom: true,
-    safeAreaInsetTop: false,
-    closeIconPos: "top-right",
-    round: 0,
-    zoom: true,
-    bgColor: "",
-    overlayOpacity: 0.5
-  }
-};
-const radio = {
-  // radio组件
-  radio: {
-    name: "",
-    shape: "",
-    disabled: "",
-    labelDisabled: "",
-    activeColor: "",
-    inactiveColor: "",
-    iconSize: "",
-    labelSize: "",
-    label: "",
-    labelColor: "",
-    size: "",
-    iconColor: "",
-    placement: ""
-  }
-};
-const radioGroup = {
-  // radio-group组件
-  radioGroup: {
-    value: "",
-    disabled: false,
-    shape: "circle",
-    activeColor: "#2979ff",
-    inactiveColor: "#c8c9cc",
-    name: "",
-    size: 18,
-    placement: "row",
-    label: "",
-    labelColor: "#303133",
-    labelSize: 14,
-    labelDisabled: false,
-    iconColor: "#ffffff",
-    iconSize: 12,
-    borderBottom: false,
-    iconPlacement: "left"
-  }
-};
-const rate = {
-  // rate组件
-  rate: {
-    value: 1,
-    count: 5,
-    disabled: false,
-    size: 18,
-    inactiveColor: "#b2b2b2",
-    activeColor: "#FA3534",
-    gutter: 4,
-    minCount: 1,
-    allowHalf: false,
-    activeIcon: "star-fill",
-    inactiveIcon: "star",
-    touchable: true
-  }
-};
-const readMore = {
-  // readMore
-  readMore: {
-    showHeight: 400,
-    toggle: false,
-    closeText: "展开阅读全文",
-    openText: "收起",
-    color: "#2979ff",
-    fontSize: 14,
-    textIndent: "2em",
-    name: ""
-  }
-};
-const row = {
-  // row
-  row: {
-    gutter: 0,
-    justify: "start",
-    align: "center"
-  }
-};
-const rowNotice = {
-  // rowNotice
-  rowNotice: {
-    text: "",
-    icon: "volume",
-    mode: "",
-    color: "#f9ae3d",
-    bgColor: "#fdf6ec",
-    fontSize: 14,
-    speed: 80
-  }
-};
-const scrollList = {
-  // scrollList
-  scrollList: {
-    indicatorWidth: 50,
-    indicatorBarWidth: 20,
-    indicator: true,
-    indicatorColor: "#f2f2f2",
-    indicatorActiveColor: "#3c9cff",
-    indicatorStyle: ""
-  }
-};
-const search = {
-  // search
-  search: {
-    shape: "round",
-    bgColor: "#f2f2f2",
-    placeholder: "请输入关键字",
-    clearabled: true,
-    focus: false,
-    showAction: true,
-    actionStyle: () => ({}),
-    actionText: "搜索",
-    inputAlign: "left",
-    inputStyle: () => ({}),
-    disabled: false,
-    borderColor: "transparent",
-    searchIconColor: "#909399",
-    searchIconSize: 22,
-    color: "#606266",
-    placeholderColor: "#909399",
-    searchIcon: "search",
-    margin: "0",
-    animation: false,
-    value: "",
-    maxlength: "-1",
-    height: 32,
-    label: null
-  }
-};
-const section = {
-  // u-section组件
-  section: {
-    title: "",
-    subTitle: "更多",
-    right: true,
-    fontSize: 15,
-    bold: true,
-    color: "#303133",
-    subColor: "#909399",
-    showLine: true,
-    lineColor: "",
-    arrow: true
-  }
-};
-const skeleton = {
-  // skeleton
-  skeleton: {
-    loading: true,
-    animate: true,
-    rows: 0,
-    rowsWidth: "100%",
-    rowsHeight: 18,
-    title: true,
-    titleWidth: "50%",
-    titleHeight: 18,
-    avatar: false,
-    avatarSize: 32,
-    avatarShape: "circle"
-  }
-};
-const slider = {
-  // slider组件
-  slider: {
-    value: 0,
-    blockSize: 18,
-    min: 0,
-    max: 100,
-    step: 1,
-    activeColor: "#2979ff",
-    inactiveColor: "#c0c4cc",
-    blockColor: "#ffffff",
-    showValue: false,
-    disabled: false,
-    blockStyle: () => {
-    }
-  }
-};
-const statusBar = {
-  // statusBar
-  statusBar: {
-    bgColor: "transparent"
-  }
-};
-const steps = {
-  // steps组件
-  steps: {
-    direction: "row",
-    current: 0,
-    activeColor: "#3c9cff",
-    inactiveColor: "#969799",
-    activeIcon: "",
-    inactiveIcon: "",
-    dot: false
-  }
-};
-const stepsItem = {
-  // steps-item组件
-  stepsItem: {
-    title: "",
-    desc: "",
-    iconSize: 17,
-    error: false
-  }
-};
-const sticky = {
-  // sticky组件
-  sticky: {
-    offsetTop: 0,
-    customNavHeight: 0,
-    disabled: false,
-    bgColor: "transparent",
-    zIndex: "",
-    index: ""
-  }
-};
-const subsection = {
-  // subsection组件
-  subsection: {
-    list: [],
-    current: 0,
-    activeColor: "#3c9cff",
-    inactiveColor: "#303133",
-    mode: "button",
-    fontSize: 12,
-    bold: true,
-    bgColor: "#eeeeef",
-    keyName: "name"
-  }
-};
-const swipeAction = {
-  // swipe-action组件
-  swipeAction: {
-    autoClose: true
-  }
-};
-const swipeActionItem = {
-  // swipeActionItem 组件
-  swipeActionItem: {
-    show: false,
-    name: "",
-    disabled: false,
-    threshold: 20,
-    autoClose: true,
-    options: [],
-    duration: 300
-  }
-};
-const swiper = {
-  // swiper 组件
-  swiper: {
-    list: () => [],
-    indicator: false,
-    indicatorActiveColor: "#FFFFFF",
-    indicatorInactiveColor: "rgba(255, 255, 255, 0.35)",
-    indicatorStyle: "",
-    indicatorMode: "line",
-    autoplay: true,
-    current: 0,
-    currentItemId: "",
-    interval: 3e3,
-    duration: 300,
-    circular: false,
-    previousMargin: 0,
-    nextMargin: 0,
-    acceleration: false,
-    displayMultipleItems: 1,
-    easingFunction: "default",
-    keyName: "url",
-    imgMode: "aspectFill",
-    height: 130,
-    bgColor: "#f3f4f6",
-    radius: 4,
-    loading: false,
-    showTitle: false
-  }
-};
-const swipterIndicator = {
-  // swiperIndicator 组件
-  swiperIndicator: {
-    length: 0,
-    current: 0,
-    indicatorActiveColor: "",
-    indicatorInactiveColor: "",
-    indicatorMode: "line"
-  }
-};
-const _switch = {
-  // switch
-  switch: {
-    loading: false,
-    disabled: false,
-    size: 25,
-    activeColor: "#2979ff",
-    inactiveColor: "#ffffff",
-    value: false,
-    activeValue: true,
-    inactiveValue: false,
-    asyncChange: false,
-    space: 0
-  }
-};
-const tabbar = {
-  // tabbar
-  tabbar: {
-    value: null,
-    safeAreaInsetBottom: true,
-    border: true,
-    zIndex: 1,
-    activeColor: "#1989fa",
-    inactiveColor: "#7d7e80",
-    fixed: true,
-    placeholder: true
-  }
-};
-const tabbarItem = {
-  //
-  tabbarItem: {
-    name: null,
-    icon: "",
-    badge: null,
-    dot: false,
-    text: "",
-    badgeStyle: "top: 6px;right:2px;"
-  }
-};
-const tabs = {
-  //
-  tabs: {
-    duration: 300,
-    list: () => [],
-    lineColor: "#3c9cff",
-    activeStyle: () => ({
-      color: "#303133"
-    }),
-    inactiveStyle: () => ({
-      color: "#606266"
-    }),
-    lineWidth: 20,
-    lineHeight: 3,
-    lineBgSize: "cover",
-    itemStyle: () => ({
-      height: "44px"
-    }),
-    scrollable: true,
-    current: 0,
-    keyName: "name"
-  }
-};
-const tag = {
-  // tag 组件
-  tag: {
-    type: "primary",
-    disabled: false,
-    size: "medium",
-    shape: "square",
-    text: "",
-    bgColor: "",
-    color: "",
-    borderColor: "",
-    closeColor: "#C6C7CB",
-    name: "",
-    plainFill: false,
-    plain: false,
-    closable: false,
-    show: true,
-    icon: ""
-  }
-};
-const text = {
-  // text 组件
-  text: {
-    type: "",
-    show: true,
-    text: "",
-    prefixIcon: "",
-    suffixIcon: "",
-    mode: "",
-    href: "",
-    format: "",
-    call: false,
-    openType: "",
-    bold: false,
-    block: false,
-    lines: "",
-    color: "#303133",
-    size: 15,
-    iconStyle: () => ({
-      fontSize: "15px"
-    }),
-    decoration: "none",
-    margin: 0,
-    lineHeight: "",
-    align: "left",
-    wordWrap: "normal"
-  }
-};
-const textarea = {
-  // textarea 组件
-  textarea: {
-    value: "",
-    placeholder: "",
-    placeholderClass: "textarea-placeholder",
-    placeholderStyle: "color: #c0c4cc",
-    height: 70,
-    confirmType: "done",
-    disabled: false,
-    count: false,
-    focus: false,
-    autoHeight: false,
-    fixed: false,
-    cursorSpacing: 0,
-    cursor: "",
-    showConfirmBar: true,
-    selectionStart: -1,
-    selectionEnd: -1,
-    adjustPosition: true,
-    disableDefaultPadding: false,
-    holdKeyboard: false,
-    maxlength: 140,
-    border: "surround",
-    formatter: null
-  }
-};
-const toast = {
-  // toast组件
-  toast: {
-    zIndex: 10090,
-    loading: false,
-    text: "",
-    icon: "",
-    type: "",
-    loadingMode: "",
-    show: "",
-    overlay: false,
-    position: "center",
-    params: () => {
-    },
-    duration: 2e3,
-    isTab: false,
-    url: "",
-    callback: null,
-    back: false
-  }
-};
-const toolbar = {
-  // toolbar 组件
-  toolbar: {
-    show: true,
-    cancelText: "取消",
-    confirmText: "确认",
-    cancelColor: "#909193",
-    confirmColor: "#3c9cff",
-    title: ""
-  }
-};
-const tooltip = {
-  // tooltip 组件
-  tooltip: {
-    text: "",
-    copyText: "",
-    size: 14,
-    color: "#606266",
-    bgColor: "transparent",
-    direction: "top",
-    zIndex: 10071,
-    showCopy: true,
-    buttons: () => [],
-    overlay: true,
-    showToast: true
-  }
-};
-const transition = {
-  // transition动画组件的props
-  transition: {
-    show: false,
-    mode: "fade",
-    duration: "300",
-    timingFunction: "ease-out"
-  }
-};
-const upload = {
-  // upload组件
-  upload: {
-    accept: "image",
-    capture: () => ["album", "camera"],
-    compressed: true,
-    camera: "back",
-    maxDuration: 60,
-    uploadIcon: "camera-fill",
-    uploadIconColor: "#D3D4D6",
-    useBeforeRead: false,
-    previewFullImage: true,
-    maxCount: 52,
-    disabled: false,
-    imageMode: "aspectFill",
-    name: "",
-    sizeType: () => ["original", "compressed"],
-    multiple: false,
-    deletable: true,
-    maxSize: Number.MAX_VALUE,
-    fileList: () => [],
-    uploadText: "",
-    width: 80,
-    height: 80,
-    previewImage: true
-  }
-};
-const props = {
-  ...actionSheet,
-  ...album,
-  ...alert,
-  ...avatar,
-  ...avatarGroup,
-  ...backtop,
-  ...badge,
-  ...button,
-  ...calendar,
-  ...carKeyboard,
-  ...cell,
-  ...cellGroup,
-  ...checkbox,
-  ...checkboxGroup,
-  ...circleProgress,
-  ...code,
-  ...codeInput,
-  ...col,
-  ...collapse,
-  ...collapseItem,
-  ...columnNotice,
-  ...countDown,
-  ...countTo,
-  ...datetimePicker,
-  ...divider,
-  ...empty,
-  ...form,
-  ...formItem,
-  ...gap,
-  ...grid,
-  ...gridItem,
-  ...icon,
-  ...image,
-  ...indexAnchor,
-  ...indexList,
-  ...input,
-  ...keyboard,
-  ...line,
-  ...lineProgress,
-  ...link,
-  ...list,
-  ...listItem,
-  ...loadingIcon,
-  ...loadingPage,
-  ...loadmore,
-  ...modal,
-  ...navbar,
-  ...noNetwork,
-  ...noticeBar,
-  ...notify,
-  ...numberBox,
-  ...numberKeyboard,
-  ...overlay,
-  ...parse,
-  ...picker,
-  ...popup,
-  ...radio,
-  ...radioGroup,
-  ...rate,
-  ...readMore,
-  ...row,
-  ...rowNotice,
-  ...scrollList,
-  ...search,
-  ...section,
-  ...skeleton,
-  ...slider,
-  ...statusBar,
-  ...steps,
-  ...stepsItem,
-  ...sticky,
-  ...subsection,
-  ...swipeAction,
-  ...swipeActionItem,
-  ...swiper,
-  ...swipterIndicator,
-  ..._switch,
-  ...tabbar,
-  ...tabbarItem,
-  ...tabs,
-  ...tag,
-  ...text,
-  ...textarea,
-  ...toast,
-  ...toolbar,
-  ...tooltip,
-  ...transition,
-  ...upload
-};
-const zIndex = {
-  toast: 10090,
-  noNetwork: 10080,
-  // popup包含popup，actionsheet，keyboard，picker的值
-  popup: 10075,
-  mask: 10070,
-  navbar: 980,
-  topTips: 975,
-  sticky: 970,
-  indexListSticky: 965
-};
-let platform = "none";
-platform = "vue3";
-platform = "weixin";
-platform = "mp";
-const platform$1 = platform;
-const $u = {
-  route,
-  date: index.timeFormat,
-  // 另名date
-  colorGradient: colorGradient$1.colorGradient,
-  hexToRgb: colorGradient$1.hexToRgb,
-  rgbToHex: colorGradient$1.rgbToHex,
-  colorToRgba: colorGradient$1.colorToRgba,
-  test,
-  type: ["primary", "success", "error", "warning", "info"],
-  http: new Request(),
-  config,
-  // uView配置信息相关，比如版本号
-  zIndex,
-  debounce,
-  throttle,
-  mixin: mixin$1,
-  mpMixin,
-  props,
-  ...index,
-  color,
-  platform: platform$1
-};
-index$2.$u = $u;
 function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 }
@@ -21714,7 +18441,7 @@ var aliyunOssSdk$1 = { exports: {} };
           };
         };
       }, { "../common/utils/checkBucketName": 53, "@babel/runtime/helpers/asyncToGenerator": 85, "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/regenerator": 93, "assert": 95, "core-js/modules/es.array.slice.js": 319, "core-js/modules/es.object.keys.js": 328, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.regexp.to-string.js": 339, "core-js/modules/web.dom-collections.for-each.js": 380 }], 3: [function(require2, module3, exports3) {
-        (function(Buffer2, process) {
+        (function(Buffer, process) {
           (function() {
             var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
             var _regenerator = _interopRequireDefault(require2("@babel/runtime/regenerator"));
@@ -21735,7 +18462,7 @@ var aliyunOssSdk$1 = { exports: {} };
             var xml = require2("xml2js");
             var AgentKeepalive = require2("agentkeepalive");
             var merge = require2("merge-descriptors");
-            var platform2 = require2("platform");
+            var platform = require2("platform");
             var utility = require2("utility");
             var urllib = require2("urllib");
             var pkg = require2("./version");
@@ -21751,9 +18478,9 @@ var aliyunOssSdk$1 = { exports: {} };
             var _require7 = require2("../common/utils/getStandardRegion"), getStandardRegion = _require7.getStandardRegion;
             var globalHttpAgent = new AgentKeepalive();
             function _unSupportBrowserTip() {
-              var name = platform2.name, version2 = platform2.version;
+              var name = platform.name, version2 = platform.version;
               if (name && name.toLowerCase && name.toLowerCase() === "ie" && version2.split(".")[0] < 10) {
-                index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:577", "ali-oss does not support the current browser");
+                index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:577", "ali-oss does not support the current browser");
               }
             }
             function isHttpsWebProtocol() {
@@ -21784,7 +18511,7 @@ var aliyunOssSdk$1 = { exports: {} };
             module3.exports = Client;
             Client.initOptions = function initOptions(options) {
               if (!options.stsToken) {
-                index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:620", "Please use STS Token for safety, see more details at https://help.aliyun.com/document_detail/32077.html");
+                index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:620", "Please use STS Token for safety, see more details at https://help.aliyun.com/document_detail/32077.html");
               }
               var opts = Object.assign({
                 secure: isHttpsWebProtocol(),
@@ -21980,7 +18707,7 @@ var aliyunOssSdk$1 = { exports: {} };
             proto._getUserAgent = function _getUserAgent() {
               var agent = process && process.browser ? "js" : "nodejs";
               var sdk = "aliyun-sdk-".concat(agent, "/").concat(pkg.version);
-              var plat = platform2.description;
+              var plat = platform.description;
               if (!plat && process) {
                 plat = "Node.js ".concat(process.version.slice(1), " on ").concat(process.platform, " ").concat(process.arch);
               }
@@ -21995,7 +18722,7 @@ var aliyunOssSdk$1 = { exports: {} };
             };
             proto.parseXML = function parseXMLThunk(str) {
               return new Promise(function(resolve2, reject) {
-                if (Buffer2.isBuffer(str)) {
+                if (Buffer.isBuffer(str)) {
                   str = str.toString();
                 }
                 xml.parseString(str, {
@@ -22153,7 +18880,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }).call(this);
         }).call(this, { "isBuffer": require2("../../node_modules/is-buffer/index.js") }, require2("_process"));
       }, { "../../node_modules/is-buffer/index.js": 409, "../common/bucket/abortBucketWorm": 7, "../common/bucket/completeBucketWorm": 8, "../common/bucket/deleteBucketInventory": 9, "../common/bucket/deleteBucketLifecycle": 10, "../common/bucket/deleteBucketWebsite": 11, "../common/bucket/extendBucketWorm": 12, "../common/bucket/getBucketInventory": 13, "../common/bucket/getBucketLifecycle": 14, "../common/bucket/getBucketVersioning": 15, "../common/bucket/getBucketWebsite": 16, "../common/bucket/getBucketWorm": 17, "../common/bucket/initiateBucketWorm": 18, "../common/bucket/listBucketInventory": 19, "../common/bucket/putBucketInventory": 20, "../common/bucket/putBucketLifecycle": 21, "../common/bucket/putBucketVersioning": 22, "../common/bucket/putBucketWebsite": 23, "../common/client/getReqUrl": 25, "../common/client/initOptions": 26, "../common/multipart": 30, "../common/multipart-copy": 29, "../common/parallel": 51, "../common/signUtils": 52, "../common/utils/createRequest": 58, "../common/utils/encoder": 62, "../common/utils/getStandardRegion": 65, "../common/utils/isFunction": 72, "../common/utils/retry": 80, "../common/utils/setSTSToken": 82, "./bucket": 2, "./managed-upload": 4, "./object": 5, "./version": 6, "@babel/runtime/helpers/asyncToGenerator": 85, "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/regenerator": 93, "_process": 538, "agentkeepalive": 94, "bowser": 101, "core-js/modules/es.array.concat.js": 310, "core-js/modules/es.array.includes.js": 315, "core-js/modules/es.array.slice.js": 319, "core-js/modules/es.function.name.js": 322, "core-js/modules/es.object.assign.js": 325, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.promise.js": 333, "core-js/modules/es.regexp.exec.js": 338, "core-js/modules/es.regexp.to-string.js": 339, "core-js/modules/es.string.replace.js": 345, "core-js/modules/es.symbol.description.js": 351, "core-js/modules/es.symbol.js": 354, "debug": 536, "merge-descriptors": 428, "platform": 440, "urllib": 546, "utility": 545, "xml2js": 496 }], 4: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
             var _regenerator = _interopRequireDefault(require2("@babel/runtime/regenerator"));
@@ -22564,7 +19291,7 @@ var aliyunOssSdk$1 = { exports: {} };
               size2 = size2 || defaultReadSize;
               var that = this;
               this.reader.onload = function onload(e2) {
-                that.fileBuffer = Buffer2.from(new Uint8Array(e2.target.result));
+                that.fileBuffer = Buffer.from(new Uint8Array(e2.target.result));
                 that.file = null;
                 that.readFileAndPush(size2);
               };
@@ -22604,7 +19331,7 @@ var aliyunOssSdk$1 = { exports: {} };
                         return getBuffer(_file);
                       case 4:
                         fileContent = _context5.sent;
-                        return _context5.abrupt("return", Buffer2.from(fileContent));
+                        return _context5.abrupt("return", Buffer.from(fileContent));
                       case 8:
                         if (!isBuffer(file)) {
                           _context5.next = 12;
@@ -22632,7 +19359,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var safeSize = Math.ceil(fileSize / maxNumParts);
               if (partSize < safeSize) {
                 partSize = safeSize;
-                index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:1638", "partSize has been set to ".concat(partSize, ", because the partSize you provided causes partNumber to be greater than 10,000"));
+                index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:1638", "partSize has been set to ".concat(partSize, ", because the partSize you provided causes partNumber to be greater than 10,000"));
               }
               return partSize;
             };
@@ -22939,10 +19666,10 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
             }, _callee5, this);
           }));
-          function list2(_x13, _x14) {
+          function list(_x13, _x14) {
             return _list.apply(this, arguments);
           }
-          return list2;
+          return list;
         }();
         proto.listV2 = /* @__PURE__ */ function() {
           var _listV = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee6(query) {
@@ -23901,13 +20628,13 @@ var aliyunOssSdk$1 = { exports: {} };
             throw new Error("noncurrentDays must be a positive integer");
           }
         }
-        function handleCheckTag(tag2) {
-          if (!isArray2(tag2) && !isObject2(tag2)) {
+        function handleCheckTag(tag) {
+          if (!isArray2(tag) && !isObject2(tag)) {
             throw new Error("tag must be Object or Array");
           }
-          tag2 = isObject2(tag2) ? [tag2] : tag2;
+          tag = isObject2(tag) ? [tag] : tag;
           var tagObj = {};
-          var tagClone = deepCopy2(tag2);
+          var tagClone = deepCopy2(tag);
           tagClone.forEach(function(v) {
             tagObj[v.key] = v.value;
           });
@@ -24017,17 +20744,17 @@ var aliyunOssSdk$1 = { exports: {} };
         var proto = exports3;
         proto.putBucketWebsite = /* @__PURE__ */ function() {
           var _putBucketWebsite = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name) {
-            var config2, options, params, IndexDocument, WebsiteConfiguration, website, result, _args = arguments;
+            var config, options, params, IndexDocument, WebsiteConfiguration, website, result, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
                   case 0:
-                    config2 = _args.length > 1 && _args[1] !== void 0 ? _args[1] : {};
+                    config = _args.length > 1 && _args[1] !== void 0 ? _args[1] : {};
                     options = _args.length > 2 ? _args[2] : void 0;
                     _checkBucketName(name);
                     params = this._bucketRequestParams("PUT", name, "website", options);
                     IndexDocument = {
-                      Suffix: config2.index || "index.html"
+                      Suffix: config.index || "index.html"
                     };
                     WebsiteConfiguration = {
                       IndexDocument
@@ -24035,29 +20762,29 @@ var aliyunOssSdk$1 = { exports: {} };
                     website = {
                       WebsiteConfiguration
                     };
-                    if (config2.supportSubDir) {
-                      IndexDocument.SupportSubDir = config2.supportSubDir;
+                    if (config.supportSubDir) {
+                      IndexDocument.SupportSubDir = config.supportSubDir;
                     }
-                    if (config2.type) {
-                      IndexDocument.Type = config2.type;
+                    if (config.type) {
+                      IndexDocument.Type = config.type;
                     }
-                    if (config2.error) {
+                    if (config.error) {
                       WebsiteConfiguration.ErrorDocument = {
-                        Key: config2.error
+                        Key: config.error
                       };
                     }
-                    if (!(config2.routingRules !== void 0)) {
+                    if (!(config.routingRules !== void 0)) {
                       _context.next = 14;
                       break;
                     }
-                    if (isArray2(config2.routingRules)) {
+                    if (isArray2(config.routingRules)) {
                       _context.next = 13;
                       break;
                     }
                     throw new Error("RoutingRules must be Array");
                   case 13:
                     WebsiteConfiguration.RoutingRules = {
-                      RoutingRule: config2.routingRules
+                      RoutingRule: config.routingRules
                     };
                   case 14:
                     website = obj2xml(website);
@@ -24083,7 +20810,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return putBucketWebsite;
         }();
       }, { "../utils/checkBucketName": 53, "../utils/isArray": 67, "../utils/obj2xml": 76, "@babel/runtime/helpers/asyncToGenerator": 85, "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/regenerator": 93 }], 24: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             require2("core-js/modules/es.object.to-string.js");
             require2("core-js/modules/es.regexp.to-string.js");
@@ -24106,14 +20833,14 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (options.callback.callbackSNI) {
                     json.callbackSNI = options.callback.callbackSNI;
                   }
-                  var callback = Buffer2.from(JSON.stringify(json)).toString("base64");
+                  var callback = Buffer.from(JSON.stringify(json)).toString("base64");
                   reqParams.headers["x-oss-callback"] = callback;
                   if (options.callback.customValue) {
                     var callbackVar = {};
                     Object.keys(options.callback.customValue).forEach(function(key) {
                       callbackVar["x:".concat(key)] = options.callback.customValue[key].toString();
                     });
-                    reqParams.headers["x-oss-callback-var"] = Buffer2.from(JSON.stringify(callbackVar)).toString("base64");
+                    reqParams.headers["x-oss-callback-var"] = Buffer.from(JSON.stringify(callbackVar)).toString("base64");
                   }
                 }
               }
@@ -24189,21 +20916,21 @@ var aliyunOssSdk$1 = { exports: {} };
         var _require3 = require2("../utils/checkConfigValid"), checkConfigValid = _require3.checkConfigValid;
         function setEndpoint(endpoint, secure) {
           checkConfigValid(endpoint, "endpoint");
-          var url2 = urlutil.parse(endpoint);
-          if (!url2.protocol) {
-            url2 = urlutil.parse("http".concat(secure ? "s" : "", "://").concat(endpoint));
+          var url = urlutil.parse(endpoint);
+          if (!url.protocol) {
+            url = urlutil.parse("http".concat(secure ? "s" : "", "://").concat(endpoint));
           }
-          if (url2.protocol !== "http:" && url2.protocol !== "https:") {
+          if (url.protocol !== "http:" && url.protocol !== "https:") {
             throw new Error("Endpoint protocol must be http or https.");
           }
-          return url2;
+          return url;
         }
         module3.exports = function(options) {
           if (!options || !options.accessKeyId || !options.accessKeySecret) {
             throw new Error("require accessKeyId, accessKeySecret");
           }
           if (options.stsToken && !options.refreshSTSToken && !options.refreshSTSTokenInterval) {
-            index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:3421", "It's recommended to set 'refreshSTSToken' and 'refreshSTSTokenInterval' to refresh stsToken、accessKeyId、accessKeySecret automatically when sts token has expired");
+            index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:3421", "It's recommended to set 'refreshSTSToken' and 'refreshSTSTokenInterval' to refresh stsToken、accessKeyId、accessKeySecret automatically when sts token has expired");
           }
           if (options.bucket) {
             _checkBucketName(options.bucket);
@@ -24321,7 +21048,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var copy = require2("copy-to");
         var proto = exports3;
         proto.uploadPartCopy = /* @__PURE__ */ function() {
-          var _uploadPartCopy = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name, uploadId, partNo, range2, sourceData) {
+          var _uploadPartCopy = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name, uploadId, partNo, range, sourceData) {
             var options, versionId, copySource, params, result, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
@@ -24336,8 +21063,8 @@ var aliyunOssSdk$1 = { exports: {} };
                       copySource = "/".concat(sourceData.sourceBucketName, "/").concat(encodeURIComponent(sourceData.sourceKey));
                     }
                     options.headers["x-oss-copy-source"] = copySource;
-                    if (range2) {
-                      options.headers["x-oss-copy-source-range"] = "bytes=".concat(range2);
+                    if (range) {
+                      options.headers["x-oss-copy-source-range"] = "bytes=".concat(range);
                     }
                     options.subres = {
                       partNumber: partNo,
@@ -24476,7 +21203,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     uploadPartJob = function uploadPartJob2(self2, partNo, source) {
                       return new Promise(/* @__PURE__ */ function() {
                         var _ref = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee3(resolve2, reject) {
-                          var pi, range2, result;
+                          var pi, range, result;
                           return _regenerator.default.wrap(function _callee3$(_context3) {
                             while (1)
                               switch (_context3.prev = _context3.next) {
@@ -24487,10 +21214,10 @@ var aliyunOssSdk$1 = { exports: {} };
                                     break;
                                   }
                                   pi = partOffs[partNo - 1];
-                                  range2 = "".concat(pi.start, "-").concat(pi.end - 1);
+                                  range = "".concat(pi.start, "-").concat(pi.end - 1);
                                   _context3.prev = 4;
                                   _context3.next = 7;
-                                  return self2.uploadPartCopy(name, uploadId, partNo, range2, source, uploadPartCopyOptions);
+                                  return self2.uploadPartCopy(name, uploadId, partNo, range, source, uploadPartCopyOptions);
                                 case 7:
                                   result = _context3.sent;
                                   _context3.next = 15;
@@ -25026,7 +21753,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var proto = exports3;
         proto.asyncSignatureUrl = /* @__PURE__ */ function() {
           var _asyncSignatureUrl = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name, options) {
-            var strictObjectNameValidation, expires, params, resource, signRes, url2, _args = arguments;
+            var strictObjectNameValidation, expires, params, resource, signRes, url, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
@@ -25064,14 +21791,14 @@ var aliyunOssSdk$1 = { exports: {} };
                       options["security-token"] = this.options.stsToken;
                     }
                     signRes = signHelper._signatureForURL(this.options.accessKeySecret, options, resource, expires);
-                    url2 = urlutil.parse(this._getReqUrl(params));
-                    url2.query = {
+                    url = urlutil.parse(this._getReqUrl(params));
+                    url.query = {
                       OSSAccessKeyId: this.options.accessKeyId,
                       Expires: expires,
                       Signature: signRes.Signature
                     };
-                    copy(signRes.subResource).to(url2.query);
-                    return _context.abrupt("return", url2.format());
+                    copy(signRes.subResource).to(url.query);
+                    return _context.abrupt("return", url.format());
                   case 20:
                   case "end":
                     return _context.stop();
@@ -25216,7 +21943,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var proto = exports3;
         proto.deleteMulti = /* @__PURE__ */ function() {
           var _deleteMulti = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(names) {
-            var options, objects, i, object2, _names$i, key, versionId, paramXMLObj, paramXML, params, result, r, deleted, _args = arguments;
+            var options, objects, i, object, _names$i, key, versionId, paramXMLObj, paramXML, params, result, r, deleted, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
@@ -25230,15 +21957,15 @@ var aliyunOssSdk$1 = { exports: {} };
                     throw new Error("names is required");
                   case 4:
                     for (i = 0; i < names.length; i++) {
-                      object2 = {};
+                      object = {};
                       if (typeof names[i] === "string") {
-                        object2.Key = utility.escape(this._objectName(names[i]));
+                        object.Key = utility.escape(this._objectName(names[i]));
                       } else {
                         _names$i = names[i], key = _names$i.key, versionId = _names$i.versionId;
-                        object2.Key = utility.escape(this._objectName(key));
-                        object2.VersionId = versionId;
+                        object.Key = utility.escape(this._objectName(key));
+                        object.VersionId = versionId;
                       }
-                      objects.push(object2);
+                      objects.push(object);
                     }
                     paramXMLObj = {
                       Delete: {
@@ -25669,7 +22396,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var _require = require2("../utils/isObject"), isObject2 = _require.isObject;
         proto.getObjectTagging = /* @__PURE__ */ function() {
           var _getObjectTagging = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name) {
-            var options, params, result, Tagging, Tag, tag2, _args = arguments;
+            var options, params, result, Tagging, Tag, tag, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
@@ -25694,14 +22421,14 @@ var aliyunOssSdk$1 = { exports: {} };
                     Tagging = _context.sent;
                     Tag = Tagging.TagSet.Tag;
                     Tag = Tag && isObject2(Tag) ? [Tag] : Tag || [];
-                    tag2 = {};
+                    tag = {};
                     Tag.forEach(function(item) {
-                      tag2[item.Key] = item.Value;
+                      tag[item.Key] = item.Value;
                     });
                     return _context.abrupt("return", {
                       status: result.status,
                       res: result.res,
-                      tag: tag2
+                      tag
                     });
                   case 17:
                   case "end":
@@ -25881,14 +22608,14 @@ var aliyunOssSdk$1 = { exports: {} };
         var _require2 = require2("../utils/checkObjectTag"), checkObjectTag = _require2.checkObjectTag;
         var proto = exports3;
         proto.putObjectTagging = /* @__PURE__ */ function() {
-          var _putObjectTagging = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name, tag2) {
+          var _putObjectTagging = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(name, tag) {
             var options, params, paramXMLObj, result, _args = arguments;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
                   case 0:
                     options = _args.length > 2 && _args[2] !== void 0 ? _args[2] : {};
-                    checkObjectTag(tag2);
+                    checkObjectTag(tag);
                     options.subres = Object.assign({
                       tagging: ""
                     }, options.subres);
@@ -25898,16 +22625,16 @@ var aliyunOssSdk$1 = { exports: {} };
                     name = this._objectName(name);
                     params = this._objectRequestParams("PUT", name, options);
                     params.successStatuses = [200];
-                    tag2 = Object.keys(tag2).map(function(key) {
+                    tag = Object.keys(tag).map(function(key) {
                       return {
                         Key: key,
-                        Value: tag2[key]
+                        Value: tag[key]
                       };
                     });
                     paramXMLObj = {
                       Tagging: {
                         TagSet: {
-                          Tag: tag2
+                          Tag: tag
                         }
                       }
                     };
@@ -25981,7 +22708,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return putSymlink;
         }();
       }, { "@babel/runtime/helpers/asyncToGenerator": 85, "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/regenerator": 93, "core-js/modules/es.object.assign.js": 325 }], 48: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             require2("core-js/modules/es.object.to-string.js");
             require2("core-js/modules/es.regexp.to-string.js");
@@ -25998,9 +22725,9 @@ var aliyunOssSdk$1 = { exports: {} };
             var getStandardRegion_1 = require2("../utils/getStandardRegion");
             var policy2Str_1 = require2("../utils/policy2Str");
             var signUtils_1 = require2("../signUtils");
-            function signPostObjectPolicyV4(policy, date2) {
-              var policyStr = Buffer2.from(policy2Str_1.policy2Str(policy), "utf8").toString("base64");
-              var formattedDate = dateformat_1.default(date2, "UTC:yyyymmdd'T'HHMMss'Z'");
+            function signPostObjectPolicyV4(policy, date) {
+              var policyStr = Buffer.from(policy2Str_1.policy2Str(policy), "utf8").toString("base64");
+              var formattedDate = dateformat_1.default(date, "UTC:yyyymmdd'T'HHMMss'Z'");
               var onlyDate = formattedDate.split("T")[0];
               var signature = signUtils_1.getSignatureV4(this.options.accessKeySecret, onlyDate, getStandardRegion_1.getStandardRegion(this.options.region), policyStr);
               return signature;
@@ -26037,14 +22764,14 @@ var aliyunOssSdk$1 = { exports: {} };
             options["security-token"] = this.options.stsToken;
           }
           var signRes = signHelper._signatureForURL(this.options.accessKeySecret, options, resource, expires);
-          var url2 = urlutil.parse(this._getReqUrl(params));
-          url2.query = {
+          var url = urlutil.parse(this._getReqUrl(params));
+          url.query = {
             OSSAccessKeyId: this.options.accessKeyId,
             Expires: expires,
             Signature: signRes.Signature
           };
-          copy(signRes.subResource).to(url2.query);
-          return url2.format();
+          copy(signRes.subResource).to(url.query);
+          return url.format();
         };
       }, { "../../common/signUtils": 52, "../utils/isIP": 73, "copy-to": 107, "core-js/modules/es.regexp.exec.js": 338, "url": 543, "utility": 545 }], 50: [function(require2, module3, exports3) {
         var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
@@ -26061,7 +22788,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var proto = exports3;
         proto.signatureUrlV4 = /* @__PURE__ */ function() {
           var _signatureUrlV = (0, _asyncToGenerator2.default)(/* @__PURE__ */ _regenerator.default.mark(function _callee(method, expires, request, objectName, additionalHeaders) {
-            var cloudBoxId, product, signRegion, headers, queries, date2, formattedDate, onlyDate, fixedAdditionalHeaders, canonicalRequest, stringToSign, signedUrl;
+            var cloudBoxId, product, signRegion, headers, queries, date, formattedDate, onlyDate, fixedAdditionalHeaders, canonicalRequest, stringToSign, signedUrl;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1)
                 switch (_context.prev = _context.next) {
@@ -26071,8 +22798,8 @@ var aliyunOssSdk$1 = { exports: {} };
                     signRegion = signHelper.getSignRegion(getStandardRegion(this.options.region), cloudBoxId);
                     headers = request && request.headers || {};
                     queries = Object.assign({}, request && request.queries || {});
-                    date2 = /* @__PURE__ */ new Date();
-                    formattedDate = dateFormat(date2, "UTC:yyyymmdd'T'HHMMss'Z'");
+                    date = /* @__PURE__ */ new Date();
+                    formattedDate = dateFormat(date, "UTC:yyyymmdd'T'HHMMss'Z'");
                     onlyDate = formattedDate.split("T")[0];
                     fixedAdditionalHeaders = signHelper.fixAdditionalHeaders(additionalHeaders);
                     if (fixedAdditionalHeaders.length > 0) {
@@ -26313,7 +23040,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return abortEvent;
         };
       }, { "./utils/isArray": 67, "@babel/runtime/helpers/asyncToGenerator": 85, "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/regenerator": 93, "core-js/modules/es.array.iterator.js": 316, "core-js/modules/es.function.name.js": 322, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.promise.js": 333, "core-js/modules/es.string.iterator.js": 343, "core-js/modules/web.dom-collections.for-each.js": 380, "core-js/modules/web.dom-collections.iterator.js": 381 }], 52: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
             var _toConsumableArray2 = _interopRequireDefault(require2("@babel/runtime/helpers/toConsumableArray"));
@@ -26335,7 +23062,7 @@ var aliyunOssSdk$1 = { exports: {} };
             require2("core-js/modules/es.string.replace.js");
             require2("core-js/modules/es.object.entries.js");
             require2("core-js/modules/es.regexp.to-string.js");
-            var crypto2 = require2("./../../shims/crypto/crypto.js");
+            var crypto = require2("./../../shims/crypto/crypto.js");
             var is = require2("is-type-of");
             var qs2 = require2("qs");
             var _require = require2("./utils/lowercaseKeyHeader"), lowercaseKeyHeader = _require.lowercaseKeyHeader;
@@ -26392,8 +23119,8 @@ var aliyunOssSdk$1 = { exports: {} };
             };
             exports3.computeSignature = function computeSignature(accessKeySecret, canonicalString) {
               var headerEncoding = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : "utf-8";
-              var signature = crypto2.createHmac("sha1", accessKeySecret);
-              return signature.update(Buffer2.from(canonicalString, headerEncoding)).digest("base64");
+              var signature = crypto.createHmac("sha1", accessKeySecret);
+              return signature.update(Buffer.from(canonicalString, headerEncoding)).digest("base64");
             };
             exports3.authorization = function authorization(accessKeyId, accessKeySecret, canonicalString, headerEncoding) {
               return "OSS ".concat(accessKeyId, ":").concat(this.computeSignature(accessKeySecret, canonicalString, headerEncoding));
@@ -26454,34 +23181,34 @@ var aliyunOssSdk$1 = { exports: {} };
               signContent.push(headers["x-oss-content-sha256"] || "UNSIGNED-PAYLOAD");
               return signContent.join("\n");
             };
-            exports3.getCredential = function getCredential(date2, region, accessKeyId) {
+            exports3.getCredential = function getCredential(date, region, accessKeyId) {
               var product = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : "oss";
-              var tempCredential = "".concat(date2, "/").concat(region, "/").concat(product, "/aliyun_v4_request");
+              var tempCredential = "".concat(date, "/").concat(region, "/").concat(product, "/aliyun_v4_request");
               if (accessKeyId) {
                 return "".concat(accessKeyId, "/").concat(tempCredential);
               }
               return tempCredential;
             };
-            exports3.getStringToSign = function getStringToSign(region, date2, canonicalRequest) {
+            exports3.getStringToSign = function getStringToSign(region, date, canonicalRequest) {
               var product = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : "oss";
               var stringToSign = [
                 "OSS4-HMAC-SHA256",
-                date2,
+                date,
                 // TimeStamp
-                this.getCredential(date2.split("T")[0], region, void 0, product),
+                this.getCredential(date.split("T")[0], region, void 0, product),
                 // Scope
-                crypto2.createHash("sha256").update(canonicalRequest).digest("hex")
+                crypto.createHash("sha256").update(canonicalRequest).digest("hex")
                 // Hashed Canonical Request
               ];
               return stringToSign.join("\n");
             };
-            exports3.getSignatureV4 = function getSignatureV4(accessKeySecret, date2, region, stringToSign) {
+            exports3.getSignatureV4 = function getSignatureV4(accessKeySecret, date, region, stringToSign) {
               var product = arguments.length > 4 && arguments[4] !== void 0 ? arguments[4] : "oss";
-              var signingDate = crypto2.createHmac("sha256", "aliyun_v4".concat(accessKeySecret)).update(date2).digest();
-              var signingRegion = crypto2.createHmac("sha256", signingDate).update(region).digest();
-              var signingOss = crypto2.createHmac("sha256", signingRegion).update(product).digest();
-              var signingKey = crypto2.createHmac("sha256", signingOss).update("aliyun_v4_request").digest();
-              var signatureValue = crypto2.createHmac("sha256", signingKey).update(stringToSign).digest("hex");
+              var signingDate = crypto.createHmac("sha256", "aliyun_v4".concat(accessKeySecret)).update(date).digest();
+              var signingRegion = crypto.createHmac("sha256", signingDate).update(region).digest();
+              var signingOss = crypto.createHmac("sha256", signingRegion).update(product).digest();
+              var signingKey = crypto.createHmac("sha256", signingOss).update("aliyun_v4_request").digest();
+              var signatureValue = crypto.createHmac("sha256", signingKey).update(stringToSign).digest("hex");
               return signatureValue;
             };
             exports3.authorizationV4 = function authorizationV4(accessKeyId, accessKeySecret, region, method, request, bucketName, objectName, additionalHeaders) {
@@ -26491,15 +23218,15 @@ var aliyunOssSdk$1 = { exports: {} };
               var fixedAdditionalHeaders = this.fixAdditionalHeaders(additionalHeaders);
               var fixedHeaders = {};
               Object.entries(request.headers).forEach(function(v) {
-                fixedHeaders[v[0]] = is.string(v[1]) ? Buffer2.from(v[1], headerEncoding).toString() : v[1];
+                fixedHeaders[v[0]] = is.string(v[1]) ? Buffer.from(v[1], headerEncoding).toString() : v[1];
               });
-              var date2 = fixedHeaders["x-oss-date"] || request.queries && request.queries["x-oss-date"];
+              var date = fixedHeaders["x-oss-date"] || request.queries && request.queries["x-oss-date"];
               var canonicalRequest = this.getCanonicalRequest(method, {
                 headers: fixedHeaders,
                 queries: request.queries
               }, bucketName, objectName, fixedAdditionalHeaders);
-              var stringToSign = this.getStringToSign(region, date2, canonicalRequest, product);
-              var onlyDate = date2.split("T")[0];
+              var stringToSign = this.getStringToSign(region, date, canonicalRequest, product);
+              var onlyDate = date.split("T")[0];
               var signatureValue = this.getSignatureV4(accessKeySecret, onlyDate, region, stringToSign, product);
               var additionalHeadersValue = fixedAdditionalHeaders.length > 0 ? "AdditionalHeaders=".concat(fixedAdditionalHeaders.join(";"), ",") : "";
               return "OSS4-HMAC-SHA256 Credential=".concat(this.getCredential(onlyDate, region, accessKeyId, product), ",").concat(additionalHeadersValue, "Signature=").concat(signatureValue);
@@ -26553,13 +23280,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (options.callback.callbackSNI) {
                   json.callbackSNI = options.callback.callbackSNI;
                 }
-                subResource.callback = Buffer2.from(JSON.stringify(json)).toString("base64");
+                subResource.callback = Buffer.from(JSON.stringify(json)).toString("base64");
                 if (options.callback.customValue) {
                   var callbackVar = {};
                   Object.keys(options.callback.customValue).forEach(function(key) {
                     callbackVar["x:".concat(key)] = options.callback.customValue[key];
                   });
-                  subResource["callback-var"] = Buffer2.from(JSON.stringify(callbackVar)).toString("base64");
+                  subResource["callback-var"] = Buffer.from(JSON.stringify(callbackVar)).toString("base64");
                 }
               }
               var canonicalString = this.buildCanonicalString(options.method, resource, {
@@ -26626,7 +23353,7 @@ var aliyunOssSdk$1 = { exports: {} };
             exports3.checkEnv = void 0;
             function checkEnv(msg) {
               if (process.browser) {
-                index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:6356", msg);
+                index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:6356", msg);
               }
             }
             exports3.checkEnv = checkEnv;
@@ -26663,11 +23390,11 @@ var aliyunOssSdk$1 = { exports: {} };
             msg: "tag value can be a maximum of 256 bytes in length"
           }])
         };
-        function checkObjectTag(tag2) {
-          if (!isObject2(tag2)) {
+        function checkObjectTag(tag) {
+          if (!isObject2(tag)) {
             throw new Error("tag must be Object");
           }
-          var entries = Object.entries(tag2);
+          var entries = Object.entries(tag);
           if (entries.length > 10) {
             throw new Error("maximum of 10 tags for a object");
           }
@@ -26698,7 +23425,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }
         exports3.checkValid = checkValid;
       }, { "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.regexp.exec.js": 338, "core-js/modules/web.dom-collections.for-each.js": 380 }], 58: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             require2("core-js/modules/es.array.includes.js");
             require2("core-js/modules/es.string.includes.js");
@@ -26711,7 +23438,7 @@ var aliyunOssSdk$1 = { exports: {} };
               value: true
             });
             exports3.createRequest = void 0;
-            var crypto2 = require2("./../../../shims/crypto/crypto.js");
+            var crypto = require2("./../../../shims/crypto/crypto.js");
             var debug = require2("debug")("ali-oss");
             var _isString = require2("lodash/isString");
             var _isArray = require2("lodash/isArray");
@@ -26733,12 +23460,12 @@ var aliyunOssSdk$1 = { exports: {} };
               delete headers[name.toLowerCase()];
             }
             function createRequest(params) {
-              var date2 = /* @__PURE__ */ new Date();
+              var date = /* @__PURE__ */ new Date();
               if (this.options.amendTimeSkewed) {
-                date2 = +/* @__PURE__ */ new Date() + this.options.amendTimeSkewed;
+                date = +/* @__PURE__ */ new Date() + this.options.amendTimeSkewed;
               }
               var headers = {
-                "x-oss-date": dateFormat(date2, this.options.authorizationV4 ? "UTC:yyyymmdd'T'HHMMss'Z'" : "UTC:ddd, dd mmm yyyy HH:MM:ss 'GMT'")
+                "x-oss-date": dateFormat(date, this.options.authorizationV4 ? "UTC:yyyymmdd'T'HHMMss'Z'" : "UTC:ddd, dd mmm yyyy HH:MM:ss 'GMT'")
               };
               if (this.options.authorizationV4) {
                 headers["x-oss-content-sha256"] = "UNSIGNED-PAYLOAD";
@@ -26773,7 +23500,7 @@ var aliyunOssSdk$1 = { exports: {} };
               if (params.content) {
                 if (!params.disabledMD5) {
                   if (!params.headers || !params.headers["Content-MD5"]) {
-                    headers["Content-MD5"] = crypto2.createHash("md5").update(Buffer2.from(params.content, "utf8")).digest("base64");
+                    headers["Content-MD5"] = crypto.createHash("md5").update(Buffer.from(params.content, "utf8")).digest("base64");
                   } else {
                     headers["Content-MD5"] = params.headers["Content-MD5"];
                   }
@@ -26814,15 +23541,15 @@ var aliyunOssSdk$1 = { exports: {} };
                 var hostInfo = setRegion(region, internal, secure);
                 headers.host = "".concat(params.bucket, ".").concat(hostInfo.host);
               }
-              var url2 = getReqUrl.bind(this)(params);
-              debug("request %s %s, with headers %j, !!stream: %s", params.method, url2, headers, !!params.stream);
-              var timeout2 = params.timeout || this.options.timeout;
+              var url = getReqUrl.bind(this)(params);
+              debug("request %s %s, with headers %j, !!stream: %s", params.method, url, headers, !!params.stream);
+              var timeout = params.timeout || this.options.timeout;
               var reqParams = {
                 method: params.method,
                 content: params.content,
                 stream: params.stream,
                 headers,
-                timeout: timeout2,
+                timeout,
                 writeStream: params.writeStream,
                 customResponse: params.customResponse,
                 ctx: params.ctx || this.ctx
@@ -26836,7 +23563,7 @@ var aliyunOssSdk$1 = { exports: {} };
               reqParams.enableProxy = !!this.options.enableProxy;
               reqParams.proxy = this.options.proxy ? this.options.proxy : null;
               return {
-                url: url2,
+                url,
                 params: reqParams
               };
             }
@@ -26986,7 +23713,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }
         exports3.encodeString = encodeString;
       }, { "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.regexp.exec.js": 338, "core-js/modules/es.regexp.to-string.js": 339, "core-js/modules/es.string.replace.js": 345, "lodash/toString": 427 }], 62: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             require2("core-js/modules/es.object.to-string.js");
             require2("core-js/modules/es.regexp.to-string.js");
@@ -26998,7 +23725,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var encoding = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "utf-8";
               if (encoding === "utf-8")
                 return str;
-              return Buffer2.from(str).toString("latin1");
+              return Buffer.from(str).toString("latin1");
             }
             exports3.encoder = encoder;
           }).call(this);
@@ -27147,14 +23874,14 @@ var aliyunOssSdk$1 = { exports: {} };
         }
         exports3.isBlob = isBlob;
       }, {}], 69: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             Object.defineProperty(exports3, "__esModule", {
               value: true
             });
             exports3.isBuffer = void 0;
             function isBuffer(obj) {
-              return Buffer2.isBuffer(obj);
+              return Buffer.isBuffer(obj);
             }
             exports3.isBuffer = isBuffer;
           }).call(this);
@@ -27427,10 +24154,10 @@ var aliyunOssSdk$1 = { exports: {} };
           value: true
         });
         exports3.retry = void 0;
-        function retry(func2, retryMax) {
-          var config2 = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
+        function retry(func, retryMax) {
+          var config = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
           var retryNum = 0;
-          var _config$retryDelay = config2.retryDelay, retryDelay = _config$retryDelay === void 0 ? 500 : _config$retryDelay, _config$errorHandler = config2.errorHandler, errorHandler = _config$errorHandler === void 0 ? function() {
+          var _config$retryDelay = config.retryDelay, retryDelay = _config$retryDelay === void 0 ? 500 : _config$retryDelay, _config$errorHandler = config.errorHandler, errorHandler = _config$errorHandler === void 0 ? function() {
             return true;
           } : _config$errorHandler;
           var funcR = function funcR2() {
@@ -27438,7 +24165,7 @@ var aliyunOssSdk$1 = { exports: {} };
               arg[_key] = arguments[_key];
             }
             return new Promise(function(resolve2, reject) {
-              func2.apply(void 0, arg).then(function(result) {
+              func.apply(void 0, arg).then(function(result) {
                 retryNum = 0;
                 resolve2(result);
               }).catch(function(err) {
@@ -27576,8 +24303,8 @@ var aliyunOssSdk$1 = { exports: {} };
           try {
             var info = gen[key](arg);
             var value = info.value;
-          } catch (error2) {
-            reject(error2);
+          } catch (error) {
+            reject(error);
             return;
           }
           if (info.done) {
@@ -28056,14 +24783,14 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             var assert2 = module3.exports = ok;
             var regex2 = /\s*function\s+([^\(\s]*)\s*/;
-            function getName(func2) {
-              if (!util.isFunction(func2)) {
+            function getName(func) {
+              if (!util.isFunction(func)) {
                 return;
               }
               if (functionsHaveNames) {
-                return func2.name;
+                return func.name;
               }
-              var str = func2.toString();
+              var str = func.toString();
               var match = str.match(regex2);
               return match && match[1];
             }
@@ -28180,8 +24907,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 return objEquiv(actual, expected, strict2, memos);
               }
             }
-            function isArguments(object2) {
-              return Object.prototype.toString.call(object2) == "[object Arguments]";
+            function isArguments(object) {
+              return Object.prototype.toString.call(object) == "[object Arguments]";
             }
             function objEquiv(a2, b, strict2, actualVisitedObjects) {
               if (a2 === null || a2 === void 0 || b === null || b === void 0)
@@ -28257,13 +24984,13 @@ var aliyunOssSdk$1 = { exports: {} };
               return expected.call({}, actual) === true;
             }
             function _tryBlock(block) {
-              var error2;
+              var error;
               try {
                 block();
               } catch (e2) {
-                error2 = e2;
+                error = e2;
               }
-              return error2;
+              return error;
             }
             function _throws(shouldThrow, block, expected, message) {
               var actual;
@@ -28289,11 +25016,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 throw actual;
               }
             }
-            assert2.throws = function(block, error2, message) {
-              _throws(true, block, error2, message);
+            assert2.throws = function(block, error, message) {
+              _throws(true, block, error, message);
             };
-            assert2.doesNotThrow = function(block, error2, message) {
-              _throws(false, block, error2, message);
+            assert2.doesNotThrow = function(block, error, message) {
+              _throws(false, block, error, message);
             };
             assert2.ifError = function(err) {
               if (err)
@@ -28392,7 +25119,7 @@ var aliyunOssSdk$1 = { exports: {} };
               return str;
             };
             exports3.deprecate = function(fn, msg) {
-              if (isUndefined2(global3.process)) {
+              if (isUndefined(global3.process)) {
                 return function() {
                   return exports3.deprecate(fn, msg).apply(this, arguments);
                 };
@@ -28408,7 +25135,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   } else if (process.traceDeprecation) {
                     console.trace(msg);
                   } else {
-                    index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8385", msg);
+                    index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8385", msg);
                   }
                   warned = true;
                 }
@@ -28419,7 +25146,7 @@ var aliyunOssSdk$1 = { exports: {} };
             var debugs = {};
             var debugEnviron;
             exports3.debuglog = function(set2) {
-              if (isUndefined2(debugEnviron))
+              if (isUndefined(debugEnviron))
                 debugEnviron = process.env.NODE_DEBUG || "";
               set2 = set2.toUpperCase();
               if (!debugs[set2]) {
@@ -28427,7 +25154,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   var pid = process.pid;
                   debugs[set2] = function() {
                     var msg = exports3.format.apply(exports3, arguments);
-                    index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8407", "%s %d: %s", set2, pid, msg);
+                    index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8407", "%s %d: %s", set2, pid, msg);
                   };
                 } else {
                   debugs[set2] = function() {
@@ -28450,13 +25177,13 @@ var aliyunOssSdk$1 = { exports: {} };
               } else if (opts) {
                 exports3._extend(ctx, opts);
               }
-              if (isUndefined2(ctx.showHidden))
+              if (isUndefined(ctx.showHidden))
                 ctx.showHidden = false;
-              if (isUndefined2(ctx.depth))
+              if (isUndefined(ctx.depth))
                 ctx.depth = 2;
-              if (isUndefined2(ctx.colors))
+              if (isUndefined(ctx.colors))
                 ctx.colors = false;
-              if (isUndefined2(ctx.customInspect))
+              if (isUndefined(ctx.customInspect))
                 ctx.customInspect = true;
               if (ctx.colors)
                 ctx.stylize = stylizeWithColor;
@@ -28500,9 +25227,9 @@ var aliyunOssSdk$1 = { exports: {} };
             function stylizeNoColor(str, styleType) {
               return str;
             }
-            function arrayToHash(array2) {
+            function arrayToHash(array) {
               var hash = {};
-              array2.forEach(function(val, idx) {
+              array.forEach(function(val, idx) {
                 hash[val] = true;
               });
               return hash;
@@ -28537,16 +25264,16 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (isRegExp(value)) {
                   return ctx.stylize(RegExp.prototype.toString.call(value), "regexp");
                 }
-                if (isDate2(value)) {
+                if (isDate(value)) {
                   return ctx.stylize(Date.prototype.toString.call(value), "date");
                 }
                 if (isError(value)) {
                   return formatError(value);
                 }
               }
-              var base = "", array2 = false, braces = ["{", "}"];
+              var base = "", array = false, braces = ["{", "}"];
               if (isArray2(value)) {
-                array2 = true;
+                array = true;
                 braces = ["[", "]"];
               }
               if (isFunction2(value)) {
@@ -28556,13 +25283,13 @@ var aliyunOssSdk$1 = { exports: {} };
               if (isRegExp(value)) {
                 base = " " + RegExp.prototype.toString.call(value);
               }
-              if (isDate2(value)) {
+              if (isDate(value)) {
                 base = " " + Date.prototype.toUTCString.call(value);
               }
               if (isError(value)) {
                 base = " " + formatError(value);
               }
-              if (keys.length === 0 && (!array2 || value.length == 0)) {
+              if (keys.length === 0 && (!array || value.length == 0)) {
                 return braces[0] + base + braces[1];
               }
               if (recurseTimes < 0) {
@@ -28574,18 +25301,18 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               ctx.seen.push(value);
               var output;
-              if (array2) {
+              if (array) {
                 output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
               } else {
                 output = keys.map(function(key) {
-                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array2);
+                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
                 });
               }
               ctx.seen.pop();
               return reduceToSingleString(output, base, braces);
             }
             function formatPrimitive(ctx, value) {
-              if (isUndefined2(value))
+              if (isUndefined(value))
                 return ctx.stylize("undefined", "undefined");
               if (isString2(value)) {
                 var simple = "'" + JSON.stringify(value).replace(/^"|"$/g, "").replace(/'/g, "\\'").replace(/\\"/g, '"') + "'";
@@ -28631,7 +25358,7 @@ var aliyunOssSdk$1 = { exports: {} };
               });
               return output;
             }
-            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array2) {
+            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
               var name, str, desc;
               desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
               if (desc.get) {
@@ -28656,13 +25383,13 @@ var aliyunOssSdk$1 = { exports: {} };
                     str = formatValue(ctx, desc.value, recurseTimes - 1);
                   }
                   if (str.indexOf("\n") > -1) {
-                    if (array2) {
-                      str = str.split("\n").map(function(line2) {
-                        return "  " + line2;
+                    if (array) {
+                      str = str.split("\n").map(function(line) {
+                        return "  " + line;
                       }).join("\n").substr(2);
                     } else {
-                      str = "\n" + str.split("\n").map(function(line2) {
-                        return "   " + line2;
+                      str = "\n" + str.split("\n").map(function(line) {
+                        return "   " + line;
                       }).join("\n");
                     }
                   }
@@ -28670,8 +25397,8 @@ var aliyunOssSdk$1 = { exports: {} };
                   str = ctx.stylize("[Circular]", "special");
                 }
               }
-              if (isUndefined2(name)) {
-                if (array2 && key.match(/^\d+$/)) {
+              if (isUndefined(name)) {
+                if (array && key.match(/^\d+$/)) {
                   return str;
                 }
                 name = JSON.stringify("" + key);
@@ -28724,10 +25451,10 @@ var aliyunOssSdk$1 = { exports: {} };
               return typeof arg === "symbol";
             }
             exports3.isSymbol = isSymbol2;
-            function isUndefined2(arg) {
+            function isUndefined(arg) {
               return arg === void 0;
             }
-            exports3.isUndefined = isUndefined2;
+            exports3.isUndefined = isUndefined;
             function isRegExp(re) {
               return isObject2(re) && objectToString2(re) === "[object RegExp]";
             }
@@ -28736,10 +25463,10 @@ var aliyunOssSdk$1 = { exports: {} };
               return typeof arg === "object" && arg !== null;
             }
             exports3.isObject = isObject2;
-            function isDate2(d) {
+            function isDate(d) {
               return isObject2(d) && objectToString2(d) === "[object Date]";
             }
-            exports3.isDate = isDate2;
+            exports3.isDate = isDate;
             function isError(e2) {
               return isObject2(e2) && (objectToString2(e2) === "[object Error]" || e2 instanceof Error);
             }
@@ -28784,7 +25511,7 @@ var aliyunOssSdk$1 = { exports: {} };
               return [d.getDate(), months[d.getMonth()], time2].join(" ");
             }
             exports3.log = function() {
-              index$2.__f__("log", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8853", "%s - %s", timestamp(), exports3.format.apply(exports3, arguments));
+              index$1.__f__("log", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:8853", "%s - %s", timestamp(), exports3.format.apply(exports3, arguments));
             };
             exports3.inherits = require2("inherits");
             exports3._extend = function(origin, add2) {
@@ -28837,10 +25564,10 @@ var aliyunOssSdk$1 = { exports: {} };
         var lookup2 = [];
         var revLookup = [];
         var Arr = typeof Uint8Array !== "undefined" ? Uint8Array : Array;
-        var code2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        for (var i = 0, len = code2.length; i < len; ++i) {
-          lookup2[i] = code2[i];
-          revLookup[code2.charCodeAt(i)] = i;
+        var code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        for (var i = 0, len = code.length; i < len; ++i) {
+          lookup2[i] = code[i];
+          revLookup[code.charCodeAt(i)] = i;
         }
         revLookup["-".charCodeAt(0)] = 62;
         revLookup["_".charCodeAt(0)] = 63;
@@ -28946,7 +25673,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var match = ua.match(regex2);
               return match && match.length > 1 && match[2] || "";
             }
-            var iosdevice = getFirstMatch(/(ipod|iphone|ipad)/i).toLowerCase(), likeAndroid = /like android/i.test(ua), android = !likeAndroid && /android/i.test(ua), nexusMobile = /nexus\s*[0-6]\s*/i.test(ua), nexusTablet = !nexusMobile && /nexus\s*[0-9]+/i.test(ua), chromeos = /CrOS/.test(ua), silk = /silk/i.test(ua), sailfish = /sailfish/i.test(ua), tizen = /tizen/i.test(ua), webos = /(web|hpw)(o|0)s/i.test(ua), windowsphone = /windows phone/i.test(ua), windows = !windowsphone && /windows/i.test(ua), mac = !iosdevice && !silk && /macintosh/i.test(ua), linux = !android && !sailfish && !tizen && !webos && /linux/i.test(ua), edgeVersion = getSecondMatch(/edg([ea]|ios)\/(\d+(\.\d+)?)/i), versionIdentifier = getFirstMatch(/version\/(\d+(\.\d+)?)/i), tablet = /tablet/i.test(ua) && !/tablet pc/i.test(ua), mobile2 = !tablet && /[^-]mobi/i.test(ua), xbox = /xbox/i.test(ua), result;
+            var iosdevice = getFirstMatch(/(ipod|iphone|ipad)/i).toLowerCase(), likeAndroid = /like android/i.test(ua), android = !likeAndroid && /android/i.test(ua), nexusMobile = /nexus\s*[0-6]\s*/i.test(ua), nexusTablet = !nexusMobile && /nexus\s*[0-9]+/i.test(ua), chromeos = /CrOS/.test(ua), silk = /silk/i.test(ua), sailfish = /sailfish/i.test(ua), tizen = /tizen/i.test(ua), webos = /(web|hpw)(o|0)s/i.test(ua), windowsphone = /windows phone/i.test(ua), windows = !windowsphone && /windows/i.test(ua), mac = !iosdevice && !silk && /macintosh/i.test(ua), linux = !android && !sailfish && !tizen && !webos && /linux/i.test(ua), edgeVersion = getSecondMatch(/edg([ea]|ios)\/(\d+(\.\d+)?)/i), versionIdentifier = getFirstMatch(/version\/(\d+(\.\d+)?)/i), tablet = /tablet/i.test(ua) && !/tablet pc/i.test(ua), mobile = !tablet && /[^-]mobi/i.test(ua), xbox = /xbox/i.test(ua), result;
             if (/opera/i.test(ua)) {
               result = {
                 name: "Opera",
@@ -29279,9 +26006,9 @@ var aliyunOssSdk$1 = { exports: {} };
               result.osversion = osVersion;
             }
             var osMajorVersion = !result.windows && osVersion.split(".")[0];
-            if (tablet || nexusTablet || iosdevice == "ipad" || android && (osMajorVersion == 3 || osMajorVersion >= 4 && !mobile2) || result.silk) {
+            if (tablet || nexusTablet || iosdevice == "ipad" || android && (osMajorVersion == 3 || osMajorVersion >= 4 && !mobile) || result.silk) {
               result.tablet = t2;
-            } else if (mobile2 || iosdevice == "iphone" || iosdevice == "ipod" || android || nexusMobile || result.blackberry || result.webos || result.bada) {
+            } else if (mobile || iosdevice == "iphone" || iosdevice == "ipod" || android || nexusMobile || result.blackberry || result.webos || result.bada) {
               result.mobile = t2;
             }
             if (result.msedge || result.msie && result.version >= 10 || result.yandexbrowser && result.version >= 15 || result.vivaldi && result.version >= 1 || result.chrome && result.version >= 20 || result.samsungBrowser && result.version >= 4 || result.whale && compareVersions([result.version, "1.0"]) === 1 || result.mzbrowser && compareVersions([result.version, "6.0"]) === 1 || result.focus && compareVersions([result.version, "1.0"]) === 1 || result.firefox && result.version >= 20 || result.safari && result.version >= 6 || result.opera && result.version >= 10 || result.ios && result.osversion && result.osversion.split(".")[0] >= 6 || result.blackberry && result.version >= 10.1 || result.chromium && result.version >= 20) {
@@ -29375,18 +26102,18 @@ var aliyunOssSdk$1 = { exports: {} };
         });
       }, {}], 102: [function(require2, module3, exports3) {
       }, {}], 103: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             var base642 = require2("base64-js");
             var ieee754 = require2("ieee754");
-            exports3.Buffer = Buffer3;
+            exports3.Buffer = Buffer2;
             exports3.SlowBuffer = SlowBuffer;
             exports3.INSPECT_MAX_BYTES = 50;
             var K_MAX_LENGTH = 2147483647;
             exports3.kMaxLength = K_MAX_LENGTH;
-            Buffer3.TYPED_ARRAY_SUPPORT = typedArraySupport();
-            if (!Buffer3.TYPED_ARRAY_SUPPORT && typeof console !== "undefined" && typeof console.error === "function") {
-              index$2.__f__(
+            Buffer2.TYPED_ARRAY_SUPPORT = typedArraySupport();
+            if (!Buffer2.TYPED_ARRAY_SUPPORT && typeof console !== "undefined" && typeof console.error === "function") {
+              index$1.__f__(
                 "error",
                 "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:9760",
                 "This browser lacks typed array (Uint8Array) support which is required by `buffer` v5.x. Use `buffer` v4.x if you require old browser support."
@@ -29403,18 +26130,18 @@ var aliyunOssSdk$1 = { exports: {} };
                 return false;
               }
             }
-            Object.defineProperty(Buffer3.prototype, "parent", {
+            Object.defineProperty(Buffer2.prototype, "parent", {
               enumerable: true,
               get: function() {
-                if (!Buffer3.isBuffer(this))
+                if (!Buffer2.isBuffer(this))
                   return void 0;
                 return this.buffer;
               }
             });
-            Object.defineProperty(Buffer3.prototype, "offset", {
+            Object.defineProperty(Buffer2.prototype, "offset", {
               enumerable: true,
               get: function() {
-                if (!Buffer3.isBuffer(this))
+                if (!Buffer2.isBuffer(this))
                   return void 0;
                 return this.byteOffset;
               }
@@ -29424,10 +26151,10 @@ var aliyunOssSdk$1 = { exports: {} };
                 throw new RangeError('The value "' + length + '" is invalid for option "size"');
               }
               var buf = new Uint8Array(length);
-              buf.__proto__ = Buffer3.prototype;
+              buf.__proto__ = Buffer2.prototype;
               return buf;
             }
-            function Buffer3(arg, encodingOrOffset, length) {
+            function Buffer2(arg, encodingOrOffset, length) {
               if (typeof arg === "number") {
                 if (typeof encodingOrOffset === "string") {
                   throw new TypeError(
@@ -29438,15 +26165,15 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return from(arg, encodingOrOffset, length);
             }
-            if (typeof Symbol !== "undefined" && Symbol.species != null && Buffer3[Symbol.species] === Buffer3) {
-              Object.defineProperty(Buffer3, Symbol.species, {
+            if (typeof Symbol !== "undefined" && Symbol.species != null && Buffer2[Symbol.species] === Buffer2) {
+              Object.defineProperty(Buffer2, Symbol.species, {
                 value: null,
                 configurable: true,
                 enumerable: false,
                 writable: false
               });
             }
-            Buffer3.poolSize = 8192;
+            Buffer2.poolSize = 8192;
             function from(value, encodingOrOffset, length) {
               if (typeof value === "string") {
                 return fromString(value, encodingOrOffset);
@@ -29469,13 +26196,13 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               var valueOf = value.valueOf && value.valueOf();
               if (valueOf != null && valueOf !== value) {
-                return Buffer3.from(valueOf, encodingOrOffset, length);
+                return Buffer2.from(valueOf, encodingOrOffset, length);
               }
               var b = fromObject(value);
               if (b)
                 return b;
               if (typeof Symbol !== "undefined" && Symbol.toPrimitive != null && typeof value[Symbol.toPrimitive] === "function") {
-                return Buffer3.from(
+                return Buffer2.from(
                   value[Symbol.toPrimitive]("string"),
                   encodingOrOffset,
                   length
@@ -29485,11 +26212,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 "The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value
               );
             }
-            Buffer3.from = function(value, encodingOrOffset, length) {
+            Buffer2.from = function(value, encodingOrOffset, length) {
               return from(value, encodingOrOffset, length);
             };
-            Buffer3.prototype.__proto__ = Uint8Array.prototype;
-            Buffer3.__proto__ = Uint8Array;
+            Buffer2.prototype.__proto__ = Uint8Array.prototype;
+            Buffer2.__proto__ = Uint8Array;
             function assertSize(size2) {
               if (typeof size2 !== "number") {
                 throw new TypeError('"size" argument must be of type number');
@@ -29507,62 +26234,62 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return createBuffer(size2);
             }
-            Buffer3.alloc = function(size2, fill, encoding) {
+            Buffer2.alloc = function(size2, fill, encoding) {
               return alloc(size2, fill, encoding);
             };
             function allocUnsafe(size2) {
               assertSize(size2);
               return createBuffer(size2 < 0 ? 0 : checked(size2) | 0);
             }
-            Buffer3.allocUnsafe = function(size2) {
+            Buffer2.allocUnsafe = function(size2) {
               return allocUnsafe(size2);
             };
-            Buffer3.allocUnsafeSlow = function(size2) {
+            Buffer2.allocUnsafeSlow = function(size2) {
               return allocUnsafe(size2);
             };
-            function fromString(string2, encoding) {
+            function fromString(string, encoding) {
               if (typeof encoding !== "string" || encoding === "") {
                 encoding = "utf8";
               }
-              if (!Buffer3.isEncoding(encoding)) {
+              if (!Buffer2.isEncoding(encoding)) {
                 throw new TypeError("Unknown encoding: " + encoding);
               }
-              var length = byteLength(string2, encoding) | 0;
+              var length = byteLength(string, encoding) | 0;
               var buf = createBuffer(length);
-              var actual = buf.write(string2, encoding);
+              var actual = buf.write(string, encoding);
               if (actual !== length) {
                 buf = buf.slice(0, actual);
               }
               return buf;
             }
-            function fromArrayLike(array2) {
-              var length = array2.length < 0 ? 0 : checked(array2.length) | 0;
+            function fromArrayLike(array) {
+              var length = array.length < 0 ? 0 : checked(array.length) | 0;
               var buf = createBuffer(length);
               for (var i = 0; i < length; i += 1) {
-                buf[i] = array2[i] & 255;
+                buf[i] = array[i] & 255;
               }
               return buf;
             }
-            function fromArrayBuffer(array2, byteOffset, length) {
-              if (byteOffset < 0 || array2.byteLength < byteOffset) {
+            function fromArrayBuffer(array, byteOffset, length) {
+              if (byteOffset < 0 || array.byteLength < byteOffset) {
                 throw new RangeError('"offset" is outside of buffer bounds');
               }
-              if (array2.byteLength < byteOffset + (length || 0)) {
+              if (array.byteLength < byteOffset + (length || 0)) {
                 throw new RangeError('"length" is outside of buffer bounds');
               }
               var buf;
               if (byteOffset === void 0 && length === void 0) {
-                buf = new Uint8Array(array2);
+                buf = new Uint8Array(array);
               } else if (length === void 0) {
-                buf = new Uint8Array(array2, byteOffset);
+                buf = new Uint8Array(array, byteOffset);
               } else {
-                buf = new Uint8Array(array2, byteOffset, length);
+                buf = new Uint8Array(array, byteOffset, length);
               }
-              buf.__proto__ = Buffer3.prototype;
+              buf.__proto__ = Buffer2.prototype;
               return buf;
             }
             function fromObject(obj) {
-              if (Buffer3.isBuffer(obj)) {
+              if (Buffer2.isBuffer(obj)) {
                 var len = checked(obj.length) | 0;
                 var buf = createBuffer(len);
                 if (buf.length === 0) {
@@ -29591,17 +26318,17 @@ var aliyunOssSdk$1 = { exports: {} };
               if (+length != length) {
                 length = 0;
               }
-              return Buffer3.alloc(+length);
+              return Buffer2.alloc(+length);
             }
-            Buffer3.isBuffer = function isBuffer(b) {
-              return b != null && b._isBuffer === true && b !== Buffer3.prototype;
+            Buffer2.isBuffer = function isBuffer(b) {
+              return b != null && b._isBuffer === true && b !== Buffer2.prototype;
             };
-            Buffer3.compare = function compare(a2, b) {
+            Buffer2.compare = function compare(a2, b) {
               if (isInstance(a2, Uint8Array))
-                a2 = Buffer3.from(a2, a2.offset, a2.byteLength);
+                a2 = Buffer2.from(a2, a2.offset, a2.byteLength);
               if (isInstance(b, Uint8Array))
-                b = Buffer3.from(b, b.offset, b.byteLength);
-              if (!Buffer3.isBuffer(a2) || !Buffer3.isBuffer(b)) {
+                b = Buffer2.from(b, b.offset, b.byteLength);
+              if (!Buffer2.isBuffer(a2) || !Buffer2.isBuffer(b)) {
                 throw new TypeError(
                   'The "buf1", "buf2" arguments must be one of type Buffer or Uint8Array'
                 );
@@ -29623,7 +26350,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 return 1;
               return 0;
             };
-            Buffer3.isEncoding = function isEncoding(encoding) {
+            Buffer2.isEncoding = function isEncoding(encoding) {
               switch (String(encoding).toLowerCase()) {
                 case "hex":
                 case "utf8":
@@ -29641,28 +26368,28 @@ var aliyunOssSdk$1 = { exports: {} };
                   return false;
               }
             };
-            Buffer3.concat = function concat(list2, length) {
-              if (!Array.isArray(list2)) {
+            Buffer2.concat = function concat(list, length) {
+              if (!Array.isArray(list)) {
                 throw new TypeError('"list" argument must be an Array of Buffers');
               }
-              if (list2.length === 0) {
-                return Buffer3.alloc(0);
+              if (list.length === 0) {
+                return Buffer2.alloc(0);
               }
               var i;
               if (length === void 0) {
                 length = 0;
-                for (i = 0; i < list2.length; ++i) {
-                  length += list2[i].length;
+                for (i = 0; i < list.length; ++i) {
+                  length += list[i].length;
                 }
               }
-              var buffer2 = Buffer3.allocUnsafe(length);
+              var buffer2 = Buffer2.allocUnsafe(length);
               var pos = 0;
-              for (i = 0; i < list2.length; ++i) {
-                var buf = list2[i];
+              for (i = 0; i < list.length; ++i) {
+                var buf = list[i];
                 if (isInstance(buf, Uint8Array)) {
-                  buf = Buffer3.from(buf);
+                  buf = Buffer2.from(buf);
                 }
-                if (!Buffer3.isBuffer(buf)) {
+                if (!Buffer2.isBuffer(buf)) {
                   throw new TypeError('"list" argument must be an Array of Buffers');
                 }
                 buf.copy(buffer2, pos);
@@ -29670,19 +26397,19 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return buffer2;
             };
-            function byteLength(string2, encoding) {
-              if (Buffer3.isBuffer(string2)) {
-                return string2.length;
+            function byteLength(string, encoding) {
+              if (Buffer2.isBuffer(string)) {
+                return string.length;
               }
-              if (ArrayBuffer.isView(string2) || isInstance(string2, ArrayBuffer)) {
-                return string2.byteLength;
+              if (ArrayBuffer.isView(string) || isInstance(string, ArrayBuffer)) {
+                return string.byteLength;
               }
-              if (typeof string2 !== "string") {
+              if (typeof string !== "string") {
                 throw new TypeError(
-                  'The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof string2
+                  'The "string" argument must be one of type string, Buffer, or ArrayBuffer. Received type ' + typeof string
                 );
               }
-              var len = string2.length;
+              var len = string.length;
               var mustMatch = arguments.length > 2 && arguments[2] === true;
               if (!mustMatch && len === 0)
                 return 0;
@@ -29695,7 +26422,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     return len;
                   case "utf8":
                   case "utf-8":
-                    return utf8ToBytes(string2).length;
+                    return utf8ToBytes(string).length;
                   case "ucs2":
                   case "ucs-2":
                   case "utf16le":
@@ -29704,17 +26431,17 @@ var aliyunOssSdk$1 = { exports: {} };
                   case "hex":
                     return len >>> 1;
                   case "base64":
-                    return base64ToBytes(string2).length;
+                    return base64ToBytes(string).length;
                   default:
                     if (loweredCase) {
-                      return mustMatch ? -1 : utf8ToBytes(string2).length;
+                      return mustMatch ? -1 : utf8ToBytes(string).length;
                     }
                     encoding = ("" + encoding).toLowerCase();
                     loweredCase = true;
                 }
               }
             }
-            Buffer3.byteLength = byteLength;
+            Buffer2.byteLength = byteLength;
             function slowToString(encoding, start, end) {
               var loweredCase = false;
               if (start === void 0 || start < 0) {
@@ -29763,13 +26490,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
               }
             }
-            Buffer3.prototype._isBuffer = true;
+            Buffer2.prototype._isBuffer = true;
             function swap(b, n2, m) {
               var i = b[n2];
               b[n2] = b[m];
               b[m] = i;
             }
-            Buffer3.prototype.swap16 = function swap16() {
+            Buffer2.prototype.swap16 = function swap16() {
               var len = this.length;
               if (len % 2 !== 0) {
                 throw new RangeError("Buffer size must be a multiple of 16-bits");
@@ -29779,7 +26506,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return this;
             };
-            Buffer3.prototype.swap32 = function swap32() {
+            Buffer2.prototype.swap32 = function swap32() {
               var len = this.length;
               if (len % 4 !== 0) {
                 throw new RangeError("Buffer size must be a multiple of 32-bits");
@@ -29790,7 +26517,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return this;
             };
-            Buffer3.prototype.swap64 = function swap64() {
+            Buffer2.prototype.swap64 = function swap64() {
               var len = this.length;
               if (len % 8 !== 0) {
                 throw new RangeError("Buffer size must be a multiple of 64-bits");
@@ -29803,7 +26530,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return this;
             };
-            Buffer3.prototype.toString = function toString2() {
+            Buffer2.prototype.toString = function toString2() {
               var length = this.length;
               if (length === 0)
                 return "";
@@ -29811,15 +26538,15 @@ var aliyunOssSdk$1 = { exports: {} };
                 return utf8Slice(this, 0, length);
               return slowToString.apply(this, arguments);
             };
-            Buffer3.prototype.toLocaleString = Buffer3.prototype.toString;
-            Buffer3.prototype.equals = function equals(b) {
-              if (!Buffer3.isBuffer(b))
+            Buffer2.prototype.toLocaleString = Buffer2.prototype.toString;
+            Buffer2.prototype.equals = function equals(b) {
+              if (!Buffer2.isBuffer(b))
                 throw new TypeError("Argument must be a Buffer");
               if (this === b)
                 return true;
-              return Buffer3.compare(this, b) === 0;
+              return Buffer2.compare(this, b) === 0;
             };
-            Buffer3.prototype.inspect = function inspect() {
+            Buffer2.prototype.inspect = function inspect() {
               var str = "";
               var max = exports3.INSPECT_MAX_BYTES;
               str = this.toString("hex", 0, max).replace(/(.{2})/g, "$1 ").trim();
@@ -29827,11 +26554,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 str += " ... ";
               return "<Buffer " + str + ">";
             };
-            Buffer3.prototype.compare = function compare(target, start, end, thisStart, thisEnd) {
+            Buffer2.prototype.compare = function compare(target, start, end, thisStart, thisEnd) {
               if (isInstance(target, Uint8Array)) {
-                target = Buffer3.from(target, target.offset, target.byteLength);
+                target = Buffer2.from(target, target.offset, target.byteLength);
               }
-              if (!Buffer3.isBuffer(target)) {
+              if (!Buffer2.isBuffer(target)) {
                 throw new TypeError(
                   'The "target" argument must be one of type Buffer or Uint8Array. Received type ' + typeof target
                 );
@@ -29913,9 +26640,9 @@ var aliyunOssSdk$1 = { exports: {} };
                   return -1;
               }
               if (typeof val === "string") {
-                val = Buffer3.from(val, encoding);
+                val = Buffer2.from(val, encoding);
               }
-              if (Buffer3.isBuffer(val)) {
+              if (Buffer2.isBuffer(val)) {
                 if (val.length === 0) {
                   return -1;
                 }
@@ -29988,16 +26715,16 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return -1;
             }
-            Buffer3.prototype.includes = function includes(val, byteOffset, encoding) {
+            Buffer2.prototype.includes = function includes(val, byteOffset, encoding) {
               return this.indexOf(val, byteOffset, encoding) !== -1;
             };
-            Buffer3.prototype.indexOf = function indexOf(val, byteOffset, encoding) {
+            Buffer2.prototype.indexOf = function indexOf(val, byteOffset, encoding) {
               return bidirectionalIndexOf(this, val, byteOffset, encoding, true);
             };
-            Buffer3.prototype.lastIndexOf = function lastIndexOf(val, byteOffset, encoding) {
+            Buffer2.prototype.lastIndexOf = function lastIndexOf(val, byteOffset, encoding) {
               return bidirectionalIndexOf(this, val, byteOffset, encoding, false);
             };
-            function hexWrite(buf, string2, offset, length) {
+            function hexWrite(buf, string, offset, length) {
               offset = Number(offset) || 0;
               var remaining = buf.length - offset;
               if (!length) {
@@ -30008,34 +26735,34 @@ var aliyunOssSdk$1 = { exports: {} };
                   length = remaining;
                 }
               }
-              var strLen = string2.length;
+              var strLen = string.length;
               if (length > strLen / 2) {
                 length = strLen / 2;
               }
               for (var i = 0; i < length; ++i) {
-                var parsed = parseInt(string2.substr(i * 2, 2), 16);
+                var parsed = parseInt(string.substr(i * 2, 2), 16);
                 if (numberIsNaN(parsed))
                   return i;
                 buf[offset + i] = parsed;
               }
               return i;
             }
-            function utf8Write(buf, string2, offset, length) {
-              return blitBuffer(utf8ToBytes(string2, buf.length - offset), buf, offset, length);
+            function utf8Write(buf, string, offset, length) {
+              return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length);
             }
-            function asciiWrite(buf, string2, offset, length) {
-              return blitBuffer(asciiToBytes(string2), buf, offset, length);
+            function asciiWrite(buf, string, offset, length) {
+              return blitBuffer(asciiToBytes(string), buf, offset, length);
             }
-            function latin1Write(buf, string2, offset, length) {
-              return asciiWrite(buf, string2, offset, length);
+            function latin1Write(buf, string, offset, length) {
+              return asciiWrite(buf, string, offset, length);
             }
-            function base64Write(buf, string2, offset, length) {
-              return blitBuffer(base64ToBytes(string2), buf, offset, length);
+            function base64Write(buf, string, offset, length) {
+              return blitBuffer(base64ToBytes(string), buf, offset, length);
             }
-            function ucs2Write(buf, string2, offset, length) {
-              return blitBuffer(utf16leToBytes(string2, buf.length - offset), buf, offset, length);
+            function ucs2Write(buf, string, offset, length) {
+              return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length);
             }
-            Buffer3.prototype.write = function write3(string2, offset, length, encoding) {
+            Buffer2.prototype.write = function write3(string, offset, length, encoding) {
               if (offset === void 0) {
                 encoding = "utf8";
                 length = this.length;
@@ -30062,7 +26789,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var remaining = this.length - offset;
               if (length === void 0 || length > remaining)
                 length = remaining;
-              if (string2.length > 0 && (length < 0 || offset < 0) || offset > this.length) {
+              if (string.length > 0 && (length < 0 || offset < 0) || offset > this.length) {
                 throw new RangeError("Attempt to write outside buffer bounds");
               }
               if (!encoding)
@@ -30071,22 +26798,22 @@ var aliyunOssSdk$1 = { exports: {} };
               for (; ; ) {
                 switch (encoding) {
                   case "hex":
-                    return hexWrite(this, string2, offset, length);
+                    return hexWrite(this, string, offset, length);
                   case "utf8":
                   case "utf-8":
-                    return utf8Write(this, string2, offset, length);
+                    return utf8Write(this, string, offset, length);
                   case "ascii":
-                    return asciiWrite(this, string2, offset, length);
+                    return asciiWrite(this, string, offset, length);
                   case "latin1":
                   case "binary":
-                    return latin1Write(this, string2, offset, length);
+                    return latin1Write(this, string, offset, length);
                   case "base64":
-                    return base64Write(this, string2, offset, length);
+                    return base64Write(this, string, offset, length);
                   case "ucs2":
                   case "ucs-2":
                   case "utf16le":
                   case "utf-16le":
-                    return ucs2Write(this, string2, offset, length);
+                    return ucs2Write(this, string, offset, length);
                   default:
                     if (loweredCase)
                       throw new TypeError("Unknown encoding: " + encoding);
@@ -30095,7 +26822,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
               }
             };
-            Buffer3.prototype.toJSON = function toJSON() {
+            Buffer2.prototype.toJSON = function toJSON() {
               return {
                 type: "Buffer",
                 data: Array.prototype.slice.call(this._arr || this, 0)
@@ -30220,7 +26947,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return res;
             }
-            Buffer3.prototype.slice = function slice(start, end) {
+            Buffer2.prototype.slice = function slice(start, end) {
               var len = this.length;
               start = ~~start;
               end = end === void 0 ? len : ~~end;
@@ -30241,7 +26968,7 @@ var aliyunOssSdk$1 = { exports: {} };
               if (end < start)
                 end = start;
               var newBuf = this.subarray(start, end);
-              newBuf.__proto__ = Buffer3.prototype;
+              newBuf.__proto__ = Buffer2.prototype;
               return newBuf;
             };
             function checkOffset(offset, ext, length) {
@@ -30250,7 +26977,7 @@ var aliyunOssSdk$1 = { exports: {} };
               if (offset + ext > length)
                 throw new RangeError("Trying to access beyond buffer length");
             }
-            Buffer3.prototype.readUIntLE = function readUIntLE(offset, byteLength2, noAssert) {
+            Buffer2.prototype.readUIntLE = function readUIntLE(offset, byteLength2, noAssert) {
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
               if (!noAssert)
@@ -30263,7 +26990,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return val;
             };
-            Buffer3.prototype.readUIntBE = function readUIntBE(offset, byteLength2, noAssert) {
+            Buffer2.prototype.readUIntBE = function readUIntBE(offset, byteLength2, noAssert) {
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
               if (!noAssert) {
@@ -30276,37 +27003,37 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return val;
             };
-            Buffer3.prototype.readUInt8 = function readUInt8(offset, noAssert) {
+            Buffer2.prototype.readUInt8 = function readUInt8(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 1, this.length);
               return this[offset];
             };
-            Buffer3.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
+            Buffer2.prototype.readUInt16LE = function readUInt16LE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 2, this.length);
               return this[offset] | this[offset + 1] << 8;
             };
-            Buffer3.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
+            Buffer2.prototype.readUInt16BE = function readUInt16BE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 2, this.length);
               return this[offset] << 8 | this[offset + 1];
             };
-            Buffer3.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
+            Buffer2.prototype.readUInt32LE = function readUInt32LE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 16777216;
             };
-            Buffer3.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
+            Buffer2.prototype.readUInt32BE = function readUInt32BE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return this[offset] * 16777216 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
             };
-            Buffer3.prototype.readIntLE = function readIntLE(offset, byteLength2, noAssert) {
+            Buffer2.prototype.readIntLE = function readIntLE(offset, byteLength2, noAssert) {
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
               if (!noAssert)
@@ -30322,7 +27049,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 val -= Math.pow(2, 8 * byteLength2);
               return val;
             };
-            Buffer3.prototype.readIntBE = function readIntBE(offset, byteLength2, noAssert) {
+            Buffer2.prototype.readIntBE = function readIntBE(offset, byteLength2, noAssert) {
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
               if (!noAssert)
@@ -30338,7 +27065,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 val -= Math.pow(2, 8 * byteLength2);
               return val;
             };
-            Buffer3.prototype.readInt8 = function readInt8(offset, noAssert) {
+            Buffer2.prototype.readInt8 = function readInt8(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 1, this.length);
@@ -30346,65 +27073,65 @@ var aliyunOssSdk$1 = { exports: {} };
                 return this[offset];
               return (255 - this[offset] + 1) * -1;
             };
-            Buffer3.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
+            Buffer2.prototype.readInt16LE = function readInt16LE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 2, this.length);
               var val = this[offset] | this[offset + 1] << 8;
               return val & 32768 ? val | 4294901760 : val;
             };
-            Buffer3.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
+            Buffer2.prototype.readInt16BE = function readInt16BE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 2, this.length);
               var val = this[offset + 1] | this[offset] << 8;
               return val & 32768 ? val | 4294901760 : val;
             };
-            Buffer3.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
+            Buffer2.prototype.readInt32LE = function readInt32LE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
             };
-            Buffer3.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
+            Buffer2.prototype.readInt32BE = function readInt32BE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
             };
-            Buffer3.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
+            Buffer2.prototype.readFloatLE = function readFloatLE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return ieee754.read(this, offset, true, 23, 4);
             };
-            Buffer3.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
+            Buffer2.prototype.readFloatBE = function readFloatBE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 4, this.length);
               return ieee754.read(this, offset, false, 23, 4);
             };
-            Buffer3.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
+            Buffer2.prototype.readDoubleLE = function readDoubleLE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 8, this.length);
               return ieee754.read(this, offset, true, 52, 8);
             };
-            Buffer3.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
+            Buffer2.prototype.readDoubleBE = function readDoubleBE(offset, noAssert) {
               offset = offset >>> 0;
               if (!noAssert)
                 checkOffset(offset, 8, this.length);
               return ieee754.read(this, offset, false, 52, 8);
             };
             function checkInt(buf, value, offset, ext, max, min) {
-              if (!Buffer3.isBuffer(buf))
+              if (!Buffer2.isBuffer(buf))
                 throw new TypeError('"buffer" argument must be a Buffer instance');
               if (value > max || value < min)
                 throw new RangeError('"value" argument is out of bounds');
               if (offset + ext > buf.length)
                 throw new RangeError("Index out of range");
             }
-            Buffer3.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength2, noAssert) {
+            Buffer2.prototype.writeUIntLE = function writeUIntLE(value, offset, byteLength2, noAssert) {
               value = +value;
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
@@ -30420,7 +27147,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return offset + byteLength2;
             };
-            Buffer3.prototype.writeUIntBE = function writeUIntBE(value, offset, byteLength2, noAssert) {
+            Buffer2.prototype.writeUIntBE = function writeUIntBE(value, offset, byteLength2, noAssert) {
               value = +value;
               offset = offset >>> 0;
               byteLength2 = byteLength2 >>> 0;
@@ -30436,7 +27163,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return offset + byteLength2;
             };
-            Buffer3.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
+            Buffer2.prototype.writeUInt8 = function writeUInt8(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30444,7 +27171,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset] = value & 255;
               return offset + 1;
             };
-            Buffer3.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
+            Buffer2.prototype.writeUInt16LE = function writeUInt16LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30453,7 +27180,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 1] = value >>> 8;
               return offset + 2;
             };
-            Buffer3.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
+            Buffer2.prototype.writeUInt16BE = function writeUInt16BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30462,7 +27189,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 1] = value & 255;
               return offset + 2;
             };
-            Buffer3.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
+            Buffer2.prototype.writeUInt32LE = function writeUInt32LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30473,7 +27200,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset] = value & 255;
               return offset + 4;
             };
-            Buffer3.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
+            Buffer2.prototype.writeUInt32BE = function writeUInt32BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30484,7 +27211,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 3] = value & 255;
               return offset + 4;
             };
-            Buffer3.prototype.writeIntLE = function writeIntLE(value, offset, byteLength2, noAssert) {
+            Buffer2.prototype.writeIntLE = function writeIntLE(value, offset, byteLength2, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert) {
@@ -30503,7 +27230,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return offset + byteLength2;
             };
-            Buffer3.prototype.writeIntBE = function writeIntBE(value, offset, byteLength2, noAssert) {
+            Buffer2.prototype.writeIntBE = function writeIntBE(value, offset, byteLength2, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert) {
@@ -30522,7 +27249,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return offset + byteLength2;
             };
-            Buffer3.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
+            Buffer2.prototype.writeInt8 = function writeInt8(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30532,7 +27259,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset] = value & 255;
               return offset + 1;
             };
-            Buffer3.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
+            Buffer2.prototype.writeInt16LE = function writeInt16LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30541,7 +27268,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 1] = value >>> 8;
               return offset + 2;
             };
-            Buffer3.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
+            Buffer2.prototype.writeInt16BE = function writeInt16BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30550,7 +27277,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 1] = value & 255;
               return offset + 2;
             };
-            Buffer3.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
+            Buffer2.prototype.writeInt32LE = function writeInt32LE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30561,7 +27288,7 @@ var aliyunOssSdk$1 = { exports: {} };
               this[offset + 3] = value >>> 24;
               return offset + 4;
             };
-            Buffer3.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
+            Buffer2.prototype.writeInt32BE = function writeInt32BE(value, offset, noAssert) {
               value = +value;
               offset = offset >>> 0;
               if (!noAssert)
@@ -30589,10 +27316,10 @@ var aliyunOssSdk$1 = { exports: {} };
               ieee754.write(buf, value, offset, littleEndian, 23, 4);
               return offset + 4;
             }
-            Buffer3.prototype.writeFloatLE = function writeFloatLE(value, offset, noAssert) {
+            Buffer2.prototype.writeFloatLE = function writeFloatLE(value, offset, noAssert) {
               return writeFloat(this, value, offset, true, noAssert);
             };
-            Buffer3.prototype.writeFloatBE = function writeFloatBE(value, offset, noAssert) {
+            Buffer2.prototype.writeFloatBE = function writeFloatBE(value, offset, noAssert) {
               return writeFloat(this, value, offset, false, noAssert);
             };
             function writeDouble(buf, value, offset, littleEndian, noAssert) {
@@ -30604,14 +27331,14 @@ var aliyunOssSdk$1 = { exports: {} };
               ieee754.write(buf, value, offset, littleEndian, 52, 8);
               return offset + 8;
             }
-            Buffer3.prototype.writeDoubleLE = function writeDoubleLE(value, offset, noAssert) {
+            Buffer2.prototype.writeDoubleLE = function writeDoubleLE(value, offset, noAssert) {
               return writeDouble(this, value, offset, true, noAssert);
             };
-            Buffer3.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
+            Buffer2.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
               return writeDouble(this, value, offset, false, noAssert);
             };
-            Buffer3.prototype.copy = function copy(target, targetStart, start, end) {
-              if (!Buffer3.isBuffer(target))
+            Buffer2.prototype.copy = function copy(target, targetStart, start, end) {
+              if (!Buffer2.isBuffer(target))
                 throw new TypeError("argument should be a Buffer");
               if (!start)
                 start = 0;
@@ -30655,7 +27382,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return len;
             };
-            Buffer3.prototype.fill = function fill(val, start, end, encoding) {
+            Buffer2.prototype.fill = function fill(val, start, end, encoding) {
               if (typeof val === "string") {
                 if (typeof start === "string") {
                   encoding = start;
@@ -30668,13 +27395,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (encoding !== void 0 && typeof encoding !== "string") {
                   throw new TypeError("encoding must be a string");
                 }
-                if (typeof encoding === "string" && !Buffer3.isEncoding(encoding)) {
+                if (typeof encoding === "string" && !Buffer2.isEncoding(encoding)) {
                   throw new TypeError("Unknown encoding: " + encoding);
                 }
                 if (val.length === 1) {
-                  var code2 = val.charCodeAt(0);
-                  if (encoding === "utf8" && code2 < 128 || encoding === "latin1") {
-                    val = code2;
+                  var code = val.charCodeAt(0);
+                  if (encoding === "utf8" && code < 128 || encoding === "latin1") {
+                    val = code;
                   }
                 }
               } else if (typeof val === "number") {
@@ -30696,7 +27423,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   this[i] = val;
                 }
               } else {
-                var bytes = Buffer3.isBuffer(val) ? val : Buffer3.from(val, encoding);
+                var bytes = Buffer2.isBuffer(val) ? val : Buffer2.from(val, encoding);
                 var len = bytes.length;
                 if (len === 0) {
                   throw new TypeError('The value "' + val + '" is invalid for argument "value"');
@@ -30723,14 +27450,14 @@ var aliyunOssSdk$1 = { exports: {} };
                 return "0" + n2.toString(16);
               return n2.toString(16);
             }
-            function utf8ToBytes(string2, units) {
+            function utf8ToBytes(string, units) {
               units = units || Infinity;
               var codePoint;
-              var length = string2.length;
+              var length = string.length;
               var leadSurrogate = null;
               var bytes = [];
               for (var i = 0; i < length; ++i) {
-                codePoint = string2.charCodeAt(i);
+                codePoint = string.charCodeAt(i);
                 if (codePoint > 55295 && codePoint < 57344) {
                   if (!leadSurrogate) {
                     if (codePoint > 56319) {
@@ -30928,9 +27655,9 @@ var aliyunOssSdk$1 = { exports: {} };
           if (typeof originalFunction !== "function") {
             throw new $TypeError("a function is required");
           }
-          var func2 = $reflectApply(bind, $call, arguments);
+          var func = $reflectApply(bind, $call, arguments);
           return setFunctionLength(
-            func2,
+            func,
             1 + $max(0, originalFunction.length - (arguments.length - 1)),
             true
           );
@@ -31185,10 +27912,10 @@ var aliyunOssSdk$1 = { exports: {} };
               if (TypedArrayConstructor && hasOwn2(TypedArrayConstructor.prototype, KEY))
                 try {
                   delete TypedArrayConstructor.prototype[KEY];
-                } catch (error2) {
+                } catch (error) {
                   try {
                     TypedArrayConstructor.prototype[KEY] = property;
-                  } catch (error22) {
+                  } catch (error2) {
                   }
                 }
             }
@@ -31207,13 +27934,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (TypedArrayConstructor && hasOwn2(TypedArrayConstructor, KEY))
                   try {
                     delete TypedArrayConstructor[KEY];
-                  } catch (error2) {
+                  } catch (error) {
                   }
               }
             if (!TypedArray[KEY] || forced) {
               try {
                 return defineBuiltIn(TypedArray, KEY, forced ? property : NATIVE_ARRAY_BUFFER_VIEWS && TypedArray[KEY] || property);
-              } catch (error2) {
+              } catch (error) {
               }
             } else
               return;
@@ -31332,23 +28059,23 @@ var aliyunOssSdk$1 = { exports: {} };
         var reverse = uncurryThis([].reverse);
         var packIEEE754 = IEEE754.pack;
         var unpackIEEE754 = IEEE754.unpack;
-        var packInt8 = function(number2) {
-          return [number2 & 255];
+        var packInt8 = function(number) {
+          return [number & 255];
         };
-        var packInt16 = function(number2) {
-          return [number2 & 255, number2 >> 8 & 255];
+        var packInt16 = function(number) {
+          return [number & 255, number >> 8 & 255];
         };
-        var packInt32 = function(number2) {
-          return [number2 & 255, number2 >> 8 & 255, number2 >> 16 & 255, number2 >> 24 & 255];
+        var packInt32 = function(number) {
+          return [number & 255, number >> 8 & 255, number >> 16 & 255, number >> 24 & 255];
         };
         var unpackInt32 = function(buffer2) {
           return buffer2[3] << 24 | buffer2[2] << 16 | buffer2[1] << 8 | buffer2[0];
         };
-        var packFloat32 = function(number2) {
-          return packIEEE754(fround(number2), 23, 4);
+        var packFloat32 = function(number) {
+          return packIEEE754(fround(number), 23, 4);
         };
-        var packFloat64 = function(number2) {
-          return packIEEE754(number2, 52, 8);
+        var packFloat64 = function(number) {
+          return packIEEE754(number, 52, 8);
         };
         var addGetter = function(Constructor, key, getInternalState) {
           defineBuiltInAccessor(Constructor[PROTOTYPE], key, {
@@ -31572,17 +28299,17 @@ var aliyunOssSdk$1 = { exports: {} };
         var $forEach = require2("../internals/array-iteration").forEach;
         var arrayMethodIsStrict = require2("../internals/array-method-is-strict");
         var STRICT_METHOD = arrayMethodIsStrict("forEach");
-        module3.exports = !STRICT_METHOD ? function forEach3(callbackfn) {
+        module3.exports = !STRICT_METHOD ? function forEach(callbackfn) {
           return $forEach(this, callbackfn, arguments.length > 1 ? arguments[1] : void 0);
         } : [].forEach;
       }, { "../internals/array-iteration": 125, "../internals/array-method-is-strict": 128 }], 122: [function(require2, module3, exports3) {
         var lengthOfArrayLike = require2("../internals/length-of-array-like");
-        module3.exports = function(Constructor, list2, $length) {
+        module3.exports = function(Constructor, list, $length) {
           var index2 = 0;
-          var length = arguments.length > 2 ? $length : lengthOfArrayLike(list2);
+          var length = arguments.length > 2 ? $length : lengthOfArrayLike(list);
           var result = new Constructor(length);
           while (length > index2)
-            result[index2] = list2[index2++];
+            result[index2] = list[index2++];
           return result;
         };
       }, { "../internals/length-of-array-like": 219 }], 123: [function(require2, module3, exports3) {
@@ -31773,12 +28500,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var SPECIES = wellKnownSymbol("species");
         module3.exports = function(METHOD_NAME) {
           return V8_VERSION >= 51 || !fails(function() {
-            var array2 = [];
-            var constructor = array2.constructor = {};
+            var array = [];
+            var constructor = array.constructor = {};
             constructor[SPECIES] = function() {
               return { foo: 1 };
             };
-            return array2[METHOD_NAME](Boolean).foo !== 1;
+            return array[METHOD_NAME](Boolean).foo !== 1;
           });
         };
       }, { "../internals/engine-v8-version": 167, "../internals/fails": 171, "../internals/well-known-symbol": 306 }], 128: [function(require2, module3, exports3) {
@@ -31842,8 +28569,8 @@ var aliyunOssSdk$1 = { exports: {} };
             return true;
           try {
             Object.defineProperty([], "length", { writable: false }).length = 1;
-          } catch (error2) {
-            return error2 instanceof TypeError;
+          } catch (error) {
+            return error instanceof TypeError;
           }
         }();
         module3.exports = SILENT_ON_NON_WRITABLE_LENGTH_SET ? function(O, length) {
@@ -31860,33 +28587,33 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/function-uncurry-this": 181 }], 132: [function(require2, module3, exports3) {
         var arraySlice = require2("../internals/array-slice");
         var floor = Math.floor;
-        var sort = function(array2, comparefn) {
-          var length = array2.length;
+        var sort = function(array, comparefn) {
+          var length = array.length;
           if (length < 8) {
             var i = 1;
             var element, j;
             while (i < length) {
               j = i;
-              element = array2[i];
-              while (j && comparefn(array2[j - 1], element) > 0) {
-                array2[j] = array2[--j];
+              element = array[i];
+              while (j && comparefn(array[j - 1], element) > 0) {
+                array[j] = array[--j];
               }
               if (j !== i++)
-                array2[j] = element;
+                array[j] = element;
             }
           } else {
             var middle = floor(length / 2);
-            var left = sort(arraySlice(array2, 0, middle), comparefn);
-            var right = sort(arraySlice(array2, middle), comparefn);
+            var left = sort(arraySlice(array, 0, middle), comparefn);
+            var right = sort(arraySlice(array, middle), comparefn);
             var llength = left.length;
             var rlength = right.length;
             var lindex = 0;
             var rindex = 0;
             while (lindex < llength || rindex < rlength) {
-              array2[lindex + rindex] = lindex < llength && rindex < rlength ? comparefn(left[lindex], right[rindex]) <= 0 ? left[lindex++] : right[rindex++] : lindex < llength ? left[lindex++] : right[rindex++];
+              array[lindex + rindex] = lindex < llength && rindex < rlength ? comparefn(left[lindex], right[rindex]) <= 0 ? left[lindex++] : right[rindex++] : lindex < llength ? left[lindex++] : right[rindex++];
             }
           }
-          return array2;
+          return array;
         };
         module3.exports = sort;
       }, { "../internals/array-slice": 131 }], 133: [function(require2, module3, exports3) {
@@ -31921,8 +28648,8 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(iterator, fn, value, ENTRIES) {
           try {
             return ENTRIES ? fn(anObject(value)[0], value[1]) : fn(value);
-          } catch (error2) {
-            iteratorClose(iterator, "throw", error2);
+          } catch (error) {
+            iteratorClose(iterator, "throw", error);
           }
         };
       }, { "../internals/an-object": 114, "../internals/iterator-close": 214 }], 136: [function(require2, module3, exports3) {
@@ -31945,27 +28672,27 @@ var aliyunOssSdk$1 = { exports: {} };
           Array.from(iteratorWithReturn, function() {
             throw 2;
           });
-        } catch (error2) {
+        } catch (error) {
         }
         module3.exports = function(exec, SKIP_CLOSING) {
           try {
             if (!SKIP_CLOSING && !SAFE_CLOSING)
               return false;
-          } catch (error2) {
+          } catch (error) {
             return false;
           }
           var ITERATION_SUPPORT = false;
           try {
-            var object2 = {};
-            object2[ITERATOR] = function() {
+            var object = {};
+            object[ITERATOR] = function() {
               return {
                 next: function() {
                   return { done: ITERATION_SUPPORT = true };
                 }
               };
             };
-            exec(object2);
-          } catch (error2) {
+            exec(object);
+          } catch (error) {
           }
           return ITERATION_SUPPORT;
         };
@@ -31989,12 +28716,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var tryGet = function(it, key) {
           try {
             return it[key];
-          } catch (error2) {
+          } catch (error) {
           }
         };
         module3.exports = TO_STRING_TAG_SUPPORT ? classofRaw : function(it) {
-          var O, tag2, result;
-          return it === void 0 ? "Undefined" : it === null ? "Null" : typeof (tag2 = tryGet(O = $Object(it), TO_STRING_TAG)) == "string" ? tag2 : CORRECT_ARGUMENTS ? classofRaw(O) : (result = classofRaw(O)) === "Object" && isCallable(O.callee) ? "Arguments" : result;
+          var O, tag, result;
+          return it === void 0 ? "Undefined" : it === null ? "Null" : typeof (tag = tryGet(O = $Object(it), TO_STRING_TAG)) == "string" ? tag : CORRECT_ARGUMENTS ? classofRaw(O) : (result = classofRaw(O)) === "Object" && isCallable(O.callee) ? "Arguments" : result;
         };
       }, { "../internals/classof-raw": 137, "../internals/is-callable": 203, "../internals/to-string-tag-support": 290, "../internals/well-known-symbol": 306 }], 139: [function(require2, module3, exports3) {
         var create3 = require2("../internals/object-create");
@@ -32120,7 +28847,7 @@ var aliyunOssSdk$1 = { exports: {} };
               // `{ Map, Set }.prototype.forEach(callbackfn, thisArg = undefined)` methods
               // https://tc39.es/ecma262/#sec-map.prototype.foreach
               // https://tc39.es/ecma262/#sec-set.prototype.foreach
-              forEach: function forEach3(callbackfn) {
+              forEach: function forEach(callbackfn) {
                 var state = getInternalState(this);
                 var boundFunction = bind(callbackfn, arguments.length > 1 ? arguments[1] : void 0);
                 var entry;
@@ -32341,11 +29068,11 @@ var aliyunOssSdk$1 = { exports: {} };
         var DESCRIPTORS = require2("../internals/descriptors");
         var definePropertyModule = require2("../internals/object-define-property");
         var createPropertyDescriptor = require2("../internals/create-property-descriptor");
-        module3.exports = DESCRIPTORS ? function(object2, key, value) {
-          return definePropertyModule.f(object2, key, createPropertyDescriptor(1, value));
-        } : function(object2, key, value) {
-          object2[key] = value;
-          return object2;
+        module3.exports = DESCRIPTORS ? function(object, key, value) {
+          return definePropertyModule.f(object, key, createPropertyDescriptor(1, value));
+        } : function(object, key, value) {
+          object[key] = value;
+          return object;
         };
       }, { "../internals/create-property-descriptor": 146, "../internals/descriptors": 153, "../internals/object-define-property": 231 }], 146: [function(require2, module3, exports3) {
         module3.exports = function(bitmap, value) {
@@ -32360,12 +29087,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var toPropertyKey = require2("../internals/to-property-key");
         var definePropertyModule = require2("../internals/object-define-property");
         var createPropertyDescriptor = require2("../internals/create-property-descriptor");
-        module3.exports = function(object2, key, value) {
+        module3.exports = function(object, key, value) {
           var propertyKey = toPropertyKey(key);
-          if (propertyKey in object2)
-            definePropertyModule.f(object2, propertyKey, createPropertyDescriptor(0, value));
+          if (propertyKey in object)
+            definePropertyModule.f(object, propertyKey, createPropertyDescriptor(0, value));
           else
-            object2[propertyKey] = value;
+            object[propertyKey] = value;
         };
       }, { "../internals/create-property-descriptor": 146, "../internals/object-define-property": 231, "../internals/to-property-key": 289 }], 148: [function(require2, module3, exports3) {
         var makeBuiltIn = require2("../internals/make-built-in");
@@ -32400,7 +29127,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 delete O[key];
               else if (O[key])
                 simple = true;
-            } catch (error2) {
+            } catch (error) {
             }
             if (simple)
               O[key] = value;
@@ -32427,7 +29154,7 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(key, value) {
           try {
             defineProperty(global3, key, { value, configurable: true, writable: true });
-          } catch (error2) {
+          } catch (error) {
             global3[key] = value;
           }
           return value;
@@ -32608,7 +29335,7 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(exec) {
           try {
             return !!exec();
-          } catch (error2) {
+          } catch (error) {
             return true;
           }
         };
@@ -32696,9 +29423,9 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/a-callable": 108, "../internals/function-bind-native": 176, "../internals/function-uncurry-this-clause": 180 }], 176: [function(require2, module3, exports3) {
         var fails = require2("../internals/fails");
         module3.exports = !fails(function() {
-          var test2 = (function() {
+          var test = (function() {
           }).bind();
-          return typeof test2 != "function" || test2.hasOwnProperty("prototype");
+          return typeof test != "function" || test.hasOwnProperty("prototype");
         });
       }, { "../internals/fails": 171 }], 177: [function(require2, module3, exports3) {
         var NATIVE_BIND = require2("../internals/function-bind-native");
@@ -32723,10 +29450,10 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/descriptors": 153, "../internals/has-own-property": 189 }], 179: [function(require2, module3, exports3) {
         var uncurryThis = require2("../internals/function-uncurry-this");
         var aCallable = require2("../internals/a-callable");
-        module3.exports = function(object2, key, method) {
+        module3.exports = function(object, key, method) {
           try {
-            return uncurryThis(aCallable(Object.getOwnPropertyDescriptor(object2, key)[method]));
-          } catch (error2) {
+            return uncurryThis(aCallable(Object.getOwnPropertyDescriptor(object, key)[method]));
+          } catch (error) {
           }
         };
       }, { "../internals/a-callable": 108, "../internals/function-uncurry-this": 181 }], 180: [function(require2, module3, exports3) {
@@ -32818,8 +29545,8 @@ var aliyunOssSdk$1 = { exports: {} };
         var aCallable = require2("../internals/a-callable");
         var isNullOrUndefined = require2("../internals/is-null-or-undefined");
         module3.exports = function(V2, P) {
-          var func2 = V2[P];
-          return isNullOrUndefined(func2) ? void 0 : aCallable(func2);
+          var func = V2[P];
+          return isNullOrUndefined(func) ? void 0 : aCallable(func);
         };
       }, { "../internals/a-callable": 108, "../internals/is-null-or-undefined": 207 }], 187: [function(require2, module3, exports3) {
         var uncurryThis = require2("../internals/function-uncurry-this");
@@ -32895,8 +29622,8 @@ var aliyunOssSdk$1 = { exports: {} };
       }, {}], 191: [function(require2, module3, exports3) {
         module3.exports = function(a2, b) {
           try {
-            arguments.length === 1 ? index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:14038", a2) : index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:14038", a2, b);
-          } catch (error2) {
+            arguments.length === 1 ? index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:14038", a2) : index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:14038", a2, b);
+          } catch (error) {
           }
         };
       }, {}], 192: [function(require2, module3, exports3) {
@@ -32920,32 +29647,32 @@ var aliyunOssSdk$1 = { exports: {} };
         var floor = Math.floor;
         var log2 = Math.log;
         var LN2 = Math.LN2;
-        var pack2 = function(number2, mantissaLength, bytes) {
+        var pack2 = function(number, mantissaLength, bytes) {
           var buffer2 = $Array(bytes);
           var exponentLength = bytes * 8 - mantissaLength - 1;
           var eMax = (1 << exponentLength) - 1;
           var eBias = eMax >> 1;
           var rt = mantissaLength === 23 ? pow(2, -24) - pow(2, -77) : 0;
-          var sign = number2 < 0 || number2 === 0 && 1 / number2 < 0 ? 1 : 0;
+          var sign = number < 0 || number === 0 && 1 / number < 0 ? 1 : 0;
           var index2 = 0;
           var exponent, mantissa, c;
-          number2 = abs(number2);
-          if (number2 !== number2 || number2 === Infinity) {
-            mantissa = number2 !== number2 ? 1 : 0;
+          number = abs(number);
+          if (number !== number || number === Infinity) {
+            mantissa = number !== number ? 1 : 0;
             exponent = eMax;
           } else {
-            exponent = floor(log2(number2) / LN2);
+            exponent = floor(log2(number) / LN2);
             c = pow(2, -exponent);
-            if (number2 * c < 1) {
+            if (number * c < 1) {
               exponent--;
               c *= 2;
             }
             if (exponent + eBias >= 1) {
-              number2 += rt / c;
+              number += rt / c;
             } else {
-              number2 += rt * pow(2, 1 - eBias);
+              number += rt * pow(2, 1 - eBias);
             }
-            if (number2 * c >= 2) {
+            if (number * c >= 2) {
               exponent++;
               c /= 2;
             }
@@ -32953,10 +29680,10 @@ var aliyunOssSdk$1 = { exports: {} };
               mantissa = 0;
               exponent = eMax;
             } else if (exponent + eBias >= 1) {
-              mantissa = (number2 * c - 1) * pow(2, mantissaLength);
+              mantissa = (number * c - 1) * pow(2, mantissaLength);
               exponent += eBias;
             } else {
-              mantissa = number2 * pow(2, eBias - 1) * pow(2, mantissaLength);
+              mantissa = number * pow(2, eBias - 1) * pow(2, mantissaLength);
               exponent = 0;
             }
           }
@@ -33103,9 +29830,9 @@ var aliyunOssSdk$1 = { exports: {} };
           REQUIRED = true;
           var getOwnPropertyNames = getOwnPropertyNamesModule.f;
           var splice = uncurryThis([].splice);
-          var test2 = {};
-          test2[METADATA] = 1;
-          if (getOwnPropertyNames(test2).length) {
+          var test = {};
+          test[METADATA] = 1;
+          if (getOwnPropertyNames(test).length) {
             getOwnPropertyNamesModule.f = function(it) {
               var result = getOwnPropertyNames(it);
               for (var i = 0, length = result.length; i < length; i++) {
@@ -33230,7 +29957,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var inspectSource = require2("../internals/inspect-source");
         var noop2 = function() {
         };
-        var empty2 = [];
+        var empty = [];
         var construct = getBuiltIn("Reflect", "construct");
         var constructorRegExp = /^\s*(?:class|function)\b/;
         var exec = uncurryThis(constructorRegExp.exec);
@@ -33239,9 +29966,9 @@ var aliyunOssSdk$1 = { exports: {} };
           if (!isCallable(argument))
             return false;
           try {
-            construct(noop2, empty2, argument);
+            construct(noop2, empty, argument);
             return true;
-          } catch (error2) {
+          } catch (error) {
             return false;
           }
         };
@@ -33256,7 +29983,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           try {
             return INCORRECT_TO_STRING || !!exec(constructorRegExp, inspectSource(argument));
-          } catch (error2) {
+          } catch (error) {
             return true;
           }
         };
@@ -33275,8 +30002,8 @@ var aliyunOssSdk$1 = { exports: {} };
           var value = data[normalize(feature)];
           return value === POLYFILL ? true : value === NATIVE ? false : isCallable(detection) ? fails(detection) : !!detection;
         };
-        var normalize = isForced.normalize = function(string2) {
-          return String(string2).replace(replacement, ".").toLowerCase();
+        var normalize = isForced.normalize = function(string) {
+          return String(string).replace(replacement, ".").toLowerCase();
         };
         var data = isForced.data = {};
         var NATIVE = isForced.NATIVE = "N";
@@ -33384,8 +30111,8 @@ var aliyunOssSdk$1 = { exports: {} };
           while (!(step = call(next, iterator)).done) {
             try {
               result = callFn(step.value);
-            } catch (error2) {
-              iteratorClose(iterator, "throw", error2);
+            } catch (error) {
+              iteratorClose(iterator, "throw", error);
             }
             if (typeof result == "object" && result && isPrototypeOf(ResultPrototype, result))
               return result;
@@ -33407,9 +30134,9 @@ var aliyunOssSdk$1 = { exports: {} };
               return value;
             }
             innerResult = call(innerResult, iterator);
-          } catch (error2) {
+          } catch (error) {
             innerError = true;
-            innerResult = error2;
+            innerResult = error;
           }
           if (kind === "throw")
             throw value;
@@ -33561,8 +30288,8 @@ var aliyunOssSdk$1 = { exports: {} };
           }
         }
         var NEW_ITERATOR_PROTOTYPE = !isObject2(IteratorPrototype) || fails(function() {
-          var test2 = {};
-          return IteratorPrototype[ITERATOR].call(test2) !== test2;
+          var test = {};
+          return IteratorPrototype[ITERATOR].call(test) !== test;
         });
         if (NEW_ITERATOR_PROTOTYPE)
           IteratorPrototype = {};
@@ -33628,7 +30355,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 defineProperty(value, "prototype", { writable: false });
             } else if (value.prototype)
               value.prototype = void 0;
-          } catch (error2) {
+          } catch (error) {
           }
           var state = enforceInternalState(value);
           if (!hasOwn2(state, "source")) {
@@ -33694,7 +30421,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var process = global3.process;
         var Promise2 = global3.Promise;
         var microtask = safeGetBuiltIn("queueMicrotask");
-        var notify2, toggle, node, promise2, then;
+        var notify, toggle, node, promise, then;
         if (!microtask) {
           var queue2 = new Queue();
           var flush = function() {
@@ -33704,10 +30431,10 @@ var aliyunOssSdk$1 = { exports: {} };
             while (fn = queue2.get())
               try {
                 fn();
-              } catch (error2) {
+              } catch (error) {
                 if (queue2.head)
-                  notify2();
-                throw error2;
+                  notify();
+                throw error;
               }
             if (parent)
               parent.enter();
@@ -33716,29 +30443,29 @@ var aliyunOssSdk$1 = { exports: {} };
             toggle = true;
             node = document2.createTextNode("");
             new MutationObserver(flush).observe(node, { characterData: true });
-            notify2 = function() {
+            notify = function() {
               node.data = toggle = !toggle;
             };
           } else if (!IS_IOS_PEBBLE && Promise2 && Promise2.resolve) {
-            promise2 = Promise2.resolve(void 0);
-            promise2.constructor = Promise2;
-            then = bind(promise2.then, promise2);
-            notify2 = function() {
+            promise = Promise2.resolve(void 0);
+            promise.constructor = Promise2;
+            then = bind(promise.then, promise);
+            notify = function() {
               then(flush);
             };
           } else if (IS_NODE) {
-            notify2 = function() {
+            notify = function() {
               process.nextTick(flush);
             };
           } else {
             macrotask = bind(macrotask, global3);
-            notify2 = function() {
+            notify = function() {
               macrotask(flush);
             };
           }
           microtask = function(fn) {
             if (!queue2.head)
-              notify2();
+              notify();
             queue2.add(fn);
           };
         }
@@ -33864,7 +30591,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var NullProtoObject = function() {
           try {
             activeXDocument = new ActiveXObject("htmlfile");
-          } catch (error2) {
+          } catch (error) {
           }
           NullProtoObject = typeof document != "undefined" ? document.domain && activeXDocument ? NullProtoObjectViaActiveX(activeXDocument) : NullProtoObjectViaIFrame() : NullProtoObjectViaActiveX(activeXDocument);
           var length = enumBugKeys.length;
@@ -33893,13 +30620,13 @@ var aliyunOssSdk$1 = { exports: {} };
         var objectKeys2 = require2("../internals/object-keys");
         exports3.f = DESCRIPTORS && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
           anObject(O);
-          var props2 = toIndexedObject(Properties);
+          var props = toIndexedObject(Properties);
           var keys = objectKeys2(Properties);
           var length = keys.length;
           var index2 = 0;
           var key;
           while (length > index2)
-            definePropertyModule.f(O, key = keys[index2++], props2[key]);
+            definePropertyModule.f(O, key = keys[index2++], props[key]);
           return O;
         };
       }, { "../internals/an-object": 114, "../internals/descriptors": 153, "../internals/object-define-property": 231, "../internals/object-keys": 240, "../internals/to-indexed-object": 282, "../internals/v8-prototype-define-bug": 301 }], 231: [function(require2, module3, exports3) {
@@ -33937,7 +30664,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (IE8_DOM_DEFINE)
             try {
               return $defineProperty(O, P, Attributes);
-            } catch (error2) {
+            } catch (error) {
             }
           if ("get" in Attributes || "set" in Attributes)
             throw new $TypeError("Accessors not supported");
@@ -33961,7 +30688,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (IE8_DOM_DEFINE)
             try {
               return $getOwnPropertyDescriptor(O, P);
-            } catch (error2) {
+            } catch (error) {
             }
           if (hasOwn2(O, P))
             return createPropertyDescriptor(!call(propertyIsEnumerableModule.f, O, P), O[P]);
@@ -33975,7 +30702,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var getWindowNames = function(it) {
           try {
             return $getOwnPropertyNames(it);
-          } catch (error2) {
+          } catch (error) {
             return arraySlice(windowNames);
           }
         };
@@ -34001,14 +30728,14 @@ var aliyunOssSdk$1 = { exports: {} };
         var $Object = Object;
         var ObjectPrototype = $Object.prototype;
         module3.exports = CORRECT_PROTOTYPE_GETTER ? $Object.getPrototypeOf : function(O) {
-          var object2 = toObject(O);
-          if (hasOwn2(object2, IE_PROTO))
-            return object2[IE_PROTO];
-          var constructor = object2.constructor;
-          if (isCallable(constructor) && object2 instanceof constructor) {
+          var object = toObject(O);
+          if (hasOwn2(object, IE_PROTO))
+            return object[IE_PROTO];
+          var constructor = object.constructor;
+          if (isCallable(constructor) && object instanceof constructor) {
             return constructor.prototype;
           }
-          return object2 instanceof $Object ? ObjectPrototype : null;
+          return object instanceof $Object ? ObjectPrototype : null;
         };
       }, { "../internals/correct-prototype-getter": 143, "../internals/has-own-property": 189, "../internals/is-callable": 203, "../internals/shared-key": 267, "../internals/to-object": 285 }], 237: [function(require2, module3, exports3) {
         var fails = require2("../internals/fails");
@@ -34035,8 +30762,8 @@ var aliyunOssSdk$1 = { exports: {} };
         var indexOf = require2("../internals/array-includes").indexOf;
         var hiddenKeys = require2("../internals/hidden-keys");
         var push = uncurryThis([].push);
-        module3.exports = function(object2, names) {
-          var O = toIndexedObject(object2);
+        module3.exports = function(object, names) {
+          var O = toIndexedObject(object);
           var i = 0;
           var result = [];
           var key;
@@ -34068,13 +30795,13 @@ var aliyunOssSdk$1 = { exports: {} };
         var aPossiblePrototype = require2("../internals/a-possible-prototype");
         module3.exports = Object.setPrototypeOf || ("__proto__" in {} ? function() {
           var CORRECT_SETTER = false;
-          var test2 = {};
+          var test = {};
           var setter;
           try {
             setter = uncurryThisAccessor(Object.prototype, "__proto__", "set");
-            setter(test2, []);
-            CORRECT_SETTER = test2 instanceof Array;
-          } catch (error2) {
+            setter(test, []);
+            CORRECT_SETTER = test instanceof Array;
+          } catch (error) {
           }
           return function setPrototypeOf(O, proto) {
             anObject(O);
@@ -34138,13 +30865,13 @@ var aliyunOssSdk$1 = { exports: {} };
         var isCallable = require2("../internals/is-callable");
         var isObject2 = require2("../internals/is-object");
         var $TypeError = TypeError;
-        module3.exports = function(input2, pref) {
+        module3.exports = function(input, pref) {
           var fn, val;
-          if (pref === "string" && isCallable(fn = input2.toString) && !isObject2(val = call(fn, input2)))
+          if (pref === "string" && isCallable(fn = input.toString) && !isObject2(val = call(fn, input)))
             return val;
-          if (isCallable(fn = input2.valueOf) && !isObject2(val = call(fn, input2)))
+          if (isCallable(fn = input.valueOf) && !isObject2(val = call(fn, input)))
             return val;
-          if (pref !== "string" && isCallable(fn = input2.toString) && !isObject2(val = call(fn, input2)))
+          if (pref !== "string" && isCallable(fn = input.toString) && !isObject2(val = call(fn, input)))
             return val;
           throw new $TypeError("Can't convert object to primitive value");
         };
@@ -34167,8 +30894,8 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(exec) {
           try {
             return { error: false, value: exec() };
-          } catch (error2) {
-            return { error: true, value: error2 };
+          } catch (error) {
+            return { error: true, value: error };
           }
         };
       }, {}], 249: [function(require2, module3, exports3) {
@@ -34194,7 +30921,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (IS_PURE && !(NativePromisePrototype["catch"] && NativePromisePrototype["finally"]))
             return true;
           if (!V8_VERSION || V8_VERSION < 51 || !/native code/.test(PROMISE_CONSTRUCTOR_SOURCE)) {
-            var promise2 = new NativePromiseConstructor(function(resolve2) {
+            var promise = new NativePromiseConstructor(function(resolve2) {
               resolve2(1);
             });
             var FakePromise = function(exec) {
@@ -34202,9 +30929,9 @@ var aliyunOssSdk$1 = { exports: {} };
               }, function() {
               });
             };
-            var constructor = promise2.constructor = {};
+            var constructor = promise.constructor = {};
             constructor[SPECIES] = FakePromise;
-            SUBCLASSING = promise2.then(function() {
+            SUBCLASSING = promise.then(function() {
             }) instanceof FakePromise;
             if (!SUBCLASSING)
               return true;
@@ -34327,12 +31054,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var NPCG_INCLUDED = /()??/.exec("")[1] !== void 0;
         var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y || UNSUPPORTED_DOT_ALL || UNSUPPORTED_NCG;
         if (PATCH) {
-          patchedExec = function exec(string2) {
+          patchedExec = function exec(string) {
             var re = this;
             var state = getInternalState(re);
-            var str = toString2(string2);
+            var str = toString2(string);
             var raw = state.raw;
-            var result, reCopy, lastIndex, match, i, object2, group;
+            var result, reCopy, lastIndex, match, i, object, group;
             if (raw) {
               raw.lastIndex = re.lastIndex;
               result = call(patchedExec, raw, str);
@@ -34340,12 +31067,12 @@ var aliyunOssSdk$1 = { exports: {} };
               return result;
             }
             var groups = state.groups;
-            var sticky2 = UNSUPPORTED_Y && re.sticky;
+            var sticky = UNSUPPORTED_Y && re.sticky;
             var flags = call(regexpFlags, re);
             var source = re.source;
             var charsAdded = 0;
             var strCopy = str;
-            if (sticky2) {
+            if (sticky) {
               flags = replace(flags, "y", "");
               if (indexOf(flags, "g") === -1) {
                 flags += "g";
@@ -34363,8 +31090,8 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             if (UPDATES_LAST_INDEX_WRONG)
               lastIndex = re.lastIndex;
-            match = call(nativeExec, sticky2 ? reCopy : re, strCopy);
-            if (sticky2) {
+            match = call(nativeExec, sticky ? reCopy : re, strCopy);
+            if (sticky) {
               if (match) {
                 match.input = stringSlice(match.input, charsAdded);
                 match[0] = stringSlice(match[0], charsAdded);
@@ -34384,10 +31111,10 @@ var aliyunOssSdk$1 = { exports: {} };
               });
             }
             if (match && groups) {
-              match.groups = object2 = create3(null);
+              match.groups = object = create3(null);
               for (i = 0; i < groups.length; i++) {
                 group = groups[i];
-                object2[group[0]] = match[group[1]];
+                object[group[0]] = match[group[1]];
               }
             }
             return match;
@@ -34600,12 +31327,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var rtrim = RegExp("(^|[^" + whitespaces + "])[" + whitespaces + "]+$");
         var createMethod = function(TYPE) {
           return function($this) {
-            var string2 = toString2(requireObjectCoercible($this));
+            var string = toString2(requireObjectCoercible($this));
             if (TYPE & 1)
-              string2 = replace(string2, ltrim, "");
+              string = replace(string, ltrim, "");
             if (TYPE & 2)
-              string2 = replace(string2, rtrim, "$1");
-            return string2;
+              string = replace(string, rtrim, "$1");
+            return string;
           };
         };
         module3.exports = {
@@ -34767,9 +31494,9 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(it) {
           if (it === void 0)
             return 0;
-          var number2 = toIntegerOrInfinity(it);
-          var length = toLength(number2);
-          if (number2 !== length)
+          var number = toIntegerOrInfinity(it);
+          var length = toLength(number);
+          if (number !== length)
             throw new $RangeError("Wrong length or index");
           return length;
         };
@@ -34782,8 +31509,8 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/indexed-object": 195, "../internals/require-object-coercible": 262 }], 283: [function(require2, module3, exports3) {
         var trunc = require2("../internals/math-trunc");
         module3.exports = function(argument) {
-          var number2 = +argument;
-          return number2 !== number2 || number2 === 0 ? 0 : trunc(number2);
+          var number = +argument;
+          return number !== number || number === 0 ? 0 : trunc(number);
         };
       }, { "../internals/math-trunc": 224 }], 284: [function(require2, module3, exports3) {
         var toIntegerOrInfinity = require2("../internals/to-integer-or-infinity");
@@ -34824,22 +31551,22 @@ var aliyunOssSdk$1 = { exports: {} };
         var wellKnownSymbol = require2("../internals/well-known-symbol");
         var $TypeError = TypeError;
         var TO_PRIMITIVE = wellKnownSymbol("toPrimitive");
-        module3.exports = function(input2, pref) {
-          if (!isObject2(input2) || isSymbol2(input2))
-            return input2;
-          var exoticToPrim = getMethod(input2, TO_PRIMITIVE);
+        module3.exports = function(input, pref) {
+          if (!isObject2(input) || isSymbol2(input))
+            return input;
+          var exoticToPrim = getMethod(input, TO_PRIMITIVE);
           var result;
           if (exoticToPrim) {
             if (pref === void 0)
               pref = "default";
-            result = call(exoticToPrim, input2, pref);
+            result = call(exoticToPrim, input, pref);
             if (!isObject2(result) || isSymbol2(result))
               return result;
             throw new $TypeError("Can't convert object to primitive value");
           }
           if (pref === void 0)
             pref = "number";
-          return ordinaryToPrimitive(input2, pref);
+          return ordinaryToPrimitive(input, pref);
         };
       }, { "../internals/function-call": 177, "../internals/get-method": 186, "../internals/is-object": 208, "../internals/is-symbol": 212, "../internals/ordinary-to-primitive": 245, "../internals/well-known-symbol": 306 }], 289: [function(require2, module3, exports3) {
         var toPrimitive = require2("../internals/to-primitive");
@@ -34851,9 +31578,9 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/is-symbol": 212, "../internals/to-primitive": 288 }], 290: [function(require2, module3, exports3) {
         var wellKnownSymbol = require2("../internals/well-known-symbol");
         var TO_STRING_TAG = wellKnownSymbol("toStringTag");
-        var test2 = {};
-        test2[TO_STRING_TAG] = "z";
-        module3.exports = String(test2) === "[object z]";
+        var test = {};
+        test[TO_STRING_TAG] = "z";
+        module3.exports = String(test) === "[object z]";
       }, { "../internals/well-known-symbol": 306 }], 291: [function(require2, module3, exports3) {
         var classof = require2("../internals/classof");
         var $String = String;
@@ -34863,9 +31590,9 @@ var aliyunOssSdk$1 = { exports: {} };
           return $String(argument);
         };
       }, { "../internals/classof": 138 }], 292: [function(require2, module3, exports3) {
-        var round2 = Math.round;
+        var round = Math.round;
         module3.exports = function(it) {
-          var value = round2(it);
+          var value = round(it);
           return value < 0 ? 0 : value > 255 ? 255 : value & 255;
         };
       }, {}], 293: [function(require2, module3, exports3) {
@@ -34873,7 +31600,7 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = function(argument) {
           try {
             return $String(argument);
-          } catch (error2) {
+          } catch (error) {
             return "Object";
           }
         };
@@ -34903,7 +31630,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var setPrototypeOf = require2("../internals/object-set-prototype-of");
         var getOwnPropertyNames = require2("../internals/object-get-own-property-names").f;
         var typedArrayFrom = require2("../internals/typed-array-from");
-        var forEach3 = require2("../internals/array-iteration").forEach;
+        var forEach = require2("../internals/array-iteration").forEach;
         var setSpecies = require2("../internals/set-species");
         var defineBuiltInAccessor = require2("../internals/define-built-in-accessor");
         var definePropertyModule = require2("../internals/object-define-property");
@@ -35054,7 +31781,7 @@ var aliyunOssSdk$1 = { exports: {} };
               });
               if (setPrototypeOf)
                 setPrototypeOf(TypedArrayConstructor, TypedArray);
-              forEach3(getOwnPropertyNames(NativeTypedArrayConstructor), function(key) {
+              forEach(getOwnPropertyNames(NativeTypedArrayConstructor), function(key) {
                 if (!(key in TypedArrayConstructor)) {
                   createNonEnumerableProperty(TypedArrayConstructor, key, NativeTypedArrayConstructor[key]);
                 }
@@ -35104,8 +31831,8 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "../internals/array-buffer-view-core": 117, "../internals/check-correctness-of-iteration": 136, "../internals/fails": 171, "../internals/global": 188 }], 296: [function(require2, module3, exports3) {
         var arrayFromConstructorAndList = require2("../internals/array-from-constructor-and-list");
         var typedArraySpeciesConstructor = require2("../internals/typed-array-species-constructor");
-        module3.exports = function(instance, list2) {
-          return arrayFromConstructorAndList(typedArraySpeciesConstructor(instance), list2);
+        module3.exports = function(instance, list) {
+          return arrayFromConstructorAndList(typedArraySpeciesConstructor(instance), list);
         };
       }, { "../internals/array-from-constructor-and-list": 122, "../internals/typed-array-species-constructor": 298 }], 297: [function(require2, module3, exports3) {
         var bind = require2("../internals/function-bind-context");
@@ -35284,9 +32011,9 @@ var aliyunOssSdk$1 = { exports: {} };
         var V8_VERSION = require2("../internals/engine-v8-version");
         var IS_CONCAT_SPREADABLE = wellKnownSymbol("isConcatSpreadable");
         var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails(function() {
-          var array2 = [];
-          array2[IS_CONCAT_SPREADABLE] = false;
-          return array2.concat()[0] !== array2;
+          var array = [];
+          array[IS_CONCAT_SPREADABLE] = false;
+          return array.concat()[0] !== array;
         });
         var isConcatSpreadable = function(O) {
           if (!isObject2(O))
@@ -35423,7 +32150,7 @@ var aliyunOssSdk$1 = { exports: {} };
         if (!IS_PURE && DESCRIPTORS && values.name !== "values")
           try {
             defineProperty(values, "name", { value: "values" });
-          } catch (error2) {
+          } catch (error) {
           }
       }, { "../internals/add-to-unscopables": 111, "../internals/create-iter-result-object": 144, "../internals/descriptors": 153, "../internals/internal-state": 199, "../internals/is-pure": 210, "../internals/iterator-define": 216, "../internals/iterators": 218, "../internals/object-define-property": 231, "../internals/to-indexed-object": 282 }], 317: [function(require2, module3, exports3) {
         var $ = require2("../internals/export");
@@ -35508,14 +32235,14 @@ var aliyunOssSdk$1 = { exports: {} };
         var IE_OR_EDGE = require2("../internals/engine-is-ie-or-edge");
         var V8 = require2("../internals/engine-v8-version");
         var WEBKIT = require2("../internals/engine-webkit-version");
-        var test2 = [];
-        var nativeSort = uncurryThis(test2.sort);
-        var push = uncurryThis(test2.push);
+        var test = [];
+        var nativeSort = uncurryThis(test.sort);
+        var push = uncurryThis(test.push);
         var FAILS_ON_UNDEFINED = fails(function() {
-          test2.sort(void 0);
+          test.sort(void 0);
         });
         var FAILS_ON_NULL = fails(function() {
-          test2.sort(null);
+          test.sort(null);
         });
         var STRICT_METHOD = arrayMethodIsStrict("sort");
         var STABLE_SORT = !fails(function() {
@@ -35528,10 +32255,10 @@ var aliyunOssSdk$1 = { exports: {} };
           if (WEBKIT)
             return WEBKIT < 603;
           var result = "";
-          var code2, chr, value, index2;
-          for (code2 = 65; code2 < 76; code2++) {
-            chr = String.fromCharCode(code2);
-            switch (code2) {
+          var code, chr, value, index2;
+          for (code = 65; code < 76; code++) {
+            chr = String.fromCharCode(code);
+            switch (code) {
               case 66:
               case 69:
               case 70:
@@ -35546,14 +32273,14 @@ var aliyunOssSdk$1 = { exports: {} };
                 value = 2;
             }
             for (index2 = 0; index2 < 47; index2++) {
-              test2.push({ k: chr + index2, v: value });
+              test.push({ k: chr + index2, v: value });
             }
           }
-          test2.sort(function(a2, b) {
+          test.sort(function(a2, b) {
             return b.v - a2.v;
           });
-          for (index2 = 0; index2 < test2.length; index2++) {
-            chr = test2[index2].k.charAt(0);
+          for (index2 = 0; index2 < test.length; index2++) {
+            chr = test[index2].k.charAt(0);
             if (result.charAt(result.length - 1) !== chr)
               result += chr;
           }
@@ -35575,24 +32302,24 @@ var aliyunOssSdk$1 = { exports: {} };
           sort: function sort(comparefn) {
             if (comparefn !== void 0)
               aCallable(comparefn);
-            var array2 = toObject(this);
+            var array = toObject(this);
             if (STABLE_SORT)
-              return comparefn === void 0 ? nativeSort(array2) : nativeSort(array2, comparefn);
+              return comparefn === void 0 ? nativeSort(array) : nativeSort(array, comparefn);
             var items = [];
-            var arrayLength = lengthOfArrayLike(array2);
+            var arrayLength = lengthOfArrayLike(array);
             var itemsLength, index2;
             for (index2 = 0; index2 < arrayLength; index2++) {
-              if (index2 in array2)
-                push(items, array2[index2]);
+              if (index2 in array)
+                push(items, array[index2]);
             }
             internalSort(items, getSortCompare(comparefn));
             itemsLength = lengthOfArrayLike(items);
             index2 = 0;
             while (index2 < itemsLength)
-              array2[index2] = items[index2++];
+              array[index2] = items[index2++];
             while (index2 < arrayLength)
-              deletePropertyOrThrow(array2, index2++);
-            return array2;
+              deletePropertyOrThrow(array, index2++);
+            return array;
           }
         });
       }, { "../internals/a-callable": 108, "../internals/array-method-is-strict": 128, "../internals/array-sort": 132, "../internals/delete-property-or-throw": 152, "../internals/engine-ff-version": 158, "../internals/engine-is-ie-or-edge": 161, "../internals/engine-v8-version": 167, "../internals/engine-webkit-version": 168, "../internals/export": 170, "../internals/fails": 171, "../internals/function-uncurry-this": 181, "../internals/length-of-array-like": 219, "../internals/to-object": 285, "../internals/to-string": 291 }], 321: [function(require2, module3, exports3) {
@@ -35678,7 +32405,7 @@ var aliyunOssSdk$1 = { exports: {} };
             get: function() {
               try {
                 return regExpExec(nameRE, functionToString(this))[1];
-              } catch (error2) {
+              } catch (error) {
                 return "";
               }
             }
@@ -35726,9 +32453,9 @@ var aliyunOssSdk$1 = { exports: {} };
           };
           return apply($stringify, null, args);
         };
-        var fixIllFormed = function(match, offset, string2) {
-          var prev = charAt(string2, offset - 1);
-          var next = charAt(string2, offset + 1);
+        var fixIllFormed = function(match, offset, string) {
+          var prev = charAt(string, offset - 1);
+          var next = charAt(string, offset + 1);
           if (exec(low, match) && !exec(hi, next) || exec(hi, match) && !exec(low, prev)) {
             return "\\u" + numberToString(charCodeAt(match, 0), 16);
           }
@@ -35762,7 +32489,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var getOwnPropertyDescriptor = require2("../internals/object-get-own-property-descriptor").f;
         var defineProperty = require2("../internals/object-define-property").f;
         var thisNumberValue = require2("../internals/this-number-value");
-        var trim2 = require2("../internals/string-trim").trim;
+        var trim = require2("../internals/string-trim").trim;
         var NUMBER = "Number";
         var NativeNumber = global3[NUMBER];
         var PureNumberNamespace = path[NUMBER];
@@ -35776,11 +32503,11 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var toNumber = function(argument) {
           var it = toPrimitive(argument, "number");
-          var first, third, radix, maxCode, digits2, length, index2, code2;
+          var first, third, radix, maxCode, digits, length, index2, code;
           if (isSymbol2(it))
             throw new TypeError2("Cannot convert a Symbol value to a number");
           if (typeof it == "string" && it.length > 2) {
-            it = trim2(it);
+            it = trim(it);
             first = charCodeAt(it, 0);
             if (first === 43 || first === 45) {
               third = charCodeAt(it, 2);
@@ -35801,14 +32528,14 @@ var aliyunOssSdk$1 = { exports: {} };
                 default:
                   return +it;
               }
-              digits2 = stringSlice(it, 2);
-              length = digits2.length;
+              digits = stringSlice(it, 2);
+              length = digits.length;
               for (index2 = 0; index2 < length; index2++) {
-                code2 = charCodeAt(digits2, index2);
-                if (code2 < 48 || code2 > maxCode)
+                code = charCodeAt(digits, index2);
+                if (code < 48 || code > maxCode)
                   return NaN;
               }
-              return parseInt(digits2, radix);
+              return parseInt(digits, radix);
             }
           }
           return +it;
@@ -35911,11 +32638,11 @@ var aliyunOssSdk$1 = { exports: {} };
               var values = [];
               var counter = 0;
               var remaining = 1;
-              iterate(iterable, function(promise2) {
+              iterate(iterable, function(promise) {
                 var index2 = counter++;
                 var alreadyCalled = false;
                 remaining++;
-                call($promiseResolve, C, promise2).then(function(value) {
+                call($promiseResolve, C, promise).then(function(value) {
                   if (alreadyCalled)
                     return;
                   alreadyCalled = true;
@@ -36035,13 +32762,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 resolve2(result);
             } else
               reject(value);
-          } catch (error2) {
+          } catch (error) {
             if (domain && !exited)
               domain.exit();
-            reject(error2);
+            reject(error);
           }
         };
-        var notify2 = function(state, isReject) {
+        var notify = function(state, isReject) {
           if (state.notified)
             return;
           state.notified = true;
@@ -36056,16 +32783,16 @@ var aliyunOssSdk$1 = { exports: {} };
               onUnhandled(state);
           });
         };
-        var dispatchEvent = function(name, promise2, reason) {
+        var dispatchEvent = function(name, promise, reason) {
           var event, handler;
           if (DISPATCH_EVENT) {
             event = document2.createEvent("Event");
-            event.promise = promise2;
+            event.promise = promise;
             event.reason = reason;
             event.initEvent(name, false, true);
             global3.dispatchEvent(event);
           } else
-            event = { promise: promise2, reason };
+            event = { promise, reason };
           if (!NATIVE_PROMISE_REJECTION_EVENT && (handler = global3["on" + name]))
             handler(event);
           else if (name === UNHANDLED_REJECTION)
@@ -36073,16 +32800,16 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var onUnhandled = function(state) {
           call(task, global3, function() {
-            var promise2 = state.facade;
+            var promise = state.facade;
             var value = state.value;
             var IS_UNHANDLED = isUnhandled(state);
             var result;
             if (IS_UNHANDLED) {
               result = perform(function() {
                 if (IS_NODE) {
-                  process.emit("unhandledRejection", value, promise2);
+                  process.emit("unhandledRejection", value, promise);
                 } else
-                  dispatchEvent(UNHANDLED_REJECTION, promise2, value);
+                  dispatchEvent(UNHANDLED_REJECTION, promise, value);
               });
               state.rejection = IS_NODE || isUnhandled(state) ? UNHANDLED : HANDLED;
               if (result.error)
@@ -36095,11 +32822,11 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var onHandleUnhandled = function(state) {
           call(task, global3, function() {
-            var promise2 = state.facade;
+            var promise = state.facade;
             if (IS_NODE) {
-              process.emit("rejectionHandled", promise2);
+              process.emit("rejectionHandled", promise);
             } else
-              dispatchEvent(REJECTION_HANDLED, promise2, state.value);
+              dispatchEvent(REJECTION_HANDLED, promise, state.value);
           });
         };
         var bind = function(fn, state, unwrap) {
@@ -36115,7 +32842,7 @@ var aliyunOssSdk$1 = { exports: {} };
             state = unwrap;
           state.value = value;
           state.state = REJECTED;
-          notify2(state, true);
+          notify(state, true);
         };
         var internalResolve = function(state, value, unwrap) {
           if (state.done)
@@ -36137,17 +32864,17 @@ var aliyunOssSdk$1 = { exports: {} };
                     bind(internalResolve, wrapper, state),
                     bind(internalReject, wrapper, state)
                   );
-                } catch (error2) {
-                  internalReject(wrapper, error2, state);
+                } catch (error) {
+                  internalReject(wrapper, error, state);
                 }
               });
             } else {
               state.value = value;
               state.state = FULFILLED;
-              notify2(state, false);
+              notify(state, false);
             }
-          } catch (error2) {
-            internalReject({ done: false }, error2, state);
+          } catch (error) {
+            internalReject({ done: false }, error, state);
           }
         };
         if (FORCED_PROMISE_CONSTRUCTOR) {
@@ -36158,8 +32885,8 @@ var aliyunOssSdk$1 = { exports: {} };
             var state = getInternalPromiseState(this);
             try {
               executor(bind(internalResolve, state), bind(internalReject, state));
-            } catch (error2) {
-              internalReject(state, error2);
+            } catch (error) {
+              internalReject(state, error);
             }
           };
           PromisePrototype = PromiseConstructor.prototype;
@@ -36191,9 +32918,9 @@ var aliyunOssSdk$1 = { exports: {} };
             return reaction.promise;
           });
           OwnPromiseCapability = function() {
-            var promise2 = new Internal();
-            var state = getInternalPromiseState(promise2);
-            this.promise = promise2;
+            var promise = new Internal();
+            var state = getInternalPromiseState(promise);
+            this.promise = promise;
             this.resolve = bind(internalResolve, state);
             this.reject = bind(internalReject, state);
           };
@@ -36212,7 +32939,7 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             try {
               delete NativePromisePrototype.constructor;
-            } catch (error2) {
+            } catch (error) {
             }
             if (setPrototypeOf) {
               setPrototypeOf(NativePromisePrototype, PromisePrototype);
@@ -36246,8 +32973,8 @@ var aliyunOssSdk$1 = { exports: {} };
             var reject = capability.reject;
             var result = perform(function() {
               var $promiseResolve = aCallable(C.resolve);
-              iterate(iterable, function(promise2) {
-                call($promiseResolve, C, promise2).then(capability.resolve, reject);
+              iterate(iterable, function(promise) {
+                call($promiseResolve, C, promise).then(capability.resolve, reject);
               });
             });
             if (result.error)
@@ -36323,16 +33050,16 @@ var aliyunOssSdk$1 = { exports: {} };
           re2[MATCH] = false;
           return NativeRegExp(re1) !== re1 || NativeRegExp(re2) === re2 || String(NativeRegExp(re1, "i")) !== "/a/i";
         }));
-        var handleDotAll = function(string2) {
-          var length = string2.length;
+        var handleDotAll = function(string) {
+          var length = string.length;
           var index3 = 0;
           var result = "";
           var brackets = false;
           var chr;
           for (; index3 <= length; index3++) {
-            chr = charAt(string2, index3);
+            chr = charAt(string, index3);
             if (chr === "\\") {
-              result += chr + charAt(string2, ++index3);
+              result += chr + charAt(string, ++index3);
               continue;
             }
             if (!brackets && chr === ".") {
@@ -36348,8 +33075,8 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           return result;
         };
-        var handleNCG = function(string2) {
-          var length = string2.length;
+        var handleNCG = function(string) {
+          var length = string.length;
           var index3 = 0;
           var result = "";
           var named = [];
@@ -36360,9 +33087,9 @@ var aliyunOssSdk$1 = { exports: {} };
           var groupname = "";
           var chr;
           for (; index3 <= length; index3++) {
-            chr = charAt(string2, index3);
+            chr = charAt(string, index3);
             if (chr === "\\") {
-              chr += charAt(string2, ++index3);
+              chr += charAt(string, ++index3);
             } else if (chr === "]") {
               brackets = false;
             } else if (!brackets)
@@ -36371,7 +33098,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   brackets = true;
                   break;
                 case chr === "(":
-                  if (exec(IS_NCG, stringSlice(string2, index3 + 1))) {
+                  if (exec(IS_NCG, stringSlice(string, index3 + 1))) {
                     index3 += 2;
                     ncg = true;
                   }
@@ -36402,7 +33129,7 @@ var aliyunOssSdk$1 = { exports: {} };
             var flagsAreUndefined = flags === void 0;
             var groups = [];
             var rawPattern = pattern;
-            var rawFlags, dotAll, sticky2, handled, result, state;
+            var rawFlags, dotAll, sticky, handled, result, state;
             if (!thisIsRegExp && patternIsRegExp && flagsAreUndefined && pattern.constructor === RegExpWrapper) {
               return pattern;
             }
@@ -36421,8 +33148,8 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             rawFlags = flags;
             if (MISSED_STICKY && "sticky" in re1) {
-              sticky2 = !!flags && stringIndexOf(flags, "y") > -1;
-              if (sticky2 && UNSUPPORTED_Y)
+              sticky = !!flags && stringIndexOf(flags, "y") > -1;
+              if (sticky && UNSUPPORTED_Y)
                 flags = replace(flags, /y/g, "");
             }
             if (UNSUPPORTED_NCG) {
@@ -36431,13 +33158,13 @@ var aliyunOssSdk$1 = { exports: {} };
               groups = handled[1];
             }
             result = inheritIfRequired(NativeRegExp(pattern, flags), thisIsRegExp ? this : RegExpPrototype, RegExpWrapper);
-            if (dotAll || sticky2 || groups.length) {
+            if (dotAll || sticky || groups.length) {
               state = enforceInternalState(result);
               if (dotAll) {
                 state.dotAll = true;
                 state.raw = RegExpWrapper(handleDotAll(pattern), rawFlags);
               }
-              if (sticky2)
+              if (sticky)
                 state.sticky = true;
               if (groups.length)
                 state.groups = groups;
@@ -36445,7 +33172,7 @@ var aliyunOssSdk$1 = { exports: {} };
             if (pattern !== rawPattern)
               try {
                 createNonEnumerableProperty(result, "source", rawPattern === "" ? "(?:)" : rawPattern);
-              } catch (error2) {
+              } catch (error) {
               }
             return result;
           };
@@ -36529,12 +33256,12 @@ var aliyunOssSdk$1 = { exports: {} };
           });
         }, function next() {
           var state = getInternalState(this);
-          var string2 = state.string;
+          var string = state.string;
           var index2 = state.index;
           var point;
-          if (index2 >= string2.length)
+          if (index2 >= string.length)
             return createIterResultObject(void 0, true);
-          point = charAt(string2, index2);
+          point = charAt(string, index2);
           state.index += point.length;
           return createIterResultObject(point, false);
         });
@@ -36560,9 +33287,9 @@ var aliyunOssSdk$1 = { exports: {} };
             },
             // `RegExp.prototype[@@match]` method
             // https://tc39.es/ecma262/#sec-regexp.prototype-@@match
-            function(string2) {
+            function(string) {
               var rx = anObject(this);
-              var S = toString2(string2);
+              var S = toString2(string);
               var res = maybeCallNative(nativeMatch, rx, S);
               if (res.done)
                 return res.value;
@@ -36642,9 +33369,9 @@ var aliyunOssSdk$1 = { exports: {} };
             },
             // `RegExp.prototype[@@replace]` method
             // https://tc39.es/ecma262/#sec-regexp.prototype-@@replace
-            function(string2, replaceValue) {
+            function(string, replaceValue) {
               var rx = anObject(this);
-              var S = toString2(string2);
+              var S = toString2(string);
               if (typeof replaceValue == "string" && stringIndexOf(replaceValue, UNSAFE_SUBSTITUTE) === -1 && stringIndexOf(replaceValue, "$<") === -1) {
                 var res = maybeCallNative(nativeReplace, rx, S, replaceValue);
                 if (res.done)
@@ -36714,16 +33441,16 @@ var aliyunOssSdk$1 = { exports: {} };
           return [
             // `String.prototype.search` method
             // https://tc39.es/ecma262/#sec-string.prototype.search
-            function search2(regexp) {
+            function search(regexp) {
               var O = requireObjectCoercible(this);
               var searcher = isNullOrUndefined(regexp) ? void 0 : getMethod(regexp, SEARCH);
               return searcher ? call(searcher, regexp, O) : new RegExp(regexp)[SEARCH](toString2(O));
             },
             // `RegExp.prototype[@@search]` method
             // https://tc39.es/ecma262/#sec-regexp.prototype-@@search
-            function(string2) {
+            function(string) {
               var rx = anObject(this);
-              var S = toString2(string2);
+              var S = toString2(string);
               var res = maybeCallNative(nativeSearch, rx, S);
               if (res.done)
                 return res.value;
@@ -36778,25 +33505,25 @@ var aliyunOssSdk$1 = { exports: {} };
           "test".split(/(?:)/, -1).length !== 4 || "ab".split(/(?:ab)*/).length !== 2 || ".".split(/(.?)(.?)/).length !== 4 || // eslint-disable-next-line regexp/no-empty-capturing-group, regexp/no-empty-group -- required for testing
           ".".split(/()()/).length > 1 || "".split(/.?/).length) {
             internalSplit = function(separator, limit) {
-              var string2 = toString2(requireObjectCoercible(this));
+              var string = toString2(requireObjectCoercible(this));
               var lim = limit === void 0 ? MAX_UINT32 : limit >>> 0;
               if (lim === 0)
                 return [];
               if (separator === void 0)
-                return [string2];
+                return [string];
               if (!isRegExp(separator)) {
-                return call(nativeSplit, string2, separator, lim);
+                return call(nativeSplit, string, separator, lim);
               }
               var output = [];
               var flags = (separator.ignoreCase ? "i" : "") + (separator.multiline ? "m" : "") + (separator.unicode ? "u" : "") + (separator.sticky ? "y" : "");
               var lastLastIndex = 0;
               var separatorCopy = new RegExp(separator.source, flags + "g");
               var match, lastIndex, lastLength;
-              while (match = call(regexpExec, separatorCopy, string2)) {
+              while (match = call(regexpExec, separatorCopy, string)) {
                 lastIndex = separatorCopy.lastIndex;
                 if (lastIndex > lastLastIndex) {
-                  push(output, stringSlice(string2, lastLastIndex, match.index));
-                  if (match.length > 1 && match.index < string2.length)
+                  push(output, stringSlice(string, lastLastIndex, match.index));
+                  if (match.length > 1 && match.index < string.length)
                     apply($push, output, arraySlice(match, 1));
                   lastLength = match[0].length;
                   lastLastIndex = lastIndex;
@@ -36806,11 +33533,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (separatorCopy.lastIndex === match.index)
                   separatorCopy.lastIndex++;
               }
-              if (lastLastIndex === string2.length) {
+              if (lastLastIndex === string.length) {
                 if (lastLength || !exec(separatorCopy, ""))
                   push(output, "");
               } else
-                push(output, stringSlice(string2, lastLastIndex));
+                push(output, stringSlice(string, lastLastIndex));
               return output.length > lim ? arraySlice(output, 0, lim) : output;
             };
           } else if ("0".split(void 0, 0).length) {
@@ -36832,9 +33559,9 @@ var aliyunOssSdk$1 = { exports: {} };
             //
             // NOTE: This cannot be properly polyfilled in engines that don't support
             // the 'y' flag.
-            function(string2, limit) {
+            function(string, limit) {
               var rx = anObject(this);
-              var S = toString2(string2);
+              var S = toString2(string);
               var res = maybeCallNative(internalSplit, rx, S, limit, internalSplit !== nativeSplit);
               if (res.done)
                 return res.value;
@@ -36895,8 +33622,8 @@ var aliyunOssSdk$1 = { exports: {} };
             var that = toString2(requireObjectCoercible(this));
             notARegExp(searchString);
             var index2 = toLength(min(arguments.length > 1 ? arguments[1] : void 0, that.length));
-            var search2 = toString2(searchString);
-            return stringSlice(that, index2, index2 + search2.length) === search2;
+            var search = toString2(searchString);
+            return stringSlice(that, index2, index2 + search.length) === search;
           }
         });
       }, { "../internals/correct-is-regexp-logic": 142, "../internals/export": 170, "../internals/function-uncurry-this-clause": 180, "../internals/is-pure": 210, "../internals/not-a-regexp": 227, "../internals/object-get-own-property-descriptor": 232, "../internals/require-object-coercible": 262, "../internals/to-length": 284, "../internals/to-string": 291 }], 349: [function(require2, module3, exports3) {
@@ -36904,7 +33631,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var $trim = require2("../internals/string-trim").trim;
         var forcedStringTrimMethod = require2("../internals/string-trim-forced");
         $({ target: "String", proto: true, forced: forcedStringTrimMethod("trim") }, {
-          trim: function trim2() {
+          trim: function trim() {
             return $trim(this);
           }
         });
@@ -36982,11 +33709,11 @@ var aliyunOssSdk$1 = { exports: {} };
             }
           })).a !== 7;
         }) ? fallbackDefineProperty : nativeDefineProperty;
-        var wrap = function(tag2, description) {
-          var symbol = AllSymbols[tag2] = nativeObjectCreate(SymbolPrototype);
+        var wrap = function(tag, description) {
+          var symbol = AllSymbols[tag] = nativeObjectCreate(SymbolPrototype);
           setInternalState(symbol, {
             type: SYMBOL,
-            tag: tag2,
+            tag,
             description
           });
           if (!DESCRIPTORS)
@@ -37069,25 +33796,25 @@ var aliyunOssSdk$1 = { exports: {} };
             if (isPrototypeOf(SymbolPrototype, this))
               throw new TypeError2("Symbol is not a constructor");
             var description = !arguments.length || arguments[0] === void 0 ? void 0 : $toString(arguments[0]);
-            var tag2 = uid2(description);
+            var tag = uid2(description);
             var setter = function(value) {
               var $this = this === void 0 ? global3 : this;
               if ($this === ObjectPrototype)
                 call(setter, ObjectPrototypeSymbols, value);
-              if (hasOwn2($this, HIDDEN) && hasOwn2($this[HIDDEN], tag2))
-                $this[HIDDEN][tag2] = false;
+              if (hasOwn2($this, HIDDEN) && hasOwn2($this[HIDDEN], tag))
+                $this[HIDDEN][tag] = false;
               var descriptor = createPropertyDescriptor(1, value);
               try {
-                setSymbolDescriptor($this, tag2, descriptor);
-              } catch (error2) {
-                if (!(error2 instanceof RangeError2))
-                  throw error2;
-                fallbackDefineProperty($this, tag2, descriptor);
+                setSymbolDescriptor($this, tag, descriptor);
+              } catch (error) {
+                if (!(error instanceof RangeError2))
+                  throw error;
+                fallbackDefineProperty($this, tag, descriptor);
               }
             };
             if (DESCRIPTORS && USE_SETTER)
-              setSymbolDescriptor(ObjectPrototype, tag2, { configurable: true, set: setter });
-            return wrap(tag2, description);
+              setSymbolDescriptor(ObjectPrototype, tag, { configurable: true, set: setter });
+            return wrap(tag, description);
           };
           SymbolPrototype = $Symbol[PROTOTYPE];
           defineBuiltIn(SymbolPrototype, "toString", function toString2() {
@@ -37191,8 +33918,8 @@ var aliyunOssSdk$1 = { exports: {} };
               var symbol = thisSymbolValue(this);
               if (hasOwn2(EmptyStringDescriptionStore, symbol))
                 return "";
-              var string2 = symbolDescriptiveString(symbol);
-              var desc = NATIVE_SYMBOL ? stringSlice(string2, 7, -1) : replace(string2, regexp, "$1");
+              var string = symbolDescriptiveString(symbol);
+              var desc = NATIVE_SYMBOL ? stringSlice(string, 7, -1) : replace(string, regexp, "$1");
               return desc === "" ? void 0 : desc;
             }
           });
@@ -37211,12 +33938,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var SymbolToStringRegistry = shared("symbol-to-string-registry");
         $({ target: "Symbol", stat: true, forced: !NATIVE_SYMBOL_REGISTRY }, {
           "for": function(key) {
-            var string2 = toString2(key);
-            if (hasOwn2(StringToSymbolRegistry, string2))
-              return StringToSymbolRegistry[string2];
-            var symbol = getBuiltIn("Symbol")(string2);
-            StringToSymbolRegistry[string2] = symbol;
-            SymbolToStringRegistry[symbol] = string2;
+            var string = toString2(key);
+            if (hasOwn2(StringToSymbolRegistry, string))
+              return StringToSymbolRegistry[string];
+            var symbol = getBuiltIn("Symbol")(string);
+            StringToSymbolRegistry[string] = symbol;
+            SymbolToStringRegistry[symbol] = string;
             return symbol;
           }
         });
@@ -37294,8 +34021,8 @@ var aliyunOssSdk$1 = { exports: {} };
         var aTypedArray = ArrayBufferViewCore.aTypedArray;
         var exportTypedArrayMethod = ArrayBufferViewCore.exportTypedArrayMethod;
         exportTypedArrayMethod("filter", function filter(callbackfn) {
-          var list2 = $filter(aTypedArray(this), callbackfn, arguments.length > 1 ? arguments[1] : void 0);
-          return fromSpeciesAndList(this, list2);
+          var list = $filter(aTypedArray(this), callbackfn, arguments.length > 1 ? arguments[1] : void 0);
+          return fromSpeciesAndList(this, list);
         });
       }, { "../internals/array-buffer-view-core": 117, "../internals/array-iteration": 125, "../internals/typed-array-from-species-and-list": 296 }], 360: [function(require2, module3, exports3) {
         var ArrayBufferViewCore = require2("../internals/array-buffer-view-core");
@@ -37318,7 +34045,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var $forEach = require2("../internals/array-iteration").forEach;
         var aTypedArray = ArrayBufferViewCore.aTypedArray;
         var exportTypedArrayMethod = ArrayBufferViewCore.exportTypedArrayMethod;
-        exportTypedArrayMethod("forEach", function forEach3(callbackfn) {
+        exportTypedArrayMethod("forEach", function forEach(callbackfn) {
           $forEach(aTypedArray(this), callbackfn, arguments.length > 1 ? arguments[1] : void 0);
         });
       }, { "../internals/array-buffer-view-core": 117, "../internals/array-iteration": 125 }], 363: [function(require2, module3, exports3) {
@@ -37448,15 +34175,15 @@ var aliyunOssSdk$1 = { exports: {} };
         var aTypedArray = ArrayBufferViewCore.aTypedArray;
         var exportTypedArrayMethod = ArrayBufferViewCore.exportTypedArrayMethod;
         var WORKS_WITH_OBJECTS_AND_GENERIC_ON_TYPED_ARRAYS = !fails(function() {
-          var array2 = new Uint8ClampedArray(2);
-          call($set, array2, { length: 1, 0: 3 }, 1);
-          return array2[1] !== 3;
+          var array = new Uint8ClampedArray(2);
+          call($set, array, { length: 1, 0: 3 }, 1);
+          return array[1] !== 3;
         });
         var TO_OBJECT_BUG = WORKS_WITH_OBJECTS_AND_GENERIC_ON_TYPED_ARRAYS && ArrayBufferViewCore.NATIVE_ARRAY_BUFFER_VIEWS && fails(function() {
-          var array2 = new Int8Array2(2);
-          array2.set(1);
-          array2.set("2", 1);
-          return array2[0] !== 0 || array2[1] !== 2;
+          var array = new Int8Array2(2);
+          array.set(1);
+          array.set("2", 1);
+          return array[0] !== 0 || array[1] !== 2;
         });
         exportTypedArrayMethod("set", function set2(arrayLike) {
           aTypedArray(this);
@@ -37483,13 +34210,13 @@ var aliyunOssSdk$1 = { exports: {} };
           new Int8Array(1).slice();
         });
         exportTypedArrayMethod("slice", function slice(start, end) {
-          var list2 = arraySlice(aTypedArray(this), start, end);
+          var list = arraySlice(aTypedArray(this), start, end);
           var C = typedArraySpeciesConstructor(this);
           var index2 = 0;
-          var length = list2.length;
+          var length = list.length;
           var result = new C(length);
           while (length > index2)
-            result[index2] = list2[index2++];
+            result[index2] = list[index2++];
           return result;
         }, FORCED);
       }, { "../internals/array-buffer-view-core": 117, "../internals/array-slice": 131, "../internals/fails": 171, "../internals/typed-array-species-constructor": 298 }], 374: [function(require2, module3, exports3) {
@@ -37529,19 +34256,19 @@ var aliyunOssSdk$1 = { exports: {} };
             return true;
           if (WEBKIT)
             return WEBKIT < 602;
-          var array2 = new Uint16Array2(516);
+          var array = new Uint16Array2(516);
           var expected = Array(516);
           var index2, mod;
           for (index2 = 0; index2 < 516; index2++) {
             mod = index2 % 4;
-            array2[index2] = 515 - index2;
+            array[index2] = 515 - index2;
             expected[index2] = index2 - 2 * mod + 3;
           }
-          nativeSort(array2, function(a2, b) {
+          nativeSort(array, function(a2, b) {
             return (a2 / 4 | 0) - (b / 4 | 0);
           });
           for (index2 = 0; index2 < 516; index2++) {
-            if (array2[index2] !== expected[index2])
+            if (array[index2] !== expected[index2])
               return true;
           }
         });
@@ -37637,14 +34364,14 @@ var aliyunOssSdk$1 = { exports: {} };
         var global3 = require2("../internals/global");
         var DOMIterables = require2("../internals/dom-iterables");
         var DOMTokenListPrototype = require2("../internals/dom-token-list-prototype");
-        var forEach3 = require2("../internals/array-for-each");
+        var forEach = require2("../internals/array-for-each");
         var createNonEnumerableProperty = require2("../internals/create-non-enumerable-property");
         var handlePrototype = function(CollectionPrototype) {
-          if (CollectionPrototype && CollectionPrototype.forEach !== forEach3)
+          if (CollectionPrototype && CollectionPrototype.forEach !== forEach)
             try {
-              createNonEnumerableProperty(CollectionPrototype, "forEach", forEach3);
-            } catch (error2) {
-              CollectionPrototype.forEach = forEach3;
+              createNonEnumerableProperty(CollectionPrototype, "forEach", forEach);
+            } catch (error) {
+              CollectionPrototype.forEach = forEach;
             }
         };
         for (var COLLECTION_NAME in DOMIterables) {
@@ -37668,7 +34395,7 @@ var aliyunOssSdk$1 = { exports: {} };
             if (CollectionPrototype[ITERATOR] !== ArrayValues)
               try {
                 createNonEnumerableProperty(CollectionPrototype, ITERATOR, ArrayValues);
-              } catch (error2) {
+              } catch (error) {
                 CollectionPrototype[ITERATOR] = ArrayValues;
               }
             setToStringTag(CollectionPrototype, COLLECTION_NAME2, true);
@@ -37677,7 +34404,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (CollectionPrototype[METHOD_NAME] !== ArrayIteratorMethods[METHOD_NAME])
                   try {
                     createNonEnumerableProperty(CollectionPrototype, METHOD_NAME, ArrayIteratorMethods[METHOD_NAME]);
-                  } catch (error2) {
+                  } catch (error) {
                     CollectionPrototype[METHOD_NAME] = ArrayIteratorMethods[METHOD_NAME];
                   }
               }
@@ -37719,10 +34446,10 @@ var aliyunOssSdk$1 = { exports: {} };
           return typeof arg === "symbol";
         }
         exports3.isSymbol = isSymbol2;
-        function isUndefined2(arg) {
+        function isUndefined(arg) {
           return arg === void 0;
         }
-        exports3.isUndefined = isUndefined2;
+        exports3.isUndefined = isUndefined;
         function isRegExp(re) {
           return objectToString2(re) === "[object RegExp]";
         }
@@ -37731,10 +34458,10 @@ var aliyunOssSdk$1 = { exports: {} };
           return typeof arg === "object" && arg !== null;
         }
         exports3.isObject = isObject2;
-        function isDate2(d) {
+        function isDate(d) {
           return objectToString2(d) === "[object Date]";
         }
-        exports3.isDate = isDate2;
+        exports3.isDate = isDate;
         function isError(e2) {
           return objectToString2(e2) === "[object Error]" || e2 instanceof Error;
         }
@@ -37758,16 +34485,16 @@ var aliyunOssSdk$1 = { exports: {} };
             var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZWN]|'[^']*'|'[^']*'/g;
             var timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g;
             var timezoneClip = /[^-+\dA-Z]/g;
-            return function(date2, mask, utc, gmt) {
-              if (arguments.length === 1 && kindOf(date2) === "string" && !/\d/.test(date2)) {
-                mask = date2;
-                date2 = void 0;
+            return function(date, mask, utc, gmt) {
+              if (arguments.length === 1 && kindOf(date) === "string" && !/\d/.test(date)) {
+                mask = date;
+                date = void 0;
               }
-              date2 = date2 || /* @__PURE__ */ new Date();
-              if (!(date2 instanceof Date)) {
-                date2 = new Date(date2);
+              date = date || /* @__PURE__ */ new Date();
+              if (!(date instanceof Date)) {
+                date = new Date(date);
               }
-              if (isNaN(date2)) {
+              if (isNaN(date)) {
                 throw TypeError("Invalid date");
               }
               mask = String(dateFormat.masks[mask] || mask || dateFormat.masks["default"]);
@@ -37780,17 +34507,17 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
               }
               var _ = utc ? "getUTC" : "get";
-              var d = date2[_ + "Date"]();
-              var D = date2[_ + "Day"]();
-              var m = date2[_ + "Month"]();
-              var y = date2[_ + "FullYear"]();
-              var H = date2[_ + "Hours"]();
-              var M = date2[_ + "Minutes"]();
-              var s2 = date2[_ + "Seconds"]();
-              var L2 = date2[_ + "Milliseconds"]();
-              var o2 = utc ? 0 : date2.getTimezoneOffset();
-              var W = getWeek(date2);
-              var N = getDayOfWeek(date2);
+              var d = date[_ + "Date"]();
+              var D = date[_ + "Day"]();
+              var m = date[_ + "Month"]();
+              var y = date[_ + "FullYear"]();
+              var H = date[_ + "Hours"]();
+              var M = date[_ + "Minutes"]();
+              var s2 = date[_ + "Seconds"]();
+              var L2 = date[_ + "Milliseconds"]();
+              var o2 = utc ? 0 : date.getTimezoneOffset();
+              var W = getWeek(date);
+              var N = getDayOfWeek(date);
               var flags = {
                 d,
                 dd: pad2(d),
@@ -37816,7 +34543,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 tt: H < 12 ? "am" : "pm",
                 T: H < 12 ? "A" : "P",
                 TT: H < 12 ? "AM" : "PM",
-                Z: gmt ? "GMT" : utc ? "UTC" : (String(date2).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                Z: gmt ? "GMT" : utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
                 o: (o2 > 0 ? "-" : "+") + pad2(Math.floor(Math.abs(o2) / 60) * 100 + Math.abs(o2) % 60, 4),
                 S: ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10],
                 W,
@@ -37897,8 +34624,8 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             return val;
           }
-          function getWeek(date2) {
-            var targetThursday = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+          function getWeek(date) {
+            var targetThursday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             targetThursday.setDate(targetThursday.getDate() - (targetThursday.getDay() + 6) % 7 + 3);
             var firstThursday = new Date(targetThursday.getFullYear(), 0, 4);
             firstThursday.setDate(firstThursday.getDate() - (firstThursday.getDay() + 6) % 7 + 3);
@@ -37907,8 +34634,8 @@ var aliyunOssSdk$1 = { exports: {} };
             var weekDiff = (targetThursday - firstThursday) / (864e5 * 7);
             return 1 + Math.floor(weekDiff);
           }
-          function getDayOfWeek(date2) {
-            var dow = date2.getDay();
+          function getDayOfWeek(date) {
+            var dow = date.getDay();
             if (dow === 0) {
               dow = 7;
             }
@@ -37989,8 +34716,8 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "get-intrinsic": 390, "gopd": 391, "has-property-descriptors": 392 }], 385: [function(require2, module3, exports3) {
         var matchHtmlRegExp = /["'&<>]/;
         module3.exports = escapeHtml;
-        function escapeHtml(string2) {
-          var str = "" + string2;
+        function escapeHtml(string) {
+          var str = "" + string;
           var match = matchHtmlRegExp.exec(str);
           if (!match) {
             return str;
@@ -38046,7 +34773,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }
         function ProcessEmitWarning(warning) {
           if (console && console.warn)
-            index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:20571", warning);
+            index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:20571", warning);
         }
         var NumberIsNaN = Number.isNaN || function NumberIsNaN2(value) {
           return value !== value;
@@ -38212,27 +34939,27 @@ var aliyunOssSdk$1 = { exports: {} };
           return this;
         };
         EventEmitter.prototype.removeListener = function removeListener(type, listener) {
-          var list2, events, position2, i, originalListener;
+          var list, events, position2, i, originalListener;
           checkListener(listener);
           events = this._events;
           if (events === void 0)
             return this;
-          list2 = events[type];
-          if (list2 === void 0)
+          list = events[type];
+          if (list === void 0)
             return this;
-          if (list2 === listener || list2.listener === listener) {
+          if (list === listener || list.listener === listener) {
             if (--this._eventsCount === 0)
               this._events = /* @__PURE__ */ Object.create(null);
             else {
               delete events[type];
               if (events.removeListener)
-                this.emit("removeListener", type, list2.listener || listener);
+                this.emit("removeListener", type, list.listener || listener);
             }
-          } else if (typeof list2 !== "function") {
+          } else if (typeof list !== "function") {
             position2 = -1;
-            for (i = list2.length - 1; i >= 0; i--) {
-              if (list2[i] === listener || list2[i].listener === listener) {
-                originalListener = list2[i].listener;
+            for (i = list.length - 1; i >= 0; i--) {
+              if (list[i] === listener || list[i].listener === listener) {
+                originalListener = list[i].listener;
                 position2 = i;
                 break;
               }
@@ -38240,12 +34967,12 @@ var aliyunOssSdk$1 = { exports: {} };
             if (position2 < 0)
               return this;
             if (position2 === 0)
-              list2.shift();
+              list.shift();
             else {
-              spliceOne(list2, position2);
+              spliceOne(list, position2);
             }
-            if (list2.length === 1)
-              events[type] = list2[0];
+            if (list.length === 1)
+              events[type] = list[0];
             if (events.removeListener !== void 0)
               this.emit("removeListener", type, originalListener || listener);
           }
@@ -38339,10 +35066,10 @@ var aliyunOssSdk$1 = { exports: {} };
             copy[i] = arr[i];
           return copy;
         }
-        function spliceOne(list2, index2) {
-          for (; index2 + 1 < list2.length; index2++)
-            list2[index2] = list2[index2 + 1];
-          list2.pop();
+        function spliceOne(list, index2) {
+          for (; index2 + 1 < list.length; index2++)
+            list[index2] = list[index2 + 1];
+          list.pop();
         }
         function unwrapListeners(arr) {
           var ret = new Array(arr.length);
@@ -38396,38 +35123,38 @@ var aliyunOssSdk$1 = { exports: {} };
         var isCallable = require2("is-callable");
         var toStr = Object.prototype.toString;
         var hasOwnProperty2 = Object.prototype.hasOwnProperty;
-        var forEachArray = function forEachArray2(array2, iterator, receiver) {
-          for (var i = 0, len = array2.length; i < len; i++) {
-            if (hasOwnProperty2.call(array2, i)) {
+        var forEachArray = function forEachArray2(array, iterator, receiver) {
+          for (var i = 0, len = array.length; i < len; i++) {
+            if (hasOwnProperty2.call(array, i)) {
               if (receiver == null) {
-                iterator(array2[i], i, array2);
+                iterator(array[i], i, array);
               } else {
-                iterator.call(receiver, array2[i], i, array2);
+                iterator.call(receiver, array[i], i, array);
               }
             }
           }
         };
-        var forEachString = function forEachString2(string2, iterator, receiver) {
-          for (var i = 0, len = string2.length; i < len; i++) {
+        var forEachString = function forEachString2(string, iterator, receiver) {
+          for (var i = 0, len = string.length; i < len; i++) {
             if (receiver == null) {
-              iterator(string2.charAt(i), i, string2);
+              iterator(string.charAt(i), i, string);
             } else {
-              iterator.call(receiver, string2.charAt(i), i, string2);
+              iterator.call(receiver, string.charAt(i), i, string);
             }
           }
         };
-        var forEachObject = function forEachObject2(object2, iterator, receiver) {
-          for (var k in object2) {
-            if (hasOwnProperty2.call(object2, k)) {
+        var forEachObject = function forEachObject2(object, iterator, receiver) {
+          for (var k in object) {
+            if (hasOwnProperty2.call(object, k)) {
               if (receiver == null) {
-                iterator(object2[k], k, object2);
+                iterator(object[k], k, object);
               } else {
-                iterator.call(receiver, object2[k], k, object2);
+                iterator.call(receiver, object[k], k, object);
               }
             }
           }
         };
-        var forEach3 = function forEach4(list2, iterator, thisArg) {
+        var forEach = function forEach2(list, iterator, thisArg) {
           if (!isCallable(iterator)) {
             throw new TypeError("iterator must be a function");
           }
@@ -38435,15 +35162,15 @@ var aliyunOssSdk$1 = { exports: {} };
           if (arguments.length >= 3) {
             receiver = thisArg;
           }
-          if (toStr.call(list2) === "[object Array]") {
-            forEachArray(list2, iterator, receiver);
-          } else if (typeof list2 === "string") {
-            forEachString(list2, iterator, receiver);
+          if (toStr.call(list) === "[object Array]") {
+            forEachArray(list, iterator, receiver);
+          } else if (typeof list === "string") {
+            forEachString(list, iterator, receiver);
           } else {
-            forEachObject(list2, iterator, receiver);
+            forEachObject(list, iterator, receiver);
           }
         };
-        module3.exports = forEach3;
+        module3.exports = forEach;
       }, { "is-callable": 410 }], 388: [function(require2, module3, exports3) {
         var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
         var toStr = Object.prototype.toString;
@@ -38719,17 +35446,17 @@ var aliyunOssSdk$1 = { exports: {} };
         var $exec = bind.call(Function.call, RegExp.prototype.exec);
         var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
         var reEscapeChar = /\\(\\)?/g;
-        var stringToPath = function stringToPath2(string2) {
-          var first = $strSlice(string2, 0, 1);
-          var last = $strSlice(string2, -1);
+        var stringToPath = function stringToPath2(string) {
+          var first = $strSlice(string, 0, 1);
+          var last = $strSlice(string, -1);
           if (first === "%" && last !== "%") {
             throw new $SyntaxError("invalid intrinsic syntax, expected closing `%`");
           } else if (last === "%" && first !== "%") {
             throw new $SyntaxError("invalid intrinsic syntax, expected opening `%`");
           }
           var result = [];
-          $replace(string2, rePropName, function(match, number2, quote, subString) {
-            result[result.length] = quote ? $replace(subString, reEscapeChar, "$1") : number2 || match;
+          $replace(string, rePropName, function(match, number, quote, subString) {
+            result[result.length] = quote ? $replace(subString, reEscapeChar, "$1") : number || match;
           });
           return result;
         };
@@ -38854,12 +35581,12 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         module3.exports = hasPropertyDescriptors;
       }, { "get-intrinsic": 390 }], 393: [function(require2, module3, exports3) {
-        var test2 = {
+        var test = {
           foo: {}
         };
         var $Object = Object;
         module3.exports = function hasProto() {
-          return { __proto__: test2 }.foo === test2.foo && !({ __proto__: null } instanceof $Object);
+          return { __proto__: test }.foo === test.foo && !({ __proto__: null } instanceof $Object);
         };
       }, {}], 394: [function(require2, module3, exports3) {
         var origSymbol = typeof Symbol !== "undefined" && Symbol;
@@ -38937,7 +35664,7 @@ var aliyunOssSdk$1 = { exports: {} };
         module3.exports = bind.call(call, $hasOwn);
       }, { "function-bind": 389 }], 398: [function(require2, module3, exports3) {
         var http = require2("http");
-        var url2 = require2("url");
+        var url = require2("url");
         var https = module3.exports;
         for (var key in http) {
           if (http.hasOwnProperty(key))
@@ -38953,7 +35680,7 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         function validateParams(params) {
           if (typeof params === "string") {
-            params = url2.parse(params);
+            params = url.parse(params);
           }
           if (!params.protocol) {
             params.protocol = "https:";
@@ -38972,7 +35699,7 @@ var aliyunOssSdk$1 = { exports: {} };
           var r = ms(t2);
           if (r === void 0) {
             var err = new Error(util.format("humanize-ms(%j) result undefined", t2));
-            index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:21732", err.stack);
+            index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:21732", err.stack);
           }
           return r;
         };
@@ -39090,7 +35817,7 @@ var aliyunOssSdk$1 = { exports: {} };
           scheduled = false;
           draining = true;
           var len2 = queue2.length;
-          var timeout2 = setTimeout(cleanUpNextTick);
+          var timeout = setTimeout(cleanUpNextTick);
           while (len2) {
             currentQueue = queue2;
             queue2 = [];
@@ -39103,7 +35830,7 @@ var aliyunOssSdk$1 = { exports: {} };
           currentQueue = null;
           queueIndex = -1;
           draining = false;
-          clearTimeout(timeout2);
+          clearTimeout(timeout);
         }
         var scheduleDrain;
         var i = -1;
@@ -39114,24 +35841,24 @@ var aliyunOssSdk$1 = { exports: {} };
             break;
           }
         }
-        function Item(fun, array2) {
+        function Item(fun, array) {
           this.fun = fun;
-          this.array = array2;
+          this.array = array;
         }
         Item.prototype.run = function() {
           var fun = this.fun;
-          var array2 = this.array;
-          switch (array2.length) {
+          var array = this.array;
+          switch (array.length) {
             case 0:
               return fun();
             case 1:
-              return fun(array2[0]);
+              return fun(array[0]);
             case 2:
-              return fun(array2[0], array2[1]);
+              return fun(array[0], array[1]);
             case 3:
-              return fun(array2[0], array2[1], array2[2]);
+              return fun(array[0], array[1], array[2]);
             default:
-              return fun.apply(null, array2);
+              return fun.apply(null, array);
           }
         };
         module3.exports = immediate;
@@ -39157,9 +35884,9 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return typeof global3.MessageChannel !== "undefined";
             };
-            exports3.install = function(func2) {
+            exports3.install = function(func) {
               var channel = new global3.MessageChannel();
-              channel.port1.onmessage = func2;
+              channel.port1.onmessage = func;
               return function() {
                 channel.port2.postMessage(0);
               };
@@ -39192,9 +35919,9 @@ var aliyunOssSdk$1 = { exports: {} };
             exports3.test = function() {
               return typeof global3.queueMicrotask === "function";
             };
-            exports3.install = function(func2) {
+            exports3.install = function(func) {
               return function() {
-                global3.queueMicrotask(func2);
+                global3.queueMicrotask(func);
               };
             };
           }).call(this);
@@ -39635,10 +36362,10 @@ var aliyunOssSdk$1 = { exports: {} };
         var Symbol2 = root.Symbol;
         module3.exports = Symbol2;
       }, { "./_root": 421 }], 415: [function(require2, module3, exports3) {
-        function arrayMap(array2, iteratee) {
-          var index2 = -1, length = array2 == null ? 0 : array2.length, result = Array(length);
+        function arrayMap(array, iteratee) {
+          var index2 = -1, length = array == null ? 0 : array.length, result = Array(length);
           while (++index2 < length) {
-            result[index2] = iteratee(array2[index2], index2, array2);
+            result[index2] = iteratee(array[index2], index2, array);
           }
           return result;
         }
@@ -39686,7 +36413,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var nativeObjectToString = objectProto.toString;
         var symToStringTag = Symbol2 ? Symbol2.toStringTag : void 0;
         function getRawTag(value) {
-          var isOwn = hasOwnProperty2.call(value, symToStringTag), tag2 = value[symToStringTag];
+          var isOwn = hasOwnProperty2.call(value, symToStringTag), tag = value[symToStringTag];
           try {
             value[symToStringTag] = void 0;
             var unmasked = true;
@@ -39695,7 +36422,7 @@ var aliyunOssSdk$1 = { exports: {} };
           var result = nativeObjectToString.call(value);
           if (unmasked) {
             if (isOwn) {
-              value[symToStringTag] = tag2;
+              value[symToStringTag] = tag;
             } else {
               delete value[symToStringTag];
             }
@@ -40462,20 +37189,20 @@ var aliyunOssSdk$1 = { exports: {} };
               if (obj === global3) {
                 return "{ [object globalThis] }";
               }
-              if (!isDate2(obj) && !isRegExp(obj)) {
+              if (!isDate(obj) && !isRegExp(obj)) {
                 var ys = arrObjKeys(obj, inspect);
                 var isPlainObject2 = gPO ? gPO(obj) === Object.prototype : obj instanceof Object || obj.constructor === Object;
                 var protoTag = obj instanceof Object ? "" : "null prototype";
                 var stringTag = !isPlainObject2 && toStringTag && Object(obj) === obj && toStringTag in obj ? $slice.call(toStr(obj), 8, -1) : protoTag ? "Object" : "";
                 var constructorTag = isPlainObject2 || typeof obj.constructor !== "function" ? "" : obj.constructor.name ? obj.constructor.name + " " : "";
-                var tag2 = constructorTag + (stringTag || protoTag ? "[" + $join.call($concat.call([], stringTag || [], protoTag || []), ": ") + "] " : "");
+                var tag = constructorTag + (stringTag || protoTag ? "[" + $join.call($concat.call([], stringTag || [], protoTag || []), ": ") + "] " : "");
                 if (ys.length === 0) {
-                  return tag2 + "{}";
+                  return tag + "{}";
                 }
                 if (indent) {
-                  return tag2 + "{" + indentedJoin(ys, indent) + "}";
+                  return tag + "{" + indentedJoin(ys, indent) + "}";
                 }
-                return tag2 + "{ " + $join.call(ys, ", ") + " }";
+                return tag + "{ " + $join.call(ys, ", ") + " }";
               }
               return String(obj);
             };
@@ -40489,7 +37216,7 @@ var aliyunOssSdk$1 = { exports: {} };
             function isArray2(obj) {
               return toStr(obj) === "[object Array]" && (!toStringTag || !(typeof obj === "object" && toStringTag in obj));
             }
-            function isDate2(obj) {
+            function isDate(obj) {
               return toStr(obj) === "[object Date]" && (!toStringTag || !(typeof obj === "object" && toStringTag in obj));
             }
             function isRegExp(obj) {
@@ -40831,36 +37558,36 @@ var aliyunOssSdk$1 = { exports: {} };
               return false;
             }
           };
-          keysShim = function keys(object2) {
-            var isObject2 = object2 !== null && typeof object2 === "object";
-            var isFunction2 = toStr.call(object2) === "[object Function]";
-            var isArguments = isArgs(object2);
-            var isString2 = isObject2 && toStr.call(object2) === "[object String]";
+          keysShim = function keys(object) {
+            var isObject2 = object !== null && typeof object === "object";
+            var isFunction2 = toStr.call(object) === "[object Function]";
+            var isArguments = isArgs(object);
+            var isString2 = isObject2 && toStr.call(object) === "[object String]";
             var theKeys = [];
             if (!isObject2 && !isFunction2 && !isArguments) {
               throw new TypeError("Object.keys called on a non-object");
             }
             var skipProto = hasProtoEnumBug && isFunction2;
-            if (isString2 && object2.length > 0 && !has2.call(object2, 0)) {
-              for (var i = 0; i < object2.length; ++i) {
+            if (isString2 && object.length > 0 && !has2.call(object, 0)) {
+              for (var i = 0; i < object.length; ++i) {
                 theKeys.push(String(i));
               }
             }
-            if (isArguments && object2.length > 0) {
-              for (var j = 0; j < object2.length; ++j) {
+            if (isArguments && object.length > 0) {
+              for (var j = 0; j < object.length; ++j) {
                 theKeys.push(String(j));
               }
             } else {
-              for (var name in object2) {
-                if (!(skipProto && name === "prototype") && has2.call(object2, name)) {
+              for (var name in object) {
+                if (!(skipProto && name === "prototype") && has2.call(object, name)) {
                   theKeys.push(String(name));
                 }
               }
             }
             if (hasDontEnumBug) {
-              var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object2);
+              var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
               for (var k = 0; k < dontEnums.length; ++k) {
-                if (!(skipConstructor && dontEnums[k] === "constructor") && has2.call(object2, dontEnums[k])) {
+                if (!(skipConstructor && dontEnums[k] === "constructor") && has2.call(object, dontEnums[k])) {
                   theKeys.push(dontEnums[k]);
                 }
               }
@@ -40884,11 +37611,11 @@ var aliyunOssSdk$1 = { exports: {} };
               return args && args.length === arguments.length;
             }(1, 2);
             if (!keysWorksWithArguments) {
-              Object.keys = function keys(object2) {
-                if (isArgs(object2)) {
-                  return originalKeys(slice.call(object2));
+              Object.keys = function keys(object) {
+                if (isArgs(object)) {
+                  return originalKeys(slice.call(object));
                 }
-                return originalKeys(object2);
+                return originalKeys(object);
               };
             }
           } else {
@@ -41002,15 +37729,15 @@ var aliyunOssSdk$1 = { exports: {} };
               var lastSegmentLength = 0;
               var lastSlash = -1;
               var dots = 0;
-              var code2;
+              var code;
               for (var i = 0; i <= path.length; ++i) {
                 if (i < path.length)
-                  code2 = path.charCodeAt(i);
-                else if (code2 === 47)
+                  code = path.charCodeAt(i);
+                else if (code === 47)
                   break;
                 else
-                  code2 = 47;
-                if (code2 === 47) {
+                  code = 47;
+                if (code === 47) {
                   if (lastSlash === i - 1 || dots === 1)
                     ;
                   else if (lastSlash !== i - 1 && dots === 2) {
@@ -41053,7 +37780,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   }
                   lastSlash = i;
                   dots = 0;
-                } else if (code2 === 46 && dots !== -1) {
+                } else if (code === 46 && dots !== -1) {
                   ++dots;
                 } else {
                   dots = -1;
@@ -41218,13 +37945,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 assertPath(path);
                 if (path.length === 0)
                   return ".";
-                var code2 = path.charCodeAt(0);
-                var hasRoot = code2 === 47;
+                var code = path.charCodeAt(0);
+                var hasRoot = code === 47;
                 var end = -1;
                 var matchedSlash = true;
                 for (var i = path.length - 1; i >= 1; --i) {
-                  code2 = path.charCodeAt(i);
-                  if (code2 === 47) {
+                  code = path.charCodeAt(i);
+                  if (code === 47) {
                     if (!matchedSlash) {
                       end = i;
                       break;
@@ -41253,8 +37980,8 @@ var aliyunOssSdk$1 = { exports: {} };
                   var extIdx = ext.length - 1;
                   var firstNonSlashEnd = -1;
                   for (i = path.length - 1; i >= 0; --i) {
-                    var code2 = path.charCodeAt(i);
-                    if (code2 === 47) {
+                    var code = path.charCodeAt(i);
+                    if (code === 47) {
                       if (!matchedSlash) {
                         start = i + 1;
                         break;
@@ -41265,7 +37992,7 @@ var aliyunOssSdk$1 = { exports: {} };
                         firstNonSlashEnd = i + 1;
                       }
                       if (extIdx >= 0) {
-                        if (code2 === ext.charCodeAt(extIdx)) {
+                        if (code === ext.charCodeAt(extIdx)) {
                           if (--extIdx === -1) {
                             end = i;
                           }
@@ -41306,8 +38033,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 var matchedSlash = true;
                 var preDotState = 0;
                 for (var i = path.length - 1; i >= 0; --i) {
-                  var code2 = path.charCodeAt(i);
-                  if (code2 === 47) {
+                  var code = path.charCodeAt(i);
+                  if (code === 47) {
                     if (!matchedSlash) {
                       startPart = i + 1;
                       break;
@@ -41318,7 +38045,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     matchedSlash = false;
                     end = i + 1;
                   }
-                  if (code2 === 46) {
+                  if (code === 46) {
                     if (startDot === -1)
                       startDot = i;
                     else if (preDotState !== 1)
@@ -41345,8 +38072,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 var ret = { root: "", dir: "", base: "", ext: "", name: "" };
                 if (path.length === 0)
                   return ret;
-                var code2 = path.charCodeAt(0);
-                var isAbsolute = code2 === 47;
+                var code = path.charCodeAt(0);
+                var isAbsolute = code === 47;
                 var start;
                 if (isAbsolute) {
                   ret.root = "/";
@@ -41361,8 +38088,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 var i = path.length - 1;
                 var preDotState = 0;
                 for (; i >= start; --i) {
-                  code2 = path.charCodeAt(i);
-                  if (code2 === 47) {
+                  code = path.charCodeAt(i);
+                  if (code === 47) {
                     if (!matchedSlash) {
                       startPart = i + 1;
                       break;
@@ -41373,7 +38100,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     matchedSlash = false;
                     end = i + 1;
                   }
-                  if (code2 === 46) {
+                  if (code === 46) {
                     if (startDot === -1)
                       startDot = i;
                     else if (preDotState !== 1)
@@ -41436,11 +38163,11 @@ var aliyunOssSdk$1 = { exports: {} };
               var objectProto = Object.prototype;
               var hasOwnProperty2 = objectProto.hasOwnProperty;
               var toString2 = objectProto.toString;
-              function capitalize2(string2) {
-                string2 = String(string2);
-                return string2.charAt(0).toUpperCase() + string2.slice(1);
+              function capitalize2(string) {
+                string = String(string);
+                return string.charAt(0).toUpperCase() + string.slice(1);
               }
-              function cleanupOS(os2, pattern, label) {
+              function cleanupOS(os, pattern, label) {
                 var data = {
                   "10.0": "10",
                   "6.4": "10 Technical Preview",
@@ -41455,58 +38182,58 @@ var aliyunOssSdk$1 = { exports: {} };
                   "4.0": "NT",
                   "4.90": "ME"
                 };
-                if (pattern && label && /^Win/i.test(os2) && !/^Windows Phone /i.test(os2) && (data = data[/[\d.]+$/.exec(os2)])) {
-                  os2 = "Windows " + data;
+                if (pattern && label && /^Win/i.test(os) && !/^Windows Phone /i.test(os) && (data = data[/[\d.]+$/.exec(os)])) {
+                  os = "Windows " + data;
                 }
-                os2 = String(os2);
+                os = String(os);
                 if (pattern && label) {
-                  os2 = os2.replace(RegExp(pattern, "i"), label);
+                  os = os.replace(RegExp(pattern, "i"), label);
                 }
-                os2 = format(
-                  os2.replace(/ ce$/i, " CE").replace(/\bhpw/i, "web").replace(/\bMacintosh\b/, "Mac OS").replace(/_PowerPC\b/i, " OS").replace(/\b(OS X) [^ \d]+/i, "$1").replace(/\bMac (OS X)\b/, "$1").replace(/\/(\d)/, " $1").replace(/_/g, ".").replace(/(?: BePC|[ .]*fc[ \d.]+)$/i, "").replace(/\bx86\.64\b/gi, "x86_64").replace(/\b(Windows Phone) OS\b/, "$1").replace(/\b(Chrome OS \w+) [\d.]+\b/, "$1").split(" on ")[0]
+                os = format(
+                  os.replace(/ ce$/i, " CE").replace(/\bhpw/i, "web").replace(/\bMacintosh\b/, "Mac OS").replace(/_PowerPC\b/i, " OS").replace(/\b(OS X) [^ \d]+/i, "$1").replace(/\bMac (OS X)\b/, "$1").replace(/\/(\d)/, " $1").replace(/_/g, ".").replace(/(?: BePC|[ .]*fc[ \d.]+)$/i, "").replace(/\bx86\.64\b/gi, "x86_64").replace(/\b(Windows Phone) OS\b/, "$1").replace(/\b(Chrome OS \w+) [\d.]+\b/, "$1").split(" on ")[0]
                 );
-                return os2;
+                return os;
               }
-              function each(object2, callback) {
-                var index2 = -1, length = object2 ? object2.length : 0;
+              function each(object, callback) {
+                var index2 = -1, length = object ? object.length : 0;
                 if (typeof length == "number" && length > -1 && length <= maxSafeInteger) {
                   while (++index2 < length) {
-                    callback(object2[index2], index2, object2);
+                    callback(object[index2], index2, object);
                   }
                 } else {
-                  forOwn(object2, callback);
+                  forOwn(object, callback);
                 }
               }
-              function format(string2) {
-                string2 = trim2(string2);
-                return /^(?:webOS|i(?:OS|P))/.test(string2) ? string2 : capitalize2(string2);
+              function format(string) {
+                string = trim(string);
+                return /^(?:webOS|i(?:OS|P))/.test(string) ? string : capitalize2(string);
               }
-              function forOwn(object2, callback) {
-                for (var key in object2) {
-                  if (hasOwnProperty2.call(object2, key)) {
-                    callback(object2[key], key, object2);
+              function forOwn(object, callback) {
+                for (var key in object) {
+                  if (hasOwnProperty2.call(object, key)) {
+                    callback(object[key], key, object);
                   }
                 }
               }
               function getClassOf(value) {
                 return value == null ? capitalize2(value) : toString2.call(value).slice(8, -1);
               }
-              function isHostType(object2, property) {
-                var type = object2 != null ? typeof object2[property] : "number";
-                return !/^(?:boolean|number|string|undefined)$/.test(type) && (type == "object" ? !!object2[property] : true);
+              function isHostType(object, property) {
+                var type = object != null ? typeof object[property] : "number";
+                return !/^(?:boolean|number|string|undefined)$/.test(type) && (type == "object" ? !!object[property] : true);
               }
-              function qualify(string2) {
-                return String(string2).replace(/([ -])(?!$)/g, "$1?");
+              function qualify(string) {
+                return String(string).replace(/([ -])(?!$)/g, "$1?");
               }
-              function reduce(array2, callback) {
+              function reduce(array, callback) {
                 var accumulator = null;
-                each(array2, function(value, index2) {
-                  accumulator = callback(accumulator, value, index2, array2);
+                each(array, function(value, index2) {
+                  accumulator = callback(accumulator, value, index2, array);
                 });
                 return accumulator;
               }
-              function trim2(string2) {
-                return String(string2).replace(/^ +| +$/g, "");
+              function trim(string) {
+                return String(string).replace(/^ +| +$/g, "");
               }
               function parse2(ua) {
                 var context = root;
@@ -41653,7 +38380,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   "Sony": { "PlayStation": 1, "PlayStation Vita": 1 },
                   "Xiaomi": { "Mi": 1, "Redmi": 1 }
                 });
-                var os2 = getOS([
+                var os = getOS([
                   "Windows Phone",
                   "KaiOS",
                   "Android",
@@ -41732,8 +38459,8 @@ var aliyunOssSdk$1 = { exports: {} };
                   return this.description || "";
                 }
                 layout && (layout = [layout]);
-                if (/\bAndroid\b/.test(os2) && !product && (data = /\bAndroid[^;]*;(.*?)(?:Build|\) AppleWebKit)\b/i.exec(ua))) {
-                  product = trim2(data[1]).replace(/^[a-z]{2}-[a-z]{2};\s*/i, "") || null;
+                if (/\bAndroid\b/.test(os) && !product && (data = /\bAndroid[^;]*;(.*?)(?:Build|\) AppleWebKit)\b/i.exec(ua))) {
+                  product = trim(data[1]).replace(/^[a-z]{2}-[a-z]{2};\s*/i, "") || null;
                 }
                 if (manufacturer && !product) {
                   product = getProduct([manufacturer]);
@@ -41755,15 +38482,15 @@ var aliyunOssSdk$1 = { exports: {} };
                   product = data.product;
                 } else if (/^iP/.test(product)) {
                   name || (name = "Safari");
-                  os2 = "iOS" + ((data = / OS ([\d_]+)/i.exec(ua)) ? " " + data[1].replace(/_/g, ".") : "");
-                } else if (name == "Konqueror" && /^Linux\b/i.test(os2)) {
-                  os2 = "Kubuntu";
-                } else if (manufacturer && manufacturer != "Google" && (/Chrome/.test(name) && !/\bMobile Safari\b/i.test(ua) || /\bVita\b/.test(product)) || /\bAndroid\b/.test(os2) && /^Chrome/.test(name) && /\bVersion\//i.test(ua)) {
+                  os = "iOS" + ((data = / OS ([\d_]+)/i.exec(ua)) ? " " + data[1].replace(/_/g, ".") : "");
+                } else if (name == "Konqueror" && /^Linux\b/i.test(os)) {
+                  os = "Kubuntu";
+                } else if (manufacturer && manufacturer != "Google" && (/Chrome/.test(name) && !/\bMobile Safari\b/i.test(ua) || /\bVita\b/.test(product)) || /\bAndroid\b/.test(os) && /^Chrome/.test(name) && /\bVersion\//i.test(ua)) {
                   name = "Android Browser";
-                  os2 = /\bAndroid\b/.test(os2) ? os2 : "Android";
+                  os = /\bAndroid\b/.test(os) ? os : "Android";
                 } else if (name == "Silk") {
                   if (!/\bMobi/i.test(ua)) {
-                    os2 = "Android";
+                    os = "Android";
                     description.unshift("desktop mode");
                   }
                   if (/Accelerated *= *true/i.test(ua)) {
@@ -41774,14 +38501,14 @@ var aliyunOssSdk$1 = { exports: {} };
                 } else if (name == "PaleMoon" && (data = /\bFirefox\/([\d.]+)\b/.exec(ua))) {
                   description.push("identifying as Firefox " + data[1]);
                 } else if (name == "Firefox" && (data = /\b(Mobile|Tablet|TV)\b/i.exec(ua))) {
-                  os2 || (os2 = "Firefox OS");
+                  os || (os = "Firefox OS");
                   product || (product = data[1]);
                 } else if (!name || (data = !/\bMinefield\b/i.test(ua) && /\b(?:Firefox|Safari)\b/.exec(name))) {
                   if (name && !product && /[\/,]|^[^(]+?\)/.test(ua.slice(ua.indexOf(data + "/") + 8))) {
                     name = null;
                   }
-                  if ((data = product || manufacturer || os2) && (product || manufacturer || /\b(?:Android|Symbian OS|Tablet OS|webOS)\b/.test(os2))) {
-                    name = /[a-z]+(?: Hat)?/i.exec(/\bAndroid\b/.test(os2) ? os2 : data) + " Browser";
+                  if ((data = product || manufacturer || os) && (product || manufacturer || /\b(?:Android|Symbian OS|Tablet OS|webOS)\b/.test(os))) {
+                    name = /[a-z]+(?: Hat)?/i.exec(/\bAndroid\b/.test(os) ? os : data) + " Browser";
                   }
                 } else if (name == "Electron" && (data = (/\bChrome\/([\d.]+)\b/.exec(ua) || 0)[1])) {
                   description.push("Chromium " + data);
@@ -41794,16 +38521,16 @@ var aliyunOssSdk$1 = { exports: {} };
                     "(?:Firefox|Minefield|NetFront)"
                   ]);
                 }
-                if (data = layout == "iCab" && parseFloat(version2) > 3 && "WebKit" || /\bOpera\b/.test(name) && (/\bOPR\b/.test(ua) ? "Blink" : "Presto") || /\b(?:Midori|Nook|Safari)\b/i.test(ua) && !/^(?:Trident|EdgeHTML)$/.test(layout) && "WebKit" || !layout && /\bMSIE\b/i.test(ua) && (os2 == "Mac OS" ? "Tasman" : "Trident") || layout == "WebKit" && /\bPlayStation\b(?! Vita\b)/i.test(name) && "NetFront") {
+                if (data = layout == "iCab" && parseFloat(version2) > 3 && "WebKit" || /\bOpera\b/.test(name) && (/\bOPR\b/.test(ua) ? "Blink" : "Presto") || /\b(?:Midori|Nook|Safari)\b/i.test(ua) && !/^(?:Trident|EdgeHTML)$/.test(layout) && "WebKit" || !layout && /\bMSIE\b/i.test(ua) && (os == "Mac OS" ? "Tasman" : "Trident") || layout == "WebKit" && /\bPlayStation\b(?! Vita\b)/i.test(name) && "NetFront") {
                   layout = [data];
                 }
                 if (name == "IE" && (data = (/; *(?:XBLWP|ZuneWP)(\d+)/i.exec(ua) || 0)[1])) {
                   name += " Mobile";
-                  os2 = "Windows Phone " + (/\+$/.test(data) ? data : data + ".x");
+                  os = "Windows Phone " + (/\+$/.test(data) ? data : data + ".x");
                   description.unshift("desktop mode");
                 } else if (/\bWPDesktop\b/i.test(ua)) {
                   name = "IE Mobile";
-                  os2 = "Windows Phone 8.x";
+                  os = "Windows Phone 8.x";
                   description.unshift("desktop mode");
                   version2 || (version2 = (/\brv:([\d.]+)/.exec(ua) || 0)[1]);
                 } else if (name != "IE" && layout == "Trident" && (data = /\brv:([\d.]+)/.exec(ua))) {
@@ -41818,7 +38545,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     if (java) {
                       data = java.lang.System;
                       arch = data.getProperty("os.arch");
-                      os2 = os2 || data.getProperty("os.name") + " " + data.getProperty("os.version");
+                      os = os || data.getProperty("os.name") + " " + data.getProperty("os.version");
                     }
                     if (rhino) {
                       try {
@@ -41827,7 +38554,7 @@ var aliyunOssSdk$1 = { exports: {} };
                       } catch (e2) {
                         if ((data = context.system) && data.global.system == context.system) {
                           name = "Narwhal";
-                          os2 || (os2 = data[0].os || null);
+                          os || (os = data[0].os || null);
                         }
                       }
                       if (!name) {
@@ -41848,14 +38575,14 @@ var aliyunOssSdk$1 = { exports: {} };
                       if (!name) {
                         name = "Node.js";
                         arch = data.arch;
-                        os2 = data.platform;
+                        os = data.platform;
                         version2 = /[\d.]+/.exec(data.version);
                         version2 = version2 ? version2[0] : null;
                       }
                     }
                   } else if (getClassOf(data = context.runtime) == airRuntimeClass) {
                     name = "Adobe AIR";
-                    os2 = data.flash.system.Capabilities.os;
+                    os = data.flash.system.Capabilities.os;
                   } else if (getClassOf(data = context.phantom) == phantomClass) {
                     name = "PhantomJS";
                     version2 = (data = data.version || null) && data.major + "." + data.minor + "." + data.patch;
@@ -41872,26 +38599,26 @@ var aliyunOssSdk$1 = { exports: {} };
                     name = "IE";
                     version2 = "11.0";
                     layout = ["Trident"];
-                    os2 = "Windows";
+                    os = "Windows";
                   }
-                  os2 = os2 && format(os2);
+                  os = os && format(os);
                 }
                 if (version2 && (data = /(?:[ab]|dp|pre|[ab]\d+pre)(?:\d+\+?)?$/i.exec(version2) || /(?:alpha|beta)(?: ?\d)?/i.exec(ua + ";" + (useFeatures && nav.appMinorVersion)) || /\bMinefield\b/i.test(ua) && "a")) {
                   prerelease = /b/i.test(data) ? "beta" : "alpha";
                   version2 = version2.replace(RegExp(data + "\\+?$"), "") + (prerelease == "beta" ? beta : alpha) + (/\d+\+?/.exec(data) || "");
                 }
-                if (name == "Fennec" || name == "Firefox" && /\b(?:Android|Firefox OS|KaiOS)\b/.test(os2)) {
+                if (name == "Fennec" || name == "Firefox" && /\b(?:Android|Firefox OS|KaiOS)\b/.test(os)) {
                   name = "Firefox Mobile";
                 } else if (name == "Maxthon" && version2) {
                   version2 = version2.replace(/\.[\d.]+/, ".x");
                 } else if (/\bXbox\b/i.test(product)) {
                   if (product == "Xbox 360") {
-                    os2 = null;
+                    os = null;
                   }
                   if (product == "Xbox 360" && /\bIEMobile\b/.test(ua)) {
                     description.unshift("mobile mode");
                   }
-                } else if ((/^(?:Chrome|IE|Opera)$/.test(name) || name && !product && !/Browser|Mobi/.test(name)) && (os2 == "Windows CE" || /Mobi/i.test(ua))) {
+                } else if ((/^(?:Chrome|IE|Opera)$/.test(name) || name && !product && !/Browser|Mobi/.test(name)) && (os == "Windows CE" || /Mobi/i.test(ua))) {
                   name += " Mobile";
                 } else if (name == "IE" && useFeatures) {
                   try {
@@ -41903,13 +38630,13 @@ var aliyunOssSdk$1 = { exports: {} };
                   }
                 } else if ((/\bBlackBerry\b/.test(product) || /\bBB10\b/.test(ua)) && (data = (RegExp(product.replace(/ +/g, " *") + "/([.\\d]+)", "i").exec(ua) || 0)[1] || version2)) {
                   data = [data, /BB10/.test(ua)];
-                  os2 = (data[1] ? (product = null, manufacturer = "BlackBerry") : "Device Software") + " " + data[0];
+                  os = (data[1] ? (product = null, manufacturer = "BlackBerry") : "Device Software") + " " + data[0];
                   version2 = null;
-                } else if (this != forOwn && product != "Wii" && (useFeatures && opera || /Opera/.test(name) && /\b(?:MSIE|Firefox)\b/i.test(ua) || name == "Firefox" && /\bOS X (?:\d+\.){2,}/.test(os2) || name == "IE" && (os2 && !/^Win/.test(os2) && version2 > 5.5 || /\bWindows XP\b/.test(os2) && version2 > 8 || version2 == 8 && !/\bTrident\b/.test(ua))) && !reOpera.test(data = parse2.call(forOwn, ua.replace(reOpera, "") + ";")) && data.name) {
+                } else if (this != forOwn && product != "Wii" && (useFeatures && opera || /Opera/.test(name) && /\b(?:MSIE|Firefox)\b/i.test(ua) || name == "Firefox" && /\bOS X (?:\d+\.){2,}/.test(os) || name == "IE" && (os && !/^Win/.test(os) && version2 > 5.5 || /\bWindows XP\b/.test(os) && version2 > 8 || version2 == 8 && !/\bTrident\b/.test(ua))) && !reOpera.test(data = parse2.call(forOwn, ua.replace(reOpera, "") + ";")) && data.name) {
                   data = "ing as " + data.name + ((data = data.version) ? " " + data : "");
                   if (reOpera.test(name)) {
-                    if (/\bIE\b/.test(data) && os2 == "Mac OS") {
-                      os2 = null;
+                    if (/\bIE\b/.test(data) && os == "Mac OS") {
+                      os = null;
                     }
                     data = "identify" + data;
                   } else {
@@ -41920,7 +38647,7 @@ var aliyunOssSdk$1 = { exports: {} };
                       name = "Opera";
                     }
                     if (/\bIE\b/.test(data)) {
-                      os2 = null;
+                      os = null;
                     }
                     if (!useFeatures) {
                       version2 = null;
@@ -41956,7 +38683,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     description.unshift("headless");
                   }
                 }
-                if (name == "Opera" && (data = /\bzbov|zvav$/.exec(os2))) {
+                if (name == "Opera" && (data = /\bzbov|zvav$/.exec(os))) {
                   name += " ";
                   description.unshift("desktop mode");
                   if (data == "zvav") {
@@ -41965,27 +38692,27 @@ var aliyunOssSdk$1 = { exports: {} };
                   } else {
                     name += "Mobile";
                   }
-                  os2 = os2.replace(RegExp(" *" + data + "$"), "");
+                  os = os.replace(RegExp(" *" + data + "$"), "");
                 } else if (name == "Safari" && /\bChrome\b/.exec(layout && layout[1])) {
                   description.unshift("desktop mode");
                   name = "Chrome Mobile";
                   version2 = null;
-                  if (/\bOS X\b/.test(os2)) {
+                  if (/\bOS X\b/.test(os)) {
                     manufacturer = "Apple";
-                    os2 = "iOS 4.3+";
+                    os = "iOS 4.3+";
                   } else {
-                    os2 = null;
+                    os = null;
                   }
                 } else if (/\bSRWare Iron\b/.test(name) && !version2) {
                   version2 = getVersion("Chrome");
                 }
-                if (version2 && version2.indexOf(data = /[\d.]+$/.exec(os2)) == 0 && ua.indexOf("/" + data + "-") > -1) {
-                  os2 = trim2(os2.replace(data, ""));
+                if (version2 && version2.indexOf(data = /[\d.]+$/.exec(os)) == 0 && ua.indexOf("/" + data + "-") > -1) {
+                  os = trim(os.replace(data, ""));
                 }
-                if (os2 && os2.indexOf(name) != -1 && !RegExp(name + " OS").test(os2)) {
-                  os2 = os2.replace(RegExp(" *" + qualify(name) + " *"), "");
+                if (os && os.indexOf(name) != -1 && !RegExp(name + " OS").test(os)) {
+                  os = os.replace(RegExp(" *" + qualify(name) + " *"), "");
                 }
-                if (layout && !/\b(?:Avant|Nook)\b/.test(name) && (/Browser|Lunascape|Maxthon/.test(name) || name != "Safari" && /^iOS/.test(os2) && /\bSafari\b/.test(layout[1]) || /^(?:Adobe|Arora|Breach|Midori|Opera|Phantom|Rekonq|Rock|Samsung Internet|Sleipnir|SRWare Iron|Vivaldi|Web)/.test(name) && layout[1])) {
+                if (layout && !/\b(?:Avant|Nook)\b/.test(name) && (/Browser|Lunascape|Maxthon/.test(name) || name != "Safari" && /^iOS/.test(os) && /\bSafari\b/.test(layout[1]) || /^(?:Adobe|Arora|Breach|Midori|Opera|Phantom|Rekonq|Rock|Samsung Internet|Sleipnir|SRWare Iron|Vivaldi|Web)/.test(name) && layout[1])) {
                   (data = layout[layout.length - 1]) && description.push(data);
                 }
                 if (description.length) {
@@ -41997,12 +38724,12 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (product) {
                   description.push((/^on /.test(description[description.length - 1]) ? "" : "on ") + product);
                 }
-                if (os2) {
-                  data = / ([\d.+]+)$/.exec(os2);
-                  isSpecialCasedOS = data && os2.charAt(os2.length - data[0].length - 1) == "/";
-                  os2 = {
+                if (os) {
+                  data = / ([\d.+]+)$/.exec(os);
+                  isSpecialCasedOS = data && os.charAt(os.length - data[0].length - 1) == "/";
+                  os = {
                     "architecture": 32,
-                    "family": data && !isSpecialCasedOS ? os2.replace(data[0], "") : os2,
+                    "family": data && !isSpecialCasedOS ? os.replace(data[0], "") : os,
                     "version": data ? data[1] : null,
                     "toString": function() {
                       var version3 = this.version;
@@ -42011,27 +38738,27 @@ var aliyunOssSdk$1 = { exports: {} };
                   };
                 }
                 if ((data = /\b(?:AMD|IA|Win|WOW|x86_|x)64\b/i.exec(arch)) && !/\bi686\b/i.test(arch)) {
-                  if (os2) {
-                    os2.architecture = 64;
-                    os2.family = os2.family.replace(RegExp(" *" + data), "");
+                  if (os) {
+                    os.architecture = 64;
+                    os.family = os.family.replace(RegExp(" *" + data), "");
                   }
                   if (name && (/\bWOW64\b/i.test(ua) || useFeatures && /\w(?:86|32)$/.test(nav.cpuClass || nav.platform) && !/\bWin64; x64\b/i.test(ua))) {
                     description.unshift("32-bit");
                   }
-                } else if (os2 && /^OS X/.test(os2.family) && name == "Chrome" && parseFloat(version2) >= 39) {
-                  os2.architecture = 64;
+                } else if (os && /^OS X/.test(os.family) && name == "Chrome" && parseFloat(version2) >= 39) {
+                  os.architecture = 64;
                 }
                 ua || (ua = null);
-                var platform3 = {};
-                platform3.description = ua;
-                platform3.layout = layout && layout[0];
-                platform3.manufacturer = manufacturer;
-                platform3.name = name;
-                platform3.prerelease = prerelease;
-                platform3.product = product;
-                platform3.ua = ua;
-                platform3.version = name && version2;
-                platform3.os = os2 || {
+                var platform2 = {};
+                platform2.description = ua;
+                platform2.layout = layout && layout[0];
+                platform2.manufacturer = manufacturer;
+                platform2.name = name;
+                platform2.prerelease = prerelease;
+                platform2.product = product;
+                platform2.ua = ua;
+                platform2.version = name && version2;
+                platform2.os = os || {
                   /**
                    * The CPU architecture the OS is built for.
                    *
@@ -42068,29 +38795,29 @@ var aliyunOssSdk$1 = { exports: {} };
                     return "null";
                   }
                 };
-                platform3.parse = parse2;
-                platform3.toString = toStringPlatform;
-                if (platform3.version) {
+                platform2.parse = parse2;
+                platform2.toString = toStringPlatform;
+                if (platform2.version) {
                   description.unshift(version2);
                 }
-                if (platform3.name) {
+                if (platform2.name) {
                   description.unshift(name);
                 }
-                if (os2 && name && !(os2 == String(os2).split(" ")[0] && (os2 == name.split(" ")[0] || product))) {
-                  description.push(product ? "(" + os2 + ")" : "on " + os2);
+                if (os && name && !(os == String(os).split(" ")[0] && (os == name.split(" ")[0] || product))) {
+                  description.push(product ? "(" + os + ")" : "on " + os);
                 }
                 if (description.length) {
-                  platform3.description = description.join(" ");
+                  platform2.description = description.join(" ");
                 }
-                return platform3;
+                return platform2;
               }
-              var platform2 = parse2();
+              var platform = parse2();
               if (freeExports && freeModule) {
-                forOwn(platform2, function(value, key) {
+                forOwn(platform, function(value, key) {
                   freeExports[key] = value;
                 });
               } else {
-                root.platform = platform2;
+                root.platform = platform;
               }
             }).call(this);
           }).call(this);
@@ -42226,7 +38953,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (draining) {
             return;
           }
-          var timeout2 = runTimeout(cleanUpNextTick);
+          var timeout = runTimeout(cleanUpNextTick);
           draining = true;
           var len = queue2.length;
           while (len) {
@@ -42242,7 +38969,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           currentQueue = null;
           draining = false;
-          runClearTimeout(timeout2);
+          runClearTimeout(timeout);
         }
         process.nextTick = function(fun) {
           var args = new Array(arguments.length - 1);
@@ -42256,9 +38983,9 @@ var aliyunOssSdk$1 = { exports: {} };
             runTimeout(drainQueue);
           }
         };
-        function Item(fun, array2) {
+        function Item(fun, array) {
           this.fun = fun;
-          this.array = array2;
+          this.array = array;
         }
         Item.prototype.run = function() {
           this.fun.apply(null, this.array);
@@ -42310,35 +39037,35 @@ var aliyunOssSdk$1 = { exports: {} };
                 "not-basic": "Illegal input >= 0x80 (not a basic code point)",
                 "invalid-input": "Invalid input"
               }, baseMinusTMin = base - tMin, floor = Math.floor, stringFromCharCode = String.fromCharCode, key;
-              function error2(type) {
+              function error(type) {
                 throw new RangeError(errors[type]);
               }
-              function map(array2, fn) {
-                var length = array2.length;
+              function map(array, fn) {
+                var length = array.length;
                 var result = [];
                 while (length--) {
-                  result[length] = fn(array2[length]);
+                  result[length] = fn(array[length]);
                 }
                 return result;
               }
-              function mapDomain(string2, fn) {
-                var parts = string2.split("@");
+              function mapDomain(string, fn) {
+                var parts = string.split("@");
                 var result = "";
                 if (parts.length > 1) {
                   result = parts[0] + "@";
-                  string2 = parts[1];
+                  string = parts[1];
                 }
-                string2 = string2.replace(regexSeparators, ".");
-                var labels = string2.split(".");
+                string = string.replace(regexSeparators, ".");
+                var labels = string.split(".");
                 var encoded = map(labels, fn).join(".");
                 return result + encoded;
               }
-              function ucs2decode(string2) {
-                var output = [], counter = 0, length = string2.length, value, extra;
+              function ucs2decode(string) {
+                var output = [], counter = 0, length = string.length, value, extra;
                 while (counter < length) {
-                  value = string2.charCodeAt(counter++);
+                  value = string.charCodeAt(counter++);
                   if (value >= 55296 && value <= 56319 && counter < length) {
-                    extra = string2.charCodeAt(counter++);
+                    extra = string.charCodeAt(counter++);
                     if ((extra & 64512) == 56320) {
                       output.push(((value & 1023) << 10) + (extra & 1023) + 65536);
                     } else {
@@ -42351,8 +39078,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 return output;
               }
-              function ucs2encode(array2) {
-                return map(array2, function(value) {
+              function ucs2encode(array) {
+                return map(array, function(value) {
                   var output = "";
                   if (value > 65535) {
                     value -= 65536;
@@ -42375,8 +39102,8 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 return base;
               }
-              function digitToBasic(digit, flag2) {
-                return digit + 22 + 75 * (digit < 26) - ((flag2 != 0) << 5);
+              function digitToBasic(digit, flag) {
+                return digit + 22 + 75 * (digit < 26) - ((flag != 0) << 5);
               }
               function adapt(delta, numPoints, firstTime) {
                 var k = 0;
@@ -42387,26 +39114,26 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 return floor(k + (baseMinusTMin + 1) * delta / (delta + skew));
               }
-              function decode2(input2) {
-                var output = [], inputLength = input2.length, out, i = 0, n2 = initialN, bias = initialBias, basic, j, index2, oldi, w, k, digit, t2, baseMinusT;
-                basic = input2.lastIndexOf(delimiter);
+              function decode2(input) {
+                var output = [], inputLength = input.length, out, i = 0, n2 = initialN, bias = initialBias, basic, j, index2, oldi, w, k, digit, t2, baseMinusT;
+                basic = input.lastIndexOf(delimiter);
                 if (basic < 0) {
                   basic = 0;
                 }
                 for (j = 0; j < basic; ++j) {
-                  if (input2.charCodeAt(j) >= 128) {
-                    error2("not-basic");
+                  if (input.charCodeAt(j) >= 128) {
+                    error("not-basic");
                   }
-                  output.push(input2.charCodeAt(j));
+                  output.push(input.charCodeAt(j));
                 }
                 for (index2 = basic > 0 ? basic + 1 : 0; index2 < inputLength; ) {
                   for (oldi = i, w = 1, k = base; ; k += base) {
                     if (index2 >= inputLength) {
-                      error2("invalid-input");
+                      error("invalid-input");
                     }
-                    digit = basicToDigit(input2.charCodeAt(index2++));
+                    digit = basicToDigit(input.charCodeAt(index2++));
                     if (digit >= base || digit > floor((maxInt - i) / w)) {
-                      error2("overflow");
+                      error("overflow");
                     }
                     i += digit * w;
                     t2 = k <= bias ? tMin : k >= bias + tMax ? tMax : k - bias;
@@ -42415,14 +39142,14 @@ var aliyunOssSdk$1 = { exports: {} };
                     }
                     baseMinusT = base - t2;
                     if (w > floor(maxInt / baseMinusT)) {
-                      error2("overflow");
+                      error("overflow");
                     }
                     w *= baseMinusT;
                   }
                   out = output.length + 1;
                   bias = adapt(i - oldi, out, oldi == 0);
                   if (floor(i / out) > maxInt - n2) {
-                    error2("overflow");
+                    error("overflow");
                   }
                   n2 += floor(i / out);
                   i %= out;
@@ -42430,15 +39157,15 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 return ucs2encode(output);
               }
-              function encode3(input2) {
+              function encode3(input) {
                 var n2, delta, handledCPCount, basicLength, bias, j, m, q, k, t2, currentValue, output = [], inputLength, handledCPCountPlusOne, baseMinusT, qMinusT;
-                input2 = ucs2decode(input2);
-                inputLength = input2.length;
+                input = ucs2decode(input);
+                inputLength = input.length;
                 n2 = initialN;
                 delta = 0;
                 bias = initialBias;
                 for (j = 0; j < inputLength; ++j) {
-                  currentValue = input2[j];
+                  currentValue = input[j];
                   if (currentValue < 128) {
                     output.push(stringFromCharCode(currentValue));
                   }
@@ -42449,21 +39176,21 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 while (handledCPCount < inputLength) {
                   for (m = maxInt, j = 0; j < inputLength; ++j) {
-                    currentValue = input2[j];
+                    currentValue = input[j];
                     if (currentValue >= n2 && currentValue < m) {
                       m = currentValue;
                     }
                   }
                   handledCPCountPlusOne = handledCPCount + 1;
                   if (m - n2 > floor((maxInt - delta) / handledCPCountPlusOne)) {
-                    error2("overflow");
+                    error("overflow");
                   }
                   delta += (m - n2) * handledCPCountPlusOne;
                   n2 = m;
                   for (j = 0; j < inputLength; ++j) {
-                    currentValue = input2[j];
+                    currentValue = input[j];
                     if (currentValue < n2 && ++delta > maxInt) {
-                      error2("overflow");
+                      error("overflow");
                     }
                     if (currentValue == n2) {
                       for (q = delta, k = base; ; k += base) {
@@ -42489,14 +39216,14 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 return output.join("");
               }
-              function toUnicode(input2) {
-                return mapDomain(input2, function(string2) {
-                  return regexPunycode.test(string2) ? decode2(string2.slice(4).toLowerCase()) : string2;
+              function toUnicode(input) {
+                return mapDomain(input, function(string) {
+                  return regexPunycode.test(string) ? decode2(string.slice(4).toLowerCase()) : string;
                 });
               }
-              function toASCII(input2) {
-                return mapDomain(input2, function(string2) {
-                  return regexNonASCII.test(string2) ? "xn--" + encode3(string2) : string2;
+              function toASCII(input) {
+                return mapDomain(input, function(string) {
+                  return regexNonASCII.test(string) ? "xn--" + encode3(string) : string;
                 });
               }
               punycode = {
@@ -42569,7 +39296,7 @@ var aliyunOssSdk$1 = { exports: {} };
         var utils2 = require2("./utils");
         var has2 = Object.prototype.hasOwnProperty;
         var isArray2 = Array.isArray;
-        var defaults2 = {
+        var defaults = {
           allowDots: false,
           allowPrototypes: false,
           allowSparse: false,
@@ -42630,14 +39357,14 @@ var aliyunOssSdk$1 = { exports: {} };
             var pos = bracketEqualsPos === -1 ? part.indexOf("=") : bracketEqualsPos + 1;
             var key, val;
             if (pos === -1) {
-              key = options.decoder(part, defaults2.decoder, charset, "key");
+              key = options.decoder(part, defaults.decoder, charset, "key");
               val = options.strictNullHandling ? null : "";
             } else {
-              key = options.decoder(part.slice(0, pos), defaults2.decoder, charset, "key");
+              key = options.decoder(part.slice(0, pos), defaults.decoder, charset, "key");
               val = utils2.maybeMap(
                 parseArrayValue(part.slice(pos + 1), options),
                 function(encodedVal) {
-                  return options.decoder(encodedVal, defaults2.decoder, charset, "value");
+                  return options.decoder(encodedVal, defaults.decoder, charset, "value");
                 }
               );
             }
@@ -42714,7 +39441,7 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var normalizeParseOptions = function normalizeParseOptions2(opts) {
           if (!opts) {
-            return defaults2;
+            return defaults;
           }
           if (opts.decoder !== null && opts.decoder !== void 0 && typeof opts.decoder !== "function") {
             throw new TypeError("Decoder has to be a function.");
@@ -42722,25 +39449,25 @@ var aliyunOssSdk$1 = { exports: {} };
           if (typeof opts.charset !== "undefined" && opts.charset !== "utf-8" && opts.charset !== "iso-8859-1") {
             throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
           }
-          var charset = typeof opts.charset === "undefined" ? defaults2.charset : opts.charset;
+          var charset = typeof opts.charset === "undefined" ? defaults.charset : opts.charset;
           return {
-            allowDots: typeof opts.allowDots === "undefined" ? defaults2.allowDots : !!opts.allowDots,
-            allowPrototypes: typeof opts.allowPrototypes === "boolean" ? opts.allowPrototypes : defaults2.allowPrototypes,
-            allowSparse: typeof opts.allowSparse === "boolean" ? opts.allowSparse : defaults2.allowSparse,
-            arrayLimit: typeof opts.arrayLimit === "number" ? opts.arrayLimit : defaults2.arrayLimit,
+            allowDots: typeof opts.allowDots === "undefined" ? defaults.allowDots : !!opts.allowDots,
+            allowPrototypes: typeof opts.allowPrototypes === "boolean" ? opts.allowPrototypes : defaults.allowPrototypes,
+            allowSparse: typeof opts.allowSparse === "boolean" ? opts.allowSparse : defaults.allowSparse,
+            arrayLimit: typeof opts.arrayLimit === "number" ? opts.arrayLimit : defaults.arrayLimit,
             charset,
-            charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults2.charsetSentinel,
-            comma: typeof opts.comma === "boolean" ? opts.comma : defaults2.comma,
-            decoder: typeof opts.decoder === "function" ? opts.decoder : defaults2.decoder,
-            delimiter: typeof opts.delimiter === "string" || utils2.isRegExp(opts.delimiter) ? opts.delimiter : defaults2.delimiter,
+            charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults.charsetSentinel,
+            comma: typeof opts.comma === "boolean" ? opts.comma : defaults.comma,
+            decoder: typeof opts.decoder === "function" ? opts.decoder : defaults.decoder,
+            delimiter: typeof opts.delimiter === "string" || utils2.isRegExp(opts.delimiter) ? opts.delimiter : defaults.delimiter,
             // eslint-disable-next-line no-implicit-coercion, no-extra-parens
-            depth: typeof opts.depth === "number" || opts.depth === false ? +opts.depth : defaults2.depth,
+            depth: typeof opts.depth === "number" || opts.depth === false ? +opts.depth : defaults.depth,
             ignoreQueryPrefix: opts.ignoreQueryPrefix === true,
-            interpretNumericEntities: typeof opts.interpretNumericEntities === "boolean" ? opts.interpretNumericEntities : defaults2.interpretNumericEntities,
-            parameterLimit: typeof opts.parameterLimit === "number" ? opts.parameterLimit : defaults2.parameterLimit,
+            interpretNumericEntities: typeof opts.interpretNumericEntities === "boolean" ? opts.interpretNumericEntities : defaults.interpretNumericEntities,
+            parameterLimit: typeof opts.parameterLimit === "number" ? opts.parameterLimit : defaults.parameterLimit,
             parseArrays: opts.parseArrays !== false,
-            plainObjects: typeof opts.plainObjects === "boolean" ? opts.plainObjects : defaults2.plainObjects,
-            strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults2.strictNullHandling
+            plainObjects: typeof opts.plainObjects === "boolean" ? opts.plainObjects : defaults.plainObjects,
+            strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults.strictNullHandling
           };
         };
         module3.exports = function(str, opts) {
@@ -42785,7 +39512,7 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var toISO = Date.prototype.toISOString;
         var defaultFormat = formats["default"];
-        var defaults2 = {
+        var defaults = {
           addQueryPrefix: false,
           allowDots: false,
           charset: "utf-8",
@@ -42798,8 +39525,8 @@ var aliyunOssSdk$1 = { exports: {} };
           formatter: formats.formatters[defaultFormat],
           // deprecated
           indices: false,
-          serializeDate: function serializeDate(date2) {
-            return toISO.call(date2);
+          serializeDate: function serializeDate(date) {
+            return toISO.call(date);
           },
           skipNulls: false,
           strictNullHandling: false
@@ -42808,13 +39535,13 @@ var aliyunOssSdk$1 = { exports: {} };
           return typeof v === "string" || typeof v === "number" || typeof v === "boolean" || typeof v === "symbol" || typeof v === "bigint";
         };
         var sentinel = {};
-        var stringify2 = function stringify3(object2, prefix, generateArrayPrefix, commaRoundTrip, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, sideChannel) {
-          var obj = object2;
+        var stringify2 = function stringify3(object, prefix, generateArrayPrefix, commaRoundTrip, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, sideChannel) {
+          var obj = object;
           var tmpSc = sideChannel;
           var step = 0;
           var findFlag = false;
           while ((tmpSc = tmpSc.get(sentinel)) !== void 0 && !findFlag) {
-            var pos = tmpSc.get(object2);
+            var pos = tmpSc.get(object);
             step += 1;
             if (typeof pos !== "undefined") {
               if (pos === step) {
@@ -42841,14 +39568,14 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           if (obj === null) {
             if (strictNullHandling) {
-              return encoder && !encodeValuesOnly ? encoder(prefix, defaults2.encoder, charset, "key", format) : prefix;
+              return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder, charset, "key", format) : prefix;
             }
             obj = "";
           }
           if (isNonNullishPrimitive(obj) || utils2.isBuffer(obj)) {
             if (encoder) {
-              var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults2.encoder, charset, "key", format);
-              return [formatter(keyValue) + "=" + formatter(encoder(obj, defaults2.encoder, charset, "value", format))];
+              var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder, charset, "key", format);
+              return [formatter(keyValue) + "=" + formatter(encoder(obj, defaults.encoder, charset, "value", format))];
             }
             return [formatter(prefix) + "=" + formatter(String(obj))];
           }
@@ -42876,7 +39603,7 @@ var aliyunOssSdk$1 = { exports: {} };
               continue;
             }
             var keyPrefix = isArray2(obj) ? typeof generateArrayPrefix === "function" ? generateArrayPrefix(adjustedPrefix, key) : adjustedPrefix : adjustedPrefix + (allowDots ? "." + key : "[" + key + "]");
-            sideChannel.set(object2, step);
+            sideChannel.set(object, step);
             var valueSideChannel = getSideChannel();
             valueSideChannel.set(sentinel, sideChannel);
             pushToArray(values, stringify3(
@@ -42902,12 +39629,12 @@ var aliyunOssSdk$1 = { exports: {} };
         };
         var normalizeStringifyOptions = function normalizeStringifyOptions2(opts) {
           if (!opts) {
-            return defaults2;
+            return defaults;
           }
           if (opts.encoder !== null && typeof opts.encoder !== "undefined" && typeof opts.encoder !== "function") {
             throw new TypeError("Encoder has to be a function.");
           }
-          var charset = opts.charset || defaults2.charset;
+          var charset = opts.charset || defaults.charset;
           if (typeof opts.charset !== "undefined" && opts.charset !== "utf-8" && opts.charset !== "iso-8859-1") {
             throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
           }
@@ -42919,30 +39646,30 @@ var aliyunOssSdk$1 = { exports: {} };
             format = opts.format;
           }
           var formatter = formats.formatters[format];
-          var filter = defaults2.filter;
+          var filter = defaults.filter;
           if (typeof opts.filter === "function" || isArray2(opts.filter)) {
             filter = opts.filter;
           }
           return {
-            addQueryPrefix: typeof opts.addQueryPrefix === "boolean" ? opts.addQueryPrefix : defaults2.addQueryPrefix,
-            allowDots: typeof opts.allowDots === "undefined" ? defaults2.allowDots : !!opts.allowDots,
+            addQueryPrefix: typeof opts.addQueryPrefix === "boolean" ? opts.addQueryPrefix : defaults.addQueryPrefix,
+            allowDots: typeof opts.allowDots === "undefined" ? defaults.allowDots : !!opts.allowDots,
             charset,
-            charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults2.charsetSentinel,
-            delimiter: typeof opts.delimiter === "undefined" ? defaults2.delimiter : opts.delimiter,
-            encode: typeof opts.encode === "boolean" ? opts.encode : defaults2.encode,
-            encoder: typeof opts.encoder === "function" ? opts.encoder : defaults2.encoder,
-            encodeValuesOnly: typeof opts.encodeValuesOnly === "boolean" ? opts.encodeValuesOnly : defaults2.encodeValuesOnly,
+            charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults.charsetSentinel,
+            delimiter: typeof opts.delimiter === "undefined" ? defaults.delimiter : opts.delimiter,
+            encode: typeof opts.encode === "boolean" ? opts.encode : defaults.encode,
+            encoder: typeof opts.encoder === "function" ? opts.encoder : defaults.encoder,
+            encodeValuesOnly: typeof opts.encodeValuesOnly === "boolean" ? opts.encodeValuesOnly : defaults.encodeValuesOnly,
             filter,
             format,
             formatter,
-            serializeDate: typeof opts.serializeDate === "function" ? opts.serializeDate : defaults2.serializeDate,
-            skipNulls: typeof opts.skipNulls === "boolean" ? opts.skipNulls : defaults2.skipNulls,
+            serializeDate: typeof opts.serializeDate === "function" ? opts.serializeDate : defaults.serializeDate,
+            skipNulls: typeof opts.skipNulls === "boolean" ? opts.skipNulls : defaults.skipNulls,
             sort: typeof opts.sort === "function" ? opts.sort : null,
-            strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults2.strictNullHandling
+            strictNullHandling: typeof opts.strictNullHandling === "boolean" ? opts.strictNullHandling : defaults.strictNullHandling
           };
         };
-        module3.exports = function(object2, opts) {
-          var obj = object2;
+        module3.exports = function(object, opts) {
+          var obj = object;
           var options = normalizeStringifyOptions(opts);
           var objKeys;
           var filter;
@@ -43017,11 +39744,11 @@ var aliyunOssSdk$1 = { exports: {} };
         var has2 = Object.prototype.hasOwnProperty;
         var isArray2 = Array.isArray;
         var hexTable = function() {
-          var array2 = [];
+          var array = [];
           for (var i = 0; i < 256; ++i) {
-            array2.push("%" + ((i < 16 ? "0" : "") + i.toString(16)).toUpperCase());
+            array.push("%" + ((i < 16 ? "0" : "") + i.toString(16)).toUpperCase());
           }
-          return array2;
+          return array;
         }();
         var compactQueue = function compactQueue2(queue2) {
           while (queue2.length > 1) {
@@ -43116,22 +39843,22 @@ var aliyunOssSdk$1 = { exports: {} };
           if (str.length === 0) {
             return str;
           }
-          var string2 = str;
+          var string = str;
           if (typeof str === "symbol") {
-            string2 = Symbol.prototype.toString.call(str);
+            string = Symbol.prototype.toString.call(str);
           } else if (typeof str !== "string") {
-            string2 = String(str);
+            string = String(str);
           }
           if (charset === "iso-8859-1") {
-            return escape(string2).replace(/%u[0-9a-f]{4}/gi, function($0) {
+            return escape(string).replace(/%u[0-9a-f]{4}/gi, function($0) {
               return "%26%23" + parseInt($0.slice(2), 16) + "%3B";
             });
           }
           var out = "";
-          for (var i = 0; i < string2.length; ++i) {
-            var c = string2.charCodeAt(i);
+          for (var i = 0; i < string.length; ++i) {
+            var c = string.charCodeAt(i);
             if (c === 45 || c === 46 || c === 95 || c === 126 || c >= 48 && c <= 57 || c >= 65 && c <= 90 || c >= 97 && c <= 122 || format === formats.RFC1738 && (c === 40 || c === 41)) {
-              out += string2.charAt(i);
+              out += string.charAt(i);
               continue;
             }
             if (c < 128) {
@@ -43147,7 +39874,7 @@ var aliyunOssSdk$1 = { exports: {} };
               continue;
             }
             i += 1;
-            c = 65536 + ((c & 1023) << 10 | string2.charCodeAt(i) & 1023);
+            c = 65536 + ((c & 1023) << 10 | string.charCodeAt(i) & 1023);
             out += hexTable[240 | c >> 18] + hexTable[128 | c >> 12 & 63] + hexTable[128 | c >> 6 & 63] + hexTable[128 | c & 63];
           }
           return out;
@@ -43409,14 +40136,14 @@ var aliyunOssSdk$1 = { exports: {} };
               return emitter.listeners(type).length;
             };
             var Stream = require2("./internal/streams/stream");
-            var Buffer2 = require2("safe-buffer").Buffer;
+            var Buffer = require2("safe-buffer").Buffer;
             var OurUint8Array = (typeof global3 !== "undefined" ? global3 : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {}).Uint8Array || function() {
             };
             function _uint8ArrayToBuffer(chunk) {
-              return Buffer2.from(chunk);
+              return Buffer.from(chunk);
             }
             function _isUint8Array(obj) {
-              return Buffer2.isBuffer(obj) || obj instanceof OurUint8Array;
+              return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
             }
             var util = Object.create(require2("core-util-is"));
             util.inherits = require2("inherits");
@@ -43527,7 +40254,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (typeof chunk === "string") {
                   encoding = encoding || state.defaultEncoding;
                   if (encoding !== state.encoding) {
-                    chunk = Buffer2.from(chunk, encoding);
+                    chunk = Buffer.from(chunk, encoding);
                     encoding = "";
                   }
                   skipChunkCheck = true;
@@ -43552,7 +40279,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (er) {
                   stream.emit("error", er);
                 } else if (state.objectMode || chunk && chunk.length > 0) {
-                  if (typeof chunk !== "string" && !state.objectMode && Object.getPrototypeOf(chunk) !== Buffer2.prototype) {
+                  if (typeof chunk !== "string" && !state.objectMode && Object.getPrototypeOf(chunk) !== Buffer.prototype) {
                     chunk = _uint8ArrayToBuffer(chunk);
                   }
                   if (addToFront) {
@@ -44055,20 +40782,20 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return ret;
             }
-            function fromListPartial(n2, list2, hasStrings) {
+            function fromListPartial(n2, list, hasStrings) {
               var ret;
-              if (n2 < list2.head.data.length) {
-                ret = list2.head.data.slice(0, n2);
-                list2.head.data = list2.head.data.slice(n2);
-              } else if (n2 === list2.head.data.length) {
-                ret = list2.shift();
+              if (n2 < list.head.data.length) {
+                ret = list.head.data.slice(0, n2);
+                list.head.data = list.head.data.slice(n2);
+              } else if (n2 === list.head.data.length) {
+                ret = list.shift();
               } else {
-                ret = hasStrings ? copyFromBufferString(n2, list2) : copyFromBuffer(n2, list2);
+                ret = hasStrings ? copyFromBufferString(n2, list) : copyFromBuffer(n2, list);
               }
               return ret;
             }
-            function copyFromBufferString(n2, list2) {
-              var p2 = list2.head;
+            function copyFromBufferString(n2, list) {
+              var p2 = list.head;
               var c = 1;
               var ret = p2.data;
               n2 -= ret.length;
@@ -44084,23 +40811,23 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (nb === str.length) {
                     ++c;
                     if (p2.next)
-                      list2.head = p2.next;
+                      list.head = p2.next;
                     else
-                      list2.head = list2.tail = null;
+                      list.head = list.tail = null;
                   } else {
-                    list2.head = p2;
+                    list.head = p2;
                     p2.data = str.slice(nb);
                   }
                   break;
                 }
                 ++c;
               }
-              list2.length -= c;
+              list.length -= c;
               return ret;
             }
-            function copyFromBuffer(n2, list2) {
-              var ret = Buffer2.allocUnsafe(n2);
-              var p2 = list2.head;
+            function copyFromBuffer(n2, list) {
+              var ret = Buffer.allocUnsafe(n2);
+              var p2 = list.head;
               var c = 1;
               p2.data.copy(ret);
               n2 -= p2.data.length;
@@ -44113,18 +40840,18 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (nb === buf.length) {
                     ++c;
                     if (p2.next)
-                      list2.head = p2.next;
+                      list.head = p2.next;
                     else
-                      list2.head = list2.tail = null;
+                      list.head = list.tail = null;
                   } else {
-                    list2.head = p2;
+                    list.head = p2;
                     p2.data = buf.slice(nb);
                   }
                   break;
                 }
                 ++c;
               }
-              list2.length -= c;
+              list.length -= c;
               return ret;
             }
             function endReadable(stream) {
@@ -44275,14 +41002,14 @@ var aliyunOssSdk$1 = { exports: {} };
               deprecate: require2("util-deprecate")
             };
             var Stream = require2("./internal/streams/stream");
-            var Buffer2 = require2("safe-buffer").Buffer;
+            var Buffer = require2("safe-buffer").Buffer;
             var OurUint8Array = (typeof global3 !== "undefined" ? global3 : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {}).Uint8Array || function() {
             };
             function _uint8ArrayToBuffer(chunk) {
-              return Buffer2.from(chunk);
+              return Buffer.from(chunk);
             }
             function _isUint8Array(obj) {
-              return Buffer2.isBuffer(obj) || obj instanceof OurUint8Array;
+              return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
             }
             var destroyImpl = require2("./internal/streams/destroy");
             util.inherits(Writable, Stream);
@@ -44355,17 +41082,17 @@ var aliyunOssSdk$1 = { exports: {} };
             if (typeof Symbol === "function" && Symbol.hasInstance && typeof Function.prototype[Symbol.hasInstance] === "function") {
               realHasInstance = Function.prototype[Symbol.hasInstance];
               Object.defineProperty(Writable, Symbol.hasInstance, {
-                value: function(object2) {
-                  if (realHasInstance.call(this, object2))
+                value: function(object) {
+                  if (realHasInstance.call(this, object))
                     return true;
                   if (this !== Writable)
                     return false;
-                  return object2 && object2._writableState instanceof WritableState;
+                  return object && object._writableState instanceof WritableState;
                 }
               });
             } else {
-              realHasInstance = function(object2) {
-                return object2 instanceof this;
+              realHasInstance = function(object) {
+                return object instanceof this;
               };
             }
             function Writable(options) {
@@ -44414,7 +41141,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var state = this._writableState;
               var ret = false;
               var isBuf = !state.objectMode && _isUint8Array(chunk);
-              if (isBuf && !Buffer2.isBuffer(chunk)) {
+              if (isBuf && !Buffer.isBuffer(chunk)) {
                 chunk = _uint8ArrayToBuffer(chunk);
               }
               if (typeof encoding === "function") {
@@ -44457,7 +41184,7 @@ var aliyunOssSdk$1 = { exports: {} };
             };
             function decodeChunk(state, chunk, encoding) {
               if (!state.objectMode && state.decodeStrings !== false && typeof chunk === "string") {
-                chunk = Buffer2.from(chunk, encoding);
+                chunk = Buffer.from(chunk, encoding);
               }
               return chunk;
             }
@@ -44725,7 +41452,7 @@ var aliyunOssSdk$1 = { exports: {} };
             throw new TypeError("Cannot call a class as a function");
           }
         }
-        var Buffer2 = require2("safe-buffer").Buffer;
+        var Buffer = require2("safe-buffer").Buffer;
         var util = require2("util");
         function copyBuffer(src, target, offset) {
           src.copy(target, offset);
@@ -44780,8 +41507,8 @@ var aliyunOssSdk$1 = { exports: {} };
           };
           BufferList.prototype.concat = function concat(n2) {
             if (this.length === 0)
-              return Buffer2.alloc(0);
-            var ret = Buffer2.allocUnsafe(n2 >>> 0);
+              return Buffer.alloc(0);
+            var ret = Buffer.allocUnsafe(n2 >>> 0);
             var p2 = this.head;
             var i = 0;
             while (p2) {
@@ -44871,33 +41598,33 @@ var aliyunOssSdk$1 = { exports: {} };
         };
       }, {}], 461: [function(require2, module3, exports3) {
         var buffer2 = require2("buffer");
-        var Buffer2 = buffer2.Buffer;
+        var Buffer = buffer2.Buffer;
         function copyProps(src, dst) {
           for (var key in src) {
             dst[key] = src[key];
           }
         }
-        if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
+        if (Buffer.from && Buffer.alloc && Buffer.allocUnsafe && Buffer.allocUnsafeSlow) {
           module3.exports = buffer2;
         } else {
           copyProps(buffer2, exports3);
           exports3.Buffer = SafeBuffer;
         }
         function SafeBuffer(arg, encodingOrOffset, length) {
-          return Buffer2(arg, encodingOrOffset, length);
+          return Buffer(arg, encodingOrOffset, length);
         }
-        copyProps(Buffer2, SafeBuffer);
+        copyProps(Buffer, SafeBuffer);
         SafeBuffer.from = function(arg, encodingOrOffset, length) {
           if (typeof arg === "number") {
             throw new TypeError("Argument must not be a number");
           }
-          return Buffer2(arg, encodingOrOffset, length);
+          return Buffer(arg, encodingOrOffset, length);
         };
         SafeBuffer.alloc = function(size2, fill, encoding) {
           if (typeof size2 !== "number") {
             throw new TypeError("Argument must be a number");
           }
-          var buf = Buffer2(size2);
+          var buf = Buffer(size2);
           if (fill !== void 0) {
             if (typeof encoding === "string") {
               buf.fill(fill, encoding);
@@ -44913,7 +41640,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (typeof size2 !== "number") {
             throw new TypeError("Argument must be a number");
           }
-          return Buffer2(size2);
+          return Buffer(size2);
         };
         SafeBuffer.allocUnsafeSlow = function(size2) {
           if (typeof size2 !== "number") {
@@ -44922,8 +41649,8 @@ var aliyunOssSdk$1 = { exports: {} };
           return buffer2.SlowBuffer(size2);
         };
       }, { "buffer": 103 }], 462: [function(require2, module3, exports3) {
-        var Buffer2 = require2("safe-buffer").Buffer;
-        var isEncoding = Buffer2.isEncoding || function(encoding) {
+        var Buffer = require2("safe-buffer").Buffer;
+        var isEncoding = Buffer.isEncoding || function(encoding) {
           encoding = "" + encoding;
           switch (encoding && encoding.toLowerCase()) {
             case "hex":
@@ -44973,7 +41700,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }
         function normalizeEncoding(enc) {
           var nenc = _normalizeEncoding(enc);
-          if (typeof nenc !== "string" && (Buffer2.isEncoding === isEncoding || !isEncoding(enc)))
+          if (typeof nenc !== "string" && (Buffer.isEncoding === isEncoding || !isEncoding(enc)))
             throw new Error("Unknown encoding: " + enc);
           return nenc || enc;
         }
@@ -45003,7 +41730,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           this.lastNeed = 0;
           this.lastTotal = 0;
-          this.lastChar = Buffer2.allocUnsafe(nb);
+          this.lastChar = Buffer.allocUnsafe(nb);
         }
         StringDecoder.prototype.write = function(buf) {
           if (buf.length === 0)
@@ -45186,34 +41913,34 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "./lib/_stream_duplex.js": 452, "./lib/_stream_passthrough.js": 453, "./lib/_stream_readable.js": 454, "./lib/_stream_transform.js": 455, "./lib/_stream_writable.js": 456 }], 464: [function(require2, module3, exports3) {
         /*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
         var buffer2 = require2("buffer");
-        var Buffer2 = buffer2.Buffer;
+        var Buffer = buffer2.Buffer;
         function copyProps(src, dst) {
           for (var key in src) {
             dst[key] = src[key];
           }
         }
-        if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
+        if (Buffer.from && Buffer.alloc && Buffer.allocUnsafe && Buffer.allocUnsafeSlow) {
           module3.exports = buffer2;
         } else {
           copyProps(buffer2, exports3);
           exports3.Buffer = SafeBuffer;
         }
         function SafeBuffer(arg, encodingOrOffset, length) {
-          return Buffer2(arg, encodingOrOffset, length);
+          return Buffer(arg, encodingOrOffset, length);
         }
-        SafeBuffer.prototype = Object.create(Buffer2.prototype);
-        copyProps(Buffer2, SafeBuffer);
+        SafeBuffer.prototype = Object.create(Buffer.prototype);
+        copyProps(Buffer, SafeBuffer);
         SafeBuffer.from = function(arg, encodingOrOffset, length) {
           if (typeof arg === "number") {
             throw new TypeError("Argument must not be a number");
           }
-          return Buffer2(arg, encodingOrOffset, length);
+          return Buffer(arg, encodingOrOffset, length);
         };
         SafeBuffer.alloc = function(size2, fill, encoding) {
           if (typeof size2 !== "number") {
             throw new TypeError("Argument must be a number");
           }
-          var buf = Buffer2(size2);
+          var buf = Buffer(size2);
           if (fill !== void 0) {
             if (typeof encoding === "string") {
               buf.fill(fill, encoding);
@@ -45229,7 +41956,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (typeof size2 !== "number") {
             throw new TypeError("Argument must be a number");
           }
-          return Buffer2(size2);
+          return Buffer(size2);
         };
         SafeBuffer.allocUnsafeSlow = function(size2) {
           if (typeof size2 !== "number") {
@@ -45238,7 +41965,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return buffer2.SlowBuffer(size2);
         };
       }, { "buffer": 103 }], 465: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             (function(sax) {
               sax.parser = function(strict, opt) {
@@ -45348,7 +42075,7 @@ var aliyunOssSdk$1 = { exports: {} };
                         parser.script = "";
                         break;
                       default:
-                        error2(parser, "Max buffer length exceeded: " + buffers[i]);
+                        error(parser, "Max buffer length exceeded: " + buffers[i]);
                     }
                   }
                   maxActual = Math.max(maxActual, len);
@@ -45445,7 +42172,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
               });
               SAXStream.prototype.write = function(data) {
-                if (typeof Buffer2 === "function" && typeof Buffer2.isBuffer === "function" && Buffer2.isBuffer(data)) {
+                if (typeof Buffer === "function" && typeof Buffer.isBuffer === "function" && Buffer.isBuffer(data)) {
                   if (!this._decoder) {
                     var SD = require2("string_decoder").StringDecoder;
                     this._decoder = new SD("utf8");
@@ -45858,14 +42585,14 @@ var aliyunOssSdk$1 = { exports: {} };
                   emit2(parser, "ontext", parser.textNode);
                 parser.textNode = "";
               }
-              function textopts(opt, text2) {
+              function textopts(opt, text) {
                 if (opt.trim)
-                  text2 = text2.trim();
+                  text = text.trim();
                 if (opt.normalize)
-                  text2 = text2.replace(/\s+/g, " ");
-                return text2;
+                  text = text.replace(/\s+/g, " ");
+                return text;
               }
-              function error2(parser, er) {
+              function error(parser, er) {
                 closeText(parser);
                 if (parser.trackPosition) {
                   er += "\nLine: " + parser.line + "\nColumn: " + parser.column + "\nChar: " + parser.c;
@@ -45879,7 +42606,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (parser.sawRoot && !parser.closedRoot)
                   strictFail(parser, "Unclosed root tag");
                 if (parser.state !== S.BEGIN && parser.state !== S.BEGIN_WHITESPACE && parser.state !== S.TEXT) {
-                  error2(parser, "Unexpected end");
+                  error(parser, "Unexpected end");
                 }
                 closeText(parser);
                 parser.c = "";
@@ -45893,19 +42620,19 @@ var aliyunOssSdk$1 = { exports: {} };
                   throw new Error("bad call to strictFail");
                 }
                 if (parser.strict) {
-                  error2(parser, message);
+                  error(parser, message);
                 }
               }
               function newTag(parser) {
                 if (!parser.strict)
                   parser.tagName = parser.tagName[parser.looseCase]();
                 var parent = parser.tags[parser.tags.length - 1] || parser;
-                var tag2 = parser.tag = { name: parser.tagName, attributes: {} };
+                var tag = parser.tag = { name: parser.tagName, attributes: {} };
                 if (parser.opt.xmlns) {
-                  tag2.ns = parent.ns;
+                  tag.ns = parent.ns;
                 }
                 parser.attribList.length = 0;
-                emitNode(parser, "onopentagstart", tag2);
+                emitNode(parser, "onopentagstart", tag);
               }
               function qname(name, attribute) {
                 var i = name.indexOf(":");
@@ -45942,12 +42669,12 @@ var aliyunOssSdk$1 = { exports: {} };
                         "xmlns: prefix must be bound to " + XMLNS_NAMESPACE + "\nActual: " + parser.attribValue
                       );
                     } else {
-                      var tag2 = parser.tag;
+                      var tag = parser.tag;
                       var parent = parser.tags[parser.tags.length - 1] || parser;
-                      if (tag2.ns === parent.ns) {
-                        tag2.ns = Object.create(parent.ns);
+                      if (tag.ns === parent.ns) {
+                        tag.ns = Object.create(parent.ns);
                       }
-                      tag2.ns[local] = parser.attribValue;
+                      tag.ns[local] = parser.attribValue;
                     }
                   }
                   parser.attribList.push([parser.attribName, parser.attribValue]);
@@ -45962,21 +42689,21 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               function openTag(parser, selfClosing) {
                 if (parser.opt.xmlns) {
-                  var tag2 = parser.tag;
+                  var tag = parser.tag;
                   var qn = qname(parser.tagName);
-                  tag2.prefix = qn.prefix;
-                  tag2.local = qn.local;
-                  tag2.uri = tag2.ns[qn.prefix] || "";
-                  if (tag2.prefix && !tag2.uri) {
+                  tag.prefix = qn.prefix;
+                  tag.local = qn.local;
+                  tag.uri = tag.ns[qn.prefix] || "";
+                  if (tag.prefix && !tag.uri) {
                     strictFail(parser, "Unbound namespace prefix: " + JSON.stringify(parser.tagName));
-                    tag2.uri = qn.prefix;
+                    tag.uri = qn.prefix;
                   }
                   var parent = parser.tags[parser.tags.length - 1] || parser;
-                  if (tag2.ns && parent.ns !== tag2.ns) {
-                    Object.keys(tag2.ns).forEach(function(p2) {
+                  if (tag.ns && parent.ns !== tag.ns) {
+                    Object.keys(tag.ns).forEach(function(p2) {
                       emitNode(parser, "onopennamespace", {
                         prefix: p2,
-                        uri: tag2.ns[p2]
+                        uri: tag.ns[p2]
                       });
                     });
                   }
@@ -45987,7 +42714,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     var qualName = qname(name, true);
                     var prefix = qualName.prefix;
                     var local = qualName.local;
-                    var uri = prefix === "" ? "" : tag2.ns[prefix] || "";
+                    var uri = prefix === "" ? "" : tag.ns[prefix] || "";
                     var a2 = {
                       name,
                       value,
@@ -46060,17 +42787,17 @@ var aliyunOssSdk$1 = { exports: {} };
                 parser.tagName = tagName;
                 var s3 = parser.tags.length;
                 while (s3-- > t2) {
-                  var tag2 = parser.tag = parser.tags.pop();
+                  var tag = parser.tag = parser.tags.pop();
                   parser.tagName = parser.tag.name;
                   emitNode(parser, "onclosetag", parser.tagName);
                   var x = {};
-                  for (var i in tag2.ns) {
-                    x[i] = tag2.ns[i];
+                  for (var i in tag.ns) {
+                    x[i] = tag.ns[i];
                   }
                   var parent = parser.tags[parser.tags.length - 1] || parser;
-                  if (parser.opt.xmlns && tag2.ns !== parent.ns) {
-                    Object.keys(tag2.ns).forEach(function(p2) {
-                      var n2 = tag2.ns[p2];
+                  if (parser.opt.xmlns && tag.ns !== parent.ns) {
+                    Object.keys(tag.ns).forEach(function(p2) {
+                      var n2 = tag.ns[p2];
                       emitNode(parser, "onclosenamespace", { prefix: p2, uri: n2 });
                     });
                   }
@@ -46134,7 +42861,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   throw this.error;
                 }
                 if (parser.closed) {
-                  return error2(
+                  return error(
                     parser,
                     "Cannot write after close. Assign an onready handler."
                   );
@@ -46750,12 +43477,12 @@ var aliyunOssSdk$1 = { exports: {} };
         var $mapGet = callBound("Map.prototype.get", true);
         var $mapSet = callBound("Map.prototype.set", true);
         var $mapHas = callBound("Map.prototype.has", true);
-        var listGetNode = function(list2, key) {
-          for (var prev = list2, curr; (curr = prev.next) !== null; prev = curr) {
+        var listGetNode = function(list, key) {
+          for (var prev = list, curr; (curr = prev.next) !== null; prev = curr) {
             if (curr.key === key) {
               prev.next = curr.next;
-              curr.next = list2.next;
-              list2.next = curr;
+              curr.next = list.next;
+              list.next = curr;
               return curr;
             }
           }
@@ -46924,7 +43651,7 @@ var aliyunOssSdk$1 = { exports: {} };
           subClass.__proto__ = superClass;
         }
         var codes = {};
-        function createErrorType(code2, message, Base) {
+        function createErrorType(code, message, Base) {
           if (!Base) {
             Base = Error;
           }
@@ -46943,8 +43670,8 @@ var aliyunOssSdk$1 = { exports: {} };
             return NodeError2;
           }(Base);
           NodeError.prototype.name = Base.name;
-          NodeError.prototype.code = code2;
-          codes[code2] = NodeError;
+          NodeError.prototype.code = code;
+          codes[code] = NodeError;
         }
         function oneOf(expected, thing) {
           if (Array.isArray(expected)) {
@@ -46963,23 +43690,23 @@ var aliyunOssSdk$1 = { exports: {} };
             return "of ".concat(thing, " ").concat(String(expected));
           }
         }
-        function startsWith2(str, search2, pos) {
-          return str.substr(!pos || pos < 0 ? 0 : +pos, search2.length) === search2;
+        function startsWith2(str, search, pos) {
+          return str.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
         }
-        function endsWith(str, search2, this_len) {
+        function endsWith(str, search, this_len) {
           if (this_len === void 0 || this_len > str.length) {
             this_len = str.length;
           }
-          return str.substring(this_len - search2.length, this_len) === search2;
+          return str.substring(this_len - search.length, this_len) === search;
         }
-        function includes(str, search2, start) {
+        function includes(str, search, start) {
           if (typeof start !== "number") {
             start = 0;
           }
-          if (start + search2.length > str.length) {
+          if (start + search.length > str.length) {
             return false;
           } else {
-            return str.indexOf(search2, start) !== -1;
+            return str.indexOf(search, start) !== -1;
           }
         }
         createErrorType("ERR_INVALID_OPT_VALUE", function(name, value) {
@@ -47137,14 +43864,14 @@ var aliyunOssSdk$1 = { exports: {} };
               return emitter.listeners(type).length;
             };
             var Stream = require2("./internal/streams/stream");
-            var Buffer2 = require2("buffer").Buffer;
+            var Buffer = require2("buffer").Buffer;
             var OurUint8Array = (typeof global3 !== "undefined" ? global3 : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {}).Uint8Array || function() {
             };
             function _uint8ArrayToBuffer(chunk) {
-              return Buffer2.from(chunk);
+              return Buffer.from(chunk);
             }
             function _isUint8Array(obj) {
-              return Buffer2.isBuffer(obj) || obj instanceof OurUint8Array;
+              return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
             }
             var debugUtil = require2("util");
             var debug;
@@ -47257,7 +43984,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (typeof chunk === "string") {
                   encoding = encoding || state.defaultEncoding;
                   if (encoding !== state.encoding) {
-                    chunk = Buffer2.from(chunk, encoding);
+                    chunk = Buffer.from(chunk, encoding);
                     encoding = "";
                   }
                   skipChunkCheck = true;
@@ -47283,7 +44010,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (er) {
                   errorOrDestroy(stream, er);
                 } else if (state.objectMode || chunk && chunk.length > 0) {
-                  if (typeof chunk !== "string" && !state.objectMode && Object.getPrototypeOf(chunk) !== Buffer2.prototype) {
+                  if (typeof chunk !== "string" && !state.objectMode && Object.getPrototypeOf(chunk) !== Buffer.prototype) {
                     chunk = _uint8ArrayToBuffer(chunk);
                   }
                   if (addToFront) {
@@ -48031,14 +44758,14 @@ var aliyunOssSdk$1 = { exports: {} };
               deprecate: require2("util-deprecate")
             };
             var Stream = require2("./internal/streams/stream");
-            var Buffer2 = require2("buffer").Buffer;
+            var Buffer = require2("buffer").Buffer;
             var OurUint8Array = (typeof global3 !== "undefined" ? global3 : typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : {}).Uint8Array || function() {
             };
             function _uint8ArrayToBuffer(chunk) {
-              return Buffer2.from(chunk);
+              return Buffer.from(chunk);
             }
             function _isUint8Array(obj) {
-              return Buffer2.isBuffer(obj) || obj instanceof OurUint8Array;
+              return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
             }
             var destroyImpl = require2("./internal/streams/destroy");
             var _require = require2("./internal/streams/state"), getHighWaterMark = _require.getHighWaterMark;
@@ -48108,17 +44835,17 @@ var aliyunOssSdk$1 = { exports: {} };
             if (typeof Symbol === "function" && Symbol.hasInstance && typeof Function.prototype[Symbol.hasInstance] === "function") {
               realHasInstance = Function.prototype[Symbol.hasInstance];
               Object.defineProperty(Writable, Symbol.hasInstance, {
-                value: function value(object2) {
-                  if (realHasInstance.call(this, object2))
+                value: function value(object) {
+                  if (realHasInstance.call(this, object))
                     return true;
                   if (this !== Writable)
                     return false;
-                  return object2 && object2._writableState instanceof WritableState;
+                  return object && object._writableState instanceof WritableState;
                 }
               });
             } else {
-              realHasInstance = function realHasInstance2(object2) {
-                return object2 instanceof this;
+              realHasInstance = function realHasInstance2(object) {
+                return object instanceof this;
               };
             }
             function Writable(options) {
@@ -48166,7 +44893,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var state = this._writableState;
               var ret = false;
               var isBuf = !state.objectMode && _isUint8Array(chunk);
-              if (isBuf && !Buffer2.isBuffer(chunk)) {
+              if (isBuf && !Buffer.isBuffer(chunk)) {
                 chunk = _uint8ArrayToBuffer(chunk);
               }
               if (typeof encoding === "function") {
@@ -48217,7 +44944,7 @@ var aliyunOssSdk$1 = { exports: {} };
             });
             function decodeChunk(state, chunk, encoding) {
               if (!state.objectMode && state.decodeStrings !== false && typeof chunk === "string") {
-                chunk = Buffer2.from(chunk, encoding);
+                chunk = Buffer.from(chunk, encoding);
               }
               return chunk;
             }
@@ -48519,17 +45246,17 @@ var aliyunOssSdk$1 = { exports: {} };
               var key = _toPrimitive(arg, "string");
               return typeof key === "symbol" ? key : String(key);
             }
-            function _toPrimitive(input2, hint) {
-              if (typeof input2 !== "object" || input2 === null)
-                return input2;
-              var prim = input2[Symbol.toPrimitive];
+            function _toPrimitive(input, hint) {
+              if (typeof input !== "object" || input === null)
+                return input;
+              var prim = input[Symbol.toPrimitive];
               if (prim !== void 0) {
-                var res = prim.call(input2, hint || "default");
+                var res = prim.call(input, hint || "default");
                 if (typeof res !== "object")
                   return res;
                 throw new TypeError("@@toPrimitive must return a primitive value.");
               }
-              return (hint === "string" ? String : Number)(input2);
+              return (hint === "string" ? String : Number)(input);
             }
             var finished = require2("./end-of-stream");
             var kLastResolve = Symbol("lastResolve");
@@ -48579,9 +45306,9 @@ var aliyunOssSdk$1 = { exports: {} };
               },
               next: function next() {
                 var _this = this;
-                var error2 = this[kError];
-                if (error2 !== null) {
-                  return Promise.reject(error2);
+                var error = this[kError];
+                if (error !== null) {
+                  return Promise.reject(error);
                 }
                 if (this[kEnded]) {
                   return Promise.resolve(createIterResult(void 0, true));
@@ -48598,18 +45325,18 @@ var aliyunOssSdk$1 = { exports: {} };
                   });
                 }
                 var lastPromise = this[kLastPromise];
-                var promise2;
+                var promise;
                 if (lastPromise) {
-                  promise2 = new Promise(wrapForNext(lastPromise, this));
+                  promise = new Promise(wrapForNext(lastPromise, this));
                 } else {
                   var data = this[kStream].read();
                   if (data !== null) {
                     return Promise.resolve(createIterResult(data, false));
                   }
-                  promise2 = new Promise(this[kHandlePromise]);
+                  promise = new Promise(this[kHandlePromise]);
                 }
-                this[kLastPromise] = promise2;
-                return promise2;
+                this[kLastPromise] = promise;
+                return promise;
               }
             }, _defineProperty(_Object$setPrototypeO, Symbol.asyncIterator, function() {
               return this;
@@ -48686,12 +45413,12 @@ var aliyunOssSdk$1 = { exports: {} };
           }).call(this);
         }).call(this, require2("_process"));
       }, { "./end-of-stream": 478, "_process": 538 }], 476: [function(require2, module3, exports3) {
-        function ownKeys(object2, enumerableOnly) {
-          var keys = Object.keys(object2);
+        function ownKeys(object, enumerableOnly) {
+          var keys = Object.keys(object);
           if (Object.getOwnPropertySymbols) {
-            var symbols = Object.getOwnPropertySymbols(object2);
+            var symbols = Object.getOwnPropertySymbols(object);
             enumerableOnly && (symbols = symbols.filter(function(sym) {
-              return Object.getOwnPropertyDescriptor(object2, sym).enumerable;
+              return Object.getOwnPropertyDescriptor(object, sym).enumerable;
             })), keys.push.apply(keys, symbols);
           }
           return keys;
@@ -48721,9 +45448,9 @@ var aliyunOssSdk$1 = { exports: {} };
             throw new TypeError("Cannot call a class as a function");
           }
         }
-        function _defineProperties(target, props2) {
-          for (var i = 0; i < props2.length; i++) {
-            var descriptor = props2[i];
+        function _defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
             descriptor.enumerable = descriptor.enumerable || false;
             descriptor.configurable = true;
             if ("value" in descriptor)
@@ -48743,23 +45470,23 @@ var aliyunOssSdk$1 = { exports: {} };
           var key = _toPrimitive(arg, "string");
           return typeof key === "symbol" ? key : String(key);
         }
-        function _toPrimitive(input2, hint) {
-          if (typeof input2 !== "object" || input2 === null)
-            return input2;
-          var prim = input2[Symbol.toPrimitive];
+        function _toPrimitive(input, hint) {
+          if (typeof input !== "object" || input === null)
+            return input;
+          var prim = input[Symbol.toPrimitive];
           if (prim !== void 0) {
-            var res = prim.call(input2, hint || "default");
+            var res = prim.call(input, hint || "default");
             if (typeof res !== "object")
               return res;
             throw new TypeError("@@toPrimitive must return a primitive value.");
           }
-          return (hint === "string" ? String : Number)(input2);
+          return (hint === "string" ? String : Number)(input);
         }
-        var _require = require2("buffer"), Buffer2 = _require.Buffer;
+        var _require = require2("buffer"), Buffer = _require.Buffer;
         var _require2 = require2("util"), inspect = _require2.inspect;
         var custom = inspect && inspect.custom || "inspect";
         function copyBuffer(src, target, offset) {
-          Buffer2.prototype.copy.call(src, target, offset);
+          Buffer.prototype.copy.call(src, target, offset);
         }
         module3.exports = /* @__PURE__ */ function() {
           function BufferList() {
@@ -48828,8 +45555,8 @@ var aliyunOssSdk$1 = { exports: {} };
             key: "concat",
             value: function concat(n2) {
               if (this.length === 0)
-                return Buffer2.alloc(0);
-              var ret = Buffer2.allocUnsafe(n2 >>> 0);
+                return Buffer.alloc(0);
+              var ret = Buffer.allocUnsafe(n2 >>> 0);
               var p2 = this.head;
               var i = 0;
               while (p2) {
@@ -48897,7 +45624,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }, {
             key: "_getBuffer",
             value: function _getBuffer(n2) {
-              var ret = Buffer2.allocUnsafe(n2);
+              var ret = Buffer.allocUnsafe(n2);
               var p2 = this.head;
               var c = 1;
               p2.data.copy(ret);
@@ -49202,19 +45929,19 @@ var aliyunOssSdk$1 = { exports: {} };
           if (streams.length < 2) {
             throw new ERR_MISSING_ARGS("streams");
           }
-          var error2;
+          var error;
           var destroys = streams.map(function(stream, i) {
             var reading = i < streams.length - 1;
             var writing = i > 0;
             return destroyer(stream, reading, writing, function(err) {
-              if (!error2)
-                error2 = err;
+              if (!error)
+                error = err;
               if (err)
                 destroys.forEach(call);
               if (reading)
                 return;
               destroys.forEach(call);
-              callback(error2);
+              callback(error);
             });
           });
           return streams.reduce(pipe);
@@ -49257,8 +45984,8 @@ var aliyunOssSdk$1 = { exports: {} };
             exports3.setInterval = function() {
               return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
             };
-            exports3.clearTimeout = exports3.clearInterval = function(timeout2) {
-              timeout2.close();
+            exports3.clearTimeout = exports3.clearInterval = function(timeout) {
+              timeout.close();
             };
             function Timeout(id, clearFn) {
               this._id = id;
@@ -49309,7 +46036,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }).call(this);
         }).call(this, require2("timers").setImmediate, require2("timers").clearImmediate);
       }, { "process/browser.js": 442, "timers": 484 }], 485: [function(require2, module3, exports3) {
-        var Buffer2 = require2("buffer").Buffer;
+        var Buffer = require2("buffer").Buffer;
         module3.exports = function(buf) {
           if (buf instanceof Uint8Array) {
             if (buf.byteOffset === 0 && buf.byteLength === buf.buffer.byteLength) {
@@ -49318,7 +46045,7 @@ var aliyunOssSdk$1 = { exports: {} };
               return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
             }
           }
-          if (Buffer2.isBuffer(buf)) {
+          if (Buffer.isBuffer(buf)) {
             var arrayCopy = new Uint8Array(buf.length);
             var len = buf.length;
             for (var i = 0; i < len; i++) {
@@ -49334,18 +46061,18 @@ var aliyunOssSdk$1 = { exports: {} };
           (function() {
             module3.exports = deprecate;
             function deprecate(fn, msg) {
-              if (config2("noDeprecation")) {
+              if (config("noDeprecation")) {
                 return fn;
               }
               var warned = false;
               function deprecated() {
                 if (!warned) {
-                  if (config2("throwDeprecation")) {
+                  if (config("throwDeprecation")) {
                     throw new Error(msg);
-                  } else if (config2("traceDeprecation")) {
+                  } else if (config("traceDeprecation")) {
                     console.trace(msg);
                   } else {
-                    index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:35516", msg);
+                    index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:35516", msg);
                   }
                   warned = true;
                 }
@@ -49353,7 +46080,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return deprecated;
             }
-            function config2(name) {
+            function config(name) {
               try {
                 if (!global3.localStorage)
                   return false;
@@ -49403,8 +46130,8 @@ var aliyunOssSdk$1 = { exports: {} };
         exports3.isArgumentsObject = isArgumentsObject;
         exports3.isGeneratorFunction = isGeneratorFunction;
         exports3.isTypedArray = isTypedArray;
-        function isPromise2(input2) {
-          return typeof Promise !== "undefined" && input2 instanceof Promise || input2 !== null && typeof input2 === "object" && typeof input2.then === "function" && typeof input2.catch === "function";
+        function isPromise2(input) {
+          return typeof Promise !== "undefined" && input instanceof Promise || input !== null && typeof input === "object" && typeof input.then === "function" && typeof input.catch === "function";
         }
         exports3.isPromise = isPromise2;
         function isArrayBufferView(value) {
@@ -49660,7 +46387,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   } else if (process.traceDeprecation) {
                     console.trace(msg);
                   } else {
-                    index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:35981", msg);
+                    index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:35981", msg);
                   }
                   warned = true;
                 }
@@ -49682,7 +46409,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   var pid = process.pid;
                   debugs[set2] = function() {
                     var msg = exports3.format.apply(exports3, arguments);
-                    index$2.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:36010", "%s %d: %s", set2, pid, msg);
+                    index$1.__f__("error", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:36010", "%s %d: %s", set2, pid, msg);
                   };
                 } else {
                   debugs[set2] = function() {
@@ -49705,13 +46432,13 @@ var aliyunOssSdk$1 = { exports: {} };
               } else if (opts) {
                 exports3._extend(ctx, opts);
               }
-              if (isUndefined2(ctx.showHidden))
+              if (isUndefined(ctx.showHidden))
                 ctx.showHidden = false;
-              if (isUndefined2(ctx.depth))
+              if (isUndefined(ctx.depth))
                 ctx.depth = 2;
-              if (isUndefined2(ctx.colors))
+              if (isUndefined(ctx.colors))
                 ctx.colors = false;
-              if (isUndefined2(ctx.customInspect))
+              if (isUndefined(ctx.customInspect))
                 ctx.customInspect = true;
               if (ctx.colors)
                 ctx.stylize = stylizeWithColor;
@@ -49755,9 +46482,9 @@ var aliyunOssSdk$1 = { exports: {} };
             function stylizeNoColor(str, styleType) {
               return str;
             }
-            function arrayToHash(array2) {
+            function arrayToHash(array) {
               var hash = {};
-              array2.forEach(function(val, idx) {
+              array.forEach(function(val, idx) {
                 hash[val] = true;
               });
               return hash;
@@ -49792,16 +46519,16 @@ var aliyunOssSdk$1 = { exports: {} };
                 if (isRegExp(value)) {
                   return ctx.stylize(RegExp.prototype.toString.call(value), "regexp");
                 }
-                if (isDate2(value)) {
+                if (isDate(value)) {
                   return ctx.stylize(Date.prototype.toString.call(value), "date");
                 }
                 if (isError(value)) {
                   return formatError(value);
                 }
               }
-              var base = "", array2 = false, braces = ["{", "}"];
+              var base = "", array = false, braces = ["{", "}"];
               if (isArray2(value)) {
-                array2 = true;
+                array = true;
                 braces = ["[", "]"];
               }
               if (isFunction2(value)) {
@@ -49811,13 +46538,13 @@ var aliyunOssSdk$1 = { exports: {} };
               if (isRegExp(value)) {
                 base = " " + RegExp.prototype.toString.call(value);
               }
-              if (isDate2(value)) {
+              if (isDate(value)) {
                 base = " " + Date.prototype.toUTCString.call(value);
               }
               if (isError(value)) {
                 base = " " + formatError(value);
               }
-              if (keys.length === 0 && (!array2 || value.length == 0)) {
+              if (keys.length === 0 && (!array || value.length == 0)) {
                 return braces[0] + base + braces[1];
               }
               if (recurseTimes < 0) {
@@ -49829,18 +46556,18 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               ctx.seen.push(value);
               var output;
-              if (array2) {
+              if (array) {
                 output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
               } else {
                 output = keys.map(function(key) {
-                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array2);
+                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
                 });
               }
               ctx.seen.pop();
               return reduceToSingleString(output, base, braces);
             }
             function formatPrimitive(ctx, value) {
-              if (isUndefined2(value))
+              if (isUndefined(value))
                 return ctx.stylize("undefined", "undefined");
               if (isString2(value)) {
                 var simple = "'" + JSON.stringify(value).replace(/^"|"$/g, "").replace(/'/g, "\\'").replace(/\\"/g, '"') + "'";
@@ -49886,7 +46613,7 @@ var aliyunOssSdk$1 = { exports: {} };
               });
               return output;
             }
-            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array2) {
+            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
               var name, str, desc;
               desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
               if (desc.get) {
@@ -49911,13 +46638,13 @@ var aliyunOssSdk$1 = { exports: {} };
                     str = formatValue(ctx, desc.value, recurseTimes - 1);
                   }
                   if (str.indexOf("\n") > -1) {
-                    if (array2) {
-                      str = str.split("\n").map(function(line2) {
-                        return "  " + line2;
+                    if (array) {
+                      str = str.split("\n").map(function(line) {
+                        return "  " + line;
                       }).join("\n").slice(2);
                     } else {
-                      str = "\n" + str.split("\n").map(function(line2) {
-                        return "   " + line2;
+                      str = "\n" + str.split("\n").map(function(line) {
+                        return "   " + line;
                       }).join("\n");
                     }
                   }
@@ -49925,8 +46652,8 @@ var aliyunOssSdk$1 = { exports: {} };
                   str = ctx.stylize("[Circular]", "special");
                 }
               }
-              if (isUndefined2(name)) {
-                if (array2 && key.match(/^\d+$/)) {
+              if (isUndefined(name)) {
+                if (array && key.match(/^\d+$/)) {
                   return str;
                 }
                 name = JSON.stringify("" + key);
@@ -49980,10 +46707,10 @@ var aliyunOssSdk$1 = { exports: {} };
               return typeof arg === "symbol";
             }
             exports3.isSymbol = isSymbol2;
-            function isUndefined2(arg) {
+            function isUndefined(arg) {
               return arg === void 0;
             }
-            exports3.isUndefined = isUndefined2;
+            exports3.isUndefined = isUndefined;
             function isRegExp(re) {
               return isObject2(re) && objectToString2(re) === "[object RegExp]";
             }
@@ -49993,11 +46720,11 @@ var aliyunOssSdk$1 = { exports: {} };
               return typeof arg === "object" && arg !== null;
             }
             exports3.isObject = isObject2;
-            function isDate2(d) {
+            function isDate(d) {
               return isObject2(d) && objectToString2(d) === "[object Date]";
             }
-            exports3.isDate = isDate2;
-            exports3.types.isDate = isDate2;
+            exports3.isDate = isDate;
+            exports3.types.isDate = isDate;
             function isError(e2) {
               return isObject2(e2) && (objectToString2(e2) === "[object Error]" || e2 instanceof Error);
             }
@@ -50043,7 +46770,7 @@ var aliyunOssSdk$1 = { exports: {} };
               return [d.getDate(), months[d.getMonth()], time2].join(" ");
             }
             exports3.log = function() {
-              index$2.__f__("log", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:36461", "%s - %s", timestamp(), exports3.format.apply(exports3, arguments));
+              index$1.__f__("log", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:36461", "%s - %s", timestamp(), exports3.format.apply(exports3, arguments));
             };
             exports3.inherits = require2("inherits");
             exports3._extend = function(origin, add2) {
@@ -50078,7 +46805,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               function fn() {
                 var promiseResolve, promiseReject;
-                var promise2 = new Promise(function(resolve2, reject) {
+                var promise = new Promise(function(resolve2, reject) {
                   promiseResolve = resolve2;
                   promiseReject = reject;
                 });
@@ -50098,7 +46825,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 } catch (err) {
                   promiseReject(err);
                 }
-                return promise2;
+                return promise;
               }
               Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
               if (kCustomPromisifiedSymbol)
@@ -50161,7 +46888,7 @@ var aliyunOssSdk$1 = { exports: {} };
       }, { "./support/isBuffer": 487, "./support/types": 488, "_process": 538, "inherits": 407 }], 490: [function(require2, module3, exports3) {
         (function(global3) {
           (function() {
-            var forEach3 = require2("for-each");
+            var forEach = require2("for-each");
             var availableTypedArrays = require2("available-typed-arrays");
             var callBind = require2("call-bind");
             var callBound = require2("call-bind/callBound");
@@ -50172,9 +46899,9 @@ var aliyunOssSdk$1 = { exports: {} };
             var typedArrays = availableTypedArrays();
             var $slice = callBound("String.prototype.slice");
             var getPrototypeOf = Object.getPrototypeOf;
-            var $indexOf = callBound("Array.prototype.indexOf", true) || function indexOf(array2, value) {
-              for (var i = 0; i < array2.length; i += 1) {
-                if (array2[i] === value) {
+            var $indexOf = callBound("Array.prototype.indexOf", true) || function indexOf(array, value) {
+              for (var i = 0; i < array.length; i += 1) {
+                if (array[i] === value) {
                   return i;
                 }
               }
@@ -50182,7 +46909,7 @@ var aliyunOssSdk$1 = { exports: {} };
             };
             var cache = { __proto__: null };
             if (hasToStringTag && gOPD && getPrototypeOf) {
-              forEach3(typedArrays, function(typedArray) {
+              forEach(typedArrays, function(typedArray) {
                 var arr = new g[typedArray]();
                 if (Symbol.toStringTag in arr) {
                   var proto = getPrototypeOf(arr);
@@ -50195,7 +46922,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
               });
             } else {
-              forEach3(typedArrays, function(typedArray) {
+              forEach(typedArrays, function(typedArray) {
                 var arr = new g[typedArray]();
                 var fn = arr.slice || arr.set;
                 if (fn) {
@@ -50205,7 +46932,7 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             var tryTypedArrays = function tryAllTypedArrays(value) {
               var found = false;
-              forEach3(cache, function(getter, typedArray) {
+              forEach(cache, function(getter, typedArray) {
                 if (!found) {
                   try {
                     if ("$" + getter(value) === typedArray) {
@@ -50219,7 +46946,7 @@ var aliyunOssSdk$1 = { exports: {} };
             };
             var trySlices = function tryAllSlices(value) {
               var found = false;
-              forEach3(cache, function(getter, name) {
+              forEach(cache, function(getter, name) {
                 if (!found) {
                   try {
                     getter(value);
@@ -50235,11 +46962,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 return false;
               }
               if (!hasToStringTag) {
-                var tag2 = $slice($toString(value), 8, -1);
-                if ($indexOf(typedArrays, tag2) > -1) {
-                  return tag2;
+                var tag = $slice($toString(value), 8, -1);
+                if ($indexOf(typedArrays, tag) > -1) {
+                  return tag;
                 }
-                if (tag2 !== "Object") {
+                if (tag !== "Object") {
                   return false;
                 }
                 return trySlices(value);
@@ -50263,9 +46990,9 @@ var aliyunOssSdk$1 = { exports: {} };
         }).call(this);
       }, {}], 492: [function(require2, module3, exports3) {
         (function() {
-          var builder, defaults2, escapeCDATA, requiresCDATA, wrapCDATA, hasProp = {}.hasOwnProperty;
+          var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA, hasProp = {}.hasOwnProperty;
           builder = require2("xmlbuilder");
-          defaults2 = require2("./defaults").defaults;
+          defaults = require2("./defaults").defaults;
           requiresCDATA = function(entry) {
             return typeof entry === "string" && (entry.indexOf("&") >= 0 || entry.indexOf(">") >= 0 || entry.indexOf("<") >= 0);
           };
@@ -50279,7 +47006,7 @@ var aliyunOssSdk$1 = { exports: {} };
             function Builder(opts) {
               var key, ref2, value;
               this.options = {};
-              ref2 = defaults2["0.2"];
+              ref2 = defaults["0.2"];
               for (key in ref2) {
                 if (!hasProp.call(ref2, key))
                   continue;
@@ -50297,7 +47024,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var attrkey, charkey, render2, rootElement, rootName;
               attrkey = this.options.attrkey;
               charkey = this.options.charkey;
-              if (Object.keys(rootObj).length === 1 && this.options.rootName === defaults2["0.2"].rootName) {
+              if (Object.keys(rootObj).length === 1 && this.options.rootName === defaults["0.2"].rootName) {
                 rootName = Object.keys(rootObj)[0];
                 rootObj = rootObj[rootName];
               } else {
@@ -50454,7 +47181,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }).call(this);
       }, {}], 494: [function(require2, module3, exports3) {
         (function() {
-          var bom, defaults2, defineProperty, events, isEmpty, processItem, processors, sax, setImmediate, bind = function(fn, me) {
+          var bom, defaults, defineProperty, events, isEmpty, processItem, processors, sax, setImmediate, bind = function(fn, me) {
             return function() {
               return fn.apply(me, arguments);
             };
@@ -50476,7 +47203,7 @@ var aliyunOssSdk$1 = { exports: {} };
           bom = require2("./bom");
           processors = require2("./processors");
           setImmediate = require2("timers").setImmediate;
-          defaults2 = require2("./defaults").defaults;
+          defaults = require2("./defaults").defaults;
           isEmpty = function(thing) {
             return typeof thing === "object" && thing != null && Object.keys(thing).length === 0;
           };
@@ -50510,7 +47237,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 return new exports3.Parser(opts);
               }
               this.options = {};
-              ref2 = defaults2["0.2"];
+              ref2 = defaults["0.2"];
               for (key in ref2) {
                 if (!hasProp.call(ref2, key))
                   continue;
@@ -50580,11 +47307,11 @@ var aliyunOssSdk$1 = { exports: {} };
               });
               this.saxParser.errThrown = false;
               this.saxParser.onerror = /* @__PURE__ */ function(_this) {
-                return function(error2) {
+                return function(error) {
                   _this.saxParser.resume();
                   if (!_this.saxParser.errThrown) {
                     _this.saxParser.errThrown = true;
-                    return _this.emit("error", error2);
+                    return _this.emit("error", error);
                   }
                 };
               }(this);
@@ -50734,17 +47461,17 @@ var aliyunOssSdk$1 = { exports: {} };
                 };
               }(this);
               ontext = /* @__PURE__ */ function(_this) {
-                return function(text2) {
+                return function(text) {
                   var charChild, s2;
                   s2 = stack2[stack2.length - 1];
                   if (s2) {
-                    s2[charkey] += text2;
-                    if (_this.options.explicitChildren && _this.options.preserveChildrenOrder && _this.options.charsAsChildren && (_this.options.includeWhiteChars || text2.replace(/\\n/g, "").trim() !== "")) {
+                    s2[charkey] += text;
+                    if (_this.options.explicitChildren && _this.options.preserveChildrenOrder && _this.options.charsAsChildren && (_this.options.includeWhiteChars || text.replace(/\\n/g, "").trim() !== "")) {
                       s2[_this.options.childkey] = s2[_this.options.childkey] || [];
                       charChild = {
                         "#name": "__text__"
                       };
-                      charChild[charkey] = text2;
+                      charChild[charkey] = text;
                       if (_this.options.normalize) {
                         charChild[charkey] = charChild[charkey].replace(/\s{2,}/g, " ").trim();
                       }
@@ -50756,9 +47483,9 @@ var aliyunOssSdk$1 = { exports: {} };
               }(this);
               this.saxParser.ontext = ontext;
               return this.saxParser.oncdata = /* @__PURE__ */ function(_this) {
-                return function(text2) {
+                return function(text) {
                   var s2;
-                  s2 = ontext(text2);
+                  s2 = ontext(text);
                   if (s2) {
                     return s2.cdata = true;
                   }
@@ -50870,7 +47597,7 @@ var aliyunOssSdk$1 = { exports: {} };
         }).call(this);
       }, {}], 496: [function(require2, module3, exports3) {
         (function() {
-          var builder, defaults2, parser, processors, extend2 = function(child, parent) {
+          var builder, defaults, parser, processors, extend2 = function(child, parent) {
             for (var key in parent) {
               if (hasProp.call(parent, key))
                 child[key] = parent[key];
@@ -50883,11 +47610,11 @@ var aliyunOssSdk$1 = { exports: {} };
             child.__super__ = parent.prototype;
             return child;
           }, hasProp = {}.hasOwnProperty;
-          defaults2 = require2("./defaults");
+          defaults = require2("./defaults");
           builder = require2("./builder");
           parser = require2("./parser");
           processors = require2("./processors");
-          exports3.defaults = defaults2.defaults;
+          exports3.defaults = defaults.defaults;
           exports3.processors = processors;
           exports3.ValidationError = function(superClass) {
             extend2(ValidationError, superClass);
@@ -51121,14 +47848,14 @@ var aliyunOssSdk$1 = { exports: {} };
           XMLCharacterData = require2("./XMLCharacterData");
           module3.exports = function(superClass) {
             extend2(XMLCData, superClass);
-            function XMLCData(parent, text2) {
+            function XMLCData(parent, text) {
               XMLCData.__super__.constructor.call(this, parent);
-              if (text2 == null) {
+              if (text == null) {
                 throw new Error("Missing CDATA text. " + this.debugInfo());
               }
               this.name = "#cdata-section";
               this.type = NodeType.CData;
-              this.value = this.stringify.cdata(text2);
+              this.value = this.stringify.cdata(text);
             }
             XMLCData.prototype.clone = function() {
               return Object.create(this);
@@ -51231,14 +47958,14 @@ var aliyunOssSdk$1 = { exports: {} };
           XMLCharacterData = require2("./XMLCharacterData");
           module3.exports = function(superClass) {
             extend2(XMLComment, superClass);
-            function XMLComment(parent, text2) {
+            function XMLComment(parent, text) {
               XMLComment.__super__.constructor.call(this, parent);
-              if (text2 == null) {
+              if (text == null) {
                 throw new Error("Missing comment text. " + this.debugInfo());
               }
               this.name = "#comment";
               this.type = NodeType.Comment;
-              this.value = this.stringify.comment(text2);
+              this.value = this.stringify.comment(text);
             }
             XMLComment.prototype.clone = function() {
               return Object.create(this);
@@ -51307,8 +48034,8 @@ var aliyunOssSdk$1 = { exports: {} };
           module3.exports = function() {
             function XMLDOMErrorHandler() {
             }
-            XMLDOMErrorHandler.prototype.handleError = function(error2) {
-              throw new Error(error2);
+            XMLDOMErrorHandler.prototype.handleError = function(error) {
+              throw new Error(error);
             };
             return XMLDOMErrorHandler;
           }();
@@ -52107,7 +48834,7 @@ var aliyunOssSdk$1 = { exports: {} };
             XMLDocumentCB.prototype.dummy = function() {
               return this;
             };
-            XMLDocumentCB.prototype.node = function(name, attributes, text2) {
+            XMLDocumentCB.prototype.node = function(name, attributes, text) {
               var ref1;
               if (name == null) {
                 throw new Error("Missing node name.");
@@ -52122,18 +48849,18 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               attributes = getValue(attributes);
               if (!isObject2(attributes)) {
-                ref1 = [attributes, text2], text2 = ref1[0], attributes = ref1[1];
+                ref1 = [attributes, text], text = ref1[0], attributes = ref1[1];
               }
               this.currentNode = new XMLElement(this, name, attributes);
               this.currentNode.children = false;
               this.currentLevel++;
               this.openTags[this.currentLevel] = this.currentNode;
-              if (text2 != null) {
-                this.text(text2);
+              if (text != null) {
+                this.text(text);
               }
               return this;
             };
-            XMLDocumentCB.prototype.element = function(name, attributes, text2) {
+            XMLDocumentCB.prototype.element = function(name, attributes, text) {
               var child, i, len, oldValidationFlag, ref1, root;
               if (this.currentNode && this.currentNode.type === NodeType.DocType) {
                 this.dtdElement.apply(this, arguments);
@@ -52153,7 +48880,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     }
                   }
                 } else {
-                  this.node(name, attributes, text2);
+                  this.node(name, attributes, text);
                 }
               }
               return this;
@@ -52406,8 +49133,8 @@ var aliyunOssSdk$1 = { exports: {} };
             XMLDocumentCB.prototype.ele = function() {
               return this.element.apply(this, arguments);
             };
-            XMLDocumentCB.prototype.nod = function(name, attributes, text2) {
-              return this.node(name, attributes, text2);
+            XMLDocumentCB.prototype.nod = function(name, attributes, text) {
+              return this.node(name, attributes, text);
             };
             XMLDocumentCB.prototype.txt = function(value) {
               return this.text(value);
@@ -52427,11 +49154,11 @@ var aliyunOssSdk$1 = { exports: {} };
             XMLDocumentCB.prototype.dtd = function(root, pubID, sysID) {
               return this.doctype(root, pubID, sysID);
             };
-            XMLDocumentCB.prototype.e = function(name, attributes, text2) {
-              return this.element(name, attributes, text2);
+            XMLDocumentCB.prototype.e = function(name, attributes, text) {
+              return this.element(name, attributes, text);
             };
-            XMLDocumentCB.prototype.n = function(name, attributes, text2) {
-              return this.node(name, attributes, text2);
+            XMLDocumentCB.prototype.n = function(name, attributes, text) {
+              return this.node(name, attributes, text);
             };
             XMLDocumentCB.prototype.t = function(value) {
               return this.text(value);
@@ -52950,18 +49677,18 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return results;
             };
-            XMLNode.prototype.element = function(name, attributes, text2) {
+            XMLNode.prototype.element = function(name, attributes, text) {
               var childNode, item, j, k, key, lastChild, len, len1, ref2, ref3, val;
               lastChild = null;
-              if (attributes === null && text2 == null) {
-                ref2 = [{}, null], attributes = ref2[0], text2 = ref2[1];
+              if (attributes === null && text == null) {
+                ref2 = [{}, null], attributes = ref2[0], text = ref2[1];
               }
               if (attributes == null) {
                 attributes = {};
               }
               attributes = getValue(attributes);
               if (!isObject2(attributes)) {
-                ref3 = [attributes, text2], text2 = ref3[0], attributes = ref3[1];
+                ref3 = [attributes, text], text = ref3[0], attributes = ref3[1];
               }
               if (name != null) {
                 name = getValue(name);
@@ -53007,21 +49734,21 @@ var aliyunOssSdk$1 = { exports: {} };
                     lastChild = this.element(key, val);
                   }
                 }
-              } else if (!this.options.keepNullNodes && text2 === null) {
+              } else if (!this.options.keepNullNodes && text === null) {
                 lastChild = this.dummy();
               } else {
                 if (!this.options.ignoreDecorators && this.stringify.convertTextKey && name.indexOf(this.stringify.convertTextKey) === 0) {
-                  lastChild = this.text(text2);
+                  lastChild = this.text(text);
                 } else if (!this.options.ignoreDecorators && this.stringify.convertCDataKey && name.indexOf(this.stringify.convertCDataKey) === 0) {
-                  lastChild = this.cdata(text2);
+                  lastChild = this.cdata(text);
                 } else if (!this.options.ignoreDecorators && this.stringify.convertCommentKey && name.indexOf(this.stringify.convertCommentKey) === 0) {
-                  lastChild = this.comment(text2);
+                  lastChild = this.comment(text);
                 } else if (!this.options.ignoreDecorators && this.stringify.convertRawKey && name.indexOf(this.stringify.convertRawKey) === 0) {
-                  lastChild = this.raw(text2);
+                  lastChild = this.raw(text);
                 } else if (!this.options.ignoreDecorators && this.stringify.convertPIKey && name.indexOf(this.stringify.convertPIKey) === 0) {
-                  lastChild = this.instruction(name.substr(this.stringify.convertPIKey.length), text2);
+                  lastChild = this.instruction(name.substr(this.stringify.convertPIKey.length), text);
                 } else {
-                  lastChild = this.node(name, attributes, text2);
+                  lastChild = this.node(name, attributes, text);
                 }
               }
               if (lastChild == null) {
@@ -53029,7 +49756,7 @@ var aliyunOssSdk$1 = { exports: {} };
               }
               return lastChild;
             };
-            XMLNode.prototype.insertBefore = function(name, attributes, text2) {
+            XMLNode.prototype.insertBefore = function(name, attributes, text) {
               var child, i, newChild, refChild, removed;
               if (name != null ? name.type : void 0) {
                 newChild = name;
@@ -53050,19 +49777,19 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 i = this.parent.children.indexOf(this);
                 removed = this.parent.children.splice(i);
-                child = this.parent.element(name, attributes, text2);
+                child = this.parent.element(name, attributes, text);
                 Array.prototype.push.apply(this.parent.children, removed);
                 return child;
               }
             };
-            XMLNode.prototype.insertAfter = function(name, attributes, text2) {
+            XMLNode.prototype.insertAfter = function(name, attributes, text) {
               var child, i, removed;
               if (this.isRoot) {
                 throw new Error("Cannot insert elements at root level. " + this.debugInfo(name));
               }
               i = this.parent.children.indexOf(this);
               removed = this.parent.children.splice(i + 1);
-              child = this.parent.element(name, attributes, text2);
+              child = this.parent.element(name, attributes, text);
               Array.prototype.push.apply(this.parent.children, removed);
               return child;
             };
@@ -53075,7 +49802,7 @@ var aliyunOssSdk$1 = { exports: {} };
               [].splice.apply(this.parent.children, [i, i - i + 1].concat([]));
               return this.parent;
             };
-            XMLNode.prototype.node = function(name, attributes, text2) {
+            XMLNode.prototype.node = function(name, attributes, text) {
               var child, ref2;
               if (name != null) {
                 name = getValue(name);
@@ -53083,11 +49810,11 @@ var aliyunOssSdk$1 = { exports: {} };
               attributes || (attributes = {});
               attributes = getValue(attributes);
               if (!isObject2(attributes)) {
-                ref2 = [attributes, text2], text2 = ref2[0], attributes = ref2[1];
+                ref2 = [attributes, text], text = ref2[0], attributes = ref2[1];
               }
               child = new XMLElement(this, name, attributes);
-              if (text2 != null) {
-                child.text(text2);
+              if (text != null) {
+                child.text(text);
               }
               this.children.push(child);
               return child;
@@ -53291,11 +50018,11 @@ var aliyunOssSdk$1 = { exports: {} };
                 return "node: <" + name + ">, parent: <" + this.parent.name + ">";
               }
             };
-            XMLNode.prototype.ele = function(name, attributes, text2) {
-              return this.element(name, attributes, text2);
+            XMLNode.prototype.ele = function(name, attributes, text) {
+              return this.element(name, attributes, text);
             };
-            XMLNode.prototype.nod = function(name, attributes, text2) {
-              return this.node(name, attributes, text2);
+            XMLNode.prototype.nod = function(name, attributes, text) {
+              return this.node(name, attributes, text);
             };
             XMLNode.prototype.txt = function(value) {
               return this.text(value);
@@ -53315,11 +50042,11 @@ var aliyunOssSdk$1 = { exports: {} };
             XMLNode.prototype.dec = function(version2, encoding, standalone) {
               return this.declaration(version2, encoding, standalone);
             };
-            XMLNode.prototype.e = function(name, attributes, text2) {
-              return this.element(name, attributes, text2);
+            XMLNode.prototype.e = function(name, attributes, text) {
+              return this.element(name, attributes, text);
             };
-            XMLNode.prototype.n = function(name, attributes, text2) {
-              return this.node(name, attributes, text2);
+            XMLNode.prototype.n = function(name, attributes, text) {
+              return this.node(name, attributes, text);
             };
             XMLNode.prototype.t = function(value) {
               return this.text(value);
@@ -53485,16 +50212,16 @@ var aliyunOssSdk$1 = { exports: {} };
                 return -1;
               }
             };
-            XMLNode.prototype.foreachTreeNode = function(node, func2) {
+            XMLNode.prototype.foreachTreeNode = function(node, func) {
               var child, j, len, ref2, res;
               node || (node = this.document());
               ref2 = node.children;
               for (j = 0, len = ref2.length; j < len; j++) {
                 child = ref2[j];
-                if (res = func2(child)) {
+                if (res = func(child)) {
                   return res;
                 } else {
-                  res = this.foreachTreeNode(child, func2);
+                  res = this.foreachTreeNode(child, func);
                   if (res) {
                     return res;
                   }
@@ -53592,13 +50319,13 @@ var aliyunOssSdk$1 = { exports: {} };
           XMLNode = require2("./XMLNode");
           module3.exports = function(superClass) {
             extend2(XMLRaw, superClass);
-            function XMLRaw(parent, text2) {
+            function XMLRaw(parent, text) {
               XMLRaw.__super__.constructor.call(this, parent);
-              if (text2 == null) {
+              if (text == null) {
                 throw new Error("Missing raw text. " + this.debugInfo());
               }
               this.type = NodeType.Raw;
-              this.value = this.stringify.raw(text2);
+              this.value = this.stringify.raw(text);
             }
             XMLRaw.prototype.clone = function() {
               return Object.create(this);
@@ -54039,14 +50766,14 @@ var aliyunOssSdk$1 = { exports: {} };
           XMLCharacterData = require2("./XMLCharacterData");
           module3.exports = function(superClass) {
             extend2(XMLText, superClass);
-            function XMLText(parent, text2) {
+            function XMLText(parent, text) {
               XMLText.__super__.constructor.call(this, parent);
-              if (text2 == null) {
+              if (text == null) {
                 throw new Error("Missing element text. " + this.debugInfo());
               }
               this.name = "#text";
               this.type = NodeType.Text;
-              this.value = this.stringify.text(text2);
+              this.value = this.stringify.text(text);
             }
             Object.defineProperty(XMLText.prototype, "isElementContentWhitespace", {
               get: function() {
@@ -54549,7 +51276,7 @@ var aliyunOssSdk$1 = { exports: {} };
         require2("core-js/modules/es.regexp.to-string.js");
         require2("core-js/modules/es.array.join.js");
         require2("core-js/modules/es.array.slice.js");
-        var Buffer2 = require2("buffer").Buffer;
+        var Buffer = require2("buffer").Buffer;
         var sha = require2("./sha");
         var sha256 = require2("./sha256");
         var md5 = require2("./md5");
@@ -54559,25 +51286,25 @@ var aliyunOssSdk$1 = { exports: {} };
           md5
         };
         var blocksize = 64;
-        var zeroBuffer = Buffer2.alloc(blocksize);
+        var zeroBuffer = Buffer.alloc(blocksize);
         zeroBuffer.fill(0);
         function hmac(fn, key, data) {
-          if (!Buffer2.isBuffer(key))
-            key = Buffer2.from(key);
-          if (!Buffer2.isBuffer(data))
-            data = Buffer2.from(data);
+          if (!Buffer.isBuffer(key))
+            key = Buffer.from(key);
+          if (!Buffer.isBuffer(data))
+            data = Buffer.from(data);
           if (key.length > blocksize) {
             key = fn(key);
           } else if (key.length < blocksize) {
-            key = Buffer2.concat([key, zeroBuffer], blocksize);
+            key = Buffer.concat([key, zeroBuffer], blocksize);
           }
-          var ipad = Buffer2.alloc(blocksize), opad = Buffer2.alloc(blocksize);
+          var ipad = Buffer.alloc(blocksize), opad = Buffer.alloc(blocksize);
           for (var i = 0; i < blocksize; i++) {
             ipad[i] = key[i] ^ 54;
             opad[i] = key[i] ^ 92;
           }
-          var hash2 = fn(Buffer2.concat([ipad, data]));
-          return fn(Buffer2.concat([opad, hash2]));
+          var hash2 = fn(Buffer.concat([ipad, data]));
+          return fn(Buffer.concat([opad, hash2]));
         }
         function hash(alg, key) {
           alg = alg || "sha1";
@@ -54585,24 +51312,24 @@ var aliyunOssSdk$1 = { exports: {} };
           var bufs = [];
           var length = 0;
           if (!fn)
-            error2("algorithm:", alg, "is not yet supported");
+            error("algorithm:", alg, "is not yet supported");
           return {
             update: function update3(data) {
-              if (!Buffer2.isBuffer(data))
-                data = Buffer2.from(data);
+              if (!Buffer.isBuffer(data))
+                data = Buffer.from(data);
               bufs.push(data);
               length += data.length;
               return this;
             },
             digest: function digest(enc) {
-              var buf = Buffer2.concat(bufs);
+              var buf = Buffer.concat(bufs);
               var r = key ? hmac(fn, key, buf) : fn(buf);
               bufs = null;
               return enc ? r.toString(enc) : r;
             }
           };
         }
-        function error2() {
+        function error() {
           var m = [].slice.call(arguments).join(" ");
           throw new Error([m, "we accept pull requests", "http://github.com/dominictarr/crypto-browserify"].join("\n"));
         }
@@ -54613,44 +51340,44 @@ var aliyunOssSdk$1 = { exports: {} };
           return hash(alg, key);
         };
         exports3.createCredentials = function() {
-          error2("sorry,createCredentials is not implemented yet");
+          error("sorry,createCredentials is not implemented yet");
         };
         exports3.createCipher = function() {
-          error2("sorry,createCipher is not implemented yet");
+          error("sorry,createCipher is not implemented yet");
         };
         exports3.createCipheriv = function() {
-          error2("sorry,createCipheriv is not implemented yet");
+          error("sorry,createCipheriv is not implemented yet");
         };
         exports3.createDecipher = function() {
-          error2("sorry,createDecipher is not implemented yet");
+          error("sorry,createDecipher is not implemented yet");
         };
         exports3.createDecipheriv = function() {
-          error2("sorry,createDecipheriv is not implemented yet");
+          error("sorry,createDecipheriv is not implemented yet");
         };
         exports3.createSign = function() {
-          error2("sorry,createSign is not implemented yet");
+          error("sorry,createSign is not implemented yet");
         };
         exports3.createVerify = function() {
-          error2("sorry,createVerify is not implemented yet");
+          error("sorry,createVerify is not implemented yet");
         };
         exports3.createDiffieHellman = function() {
-          error2("sorry,createDiffieHellman is not implemented yet");
+          error("sorry,createDiffieHellman is not implemented yet");
         };
         exports3.pbkdf2 = function() {
-          error2("sorry,pbkdf2 is not implemented yet");
+          error("sorry,pbkdf2 is not implemented yet");
         };
       }, { "./md5": 533, "./sha": 534, "./sha256": 535, "buffer": 103, "core-js/modules/es.array.concat.js": 310, "core-js/modules/es.array.fill.js": 311, "core-js/modules/es.array.join.js": 317, "core-js/modules/es.array.slice.js": 319, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.regexp.to-string.js": 339 }], 532: [function(require2, module3, exports3) {
         require2("core-js/modules/es.array.fill.js");
         require2("core-js/modules/es.array.concat.js");
-        var Buffer2 = require2("buffer").Buffer;
+        var Buffer = require2("buffer").Buffer;
         var intSize = 4;
-        var zeroBuffer = Buffer2.alloc(intSize);
+        var zeroBuffer = Buffer.alloc(intSize);
         zeroBuffer.fill(0);
         var chrsz = 8;
         function toArray(buf, bigEndian) {
           if (buf.length % intSize !== 0) {
             var len = buf.length + (intSize - buf.length % intSize);
-            buf = Buffer2.concat([buf, zeroBuffer], len);
+            buf = Buffer.concat([buf, zeroBuffer], len);
           }
           var arr = [];
           var fn = bigEndian ? buf.readInt32BE : buf.readInt32LE;
@@ -54660,7 +51387,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return arr;
         }
         function toBuffer(arr, size2, bigEndian) {
-          var buf = Buffer2.alloc(size2);
+          var buf = Buffer.alloc(size2);
           var fn = bigEndian ? buf.writeInt32BE : buf.writeInt32LE;
           for (var i = 0; i < arr.length; i++) {
             fn.call(buf, arr[i], i * 4, true);
@@ -54668,8 +51395,8 @@ var aliyunOssSdk$1 = { exports: {} };
           return buf;
         }
         function hash(buf, fn, hashSize, bigEndian) {
-          if (!Buffer2.isBuffer(buf))
-            buf = Buffer2.from(buf);
+          if (!Buffer.isBuffer(buf))
+            buf = Buffer.from(buf);
           var arr = fn(toArray(buf, bigEndian), buf.length * chrsz);
           return toBuffer(arr, hashSize, bigEndian);
         }
@@ -54932,7 +51659,7 @@ var aliyunOssSdk$1 = { exports: {} };
           };
         };
       }, {}], 537: [function(require2, module3, exports3) {
-        (function(Buffer2) {
+        (function(Buffer) {
           (function() {
             var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
             var _typeof2 = _interopRequireDefault(require2("@babel/runtime/helpers/typeof"));
@@ -54942,7 +51669,7 @@ var aliyunOssSdk$1 = { exports: {} };
               return typeof obj === "string";
             };
             module3.exports.array = isArray2;
-            module3.exports.buffer = Buffer2.isBuffer;
+            module3.exports.buffer = Buffer.isBuffer;
             function isStream(obj) {
               return obj instanceof Stream;
             }
@@ -54996,11 +51723,11 @@ var aliyunOssSdk$1 = { exports: {} };
             var response = require2("./lib/response");
             var extend2 = require2("xtend");
             var statusCodes = require2("builtin-status-codes");
-            var url2 = require2("url");
+            var url = require2("url");
             var http = exports3;
             http.request = function(opts, cb) {
               if (typeof opts === "string")
-                opts = url2.parse(opts);
+                opts = url.parse(opts);
               else
                 opts = extend2(opts);
               var defaultProtocol = global3.location.protocol.search(/^https?:$/) === -1 ? "http:" : "";
@@ -55091,7 +51818,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }).call(this);
         }).call(this, typeof global2 !== "undefined" ? global2 : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
       }, { "core-js/modules/es.array-buffer.constructor.js": 308, "core-js/modules/es.array-buffer.slice.js": 309, "core-js/modules/es.array.slice.js": 319, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.promise.js": 333 }], 541: [function(require2, module3, exports3) {
-        (function(process, global3, Buffer2) {
+        (function(process, global3, Buffer) {
           (function() {
             require2("core-js/modules/es.object.to-string.js");
             require2("core-js/modules/es.regexp.to-string.js");
@@ -55130,7 +51857,7 @@ var aliyunOssSdk$1 = { exports: {} };
               self2._body = [];
               self2._headers = {};
               if (opts.auth)
-                self2.setHeader("Authorization", "Basic " + new Buffer2(opts.auth).toString("base64"));
+                self2.setHeader("Authorization", "Basic " + new Buffer(opts.auth).toString("base64"));
               Object.keys(opts.headers).forEach(function(name) {
                 self2.setHeader(name, opts.headers[name]);
               });
@@ -55184,7 +51911,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var body = null;
               if (opts.method !== "GET" && opts.method !== "HEAD") {
                 if (capability.arraybuffer) {
-                  body = toArrayBuffer(Buffer2.concat(self2._body));
+                  body = toArrayBuffer(Buffer.concat(self2._body));
                 } else if (capability.blobConstructor) {
                   body = new global3.Blob(self2._body.map(function(buffer2) {
                     return toArrayBuffer(buffer2);
@@ -55192,7 +51919,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     type: (headersObj["content-type"] || {}).value || ""
                   });
                 } else {
-                  body = Buffer2.concat(self2._body).toString();
+                  body = Buffer.concat(self2._body).toString();
                 }
               }
               var headersList = [];
@@ -55352,7 +52079,7 @@ var aliyunOssSdk$1 = { exports: {} };
           }).call(this);
         }).call(this, require2("_process"), typeof global2 !== "undefined" ? global2 : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {}, require2("buffer").Buffer);
       }, { "./capability": 540, "./response": 542, "_process": 538, "buffer": 103, "core-js/modules/es.array.concat.js": 310, "core-js/modules/es.array.map.js": 318, "core-js/modules/es.function.name.js": 322, "core-js/modules/es.object.keys.js": 328, "core-js/modules/es.object.to-string.js": 329, "core-js/modules/es.promise.js": 333, "core-js/modules/es.regexp.to-string.js": 339, "core-js/modules/web.dom-collections.for-each.js": 380, "inherits": 407, "readable-stream": 463, "to-arraybuffer": 485 }], 542: [function(require2, module3, exports3) {
-        (function(process, global3, Buffer2) {
+        (function(process, global3, Buffer) {
           (function() {
             require2("core-js/modules/es.object.to-string.js");
             require2("core-js/modules/web.dom-collections.for-each.js");
@@ -55420,7 +52147,7 @@ var aliyunOssSdk$1 = { exports: {} };
                       self2.push(null);
                       return;
                     }
-                    self2.push(new Buffer2(result.value));
+                    self2.push(new Buffer(result.value));
                     read2();
                   }).catch(function(err) {
                     global3.clearTimeout(fetchTimer);
@@ -55442,7 +52169,7 @@ var aliyunOssSdk$1 = { exports: {} };
                       return new Promise(function(resolve2, reject) {
                         if (self2._destroyed) {
                           reject();
-                        } else if (self2.push(new Buffer2(chunk))) {
+                        } else if (self2.push(new Buffer(chunk))) {
                           resolve2();
                         } else {
                           self2._resumeFetch = resolve2;
@@ -55531,7 +52258,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   } catch (e2) {
                   }
                   if (response !== null) {
-                    self2.push(new Buffer2(response));
+                    self2.push(new Buffer(response));
                     break;
                   }
                 case "text":
@@ -55544,7 +52271,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (response.length > self2._pos) {
                     var newData = response.substr(self2._pos);
                     if (self2._charset === "x-user-defined") {
-                      var buffer2 = new Buffer2(newData.length);
+                      var buffer2 = new Buffer(newData.length);
                       for (var i = 0; i < newData.length; i++)
                         buffer2[i] = newData.charCodeAt(i) & 255;
                       self2.push(buffer2);
@@ -55558,13 +52285,13 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (xhr.readyState !== rStates.DONE || !xhr.response)
                     break;
                   response = xhr.response;
-                  self2.push(new Buffer2(new Uint8Array(response)));
+                  self2.push(new Buffer(new Uint8Array(response)));
                   break;
                 case "moz-chunked-arraybuffer":
                   response = xhr.response;
                   if (xhr.readyState !== rStates.LOADING || !response)
                     break;
-                  self2.push(new Buffer2(new Uint8Array(response)));
+                  self2.push(new Buffer(new Uint8Array(response)));
                   break;
                 case "ms-stream":
                   response = xhr.response;
@@ -55573,7 +52300,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   var reader = new global3.MSStreamReader();
                   reader.onprogress = function() {
                     if (reader.result.byteLength > self2._pos) {
-                      self2.push(new Buffer2(new Uint8Array(reader.result.slice(self2._pos))));
+                      self2.push(new Buffer(new Uint8Array(reader.result.slice(self2._pos))));
                       self2._pos = reader.result.byteLength;
                     }
                   };
@@ -55642,23 +52369,23 @@ var aliyunOssSdk$1 = { exports: {} };
           "gopher:": true,
           "file:": true
         }, querystring2 = require2("querystring");
-        function urlParse(url2, parseQueryString, slashesDenoteHost) {
-          if (url2 && util.isObject(url2) && url2 instanceof Url)
-            return url2;
+        function urlParse(url, parseQueryString, slashesDenoteHost) {
+          if (url && util.isObject(url) && url instanceof Url)
+            return url;
           var u2 = new Url();
-          u2.parse(url2, parseQueryString, slashesDenoteHost);
+          u2.parse(url, parseQueryString, slashesDenoteHost);
           return u2;
         }
-        Url.prototype.parse = function(url2, parseQueryString, slashesDenoteHost) {
-          if (!util.isString(url2)) {
-            throw new TypeError("Parameter 'url' must be a string, not " + (0, _typeof2.default)(url2));
+        Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
+          if (!util.isString(url)) {
+            throw new TypeError("Parameter 'url' must be a string, not " + (0, _typeof2.default)(url));
           }
-          var queryIndex = url2.indexOf("?"), splitter = queryIndex !== -1 && queryIndex < url2.indexOf("#") ? "?" : "#", uSplit = url2.split(splitter), slashRegex = /\\/g;
+          var queryIndex = url.indexOf("?"), splitter = queryIndex !== -1 && queryIndex < url.indexOf("#") ? "?" : "#", uSplit = url.split(splitter), slashRegex = /\\/g;
           uSplit[0] = uSplit[0].replace(slashRegex, "/");
-          url2 = uSplit.join(splitter);
-          var rest = url2;
+          url = uSplit.join(splitter);
+          var rest = url;
           rest = rest.trim();
-          if (!slashesDenoteHost && url2.split("#").length === 1) {
+          if (!slashesDenoteHost && url.split("#").length === 1) {
             var simplePath = simplePathPattern.exec(rest);
             if (simplePath) {
               this.path = rest;
@@ -55842,7 +52569,7 @@ var aliyunOssSdk$1 = { exports: {} };
           if (this.query && util.isObject(this.query) && Object.keys(this.query).length) {
             query = querystring2.stringify(this.query);
           }
-          var search2 = this.search || query && "?" + query || "";
+          var search = this.search || query && "?" + query || "";
           if (protocol && protocol.substr(-1) !== ":")
             protocol += ":";
           if (this.slashes || (!protocol || slashedProtocol[protocol]) && host2 !== false) {
@@ -55854,13 +52581,13 @@ var aliyunOssSdk$1 = { exports: {} };
           }
           if (hash && hash.charAt(0) !== "#")
             hash = "#" + hash;
-          if (search2 && search2.charAt(0) !== "?")
-            search2 = "?" + search2;
+          if (search && search.charAt(0) !== "?")
+            search = "?" + search;
           pathname = pathname.replace(/[?#]/g, function(match) {
             return encodeURIComponent(match);
           });
-          search2 = search2.replace("#", "%23");
-          return protocol + host2 + pathname + search2 + hash;
+          search = search.replace("#", "%23");
+          return protocol + host2 + pathname + search + hash;
         };
         function urlResolve(source, relative) {
           return urlParse(source, false, true).resolve(relative);
@@ -56094,11 +52821,11 @@ var aliyunOssSdk$1 = { exports: {} };
         };
       }, { "@babel/runtime/helpers/interopRequireDefault": 86, "@babel/runtime/helpers/typeof": 91 }], 545: [function(require2, module3, exports3) {
         require2("core-js/modules/es.number.constructor.js");
-        exports3.encodeURIComponent = function(text2) {
+        exports3.encodeURIComponent = function(text) {
           try {
-            return encodeURIComponent(text2);
+            return encodeURIComponent(text);
           } catch (e2) {
-            return text2;
+            return text;
           }
         };
         exports3.escape = require2("escape-html");
@@ -56116,7 +52843,7 @@ var aliyunOssSdk$1 = { exports: {} };
           return Math.round(Date.now() / 1e3);
         };
       }, { "core-js/modules/es.number.constructor.js": 324, "escape-html": 385 }], 546: [function(require2, module3, exports3) {
-        (function(process, Buffer2) {
+        (function(process, Buffer) {
           (function() {
             var _interopRequireDefault = require2("@babel/runtime/helpers/interopRequireDefault");
             var _typeof2 = _interopRequireDefault(require2("@babel/runtime/helpers/typeof"));
@@ -56159,21 +52886,21 @@ var aliyunOssSdk$1 = { exports: {} };
             }
             exports3.TIMEOUTS = [ms("300s"), ms("300s")];
             var TEXT_DATA_TYPES = ["json", "text"];
-            exports3.request = function request(url2, args, callback) {
+            exports3.request = function request(url, args, callback) {
               if (arguments.length === 2 && typeof args === "function") {
                 callback = args;
                 args = null;
               }
               if (typeof callback === "function") {
-                return exports3.requestWithCallback(url2, args, callback);
+                return exports3.requestWithCallback(url, args, callback);
               }
               return new Promise(function(resolve2, reject) {
-                exports3.requestWithCallback(url2, args, makeCallback(resolve2, reject));
+                exports3.requestWithCallback(url, args, makeCallback(resolve2, reject));
               });
             };
-            exports3.requestWithCallback = function requestWithCallback(url2, args, callback) {
-              if (!url2 || typeof url2 !== "string" && (0, _typeof2.default)(url2) !== "object") {
-                var msg = util.format("expect request url to be a string or a http request options, but got %j", url2);
+            exports3.requestWithCallback = function requestWithCallback(url, args, callback) {
+              if (!url || typeof url !== "string" && (0, _typeof2.default)(url) !== "object") {
+                var msg = util.format("expect request url to be a string or a http request options, but got %j", url);
                 throw new Error(msg);
               }
               if (arguments.length === 2 && typeof args === "function") {
@@ -56188,7 +52915,7 @@ var aliyunOssSdk$1 = { exports: {} };
               args.requestUrls = args.requestUrls || [];
               var reqMeta = {
                 requestId: reqId,
-                url: url2,
+                url,
                 args,
                 ctx: args.ctx
               };
@@ -56200,13 +52927,13 @@ var aliyunOssSdk$1 = { exports: {} };
               args.streaming = args.streaming || args.customResponse;
               var requestStartTime = Date.now();
               var parsedUrl;
-              if (typeof url2 === "string") {
-                if (!PROTO_RE.test(url2)) {
-                  url2 = "https://" + url2;
+              if (typeof url === "string") {
+                if (!PROTO_RE.test(url)) {
+                  url = "https://" + url;
                 }
-                parsedUrl = urlutil.parse(url2);
+                parsedUrl = urlutil.parse(url);
               } else {
-                parsedUrl = url2;
+                parsedUrl = url;
               }
               var method = (args.type || args.method || parsedUrl.method || "GET").toUpperCase();
               var port = parsedUrl.port || 80;
@@ -56245,7 +52972,7 @@ var aliyunOssSdk$1 = { exports: {} };
               var body = args.content || args.data;
               var dataAsQueryString = method === "GET" || method === "HEAD" || args.dataAsQueryString;
               if (!args.content) {
-                if (body && !(typeof body === "string" || Buffer2.isBuffer(body))) {
+                if (body && !(typeof body === "string" || Buffer.isBuffer(body))) {
                   if (dataAsQueryString) {
                     body = args.nestedQuerystring ? qs.stringify(body) : querystring.stringify(body);
                   } else {
@@ -56273,8 +53000,8 @@ var aliyunOssSdk$1 = { exports: {} };
               var requestSize = 0;
               if (body) {
                 var length = body.length;
-                if (!Buffer2.isBuffer(body)) {
-                  length = Buffer2.byteLength(body);
+                if (!Buffer.isBuffer(body)) {
+                  length = Buffer.byteLength(body);
                 }
                 requestSize = options.headers["Content-Length"] = length;
               }
@@ -56325,9 +53052,9 @@ var aliyunOssSdk$1 = { exports: {} };
               function done(err, data, res) {
                 cancelResponseTimer();
                 if (!callback) {
-                  index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:43675", "[urllib:warn] [%s] [%s] [worker:%s] %s %s callback twice!!!", Date(), reqId, process.pid, options.method, url2);
+                  index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:43675", "[urllib:warn] [%s] [%s] [worker:%s] %s %s callback twice!!!", Date(), reqId, process.pid, options.method, url);
                   if (err) {
-                    index$2.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:43678", "[urllib:warn] [%s] [%s] [worker:%s] %s: %s\nstack: %s", Date(), reqId, process.pid, err.name, err.message, err.stack);
+                    index$1.__f__("warn", "at node_modules/ali-oss/dist/aliyun-oss-sdk.js:43678", "[urllib:warn] [%s] [%s] [worker:%s] %s: %s\nstack: %s", Date(), reqId, process.pid, err.name, err.message, err.stack);
                   }
                   return;
                 }
@@ -56362,7 +53089,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   if (agent && typeof agent.getCurrentStatus === "function") {
                     agentStatus = ", agent status: " + JSON.stringify(agent.getCurrentStatus());
                   }
-                  err.message += ", " + options.method + " " + url2 + " " + statusCode + " (connected: " + connected + ", keepalive socket: " + keepAliveSocket + agentStatus + ")\nheaders: " + JSON.stringify(headers);
+                  err.message += ", " + options.method + " " + url + " " + statusCode + " (connected: " + connected + ", keepalive socket: " + keepAliveSocket + agentStatus + ")\nheaders: " + JSON.stringify(headers);
                   err.data = data;
                   err.path = options.path;
                   err.status = statusCode;
@@ -56371,7 +53098,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 cb(err, data, args.streaming ? res : response);
                 if (args.emitter) {
-                  reqMeta.url = url2;
+                  reqMeta.url = url;
                   reqMeta.socket = req && req.connection;
                   reqMeta.options = options;
                   reqMeta.size = requestSize;
@@ -56393,11 +53120,11 @@ var aliyunOssSdk$1 = { exports: {} };
                     err = new Error("Got statusCode " + res.statusCode + " but cannot resolve next location from headers");
                     err.name = "FollowRedirectError";
                   } else if (args._followRedirectCount > args.maxRedirects) {
-                    err = new Error("Exceeded maxRedirects. Probably stuck in a redirect loop " + url2);
+                    err = new Error("Exceeded maxRedirects. Probably stuck in a redirect loop " + url);
                     err.name = "MaxRedirectError";
                   } else {
-                    var newUrl = args.formatRedirectUrl ? args.formatRedirectUrl(url2, location2) : urlutil.resolve(url2, location2);
-                    debug("Request#%d %s: `redirected` from %s to %s", reqId, options.path, url2, newUrl);
+                    var newUrl = args.formatRedirectUrl ? args.formatRedirectUrl(url, location2) : urlutil.resolve(url, location2);
+                    debug("Request#%d %s: `redirected` from %s to %s", reqId, options.path, url, newUrl);
                     cancelResponseTimer();
                     if (args.headers && args.headers.Host && PROTO_RE.test(location2)) {
                       args.headers.Host = null;
@@ -56426,13 +53153,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 return cb(null, body2, encoding);
               }
               var writeStream = args.writeStream;
-              debug("Request#%d %s %s with headers %j, options.path: %s", reqId, method, url2, options.headers, options.path);
-              args.requestUrls.push(url2);
+              debug("Request#%d %s %s with headers %j, options.path: %s", reqId, method, url, options.headers, options.path);
+              args.requestUrls.push(url);
               function onResponse(res) {
                 if (timing) {
                   timing.waiting = Date.now() - requestStartTime;
                 }
-                debug("Request#%d %s `req response` event emit: status %d, headers: %j", reqId, url2, res.statusCode, res.headers);
+                debug("Request#%d %s `req response` event emit: status %d, headers: %j", reqId, url, res.statusCode, res.headers);
                 if (args.streaming) {
                   var result = handleRedirect(res);
                   if (result.redirect) {
@@ -56446,14 +53173,14 @@ var aliyunOssSdk$1 = { exports: {} };
                   return done(null, null, res);
                 }
                 res.on("close", function() {
-                  debug("Request#%d %s: `res close` event emit, total size %d", reqId, url2, responseSize);
+                  debug("Request#%d %s: `res close` event emit, total size %d", reqId, url, responseSize);
                 });
                 res.on("error", function() {
-                  debug("Request#%d %s: `res error` event emit, total size %d", reqId, url2, responseSize);
+                  debug("Request#%d %s: `res error` event emit, total size %d", reqId, url, responseSize);
                 });
                 res.on("aborted", function() {
                   responseAborted = true;
-                  debug("Request#%d %s: `res aborted` event emit, total size %d", reqId, url2, responseSize);
+                  debug("Request#%d %s: `res aborted` event emit, total size %d", reqId, url, responseSize);
                 });
                 if (writeStream) {
                   var _result = handleRedirect(res);
@@ -56471,7 +53198,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   } else {
                     {
                       writeStream.on("close", function() {
-                        debug("Request#%d %s: writeStream close event emitted", reqId, url2);
+                        debug("Request#%d %s: writeStream close event emitted", reqId, url);
                         done(__err || null, null, res);
                       });
                     }
@@ -56480,13 +53207,13 @@ var aliyunOssSdk$1 = { exports: {} };
                 }
                 var chunks = [];
                 res.on("data", function(chunk) {
-                  debug("Request#%d %s: `res data` event emit, size %d", reqId, url2, chunk.length);
+                  debug("Request#%d %s: `res data` event emit, size %d", reqId, url, chunk.length);
                   responseSize += chunk.length;
                   chunks.push(chunk);
                 });
                 res.on("end", function() {
-                  var body2 = Buffer2.concat(chunks, responseSize);
-                  debug("Request#%d %s: `res end` event emit, total size %d, _dumped: %s", reqId, url2, responseSize, res._dumped);
+                  var body2 = Buffer.concat(chunks, responseSize);
+                  debug("Request#%d %s: `res end` event emit, total size %d, _dumped: %s", reqId, url, responseSize, res._dumped);
                   if (__err) {
                     return done(__err, body2, res);
                   }
@@ -56522,7 +53249,7 @@ var aliyunOssSdk$1 = { exports: {} };
                       }
                     }
                     if (responseAborted) {
-                      debug("Request#%d %s: Remote socket was terminated before `response.end()` was called", reqId, url2);
+                      debug("Request#%d %s: Remote socket was terminated before `response.end()` was called", reqId, url);
                     }
                     done(err, data, res);
                   });
@@ -56552,7 +53279,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   __err = new Error(msg2);
                   __err.name = errorName;
                   __err.requestId = reqId;
-                  debug("ConnectTimeout: Request#%d %s %s: %s, connected: %s", reqId, url2, __err.name, msg2, connected);
+                  debug("ConnectTimeout: Request#%d %s %s: %s, connected: %s", reqId, url, __err.name, msg2, connected);
                   abortRequest();
                 }, connectTimeout);
               }
@@ -56565,7 +53292,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   __err = new Error(msg2);
                   __err.name = errorName;
                   __err.requestId = reqId;
-                  debug("ResponseTimeout: Request#%d %s %s: %s, connected: %s", reqId, url2, __err.name, msg2, connected);
+                  debug("ResponseTimeout: Request#%d %s %s: %s, connected: %s", reqId, url, __err.name, msg2, connected);
                   abortRequest();
                 }, responseTimeout);
               }
@@ -56592,7 +53319,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 });
               }
               function abortRequest() {
-                debug("Request#%d %s abort, connected: %s", reqId, url2, connected);
+                debug("Request#%d %s abort, connected: %s", reqId, url, connected);
                 if (!req.socket) {
                   __err.noSocket = true;
                   done(__err);
@@ -56611,7 +53338,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 var readyState = socket.readyState;
                 if (readyState === "opening") {
                   socket.once("lookup", function(err, ip, addressType) {
-                    debug("Request#%d %s lookup: %s, %s, %s", reqId, url2, err, ip, addressType);
+                    debug("Request#%d %s lookup: %s, %s, %s", reqId, url, err, ip, addressType);
                     if (timing) {
                       timing.dnslookup = Date.now() - requestStartTime;
                     }
@@ -56625,7 +53352,7 @@ var aliyunOssSdk$1 = { exports: {} };
                     }
                     cancelConnectTimer();
                     startResposneTimer();
-                    debug("Request#%d %s new socket connected", reqId, url2);
+                    debug("Request#%d %s new socket connected", reqId, url);
                     connected = true;
                     if (!remoteAddress) {
                       remoteAddress = socket.remoteAddress;
@@ -56634,7 +53361,7 @@ var aliyunOssSdk$1 = { exports: {} };
                   });
                   return;
                 }
-                debug("Request#%d %s reuse socket connected, readyState: %s", reqId, url2, readyState);
+                debug("Request#%d %s reuse socket connected, readyState: %s", reqId, url, readyState);
                 connected = true;
                 keepAliveSocket = true;
                 if (!remoteAddress) {
@@ -56649,14 +53376,14 @@ var aliyunOssSdk$1 = { exports: {} };
                   err.name = connected ? "ResponseError" : "RequestError";
                 }
                 err.message += ' (req "error")';
-                debug("Request#%d %s `req error` event emit, %s: %s", reqId, url2, err.name, err.message);
+                debug("Request#%d %s `req error` event emit, %s: %s", reqId, url, err.name, err.message);
                 done(__err || err);
               });
               if (writeStream) {
                 writeStream.once("error", function(err) {
                   err.message += ' (writeStream "error")';
                   __err = err;
-                  debug("Request#%d %s `writeStream error` event emit, %s: %s", reqId, url2, err.name, err.message);
+                  debug("Request#%d %s `writeStream error` event emit, %s: %s", reqId, url, err.name, err.message);
                   abortRequest();
                 });
               }
@@ -56665,7 +53392,7 @@ var aliyunOssSdk$1 = { exports: {} };
                 args.stream.once("error", function(err) {
                   err.message += ' (stream "error")';
                   __err = err;
-                  debug("Request#%d %s `readStream error` event emit, %s: %s", reqId, url2, err.name, err.message);
+                  debug("Request#%d %s `readStream error` event emit, %s: %s", reqId, url, err.name, err.message);
                   abortRequest();
                 });
               } else {
@@ -56686,12 +53413,12 @@ const aliyunOssSdk = /* @__PURE__ */ _mergeNamespaces({
   __proto__: null,
   default: OSS
 }, [aliyunOssSdkExports]);
-const urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
+let urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 let nanoid = (size2 = 21) => {
   let id = "";
-  let bytes = crypto.getRandomValues(new Uint8Array(size2 |= 0));
-  while (size2--) {
-    id += urlAlphabet[bytes[size2] & 63];
+  let i = size2 | 0;
+  while (i--) {
+    id += urlAlphabet[Math.random() * 64 | 0];
   }
   return id;
 };
@@ -56782,11 +53509,11 @@ var errorCorrectionLevel = {};
   exports2.M = { bit: 0 };
   exports2.Q = { bit: 3 };
   exports2.H = { bit: 2 };
-  function fromString(string2) {
-    if (typeof string2 !== "string") {
+  function fromString(string) {
+    if (typeof string !== "string") {
       throw new Error("Param is not a string");
     }
-    const lcStr = string2.toLowerCase();
+    const lcStr = string.toLowerCase();
     switch (lcStr) {
       case "l":
       case "low":
@@ -56801,7 +53528,7 @@ var errorCorrectionLevel = {};
       case "high":
         return exports2.H;
       default:
-        throw new Error("Unknown EC Level: " + string2);
+        throw new Error("Unknown EC Level: " + string);
     }
   }
   exports2.isValid = function isValid2(level) {
@@ -56855,20 +53582,20 @@ function BitMatrix$1(size2) {
   this.data = new Uint8Array(size2 * size2);
   this.reservedBit = new Uint8Array(size2 * size2);
 }
-BitMatrix$1.prototype.set = function(row2, col2, value, reserved) {
-  const index2 = row2 * this.size + col2;
+BitMatrix$1.prototype.set = function(row, col, value, reserved) {
+  const index2 = row * this.size + col;
   this.data[index2] = value;
   if (reserved)
     this.reservedBit[index2] = true;
 };
-BitMatrix$1.prototype.get = function(row2, col2) {
-  return this.data[row2 * this.size + col2];
+BitMatrix$1.prototype.get = function(row, col) {
+  return this.data[row * this.size + col];
 };
-BitMatrix$1.prototype.xor = function(row2, col2, value) {
-  this.data[row2 * this.size + col2] ^= value;
+BitMatrix$1.prototype.xor = function(row, col, value) {
+  this.data[row * this.size + col] ^= value;
 };
-BitMatrix$1.prototype.isReserved = function(row2, col2) {
-  return this.reservedBit[row2 * this.size + col2];
+BitMatrix$1.prototype.isReserved = function(row, col) {
+  return this.reservedBit[row * this.size + col];
 };
 var bitMatrix = BitMatrix$1;
 var alignmentPattern = {};
@@ -56949,11 +53676,11 @@ var maskPattern = {};
     let sameCountRow = 0;
     let lastCol = null;
     let lastRow = null;
-    for (let row2 = 0; row2 < size2; row2++) {
+    for (let row = 0; row < size2; row++) {
       sameCountCol = sameCountRow = 0;
       lastCol = lastRow = null;
-      for (let col2 = 0; col2 < size2; col2++) {
-        let module2 = data.get(row2, col2);
+      for (let col = 0; col < size2; col++) {
+        let module2 = data.get(row, col);
         if (module2 === lastCol) {
           sameCountCol++;
         } else {
@@ -56962,7 +53689,7 @@ var maskPattern = {};
           lastCol = module2;
           sameCountCol = 1;
         }
-        module2 = data.get(col2, row2);
+        module2 = data.get(col, row);
         if (module2 === lastRow) {
           sameCountRow++;
         } else {
@@ -56982,9 +53709,9 @@ var maskPattern = {};
   exports2.getPenaltyN2 = function getPenaltyN2(data) {
     const size2 = data.size;
     let points = 0;
-    for (let row2 = 0; row2 < size2 - 1; row2++) {
-      for (let col2 = 0; col2 < size2 - 1; col2++) {
-        const last = data.get(row2, col2) + data.get(row2, col2 + 1) + data.get(row2 + 1, col2) + data.get(row2 + 1, col2 + 1);
+    for (let row = 0; row < size2 - 1; row++) {
+      for (let col = 0; col < size2 - 1; col++) {
+        const last = data.get(row, col) + data.get(row, col + 1) + data.get(row + 1, col) + data.get(row + 1, col + 1);
         if (last === 4 || last === 0)
           points++;
       }
@@ -56996,14 +53723,14 @@ var maskPattern = {};
     let points = 0;
     let bitsCol = 0;
     let bitsRow = 0;
-    for (let row2 = 0; row2 < size2; row2++) {
+    for (let row = 0; row < size2; row++) {
       bitsCol = bitsRow = 0;
-      for (let col2 = 0; col2 < size2; col2++) {
-        bitsCol = bitsCol << 1 & 2047 | data.get(row2, col2);
-        if (col2 >= 10 && (bitsCol === 1488 || bitsCol === 93))
+      for (let col = 0; col < size2; col++) {
+        bitsCol = bitsCol << 1 & 2047 | data.get(row, col);
+        if (col >= 10 && (bitsCol === 1488 || bitsCol === 93))
           points++;
-        bitsRow = bitsRow << 1 & 2047 | data.get(col2, row2);
-        if (col2 >= 10 && (bitsRow === 1488 || bitsRow === 93))
+        bitsRow = bitsRow << 1 & 2047 | data.get(col, row);
+        if (col >= 10 && (bitsRow === 1488 || bitsRow === 93))
           points++;
       }
     }
@@ -57041,11 +53768,11 @@ var maskPattern = {};
   }
   exports2.applyMask = function applyMask(pattern, data) {
     const size2 = data.size;
-    for (let col2 = 0; col2 < size2; col2++) {
-      for (let row2 = 0; row2 < size2; row2++) {
-        if (data.isReserved(row2, col2))
+    for (let col = 0; col < size2; col++) {
+      for (let row = 0; row < size2; row++) {
+        if (data.isReserved(row, col))
           continue;
-        data.xor(row2, col2, getMaskAt(pattern, row2, col2));
+        data.xor(row, col, getMaskAt(pattern, row, col));
       }
     }
   };
@@ -57598,11 +54325,11 @@ regex.testAlphanumeric = function testAlphanumeric(str) {
   exports2.isValid = function isValid2(mode2) {
     return mode2 && mode2.bit && mode2.ccBits;
   };
-  function fromString(string2) {
-    if (typeof string2 !== "string") {
+  function fromString(string) {
+    if (typeof string !== "string") {
       throw new Error("Param is not a string");
     }
-    const lcStr = string2.toLowerCase();
+    const lcStr = string.toLowerCase();
     switch (lcStr) {
       case "numeric":
         return exports2.NUMERIC;
@@ -57613,7 +54340,7 @@ regex.testAlphanumeric = function testAlphanumeric(str) {
       case "byte":
         return exports2.BYTE;
       default:
-        throw new Error("Unknown mode: " + string2);
+        throw new Error("Unknown mode: " + string);
     }
   }
   exports2.from = function from(value, defaultValue) {
@@ -58146,8 +54873,8 @@ var dijkstraExports = dijkstra.exports;
         return new ByteData2(data);
     }
   }
-  exports2.fromArray = function fromArray(array2) {
-    return array2.reduce(function(acc, seg) {
+  exports2.fromArray = function fromArray(array) {
+    return array.reduce(function(acc, seg) {
       if (typeof seg === "string") {
         acc.push(buildSingleSegment(seg, null));
       } else if (seg.data) {
@@ -58190,18 +54917,18 @@ function setupFinderPattern(matrix2, version2) {
   const size2 = matrix2.size;
   const pos = FinderPattern.getPositions(version2);
   for (let i = 0; i < pos.length; i++) {
-    const row2 = pos[i][0];
-    const col2 = pos[i][1];
+    const row = pos[i][0];
+    const col = pos[i][1];
     for (let r = -1; r <= 7; r++) {
-      if (row2 + r <= -1 || size2 <= row2 + r)
+      if (row + r <= -1 || size2 <= row + r)
         continue;
       for (let c = -1; c <= 7; c++) {
-        if (col2 + c <= -1 || size2 <= col2 + c)
+        if (col + c <= -1 || size2 <= col + c)
           continue;
         if (r >= 0 && r <= 6 && (c === 0 || c === 6) || c >= 0 && c <= 6 && (r === 0 || r === 6) || r >= 2 && r <= 4 && c >= 2 && c <= 4) {
-          matrix2.set(row2 + r, col2 + c, true, true);
+          matrix2.set(row + r, col + c, true, true);
         } else {
-          matrix2.set(row2 + r, col2 + c, false, true);
+          matrix2.set(row + r, col + c, false, true);
         }
       }
     }
@@ -58218,14 +54945,14 @@ function setupTimingPattern(matrix2) {
 function setupAlignmentPattern(matrix2, version2) {
   const pos = AlignmentPattern.getPositions(version2);
   for (let i = 0; i < pos.length; i++) {
-    const row2 = pos[i][0];
-    const col2 = pos[i][1];
+    const row = pos[i][0];
+    const col = pos[i][1];
     for (let r = -2; r <= 2; r++) {
       for (let c = -2; c <= 2; c++) {
         if (r === -2 || r === 2 || c === -2 || c === 2 || r === 0 && c === 0) {
-          matrix2.set(row2 + r, col2 + c, true, true);
+          matrix2.set(row + r, col + c, true, true);
         } else {
-          matrix2.set(row2 + r, col2 + c, false, true);
+          matrix2.set(row + r, col + c, false, true);
         }
       }
     }
@@ -58234,13 +54961,13 @@ function setupAlignmentPattern(matrix2, version2) {
 function setupVersionInfo(matrix2, version2) {
   const size2 = matrix2.size;
   const bits = Version.getEncodedBits(version2);
-  let row2, col2, mod;
+  let row, col, mod;
   for (let i = 0; i < 18; i++) {
-    row2 = Math.floor(i / 3);
-    col2 = i % 3 + size2 - 8 - 3;
+    row = Math.floor(i / 3);
+    col = i % 3 + size2 - 8 - 3;
     mod = (bits >> i & 1) === 1;
-    matrix2.set(row2, col2, mod, true);
-    matrix2.set(col2, row2, mod, true);
+    matrix2.set(row, col, mod, true);
+    matrix2.set(col, row, mod, true);
   }
 }
 function setupFormatInfo(matrix2, errorCorrectionLevel2, maskPattern2) {
@@ -58269,20 +54996,20 @@ function setupFormatInfo(matrix2, errorCorrectionLevel2, maskPattern2) {
 function setupData(matrix2, data) {
   const size2 = matrix2.size;
   let inc = -1;
-  let row2 = size2 - 1;
+  let row = size2 - 1;
   let bitIndex = 7;
   let byteIndex = 0;
-  for (let col2 = size2 - 1; col2 > 0; col2 -= 2) {
-    if (col2 === 6)
-      col2--;
+  for (let col = size2 - 1; col > 0; col -= 2) {
+    if (col === 6)
+      col--;
     while (true) {
       for (let c = 0; c < 2; c++) {
-        if (!matrix2.isReserved(row2, col2 - c)) {
+        if (!matrix2.isReserved(row, col - c)) {
           let dark = false;
           if (byteIndex < data.length) {
             dark = (data[byteIndex] >>> bitIndex & 1) === 1;
           }
-          matrix2.set(row2, col2 - c, dark);
+          matrix2.set(row, col - c, dark);
           bitIndex--;
           if (bitIndex === -1) {
             byteIndex++;
@@ -58290,9 +55017,9 @@ function setupData(matrix2, data) {
           }
         }
       }
-      row2 += inc;
-      if (row2 < 0 || size2 <= row2) {
-        row2 -= inc;
+      row += inc;
+      if (row < 0 || size2 <= row) {
+        row -= inc;
         inc = -inc;
         break;
       }
@@ -58582,18 +55309,18 @@ function qrToPath(data, size2, margin) {
   let newRow = false;
   let lineLength = 0;
   for (let i = 0; i < data.length; i++) {
-    const col2 = Math.floor(i % size2);
-    const row2 = Math.floor(i / size2);
-    if (!col2 && !newRow)
+    const col = Math.floor(i % size2);
+    const row = Math.floor(i / size2);
+    if (!col && !newRow)
       newRow = true;
     if (data[i]) {
       lineLength++;
-      if (!(i > 0 && col2 > 0 && data[i - 1])) {
-        path += newRow ? svgCmd("M", col2 + margin, 0.5 + row2 + margin) : svgCmd("m", moveBy, 0);
+      if (!(i > 0 && col > 0 && data[i - 1])) {
+        path += newRow ? svgCmd("M", col + margin, 0.5 + row + margin) : svgCmd("m", moveBy, 0);
         moveBy = 0;
         newRow = false;
       }
-      if (!(col2 + 1 < size2 && data[i + 1])) {
+      if (!(col + 1 < size2 && data[i + 1])) {
         path += svgCmd("h", lineLength);
         lineLength = 0;
       }
@@ -58622,7 +55349,7 @@ const canPromise = canPromise$1;
 const QRCode = qrcode;
 const CanvasRenderer = canvas;
 const SvgRenderer = svgTag;
-function renderCanvas(renderFunc, canvas2, text2, opts, cb) {
+function renderCanvas(renderFunc, canvas2, text, opts, cb) {
   const args = [].slice.call(arguments, 1);
   const argsNum = args.length;
   const isLastArgCb = typeof args[argsNum - 1] === "function";
@@ -58634,8 +55361,8 @@ function renderCanvas(renderFunc, canvas2, text2, opts, cb) {
       throw new Error("Too few arguments provided");
     }
     if (argsNum === 2) {
-      cb = text2;
-      text2 = canvas2;
+      cb = text;
+      text = canvas2;
       canvas2 = opts = void 0;
     } else if (argsNum === 3) {
       if (canvas2.getContext && typeof cb === "undefined") {
@@ -58643,8 +55370,8 @@ function renderCanvas(renderFunc, canvas2, text2, opts, cb) {
         opts = void 0;
       } else {
         cb = opts;
-        opts = text2;
-        text2 = canvas2;
+        opts = text;
+        text = canvas2;
         canvas2 = void 0;
       }
     }
@@ -58653,16 +55380,16 @@ function renderCanvas(renderFunc, canvas2, text2, opts, cb) {
       throw new Error("Too few arguments provided");
     }
     if (argsNum === 1) {
-      text2 = canvas2;
+      text = canvas2;
       canvas2 = opts = void 0;
     } else if (argsNum === 2 && !canvas2.getContext) {
-      opts = text2;
-      text2 = canvas2;
+      opts = text;
+      text = canvas2;
       canvas2 = void 0;
     }
     return new Promise(function(resolve2, reject) {
       try {
-        const data = QRCode.create(text2, opts);
+        const data = QRCode.create(text, opts);
         resolve2(renderFunc(data, canvas2, opts));
       } catch (e2) {
         reject(e2);
@@ -58670,7 +55397,7 @@ function renderCanvas(renderFunc, canvas2, text2, opts, cb) {
     });
   }
   try {
-    const data = QRCode.create(text2, opts);
+    const data = QRCode.create(text, opts);
     cb(null, renderFunc(data, canvas2, opts));
   } catch (e2) {
     cb(e2);
@@ -58704,8 +55431,8 @@ exports.e = e$1;
 exports.f = f$1;
 exports.getCurrentInstance = getCurrentInstance;
 exports.html2canvas = html2canvas;
-exports.index = index$2;
-exports.index$1 = index$1;
+exports.index = index$1;
+exports.index$1 = index;
 exports.initVueI18n = initVueI18n;
 exports.n = n;
 exports.nanoid = nanoid;

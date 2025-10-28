@@ -13,6 +13,7 @@ const _sfc_main = {
     const currentPage = common_vendor.ref(1);
     const pageSize = common_vendor.ref(20);
     const totalRecords = common_vendor.ref(0);
+    const isLoadingBill = common_vendor.ref(false);
     const showFilterModal = common_vendor.ref(false);
     const selectedIncomeType = common_vendor.ref("all");
     common_vendor.ref("all");
@@ -186,7 +187,7 @@ const _sfc_main = {
       showFilterModal.value = true;
     };
     const goToStatistics = () => {
-      common_vendor.index.__f__("log", "at pages/transaction/transaction.vue:555", "跳转到统计页面");
+      common_vendor.index.__f__("log", "at pages/transaction/transaction.vue:556", "跳转到统计页面");
     };
     const showMonthPicker = () => {
       showCalendar.value = true;
@@ -357,7 +358,12 @@ const _sfc_main = {
     };
     const getBillData = async (isRefresh = false) => {
       var _a, _b, _c;
+      if (isLoadingBill.value) {
+        common_vendor.index.__f__("log", "at pages/transaction/transaction.vue:835", "正在加载账单数据，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingBill.value = true;
         loading.value = true;
         const tokenValidation = validateToken();
         if (!tokenValidation.isValid) {
@@ -419,6 +425,7 @@ const _sfc_main = {
         });
       } finally {
         loading.value = false;
+        isLoadingBill.value = false;
       }
     };
     const loadMore = () => {

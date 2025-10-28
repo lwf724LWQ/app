@@ -19,6 +19,7 @@ const _sfc_main = {
     const lotteryType = common_vendor.ref(null);
     const uploadedImageUrls = common_vendor.ref([]);
     const isUploadingImage = common_vendor.ref(false);
+    const isLoadingIssueInfo = common_vendor.ref(false);
     const canPublish = common_vendor.computed(() => {
       return schemes.value.length > 0 && selectedImages.value.length > 0;
     });
@@ -140,7 +141,12 @@ const _sfc_main = {
       }
     };
     const loadIssueInfo = async () => {
+      if (isLoadingIssueInfo.value) {
+        common_vendor.index.__f__("log", "at pages/pattern-predict/pattern-predict.vue:277", "正在加载期号信息，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingIssueInfo.value = true;
         const savedLotteryType = common_vendor.index.getStorageSync("currentLotteryType");
         if (savedLotteryType) {
           lotteryType.value = savedLotteryType;
@@ -172,16 +178,19 @@ const _sfc_main = {
         }
       } catch (error) {
         common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/pattern-predict/pattern-predict.vue:325", "加载期号信息失败:", error);
         issueNumber.value = "0";
         common_vendor.index.showToast({ title: "期号加载异常，使用默认期号: 0", icon: "none" });
+      } finally {
+        isLoadingIssueInfo.value = false;
       }
     };
     const goBack = () => {
       common_vendor.index.navigateBack();
     };
     const goToSchemePage = () => {
-      common_vendor.index.__f__("log", "at pages/pattern-predict/pattern-predict.vue:329", "=== 规律帖跳转到方案页面 ===");
-      common_vendor.index.__f__("log", "at pages/pattern-predict/pattern-predict.vue:330", "当前页面:", "pages/pattern-predict/pattern-predict");
+      common_vendor.index.__f__("log", "at pages/pattern-predict/pattern-predict.vue:341", "=== 规律帖跳转到方案页面 ===");
+      common_vendor.index.__f__("log", "at pages/pattern-predict/pattern-predict.vue:342", "当前页面:", "pages/pattern-predict/pattern-predict");
       const publishData = {
         lotteryType: lotteryType.value,
         issueInfo: {

@@ -4,17 +4,16 @@
     "ignore": []
   },
   "setting": {
-    "urlCheck": false,
-    "es6": true,
-    "postcss": false,
-    "minified": false,
+    "urlCheck": true,
+    "es6": false,
+    "postcss": true,
+    "minified": true,
     "newFeature": true,
-    "bigPackageSizeSupport": true,
-    "minifyWXML": true
+    "bigPackageSizeSupport": true
   },
   "compileType": "miniprogram",
   "libVersion": "",
-  "appid": "touristappid",
+  "appid": "wx9ecd3ba7140f6070",
   "projectname": "caimi",
   "condition": {
     "search": {

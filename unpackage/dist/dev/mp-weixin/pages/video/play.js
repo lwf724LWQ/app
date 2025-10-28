@@ -26,6 +26,9 @@ const _sfc_main = {
     const showPlayButton = common_vendor.ref(true);
     const isPlaying = common_vendor.ref(false);
     const videoContext = common_vendor.ref(null);
+    const isFreeVideo = common_vendor.computed(() => {
+      return !videoData.value.flag || videoData.value.price === 0;
+    });
     const userInfo = common_vendor.ref({
       uname: "",
       himg: ""
@@ -78,14 +81,14 @@ const _sfc_main = {
             himg: response.data.himg
           };
         } else {
-          common_vendor.index.__f__("error", "at pages/video/play.vue:162", "获取用户信息失败:", response.message);
+          common_vendor.index.__f__("error", "at pages/video/play.vue:201", "获取用户信息失败:", response.message);
           userInfo.value = {
             uname: account,
             himg: ""
           };
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/video/play.vue:170", "获取用户信息异常:", error);
+        common_vendor.index.__f__("error", "at pages/video/play.vue:209", "获取用户信息异常:", error);
         userInfo.value = {
           uname: account,
           himg: ""
@@ -176,6 +179,17 @@ const _sfc_main = {
       isPlaying.value = false;
       showPlayButton.value = true;
     };
+    const handleBuyClick = async () => {
+      if (!videoData.value.flag || videoData.value.price === 0) {
+        if (videoContext.value) {
+          videoContext.value.play();
+          isPlaying.value = true;
+          showPlayButton.value = false;
+        }
+      } else {
+        await payForVideo();
+      }
+    };
     const goToRewardPage = () => {
       const token = utils_request.getToken();
       if (!token) {
@@ -205,11 +219,11 @@ const _sfc_main = {
           account: utils_request.getAccount(),
           isLiked: videoData.value.isLiked
         });
-        common_vendor.index.__f__("log", "at pages/video/play.vue:324", "点赞操作成功");
+        common_vendor.index.__f__("log", "at pages/video/play.vue:377", "点赞操作成功");
         const likeList = await api_apis.apiGetLikelist(utils_request.getAccount());
-        common_vendor.index.__f__("log", "at pages/video/play.vue:328", likeList);
+        common_vendor.index.__f__("log", "at pages/video/play.vue:381", likeList);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/video/play.vue:330", "点赞操作失败:", error);
+        common_vendor.index.__f__("error", "at pages/video/play.vue:383", "点赞操作失败:", error);
         videoData.value.isLiked = originalIsLiked;
         videoData.value.likeCount = originalLikeCount;
         common_vendor.index.showToast({
@@ -239,22 +253,39 @@ const _sfc_main = {
         }),
         j: common_vendor.o(playVideo)
       } : {}, {
-        k: getAvatarUrl(userInfo.value.himg),
-        l: common_vendor.t(userInfo.value.uname),
-        m: common_vendor.p({
-          type: videoData.value.isLiked ? "heart-filled" : "heart",
-          size: "24",
-          color: videoData.value.isLiked ? "#ff4757" : "#666"
-        }),
-        n: common_vendor.t(videoData.value.likeCount),
-        o: videoData.value.isLiked ? 1 : "",
-        p: common_vendor.o(toggleLike),
-        q: common_vendor.p({
+        k: videoData.value.price && videoData.value.price > 0
+      }, videoData.value.price && videoData.value.price > 0 ? {
+        l: common_vendor.t(videoData.value.price),
+        m: common_vendor.o(handleBuyClick)
+      } : {}, {
+        n: common_vendor.p({
           type: "gift-filled",
-          size: "24",
-          color: "#aa0000"
+          size: "20",
+          color: "#FF9500"
         }),
-        r: common_vendor.o(goToRewardPage)
+        o: common_vendor.o(goToRewardPage),
+        p: common_vendor.p({
+          type: videoData.value.isLiked ? "heart-filled" : "heart",
+          size: "20",
+          color: videoData.value.isLiked ? "#ff4757" : "#FF9500"
+        }),
+        q: common_vendor.t(videoData.value.likeCount),
+        r: videoData.value.isLiked ? 1 : "",
+        s: common_vendor.o(toggleLike),
+        t: getAvatarUrl(userInfo.value.himg),
+        v: common_vendor.t(userInfo.value.uname),
+        w: videoData.value.price && videoData.value.price > 0
+      }, videoData.value.price && videoData.value.price > 0 ? {
+        x: common_vendor.t(videoData.value.price)
+      } : {}, {
+        y: common_vendor.t(videoData.value.title),
+        z: common_vendor.p({
+          type: "home",
+          size: "24",
+          color: "#FFD700"
+        }),
+        A: common_vendor.t(isFreeVideo.value ? "开始学习" : "点击购买"),
+        B: common_vendor.o(handleBuyClick)
       });
     };
   }

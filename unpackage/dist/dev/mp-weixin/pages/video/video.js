@@ -5,13 +5,14 @@ const api_apis = require("../../api/apis.js");
 const utils_request = require("../../utils/request.js");
 const stores_video = require("../../stores/video.js");
 if (!Array) {
-  const _component_StatusBarPlaceholder = common_vendor.resolveComponent("StatusBarPlaceholder");
+  const _easycom_StatusBarPlaceholder2 = common_vendor.resolveComponent("StatusBarPlaceholder");
   const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
-  (_component_StatusBarPlaceholder + _easycom_uni_icons2)();
+  (_easycom_StatusBarPlaceholder2 + _easycom_uni_icons2)();
 }
+const _easycom_StatusBarPlaceholder = () => "../../components/StatusBarPlaceholder/StatusBarPlaceholder.js";
 const _easycom_uni_icons = () => "../../uni_modules/uni-icons/components/uni-icons/uni-icons.js";
 if (!Math) {
-  _easycom_uni_icons();
+  (_easycom_StatusBarPlaceholder + _easycom_uni_icons)();
 }
 const _sfc_main = {
   __name: "video",
@@ -158,11 +159,6 @@ const _sfc_main = {
         });
       }
     };
-    const gotoOss = () => {
-      common_vendor.index.navigateTo({
-        url: `/pages/video/oss`
-      });
-    };
     common_vendor.onMounted(async () => {
       fetchVideoList();
     });
@@ -194,14 +190,7 @@ const _sfc_main = {
             h: index
           });
         })
-      } : {}, {
-        i: common_vendor.p({
-          type: "plus",
-          size: "20",
-          color: "#fff"
-        }),
-        j: common_vendor.o(($event) => gotoOss())
-      });
+      } : {});
     };
   }
 };

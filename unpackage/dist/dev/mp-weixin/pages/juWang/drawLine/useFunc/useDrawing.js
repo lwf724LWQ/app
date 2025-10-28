@@ -42,7 +42,7 @@ const _sfc_main = {
 };
 const platform = common_vendor.index.getSystemInfoSync().platform;
 const isH5 = platform === "web" || platform === "windows" || platform === "mac";
-const isApp = platform === "android" || platform === "ios";
+const isApp = platform === "android" || platform === "ios" || platform === "mp-weixin";
 common_vendor.index.__f__("log", "at main.js:8", common_vendor.index$1);
 function createApp() {
   const app = common_vendor.createSSRApp(_sfc_main);

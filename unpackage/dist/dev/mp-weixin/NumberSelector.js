@@ -225,5 +225,6 @@ const _sfc_main = {
     };
   }
 };
-exports._sfc_main = _sfc_main;
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-d38e8385"]]);
+exports.MiniProgramPage = MiniProgramPage;
 //# sourceMappingURL=../.sourcemap/mp-weixin/NumberSelector.js.map

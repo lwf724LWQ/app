@@ -169,6 +169,8 @@ const _sfc_main = {
     const publishedSchemes = common_vendor.ref([]);
     const isAppendMode = common_vendor.ref(false);
     const appendPostData = common_vendor.ref(null);
+    const isLoadingIssueInfo = common_vendor.ref(false);
+    const isLoadingPublishedSchemes = common_vendor.ref(false);
     const isFromPatternPredict = common_vendor.computed(() => {
       const pages = getCurrentPages();
       const previousPage = pages[pages.length - 2];
@@ -180,9 +182,26 @@ const _sfc_main = {
     const checkAppendMode = () => {
       try {
         const savedAppendData = common_vendor.index.getStorageSync("appendPostData");
-        if (savedAppendData && savedAppendData.postId) {
-          isAppendMode.value = true;
-          appendPostData.value = savedAppendData;
+        if (savedAppendData && savedAppendData.postId && savedAppendData.postContent) {
+          let isCurrentLotteryPost = false;
+          if (savedAppendData.lotteryType) {
+            isCurrentLotteryPost = savedAppendData.lotteryType === currentLotteryType.value.name;
+          } else {
+            const currentLottery = currentLotteryType.value.name;
+            isCurrentLotteryPost = savedAppendData.postContent.includes(currentLottery) || savedAppendData.postContent.includes(`${currentLottery}-规律预测`);
+          }
+          if (isCurrentLotteryPost) {
+            isAppendMode.value = true;
+            appendPostData.value = savedAppendData;
+          } else {
+            common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:616", "检测到追帖数据，但不是当前彩票类型，清除数据");
+            common_vendor.index.removeStorageSync("appendPostData");
+            common_vendor.index.removeStorageSync("currentAppendPostData");
+            common_vendor.index.removeStorageSync("appendModeTipShown");
+            isAppendMode.value = false;
+            appendPostData.value = null;
+            return;
+          }
           const hasShownTip = common_vendor.index.getStorageSync("appendModeTipShown");
           if (!hasShownTip) {
             const schemeNames = savedAppendData.schemeIds ? savedAppendData.schemeIds.join("、") : "未知方案";
@@ -197,19 +216,19 @@ const _sfc_main = {
             common_vendor.index.setStorageSync("appendModeTipShown", true);
           }
           const today = (/* @__PURE__ */ new Date()).toDateString();
-          const publishedSchemes2 = [];
-          const publishedPosts = {};
+          const publishedSchemesList = [];
+          const publishedPostsList = {};
           const schemeIds = savedAppendData.schemeIds || [];
           schemeIds.forEach((schemeId) => {
             if (schemeId) {
-              publishedSchemes2.push(schemeId);
-              publishedPosts[schemeId] = savedAppendData.postId;
+              publishedSchemesList.push(schemeId);
+              publishedPostsList[schemeId] = savedAppendData.postId;
             }
           });
-          common_vendor.index.setStorageSync(`publishedSchemes_${today}`, publishedSchemes2);
-          common_vendor.index.setStorageSync(`publishedPosts_${today}`, publishedPosts);
+          publishedSchemes.value = publishedSchemesList;
+          common_vendor.index.setStorageSync(`publishedSchemes_${today}`, publishedSchemesList);
+          common_vendor.index.setStorageSync(`publishedPosts_${today}`, publishedPostsList);
           common_vendor.index.setStorageSync("currentAppendPostData", savedAppendData);
-          loadPublishedSchemes();
         } else {
           const currentAppendData = common_vendor.index.getStorageSync("currentAppendPostData");
           if (currentAppendData && currentAppendData.postId) {
@@ -219,11 +238,16 @@ const _sfc_main = {
           }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:644", "检查追帖模式失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:674", "检查追帖模式失败:", error);
       }
     };
     const testPublishedScheme = async () => {
+      if (isLoadingPublishedSchemes.value) {
+        common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:682", "正在加载已发布方案，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingPublishedSchemes.value = true;
         common_vendor.index.showLoading({ title: "获取已发布帖子..." });
         const response = await api_apis.apiPostListQuery({
           page: 1,
@@ -276,8 +300,10 @@ const _sfc_main = {
         }
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:720", "获取已发布帖子失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:757", "获取已发布帖子失败:", error);
         handleApiFailure();
+      } finally {
+        isLoadingPublishedSchemes.value = false;
       }
     };
     const handleApiFailure = () => {
@@ -286,16 +312,18 @@ const _sfc_main = {
           const today = (/* @__PURE__ */ new Date()).toDateString();
           const publishedSchemes2 = [];
           const publishedPosts = {};
-          const schemeId = appendPostData.value.schemeId;
-          if (schemeId) {
-            publishedSchemes2.push(schemeId);
-            publishedPosts[schemeId] = appendPostData.value.postId;
-          }
+          const schemeIds = appendPostData.value.schemeIds || [];
+          schemeIds.forEach((schemeId) => {
+            if (schemeId) {
+              publishedSchemes2.push(schemeId);
+              publishedPosts[schemeId] = appendPostData.value.postId;
+            }
+          });
           common_vendor.index.setStorageSync(`publishedSchemes_${today}`, publishedSchemes2);
           common_vendor.index.setStorageSync(`publishedPosts_${today}`, publishedPosts);
           loadPublishedSchemes();
           common_vendor.index.showToast({
-            title: `追帖模式：已识别 ${schemeId} 方案`,
+            title: `追帖模式：已加载 ${publishedSchemes2.length} 个方案`,
             icon: "success"
           });
         } else {
@@ -320,7 +348,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:781", "处理接口失败情况时出错:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:822", "处理接口失败情况时出错:", error);
         common_vendor.index.showToast({
           title: "操作失败，请重试",
           icon: "none"
@@ -345,7 +373,7 @@ const _sfc_main = {
         if (publishedSchemes.value.length > 0) {
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:815", "加载已发布方案失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:856", "加载已发布方案失败:", error);
       }
     };
     const selectScheme = (schemeId) => {
@@ -395,7 +423,7 @@ const _sfc_main = {
           }
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:880", "进入追帖模式失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:921", "进入追帖模式失败:", error);
         common_vendor.index.showToast({
           title: "进入追帖模式失败",
           icon: "none"
@@ -975,13 +1003,13 @@ const _sfc_main = {
       const hasPatternPredictPage = pages.some(
         (page) => page.route === "pages/pattern-predict/pattern-predict"
       );
-      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1672", "=== 检查页面来源 ===");
-      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1673", "页面栈长度:", pages.length);
-      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1674", "当前页面:", currentPage.route);
-      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1675", "上一页面:", previousPage ? previousPage.route : "无");
-      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1676", "页面栈中是否有规律预测页面:", hasPatternPredictPage);
+      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1713", "=== 检查页面来源 ===");
+      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1714", "页面栈长度:", pages.length);
+      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1715", "当前页面:", currentPage.route);
+      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1716", "上一页面:", previousPage ? previousPage.route : "无");
+      common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1717", "页面栈中是否有规律预测页面:", hasPatternPredictPage);
       if (hasPatternPredictPage) {
-        common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1680", "检测到规律帖模式，返回到规律预测页面");
+        common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1721", "检测到规律帖模式，返回到规律预测页面");
         common_vendor.index.setStorageSync("predict_schemes_data", {
           addedSchemes: addedSchemes.value,
           schemeData: schemeData.value,
@@ -1022,14 +1050,19 @@ const _sfc_main = {
           currentIssueInfo.value = savedIssueInfo;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1737", "加载彩票类型失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1778", "加载彩票类型失败:", error);
       }
     };
     const loadIssueInfo = async () => {
+      if (isLoadingIssueInfo.value) {
+        common_vendor.index.__f__("log", "at pages/predict-scheme/predict-scheme.vue:1786", "正在加载期号信息，跳过重复请求");
+        return;
+      }
       try {
         if (currentIssueInfo.value.number && currentIssueInfo.value.number !== "--") {
           return;
         }
+        isLoadingIssueInfo.value = true;
         common_vendor.index.showLoading({ title: "加载中..." });
         const response = await api_apis.apiGetIssueNo({ cpid: currentLotteryType.value.id });
         common_vendor.index.hideLoading();
@@ -1055,7 +1088,9 @@ const _sfc_main = {
         }
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1779", "加载期号信息失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1828", "加载期号信息失败:", error);
+      } finally {
+        isLoadingIssueInfo.value = false;
       }
     };
     common_vendor.onMounted(() => {
@@ -1064,7 +1099,9 @@ const _sfc_main = {
       loadCurrentLotteryType();
       loadIssueInfo();
       loadPublishedSchemes();
-      checkAppendMode();
+      setTimeout(() => {
+        checkAppendMode();
+      }, 100);
     });
     common_vendor.onUnmounted(() => {
       common_vendor.index.$off("modifySchemes", handleModifySchemes);
@@ -1078,7 +1115,7 @@ const _sfc_main = {
         };
         common_vendor.index.setStorageSync("predict_schemes_data", schemesData);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1814", "保存方案数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1867", "保存方案数据失败:", error);
       }
     };
     const loadSavedSchemes = () => {
@@ -1091,7 +1128,7 @@ const _sfc_main = {
           }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1829", "加载方案数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-scheme/predict-scheme.vue:1882", "加载方案数据失败:", error);
       }
     };
     return (_ctx, _cache) => {

@@ -17,6 +17,9 @@ const _sfc_main = {
       status: "待开奖",
       time: "今天 21:30"
     });
+    const isLoadingIssueInfo = common_vendor.ref(false);
+    const isLoadingPostDetails = common_vendor.ref(false);
+    const isLoadingUserPosts = common_vendor.ref(false);
     const getSchemeDisplayData = (scheme) => {
       const data = scheme.data;
       const result = [];
@@ -222,7 +225,7 @@ const _sfc_main = {
           flag: true
           // 无需审核
         };
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:468", "发帖数据:", postData);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:473", "发帖数据:", postData);
         const response = await api_apis.apiPost(postData);
         common_vendor.index.hideLoading();
         if (response.code === 200) {
@@ -259,7 +262,12 @@ const _sfc_main = {
       return issueInfo.value.number || issueInfo.value.id || "--";
     };
     const loadIssueInfo = async () => {
+      if (isLoadingIssueInfo.value) {
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:529", "正在加载期号信息，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingIssueInfo.value = true;
         if (!lotteryType.value || !lotteryType.value.id) {
           return;
         }
@@ -289,33 +297,41 @@ const _sfc_main = {
         }
       } catch (error) {
         common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:571", "加载期号信息失败:", error);
         common_vendor.index.showToast({ title: "期号加载异常", icon: "none" });
+      } finally {
+        isLoadingIssueInfo.value = false;
       }
     };
     const loadSchemeForAppend = async (schemeId) => {
       try {
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:566", "=== 加载追帖方案数据 ===");
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:567", "方案ID:", schemeId);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:581", "=== 加载追帖方案数据 ===");
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:582", "方案ID:", schemeId);
         const today = (/* @__PURE__ */ new Date()).toDateString();
         const publishedPosts = common_vendor.index.getStorageSync(`publishedPosts_${today}`) || {};
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:572", "已发布的帖子映射:", publishedPosts);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:587", "已发布的帖子映射:", publishedPosts);
         const schemePostId = publishedPosts[schemeId];
         if (schemePostId) {
           postId.value = schemePostId;
-          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:578", `加载方案 ${schemeId} 对应的帖子ID:`, schemePostId);
+          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:593", `加载方案 ${schemeId} 对应的帖子ID:`, schemePostId);
           await loadPostDetails(schemePostId);
         } else {
-          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:583", `未找到方案 ${schemeId} 对应的帖子ID`);
+          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:598", `未找到方案 ${schemeId} 对应的帖子ID`);
           await loadUserPublishedPosts(schemeId);
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:590", "加载追帖方案数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:605", "加载追帖方案数据失败:", error);
       }
     };
     const loadPostDetails = async (postId2) => {
+      if (isLoadingPostDetails.value) {
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:613", "正在加载帖子详情，跳过重复请求");
+        return;
+      }
       try {
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:597", "=== 获取帖子详细信息 ===");
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:598", "帖子ID:", postId2);
+        isLoadingPostDetails.value = true;
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:619", "=== 获取帖子详细信息 ===");
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:620", "帖子ID:", postId2);
         const response = await api_apis.apiPostListQuery({
           page: 1,
           size: 1,
@@ -323,19 +339,26 @@ const _sfc_main = {
         });
         if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
           const post = response.data.records[0];
-          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:609", "帖子详情:", post);
+          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:631", "帖子详情:", post);
           if (post.content) {
             parseSchemeFromPostContent(post.content);
           }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:618", "获取帖子详情失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:640", "获取帖子详情失败:", error);
+      } finally {
+        isLoadingPostDetails.value = false;
       }
     };
     const loadUserPublishedPosts = async (schemeId) => {
+      if (isLoadingUserPosts.value) {
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:650", "正在加载用户帖子，跳过重复请求");
+        return;
+      }
       try {
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:625", "=== 获取用户已发布帖子 ===");
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:626", "方案ID:", schemeId);
+        isLoadingUserPosts.value = true;
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:656", "=== 获取用户已发布帖子 ===");
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:657", "方案ID:", schemeId);
         const response = await api_apis.apiPostListQuery({
           page: 1,
           size: 20,
@@ -347,22 +370,24 @@ const _sfc_main = {
           );
           if (targetPost) {
             postId.value = targetPost.id;
-            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:642", `找到方案 ${schemeId} 对应的帖子:`, targetPost.id);
+            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:673", `找到方案 ${schemeId} 对应的帖子:`, targetPost.id);
             parseSchemeFromPostContent(targetPost.content);
           } else {
-            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:647", `未找到包含方案 ${schemeId} 的帖子`);
+            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:678", `未找到包含方案 ${schemeId} 的帖子`);
           }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:652", "获取用户已发布帖子失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:683", "获取用户已发布帖子失败:", error);
+      } finally {
+        isLoadingUserPosts.value = false;
       }
     };
     const parseSchemeFromPostContent = (content) => {
       try {
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:659", "=== 解析帖子内容 ===");
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:660", "帖子内容:", content);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:692", "=== 解析帖子内容 ===");
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:693", "帖子内容:", content);
         const savedSchemesData = common_vendor.index.getStorageSync("predict_schemes_data");
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:665", "本地存储的方案数据:", savedSchemesData);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:698", "本地存储的方案数据:", savedSchemesData);
         if (savedSchemesData && savedSchemesData.schemeData) {
           const schemeKeys = Object.keys(savedSchemesData.schemeData);
           const matchingScheme = schemeKeys.find((key) => content.includes(key));
@@ -374,11 +399,11 @@ const _sfc_main = {
               data: schemeData
             };
             schemes.value = [schemeObj];
-            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:680", "解析出的方案数据:", schemeObj);
+            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:713", "解析出的方案数据:", schemeObj);
           }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:685", "解析帖子内容失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:718", "解析帖子内容失败:", error);
       }
     };
     const savePublishedSchemeData = (postId2) => {
@@ -395,13 +420,13 @@ const _sfc_main = {
         });
         common_vendor.index.setStorageSync(`publishedSchemes_${today}`, publishedSchemes);
         common_vendor.index.setStorageSync(`publishedPosts_${today}`, publishedPosts);
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:717", "已保存发布数据:", {
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:750", "已保存发布数据:", {
           publishedSchemes,
           publishedPosts,
           postId: postId2
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:724", "保存已发布方案数据失败:", error);
+        common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:757", "保存已发布方案数据失败:", error);
       }
     };
     const generatePostContent = () => {
@@ -436,7 +461,7 @@ const _sfc_main = {
             try {
               common_vendor.index.removeStorageSync("predict_schemes_data");
             } catch (error) {
-              common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:766", "清除本地存储失败:", error);
+              common_vendor.index.__f__("error", "at pages/predict-publish/predict-publish.vue:799", "清除本地存储失败:", error);
             }
             common_vendor.index.reLaunch({
               url: "/pages/forum/forum"
@@ -449,16 +474,16 @@ const _sfc_main = {
       const pages = getCurrentPages();
       const currentPage = pages[pages.length - 1];
       const options = currentPage.options;
-      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:786", "=== 页面加载调试信息 ===");
-      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:787", "页面参数:", options);
+      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:819", "=== 页面加载调试信息 ===");
+      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:820", "页面参数:", options);
       if (options.postId) {
         postId.value = options.postId;
         common_vendor.index.setStorageSync("currentPostId", options.postId);
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:793", "接收到帖子ID，进入追帖模式:", options.postId);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:826", "接收到帖子ID，进入追帖模式:", options.postId);
         isAppendMode.value = true;
-        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:797", "追帖模式已设置:", isAppendMode.value);
+        common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:830", "追帖模式已设置:", isAppendMode.value);
         if (options.schemeId) {
-          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:801", "加载方案数据:", options.schemeId);
+          common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:834", "加载方案数据:", options.schemeId);
           loadSchemeForAppend(options.schemeId);
         }
       } else {
@@ -468,14 +493,14 @@ const _sfc_main = {
           if (appendData && appendData.postId === savedPostId) {
             postId.value = savedPostId;
             isAppendMode.value = true;
-            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:813", "从本地存储恢复追帖模式:", savedPostId);
+            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:846", "从本地存储恢复追帖模式:", savedPostId);
           } else {
             common_vendor.index.removeStorageSync("currentPostId");
-            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:817", "清除残留的帖子ID，确保新帖模式");
+            common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:850", "清除残留的帖子ID，确保新帖模式");
           }
         }
       }
-      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:822", "最终状态 - 帖子ID:", postId.value, "追帖模式:", isAppendMode.value);
+      common_vendor.index.__f__("log", "at pages/predict-publish/predict-publish.vue:855", "最终状态 - 帖子ID:", postId.value, "追帖模式:", isAppendMode.value);
       if (options.data) {
         try {
           const publishData = JSON.parse(decodeURIComponent(options.data));

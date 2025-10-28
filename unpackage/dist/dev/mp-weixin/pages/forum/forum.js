@@ -29,6 +29,8 @@ const _sfc_main = {
     const searchSuggestions = common_vendor.ref([]);
     const filteredPredictList = common_vendor.ref([]);
     const isSearching = common_vendor.ref(false);
+    const isLoadingPosts = common_vendor.ref(false);
+    const isLoadingLottery = common_vendor.ref(false);
     const predictionFilters = common_vendor.ref([
       "头尾",
       "芝麻",
@@ -174,7 +176,12 @@ const _sfc_main = {
         comments: 34
       }
     ]);
+    const isPageInitialized = common_vendor.ref(false);
     common_vendor.onMounted(() => {
+      if (isPageInitialized.value) {
+        common_vendor.index.__f__("log", "at pages/forum/forum.vue:594", "页面已经初始化，跳过重复加载");
+        return;
+      }
       try {
         const savedLotteryType = common_vendor.index.getStorageSync("currentLotteryType");
         if (savedLotteryType) {
@@ -185,6 +192,7 @@ const _sfc_main = {
       autoSaveCurrentUserAvatar();
       optimizeTouchEvents();
       loadLotteryData(currentLotteryType.value.code);
+      isPageInitialized.value = true;
     });
     const switchTab = (tab) => {
       activeTab.value = tab;
@@ -204,6 +212,11 @@ const _sfc_main = {
       showPeriodDropdown.value = false;
     };
     const selectLotteryType = (lotteryType) => {
+      if (currentLotteryType.value.code === lotteryType.code) {
+        common_vendor.index.__f__("log", "at pages/forum/forum.vue:653", "彩票类型未变化，跳过加载");
+        showPeriodDropdown.value = false;
+        return;
+      }
       currentLotteryType.value = lotteryType;
       showPeriodDropdown.value = false;
       try {
@@ -213,7 +226,12 @@ const _sfc_main = {
       loadLotteryData(lotteryType.code);
     };
     const loadLotteryData = async (lotteryCode) => {
+      if (isLoadingLottery.value) {
+        common_vendor.index.__f__("log", "at pages/forum/forum.vue:674", "正在加载彩票数据，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingLottery.value = true;
         const lotteryType = lotteryTypes.value.find((type) => type.code === lotteryCode);
         if (!lotteryType) {
           return;
@@ -249,13 +267,14 @@ const _sfc_main = {
           } catch (error) {
           }
           loadPredictPosts();
-          common_vendor.index.showToast({ title: "数据加载成功", icon: "success" });
         } else {
           common_vendor.index.showToast({ title: response.msg || "数据加载失败", icon: "none" });
         }
       } catch (error) {
         common_vendor.index.hideLoading();
         common_vendor.index.showToast({ title: "网络错误，请重试", icon: "none" });
+      } finally {
+        isLoadingLottery.value = false;
       }
     };
     const isMultipleImages = (imageStr) => {
@@ -526,7 +545,12 @@ const _sfc_main = {
       return filters.join("+");
     };
     const loadPredictPosts = async () => {
+      if (isLoadingPosts.value) {
+        common_vendor.index.__f__("log", "at pages/forum/forum.vue:1138", "正在加载帖子，跳过重复请求");
+        return;
+      }
       try {
+        isLoadingPosts.value = true;
         const queryData = {
           tname: currentLotteryType.value.name,
           // 查询预测帖
@@ -591,7 +615,10 @@ const _sfc_main = {
           predictList.value = [];
         }
       } catch (error) {
+        common_vendor.index.__f__("error", "at pages/forum/forum.vue:1224", "加载帖子失败:", error);
         predictList.value = [];
+      } finally {
+        isLoadingPosts.value = false;
       }
     };
     const getLikedStatus = (postId) => {
@@ -794,6 +821,8 @@ const _sfc_main = {
           // 改为数组，包含所有方案
           postContent: post.content,
           period: post.period,
+          lotteryType: currentLotteryType.value.name,
+          // 添加彩票类型
           timestamp: Date.now()
         };
         common_vendor.index.setStorageSync("appendPostData", appendPostData);

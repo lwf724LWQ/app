@@ -1,133 +1,181 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const api_apis = require("../../api/apis.js");
 const common_assets = require("../../common/assets.js");
 const _sfc_main = {
   data() {
     return {
       currentTab: "plw",
-      // 当前选中的选项卡：plw-排列五，qxc-七星彩
-      upcomingTab: "plw",
-      // 待开奖区域选中的选项卡：plw-排列五，qxc-七星彩
-      currentNav: "home",
-      // 当前选中的导航项
-      plwNumbers: ["8", "6", "8", "5", "7"],
-      // 排列五开奖号码
-      qxcNumbers: ["2", "0", "4", "9", "3", "8", "8"],
-      // 七星彩开奖号码
-      plwUpcomingIssue: "25214期",
-      // 排列五待开奖期号
-      qxcUpcomingIssue: "3225期",
-      // 七星彩待开奖期号
-      upcomingAction: "follow"
-      // 待开奖区域选中的操作：all-全部，follow-关注
+      fc3dNumbers: ["3", "8", "5"],
+      plwNumbers: ["9", "0", "5", "3", "2"],
+      qxcNumbers: ["8", "0", "6", "5", "7", "9", "7"],
+      fc3dPeriod: "第25123期",
+      plwPeriod: "第25285期",
+      qxcPeriod: "第25123期",
+      lotteryDate: "10.26 周日",
+      isLoadingResults: false
+      // 添加加载锁
     };
   },
   methods: {
-    // 切换顶部选项卡
-    switchTab(tab) {
-      this.currentTab = tab;
-    },
-    // 切换待开奖区域选项卡
-    switchUpcomingTab(tab) {
-      this.upcomingTab = tab;
-    },
-    // 切换待开奖区域操作
-    switchUpcomingAction(action) {
-      this.upcomingAction = action;
-      common_vendor.index.__f__("log", "at pages/index/index.vue:205", "切换到:", action);
-    },
-    // 处理swiper切换
-    handleSwiperChange(e) {
-      this.currentTab = e.detail.current === 0 ? "plw" : "qxc";
-    },
-    // 切换导航
-    switchNav(nav) {
-      this.currentNav = nav;
-    },
-    // 获取最新开奖结果
-    getLatestResults() {
-    },
     drawGui() {
       this.currentTab === "plw" ? "排列5" : "七星彩";
       common_vendor.index.navigateTo({
         url: `/pages/juWang/drawLine/drawLine`
       });
     },
-    // 跳转到解梦页面
     goToDreamInterpretation() {
       common_vendor.index.navigateTo({
         url: "/pages/dream-interpretation/dream-interpretation"
       });
+    },
+    // 加载开奖结果
+    async loadLotteryResults() {
+      if (this.isLoadingResults) {
+        return;
+      }
+      try {
+        this.isLoadingResults = true;
+        common_vendor.index.showLoading({ title: "加载中..." });
+        const response = await api_apis.apiFindResult();
+        common_vendor.index.hideLoading();
+        if (response.code === 200 && response.data) {
+          const results = response.data;
+          let dataArray = results;
+          if (Array.isArray(results)) {
+            dataArray = results;
+          } else if (results.records && Array.isArray(results.records)) {
+            dataArray = results.records;
+          } else if (results.data && Array.isArray(results.data)) {
+            dataArray = results.data;
+          }
+          dataArray.forEach((item) => {
+            const tname = item.tname || item.name;
+            if (tname && tname.includes("福彩3D")) {
+              this.fc3dNumbers = this.parseNumbers(item.number);
+              this.fc3dPeriod = "第" + item.issueno + "期";
+            }
+            if (tname && tname.includes("排列五")) {
+              this.plwNumbers = this.parseNumbers(item.number);
+              this.plwPeriod = "第" + item.issueno + "期";
+            }
+            if (tname && tname.includes("排列三")) {
+              this.plwPeriod = "第" + item.issueno + "期";
+            }
+            if (tname && tname.includes("七星彩")) {
+              let numbers = this.parseNumbers(item.number);
+              if (item.refernumber) {
+                numbers.push(item.refernumber);
+              }
+              this.qxcNumbers = numbers;
+              this.qxcPeriod = "第" + item.issueno + "期";
+            }
+            if (item.opendate || item.date || item.createTime) {
+              const date = item.opendate || item.date || item.createTime;
+              this.lotteryDate = this.formatDate(date);
+            }
+          });
+        }
+      } catch (error) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/index/index.vue:250", "加载开奖结果失败:", error);
+      } finally {
+        this.isLoadingResults = false;
+      }
+    },
+    // 解析中奖号码（支持字符串和数组格式）
+    parseNumbers(numbers) {
+      if (!numbers) {
+        return [];
+      }
+      if (Array.isArray(numbers)) {
+        return numbers.map((n) => String(n));
+      }
+      if (typeof numbers === "string") {
+        if (numbers.includes(" ")) {
+          return numbers.split(" ").map((n) => n.trim()).filter((n) => n).map((n) => String(n));
+        }
+        if (numbers.includes(",")) {
+          return numbers.split(",").map((n) => n.trim()).filter((n) => n).map((n) => String(n));
+        }
+        return numbers.split("").map((n) => n.trim()).filter((n) => n).map((n) => String(n));
+      }
+      if (typeof numbers === "number") {
+        return String(numbers).split("");
+      }
+      return [];
+    },
+    // 格式化日期
+    formatDate(dateStr) {
+      if (!dateStr)
+        return "10.26 周日";
+      try {
+        const date = new Date(dateStr);
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+        const weekday = weekdays[date.getDay()];
+        return `${month}.${day} ${weekday}`;
+      } catch (e) {
+        return "10.26 周日";
+      }
     }
   },
   onLoad() {
-    this.getLatestResults();
+    this.loadLotteryResults();
   }
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return common_vendor.e({
+  return {
     a: common_assets._imports_0,
     b: common_assets._imports_1,
-    c: $data.currentTab === "plw" ? 1 : "",
-    d: common_vendor.o(($event) => $options.switchTab("plw")),
-    e: $data.currentTab === "qxc" ? 1 : "",
-    f: common_vendor.o(($event) => $options.switchTab("qxc")),
-    g: $data.currentTab == "plw"
-  }, $data.currentTab == "plw" ? {
-    h: common_assets._imports_2,
-    i: common_assets._imports_3,
-    j: common_vendor.o(($event) => $options.drawGui()),
-    k: common_assets._imports_4,
-    l: common_assets._imports_5,
-    m: common_assets._imports_6,
-    n: common_assets._imports_7,
-    o: common_assets._imports_8,
-    p: common_assets._imports_9,
-    q: common_vendor.o((...args) => $options.goToDreamInterpretation && $options.goToDreamInterpretation(...args)),
-    r: common_assets._imports_10,
-    s: common_assets._imports_11
-  } : {}, {
-    t: $data.currentTab == "qxc"
-  }, $data.currentTab == "qxc" ? {
-    v: common_assets._imports_2,
-    w: common_assets._imports_12,
-    x: common_vendor.o((...args) => $options.drawGui && $options.drawGui(...args)),
-    y: common_assets._imports_4,
-    z: common_assets._imports_5,
-    A: common_assets._imports_6,
-    B: common_assets._imports_13,
+    c: common_vendor.t($data.fc3dPeriod),
+    d: common_vendor.t($data.lotteryDate),
+    e: common_vendor.f($data.fc3dNumbers, (num, index, i0) => {
+      return {
+        a: common_vendor.t(num),
+        b: common_vendor.t(String.fromCharCode(65 + index)),
+        c: index
+      };
+    }),
+    f: common_vendor.t($data.plwPeriod),
+    g: common_vendor.t($data.lotteryDate),
+    h: common_vendor.f($data.plwNumbers, (num, index, i0) => {
+      return {
+        a: common_vendor.t(num),
+        b: common_vendor.t(String.fromCharCode(65 + index)),
+        c: index
+      };
+    }),
+    i: common_vendor.t($data.qxcPeriod),
+    j: common_vendor.t($data.lotteryDate),
+    k: common_vendor.f($data.qxcNumbers, (num, index, i0) => {
+      return {
+        a: common_vendor.t(num),
+        b: index === $data.qxcNumbers.length - 1 ? 1 : "",
+        c: common_vendor.t(String.fromCharCode(65 + index)),
+        d: index
+      };
+    }),
+    l: common_assets._imports_2,
+    m: common_assets._imports_3,
+    n: common_vendor.o(($event) => $options.drawGui()),
+    o: common_assets._imports_4,
+    p: common_assets._imports_5,
+    q: common_assets._imports_6,
+    r: common_assets._imports_7,
+    s: common_assets._imports_8,
+    t: common_assets._imports_9,
+    v: common_assets._imports_6,
+    w: common_assets._imports_10,
+    x: common_assets._imports_11,
+    y: common_assets._imports_12,
+    z: common_vendor.o((...args) => $options.goToDreamInterpretation && $options.goToDreamInterpretation(...args)),
+    A: common_assets._imports_13,
+    B: common_assets._imports_11,
     C: common_assets._imports_14,
-    D: common_assets._imports_15,
-    E: common_vendor.o((...args) => $options.goToDreamInterpretation && $options.goToDreamInterpretation(...args)),
-    F: common_assets._imports_10,
-    G: common_assets._imports_11
-  } : {}, {
-    H: common_vendor.f($data.plwNumbers, (num, index, i0) => {
-      return {
-        a: common_vendor.t(num),
-        b: num,
-        c: index >= 4 ? 1 : ""
-      };
-    }),
-    I: common_vendor.f($data.qxcNumbers, (num, index, i0) => {
-      return {
-        a: common_vendor.t(num),
-        b: index,
-        c: index >= 4 ? 1 : ""
-      };
-    }),
-    J: common_assets._imports_16,
-    K: common_assets._imports_17,
-    L: $data.upcomingTab === "plw" ? 1 : "",
-    M: common_vendor.o(($event) => $options.switchUpcomingTab("plw")),
-    N: $data.upcomingTab === "qxc" ? 1 : "",
-    O: common_vendor.o(($event) => $options.switchUpcomingTab("qxc")),
-    P: common_vendor.t($data.upcomingTab === "plw" ? $data.plwUpcomingIssue : $data.qxcUpcomingIssue),
-    Q: $data.upcomingAction === "all" ? 1 : "",
-    R: common_vendor.o(($event) => $options.switchUpcomingAction("all")),
-    S: $data.upcomingAction === "follow" ? 1 : "",
-    T: common_vendor.o(($event) => $options.switchUpcomingAction("follow"))
-  });
+    D: common_assets._imports_15
+  };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-1cf27b2a"]]);
 wx.createPage(MiniProgramPage);

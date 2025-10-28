@@ -31,7 +31,7 @@ const _sfc_main = {
     const selectedGroupIndex = common_vendor.ref(null);
     const selectedNumIndex = common_vendor.ref(null);
     const counterStore = stores_counter.useCounterStore();
-    common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:195", counterStore);
+    common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:197", counterStore);
     common_vendor.ref([]);
     const gridStyles = common_vendor.ref({});
     const openNumberSelector = (groupIndex, numIndex) => {
@@ -43,8 +43,8 @@ const _sfc_main = {
       showNumberSelector.value = false;
     };
     const handleConfirmSelection = (data) => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:214", "确认选择:", data);
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:215", "格子位置:", selectedGroupIndex.value, selectedNumIndex.value);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:216", "确认选择:", data);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:217", "格子位置:", selectedGroupIndex.value, selectedNumIndex.value);
       const key = `${data.groupIndex}-${data.numIndex}`;
       gridStyles.value[key] = {
         previewType: data.previewType,
@@ -54,7 +54,7 @@ const _sfc_main = {
           selecteddoubNumber: data.selecteddoubNumber
         }
       };
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:225", gridStyles.value);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:227", gridStyles.value);
       closeNumberSelector();
       applyStyleToGrid(data.groupIndex, data.numIndex);
     };
@@ -75,7 +75,7 @@ const _sfc_main = {
         gridElement.classList.add("hollow");
       }
       const contentElement = gridElement.querySelector(".grid-content");
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:252", styleData.content.selectedCondition);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:254", styleData.content.selectedCondition);
       if (contentElement) {
         contentElement.innerHTML = "";
         if (styleData.content.selectedCondition) {
@@ -114,16 +114,18 @@ const _sfc_main = {
       canvasPointerEvents.value = value;
     };
     const handleSubmit = (data) => {
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:375", "子组件调用了父组件的提交方法，数据：", data);
+      clearCanvas();
       common_vendor.index.showModal({
         title: "确认清除",
         content: "确定要清除所有绘制内容和样式吗？此操作不可撤销。",
         success: (res) => {
           if (res.confirm) {
-            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:379", "用户确认清除操作");
+            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:384", "用户确认清除操作");
             clearCanvas();
             clearAllGridContents();
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:383", "用户取消清除操作");
+            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:388", "用户取消清除操作");
           }
         }
       });
@@ -140,7 +142,7 @@ const _sfc_main = {
       });
     };
     const handleChildEvent = (params) => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:405", "收到子组件事件，参数", params);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:410", "收到子组件事件，参数", params);
       switch (params.action) {
         case "submit":
           saveCanvasImage();
@@ -151,7 +153,7 @@ const _sfc_main = {
       }
     };
     const handleShareEvent = () => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:417", "子组件调用了父组件的分享方法");
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:422", "子组件调用了父组件的分享方法");
     };
     common_vendor.onLoad((e) => {
       const instance = common_vendor.getCurrentInstance().proxy;
@@ -163,7 +165,7 @@ const _sfc_main = {
         data: "data from test page for someEvent"
       });
       eventChannel.on("acceptDataFromOpenerPage", function(data) {
-        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:435", "acceptDataFromOpenerPage", data);
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:440", "acceptDataFromOpenerPage", data);
       });
     });
     const child = common_vendor.ref(null);
@@ -241,17 +243,44 @@ const _sfc_main = {
       domToImage
     } = pages_juWang_drawLine_useFunc_useScreenshot.useScreenshot(common_vendor.html2canvas);
     const undoDraw = () => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:549", "undoDraw");
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:559", "执行撤销操作");
       if (shapes.value.length > 0) {
-        shapes.value.pop();
+        const lastShape = shapes.value.pop();
+        if (lastShape.highlights && Array.isArray(lastShape.highlights)) {
+          const currentHighlights = [...highlighted.value];
+          lastShape.highlights.forEach((highlightToRemove) => {
+            const index = currentHighlights.findIndex(
+              (item) => item.groupIndex === highlightToRemove.groupIndex && item.numIndex === highlightToRemove.numIndex
+            );
+            if (index > -1) {
+              currentHighlights.splice(index, 1);
+            }
+          });
+          highlighted.value = currentHighlights;
+          common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:584", "撤销高亮样式，剩余高亮数量:", highlighted.value.length);
+        }
         redraw(false);
+        updateHighlightDisplay();
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:591", "撤销完成，剩余形状数量:", shapes.value.length);
+        common_vendor.index.showToast({
+          title: "已撤销上一步操作",
+          icon: "success",
+          duration: 1500
+        });
+      } else {
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:600", "没有可撤销的操作");
+        common_vendor.index.showToast({
+          title: "没有可撤销的操作",
+          icon: "none",
+          duration: 1500
+        });
       }
     };
     common_vendor.onMounted(async () => {
       await twocounterStore.getCounterInfo();
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:559", "数字元素数量:", numberRefs.value.length);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:612", "数字元素数量:", numberRefs.value.length);
       await initCanvas();
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:563", "初始化后数字元素数量:", numberRefs.value.length);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:616", "初始化后数字元素数量:", numberRefs.value.length);
       setTimeout(() => {
         scrollToBottom();
       }, 0);

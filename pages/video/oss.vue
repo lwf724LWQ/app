@@ -150,11 +150,7 @@
 				statusMessage.value = `已选择${fileList.value.length}个文件，点击"开始上传"按钮上传`
 				statusClass.value = 'status-warning'
 
-				// 自动生成默认标题（可选）
-				if (!videoTitle.value && fileList.value.length > 0) {
-					const fileName = fileList.value[0].name
-					videoTitle.value = fileName.replace(/\.[^/.]+$/, "") // 移除文件扩展名
-				}
+			
 			}
 		})
 	}

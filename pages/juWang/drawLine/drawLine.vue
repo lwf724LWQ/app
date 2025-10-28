@@ -551,11 +551,59 @@
 		domToImage
 	} = useScreenshot(html2canvas);
 	const undoDraw = () => {
-		console.log('undoDraw')
-		if (shapes.value.length > 0) {
-			shapes.value.pop();
-			redraw(false);
-		}
+		// console.log('undoDraw')
+		// if (shapes.value.length > 0) {
+		// 	shapes.value.pop();
+		// 	redraw(false);
+		// }
+		console.log('执行撤销操作');
+		  
+		  if (shapes.value.length > 0) {
+		    // 获取最后绘制的形状
+		    const lastShape = shapes.value.pop();
+		    
+		    // 撤销关联的高亮样式
+		    if (lastShape.highlights && Array.isArray(lastShape.highlights)) {
+		      // 备份当前高亮状态
+		      const currentHighlights = [...highlighted.value];
+		      
+		      // 移除该形状关联的高亮
+		      lastShape.highlights.forEach(highlightToRemove => {
+		        const index = currentHighlights.findIndex(item => 
+		          item.groupIndex === highlightToRemove.groupIndex && 
+		          item.numIndex === highlightToRemove.numIndex
+		        );
+		        
+		        if (index > -1) {
+		          currentHighlights.splice(index, 1);
+		        }
+		      });
+		      
+		      // 更新高亮状态
+		      highlighted.value = currentHighlights;
+		      console.log('撤销高亮样式，剩余高亮数量:', highlighted.value.length);
+		    }
+		    
+		    // 重绘画布和更新高亮显示
+		    redraw(false);
+		    updateHighlightDisplay();
+		    
+		    console.log('撤销完成，剩余形状数量:', shapes.value.length);
+		    
+		    // 显示撤销成功提示
+		    uni.showToast({
+		      title: '已撤销上一步操作',
+		      icon: 'success',
+		      duration: 1500
+		    });
+		  } else {
+		    console.log('没有可撤销的操作');
+		    uni.showToast({
+		      title: '没有可撤销的操作',
+		      icon: 'none',
+		      duration: 1500
+		    });
+		  }
 	};
 	// 初始化
 	onMounted(async () => {

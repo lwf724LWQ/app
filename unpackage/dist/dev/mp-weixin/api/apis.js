@@ -148,6 +148,13 @@ function apiGetIssueNo(data = {}) {
     data
   });
 }
+function apiFindResult(headers = {}) {
+  return utils_request.request({
+    url: "/web/ticket/find_result",
+    method: "GET",
+    headers
+  });
+}
 function apiPostLike(data = {}) {
   return utils_request.request({
     url: "/web/post/like_count",
@@ -240,6 +247,7 @@ function apiBillQuery(data = {}) {
 exports.apiBillQuery = apiBillQuery;
 exports.apiCheckVideoPayment = apiCheckVideoPayment;
 exports.apiDreamQuery = apiDreamQuery;
+exports.apiFindResult = apiFindResult;
 exports.apiGetClassList = apiGetClassList;
 exports.apiGetClassify = apiGetClassify;
 exports.apiGetHistoryList = apiGetHistoryList;
