@@ -1,7 +1,14 @@
 <template>
 	<view class="lottery-container">
 		<!-- 顶部广告轮播图 -->
-		<swiper class="ad-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500">
+		<swiper 
+			class="ad-swiper" 
+			indicator-dots="true" 
+			autoplay="true" 
+			interval="3000" 
+			duration="500"
+			circular="true"
+			easing-function="default">
 			<swiper-item>
 				<view class="swiper-item">
 					<image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
@@ -19,7 +26,7 @@
 			<view class="result-item-fc3d">
 				<view class="result-header-fc3d">
 					<view class="lottery-title-fc3d">福彩3D {{ fc3dPeriod }}</view>
-					<view class="lottery-date">{{ lotteryDate }}</view>
+					<view class="lottery-date">{{ fc3dDate }}</view>
 				</view>
 				<view class="winning-numbers-fc3d">
 					<view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
@@ -35,7 +42,7 @@
 			<view class="result-item-plw">
 				<view class="result-header-plw">
 					<view class="lottery-title-plw">排列三 排列五 {{ plwPeriod }}</view>
-					<view class="lottery-date">{{ lotteryDate }}</view>
+					<view class="lottery-date">{{ plwDate }}</view>
 				</view>
 				<view class="winning-numbers-plw">
 					<view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
@@ -50,10 +57,10 @@
 		<view class="lottery-results-qxc">
 			<view class="result-item-qxc">
 				<view class="result-header-qxc">
-					<view class="lottery-title-qxc">七星彩 {{ qxcPeriod }}</view>
-					<view class="lottery-date">{{ lotteryDate }}</view>
-				</view>
-				<view class="winning-numbers-qxc">
+				<view class="lottery-title-qxc">七星彩 {{ qxcPeriod }}</view>
+				<view class="lottery-date">{{ qxcDate }}</view>
+			</view>
+			<view class="winning-numbers-qxc">
 					<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
 						<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{ num }}</view>
 						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
@@ -64,25 +71,21 @@
 
 		<!-- 通知横幅 -->
 		<view class="notice-banner">
-			<image class="notice-icon" src="/static/喇叭.svg" mode="aspectFit"></image>
+			<uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
 			<text class="notice-text">【2025 国庆总结通知】</text>
 			<text class="notice-new">NEW</text>
-			<text class="notice-arrow">></text>
+			<uni-icons type="right" size="28" color="#999"></uni-icons>
 		</view>
 
 		<!-- 功能图标区 - 15个图标网格 -->
 		<view class="function-area">
 			<view class="function-grid">
-				<!-- 第一行 -->
-				<view class="icon-item" @click="drawGui()">
-					<image src="/static/huagui.png" mode="aspectFit"></image>
-					<text>画规</text>
-				</view>
-				<!-- <view class="icon-item" >
-					<image src="/static/huagui.png" mode="aspectFit"></image>
-					<text>画规</text>
-				</view> -->
-				<view class="icon-item">
+			<!-- 第一行 -->
+			<view class="icon-item" @click="drawGui()">
+				<uni-icons type="compose" size="30" color="#4A90E2"></uni-icons>
+				<text>画规</text>
+			</view>
+			<view class="icon-item">
 					<image src="/static/icons/list.png" mode="aspectFit"></image>
 					<text>长条</text>
 				</view>
@@ -98,11 +101,11 @@
 					<image src="/static/icons/button.png" mode="aspectFit"></image>
 					<text>智能规</text>
 				</view>
-				<!-- 第二行 -->
-				<view class="icon-item">
-					<image src="/static/电视剧.png" mode="aspectFit"></image>
-					<text>开奖直播</text>
-				</view>
+			<!-- 第二行 -->
+			<view class="icon-item">
+				<uni-icons type="videocam" size="30" color="#4A90E2"></uni-icons>
+				<text>开奖直播</text>
+			</view>
 				<view class="icon-item">
 					<image src="/static/icons/badge.png" mode="aspectFit"></image>
 					<text>大师榜单</text>
@@ -119,11 +122,11 @@
 					<image src="/static/icons/search-bar.png" mode="aspectFit"></image>
 					<text>奖表查询</text>
 				</view>
-				<!-- 第三行 -->
-				<view class="icon-item" @click="goToDreamInterpretation">
-					<image src="/static/月亮 (1) (1).png" mode="aspectFit"></image>
-					<text>解梦</text>
-				</view>
+			<!-- 第三行 -->
+			<view class="icon-item" @click="goToDreamInterpretation">
+				<uni-icons type="chat" size="30" color="#4A90E2"></uni-icons>
+				<text>解梦</text>
+			</view>
 				<view class="icon-item">
 					<image src="/static/icons/collapse.png" mode="aspectFit"></image>
 					<text>过滤王</text>
@@ -160,7 +163,9 @@
 				fc3dPeriod: '第25123期',
 				plwPeriod: '第25285期',
 				qxcPeriod: '第25123期',
-				lotteryDate: '10.26 周日',
+				fc3dDate: '10.26 周日',
+				plwDate: '10.26 周日',
+				qxcDate: '10.26 周日',
 				isLoadingResults: false // 添加加载锁
 			};
 		},
@@ -212,18 +217,33 @@
 						if (tname && tname.includes('福彩3D')) {
 							this.fc3dNumbers = this.parseNumbers(item.number)
 							this.fc3dPeriod = '第' + item.issueno + '期'
+							// 更新日期
+							if (item.opendate || item.date || item.createTime) {
+								const date = item.opendate || item.date || item.createTime
+								this.fc3dDate = this.formatDate(date)
+							}
 						}
 						
 						// 排列五
 						if (tname && tname.includes('排列五')) {
 							this.plwNumbers = this.parseNumbers(item.number)
 							this.plwPeriod = '第' + item.issueno + '期'
+							// 更新日期
+							if (item.opendate || item.date || item.createTime) {
+								const date = item.opendate || item.date || item.createTime
+								this.plwDate = this.formatDate(date)
+							}
 						}
 						
 						// 排列三
 						if (tname && tname.includes('排列三')) {
 							// 排列三和排列五共用期号
 							this.plwPeriod = '第' + item.issueno + '期'
+							// 排列三的日期会覆盖排列五的日期（因为排列五在前面）
+							if (item.opendate || item.date || item.createTime) {
+								const date = item.opendate || item.date || item.createTime
+								this.plwDate = this.formatDate(date)
+							}
 						}
 						
 						// 七星彩
@@ -235,13 +255,11 @@
 							}
 							this.qxcNumbers = numbers
 							this.qxcPeriod = '第' + item.issueno + '期'
-						}
-						
-						// 更新日期
-						if (item.opendate || item.date || item.createTime) {
-							const date = item.opendate || item.date || item.createTime
-							// 格式化日期
-							this.lotteryDate = this.formatDate(date)
+							// 更新日期
+							if (item.opendate || item.date || item.createTime) {
+								const date = item.opendate || item.date || item.createTime
+								this.qxcDate = this.formatDate(date)
+							}
 						}
 					})
 					}
@@ -506,10 +524,13 @@
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 	}
 
-	.notice-icon {
-		width: 32rpx;
-		height: 32rpx;
+	/* 通知横幅图标样式 */
+	.notice-banner uni-icons[type="sound"] {
 		margin-right: 10rpx;
+	}
+
+	.notice-banner uni-icons[type="right"] {
+		margin-left: 0;
 	}
 
 	.notice-text {
@@ -527,10 +548,6 @@
 		margin-right: 10rpx;
 	}
 
-	.notice-arrow {
-		font-size: 28rpx;
-		color: #999;
-	}
 
 	/* 功能图标区 */
 	.function-area {
@@ -559,6 +576,11 @@
 	.icon-item image {
 		width: 60rpx;
 		height: 60rpx;
+		margin-bottom: 8rpx;
+	}
+
+	/* uni-icons 图标样式 */
+	.icon-item uni-icons {
 		margin-bottom: 8rpx;
 	}
 
