@@ -1500,20 +1500,28 @@ onShow(async () => {
 }
 
 .calendar-content {
-  width: 100%;
+  width: 90%;
   max-width: 600rpx;
   background-color: #fff;
   border-radius: 20rpx;
   max-height: 80vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
+  /* 防止滚动穿透 */
+  overscroll-behavior: contain;
+  /* 优化触摸性能 */
+  touch-action: pan-y;
 }
 
 /* 日历头部 */
 .calendar-header {
-  padding: 30rpx;
+  padding: 40rpx;
   border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .calendar-nav {
@@ -1524,12 +1532,21 @@ onShow(async () => {
 }
 
 .close-btn {
-  font-size: 40rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  font-size: 36rpx;
   color: #333;
   font-weight: bold;
-  width: 60rpx;
-  text-align: center;
-  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:active {
+  background-color: #e8e8e8;
 }
 
 .calendar-title {
@@ -1617,7 +1634,10 @@ onShow(async () => {
 /* 日历主体 */
 .calendar-body {
   flex: 1;
-  padding: 30rpx;
+  padding: 40rpx;
+  overflow-y: auto;
+  /* 优化滚动性能 */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 月份选择器 */
@@ -1815,23 +1835,36 @@ onShow(async () => {
 .calendar-footer {
   display: flex;
   gap: 20rpx;
-  padding: 30rpx;
+  padding: 40rpx;
   border-top: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .btn {
   flex: 1;
   text-align: center;
-  padding: 25rpx 0;
-  border-radius: 10rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 40rpx;
+  transition: all 0.2s ease;
 }
 
 .cancel-btn {
   background-color: #f5f5f5;
+  border: 1rpx solid #ddd;
+}
+
+.cancel-btn:active {
+  background-color: #e0e0e0;
 }
 
 .confirm-btn {
   background-color: #28B389;
+  border: none;
+}
+
+.confirm-btn:active {
+  background-color: #239974;
 }
 
 .btn-text {
