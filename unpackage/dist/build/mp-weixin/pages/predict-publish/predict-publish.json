@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "预测",
+  "enablePullDownRefresh": false,
+  "navigationStyle": "custom",
+  "usingComponents": {}
+}

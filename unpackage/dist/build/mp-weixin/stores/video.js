@@ -1,0 +1,1 @@
+"use strict";const e=require("../common/vendor.js").defineStore("video",{state:()=>({currentVideo:null}),actions:{setCurrentVideo(e){this.currentVideo=e,console.log(e,"这是仓库中的")},clearCurrentVideo(){this.currentVideo=null}},getters:{getCurrentVideo:e=>e.currentVideo}});exports.useVideoStore=e;
