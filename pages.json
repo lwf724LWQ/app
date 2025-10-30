@@ -123,6 +123,14 @@
 				"navigationStyle": "custom"
 			}
 		},
+		{
+			"path": "pages/video/biaodan",
+			"style": {
+				"navigationBarTitleText": "表单",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+		},
 		// {
 		// 	"path": "pages/preview/preview",
 		// 	"style": {

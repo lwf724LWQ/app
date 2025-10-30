@@ -459,6 +459,9 @@ const isSearching = ref(false)
 const isLoadingPosts = ref(false)
 const isLoadingLottery = ref(false)
 
+// 请求缓存 - 记录当前正在请求的参数，避免重复请求
+const currentQueryKey = ref(null) // 格式: "tname_issueno"
+
 // 心水预测筛选选项
 const predictionFilters = ref([
   '头尾', '芝麻', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾', 
@@ -589,9 +592,7 @@ const isPageInitialized = ref(false)
 
 // 页面加载完成
 onMounted(() => {
-  // 防止重复初始化
   if (isPageInitialized.value) {
-    console.log('页面已经初始化，跳过重复加载')
     return
   }
   
@@ -604,14 +605,9 @@ onMounted(() => {
     // 静默处理错误
   }
   
-  // 自动保存当前用户头像到本地存储
   autoSaveCurrentUserAvatar()
-  
-  // 优化触摸事件性能
   optimizeTouchEvents()
-  
   loadLotteryData(currentLotteryType.value.code)
-  
   isPageInitialized.value = true
 })
 
@@ -648,9 +644,7 @@ const closePeriodDropdown = () => {
 
 // 选择彩票类型
 const selectLotteryType = (lotteryType) => {
-  // 检查是否是同一个彩票类型，如果是就不要重复加载
   if (currentLotteryType.value.code === lotteryType.code) {
-    console.log('彩票类型未变化，跳过加载')
     showPeriodDropdown.value = false
     return
   }
@@ -664,28 +658,23 @@ const selectLotteryType = (lotteryType) => {
     // 静默处理错误
   }
   
-  loadLotteryData(lotteryType.code)
+  loadLotteryDataByType(lotteryType)
 }
 
-// 根据彩票类型加载数据
-const loadLotteryData = async (lotteryCode) => {
-  // 防止重复请求
+// 根据彩票类型对象加载数据（直接传入完整对象）
+const loadLotteryDataByType = async (lotteryType) => {
   if (isLoadingLottery.value) {
-    console.log('正在加载彩票数据，跳过重复请求')
+    return
+  }
+  
+  if (!lotteryType || !lotteryType.name) {
     return
   }
   
   try {
     isLoadingLottery.value = true
-    const lotteryType = lotteryTypes.value.find(type => type.code === lotteryCode)
-    if (!lotteryType) {
-      return
-    }
-    
     uni.showLoading({ title: '加载中...' })
-    
-    const response = await apiGetIssueNo({ cpid: lotteryType.id })
-    
+    const response = await apiGetIssueNo({ tname: lotteryType.name })
     uni.hideLoading()
     
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
@@ -701,13 +690,26 @@ const loadLotteryData = async (lotteryCode) => {
         issueTime = response.data.time || '今天 21:30'
       }
       
+      // 更新当前彩票类型的状态
       lotteryType.status = issueStatus
       lotteryType.time = issueTime
       
-      if (currentLotteryType.value.code === lotteryCode) {
-        currentLotteryType.value.status = lotteryType.status
-        currentLotteryType.value.time = lotteryType.time
+      // 更新当前选中的彩票类型状态
+      if (currentLotteryType.value.code === lotteryType.code) {
+        currentLotteryType.value.status = issueStatus
+        currentLotteryType.value.time = issueTime
       }
+      
+      // 更新到lotteryTypes数组中对应的项
+      const index = lotteryTypes.value.findIndex(type => type.code === lotteryType.code)
+      if (index !== -1) {
+        lotteryTypes.value[index].status = issueStatus
+        lotteryTypes.value[index].time = issueTime
+      }
+      
+      // 检查期号是否真的发生了变化
+      const oldIssueNumber = currentIssueInfo.value?.number
+      const newIssueNumber = issueNumber
       
       currentIssueInfo.value = {
         id: issueNumber,
@@ -722,17 +724,33 @@ const loadLotteryData = async (lotteryCode) => {
         // 静默处理错误
       }
       
-      loadPredictPosts()
-      // 移除不必要的提示，避免每次加载都弹出
+      // 只有当期号发生变化或者是第一次加载时才加载帖子，避免重复请求
+      if (oldIssueNumber !== newIssueNumber || oldIssueNumber === null) {
+        loadPredictPosts()
+      }
     } else {
       uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
     }
   } catch (error) {
-      uni.hideLoading()
-      uni.showToast({ title: '网络错误，请重试', icon: 'none' })
+    uni.hideLoading()
+    const errorMsg = error?.msg || error?.message || '网络错误，请重试'
+    uni.showToast({ 
+      title: errorMsg, 
+      icon: 'none',
+      duration: 3000
+    })
   } finally {
     isLoadingLottery.value = false
   }
+}
+
+// 根据彩票类型加载数据（兼容旧接口，通过code查找）
+const loadLotteryData = async (lotteryCode) => {
+  const lotteryType = lotteryTypes.value.find(type => type.code === lotteryCode)
+  if (!lotteryType) {
+    return
+  }
+  await loadLotteryDataByType(lotteryType)
 }
 
 // 检查是否为多张图片（包含逗号分隔）
@@ -1133,19 +1151,36 @@ const getSearchButtonText = () => {
 
 // 加载预测帖子数据
 const loadPredictPosts = async () => {
-  // 防止重复请求 - 必须在最开始就检查并设置
+  // 先检查是否正在加载，避免重复请求
   if (isLoadingPosts.value) {
-    console.log('正在加载帖子，跳过重复请求')
+    return
+  }
+  
+  // 构建查询参数
+  const tname = currentLotteryType.value?.name
+  const issueno = currentIssueInfo.value?.number || currentIssueInfo.value?.id || '--'
+  
+  // 如果参数不完整，不执行请求
+  if (!tname || !issueno) {
+    return
+  }
+  
+  // 生成请求唯一标识
+  const queryKey = `${tname}_${issueno}`
+  
+  // 如果正在请求相同的参数，跳过（防止重复请求）
+  if (currentQueryKey.value === queryKey) {
     return
   }
   
   try {
     isLoadingPosts.value = true
+    currentQueryKey.value = queryKey
     
     // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
-      tname: currentLotteryType.value.name, // 查询预测帖
-      issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || '--',
+      tname: tname, // 查询预测帖
+      issueno: issueno,
       page: '1',
       limit: '20'
     }
@@ -1163,8 +1198,8 @@ const loadPredictPosts = async () => {
     
     // 查询规律帖 - 使用规律帖的tname格式
     const patternQueryData = {
-      tname: `${currentLotteryType.value.name}-规律预测`, // 查询规律帖
-      issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || '--',
+      tname: `${tname}-规律预测`, // 查询规律帖
+      issueno: issueno,
       page: '1',
       limit: '20'
     }
@@ -1221,10 +1256,10 @@ const loadPredictPosts = async () => {
       predictList.value = []
     }
   } catch (error) {
-    console.error('加载帖子失败:', error)
     predictList.value = []
   } finally {
     isLoadingPosts.value = false
+    currentQueryKey.value = null
   }
 }
 

@@ -295,7 +295,7 @@ const loadIssueInfo = async () => {
     
     uni.showLoading({ title: '加载期号中...' })
     
-    const response = await apiGetIssueNo({ cpid: lotteryType.value.id })
+    const response = await apiGetIssueNo({ tname: lotteryType.value.name })
     
     uni.hideLoading()
     
