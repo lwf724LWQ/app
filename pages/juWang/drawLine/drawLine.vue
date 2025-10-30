@@ -273,6 +273,18 @@
 				contentElement.appendChild(doubNumberElement);
 			}
 		}
+		// 检查是否有选中的数字，并且这些数字在1-36范围内
+		const hasValidNumbers = styleData.content.selectedNumbers && 
+		    styleData.content.selectedNumbers.length === 1 && 
+		    styleData.content.selectedNumbers.some(num => {
+		        const numValue = parseInt(num);
+		        return numValue >= 1 && numValue <= 36;
+		    });
+			// 设置字体大小
+			if (hasValidNumbers) {
+				contentElement.style.fontSize = '26px';
+				contentElement.style.fontWeight = 'bold';
+			}
 	};
 
 	//------------------------------------------------------
@@ -650,24 +662,25 @@
 	    position: fixed;
 	    top: 0;
 	    left: 0;
-	    width: 100%;
-	    height: 100%;
+	    right: 0;
+	    bottom: 0;
 	    background-color: rgba(0, 0, 0, 0.5);
-	    display: flex;
-	    justify-content: center;
-	    align-items: center;
 	    z-index: 1000;
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
+	    padding: 40rpx;
 	}
 	
 	.modal-content {
-	    background-color: white;
-	    border-radius: 16px;
-	    width: 95%;
-	    max-width: 600rpx;
-	    max-height: 85vh;
-	    overflow-y: auto;
-	    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-	    position: relative;
+	    width: 100%;
+	      max-width: 600rpx;
+	      background-color: #fff;
+	      border-radius: 30rpx;
+	      max-height: auto;
+	      display: flex;
+	      flex-direction: column;
+	      box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
 	}
 	
 	/* 优化 NumberSelector 容器样式 */
@@ -677,7 +690,6 @@
 	    padding: 0;
 	    box-sizing: border-box;
 	    background-color: #f9f9f9;
-	    overflow: visible;
 	}
 
 	.container {
@@ -689,14 +701,14 @@
 		background-color: #f9f9f9;
 		overflow: hidden;
 	}
+	
 
 	.numbers-table-container {
 		width: 100%;
-		padding: 10rpx;
+		padding: 0rpx;
 		box-sizing: border-box;
 		position: relative;
 		z-index: 10; //表格高于画布z-index
-		margin-bottom: 30rpx;
 	}
 
 	.switch-mode-css {
@@ -775,13 +787,17 @@
 		padding: 0;
 		text-align: center;
 		border: 1px solid #dbe7d6;
-		height: 90rpx;
+		height: 100rpx;
 		box-sizing: border-box;
 		white-space: nowrap;
 		overflow: hidden;
 		transition: all 0.2s;
 	}
-
+.table-cell {
+	.col-1{
+		width: 200%;
+	}
+}
 	/* 可点击单元格样式 */
 	.clickable {
 		cursor: pointer;
@@ -817,9 +833,27 @@
 
 	/* 列背景色设置 */
 	.col-1 {
-		background-color: #90C380;
-		color: #DDEBB8;
-		width: 30rpx;
+		 background-color: #90C380;
+		    color: #DDEBB8;
+		    width: 80px; /* 改为固定像素值 */
+		    min-width: 40px; /* 确保最小宽度 */
+		    max-width: 40px; /* 确保最大宽度 */
+	}
+	
+	.col-def-1 {
+	    width: 40px; 
+	}
+	/* 确保单元格内容适应固定宽度 */
+	.col-1 .cell-content {
+	    width: 100%;
+	    text-align: center;
+	    white-space: nowrap; /* 防止文字换行 */
+	    overflow: hidden;
+	    text-overflow: ellipsis; /* 文字过长显示省略号 */
+	}
+	
+	.cell-content{
+		width: 100%;
 	}
 
 	.col-2 {
@@ -1010,6 +1044,7 @@
 
 	/* drawLine.vue 中的样式 */
 	.number-item.solid {
+		height: 100%;
 		width: 100%;
 		border-radius: 0px;
 		background-color: #0000ff;
@@ -1026,7 +1061,7 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		font-size: 12px;
+		font-size: 22rpx;
 		text-align: center;
 		z-index: 20;
 		width: 100%;

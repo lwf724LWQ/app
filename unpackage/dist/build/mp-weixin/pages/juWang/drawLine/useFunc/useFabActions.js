@@ -1,0 +1,1 @@
+"use strict";const e=require("../../../../common/vendor.js");exports.useFabActions=function(n,u,a,o,t,c){const l=e.ref(!1);function i(){l.value=!l.value}return{isFabOpen:l,toggleFab:i,switchMode:function(e){n.value=e,c(!1),u.value="auto",i()},clearCanvas:function(){a.value=[],o.value=[],t.value=[],c(!1)},clickBlank:function(){u.value="auto",i()}}};
