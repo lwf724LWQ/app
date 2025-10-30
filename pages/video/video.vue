@@ -4,23 +4,46 @@
 	<!-- 图片 -->
 	<image class='photo' src="@/static/video/swiper.png" mode=""></image>
 
-	<!-- 下拉选择器和精彩回顾容器 -->
-	<view class="header-container">
-		<!-- 下拉选择器 -->
-		<view class="picker-container">
-			<picker @change="onPickerChange" :value="pickerIndex" :range="pickerOptions">
-				<view class="picker">
-					<text class="picker-text">{{ pickerOptions[pickerIndex] }}</text>
-					<uni-icons type="down" size="16" color="#333"></uni-icons>
-				</view>
-			</picker>
+	<!-- 切换标签栏（参考 forum.vue 风格） -->
+	<view class="switch-tabs">
+		<view 
+			class="tab-item" 
+			:class="{ active: currentTab === 'plw' }"
+			@click="switchTabByIndex(0)"
+		>
+			<text class="tab-text">排列五</text>
 		</view>
-
-		<!-- 精彩回顾文本 -->
-		<view class="review-text">
-			<text>精彩回顾</text>
+		<view 
+			class="tab-item" 
+			:class="{ active: currentTab === 'pls' }"
+			@click="switchTabByIndex(1)"
+		>
+			<text class="tab-text">排列三</text>
+		</view>
+		<view 
+			class="tab-item" 
+			:class="{ active: currentTab === 'qxc' }"
+			@click="switchTabByIndex(2)"
+		>
+			<text class="tab-text">七星彩</text>
+		</view>
+		<view 
+			class="tab-item" 
+			:class="{ active: currentTab === 'fc' }"
+			@click="switchTabByIndex(3)"
+		>
+			<text class="tab-text">福彩3D</text>
+		</view>
+		<view 
+			class="tab-item" 
+			:class="{ active: currentTab === 'review' }"
+			@click="switchTabByIndex(4)"
+		>
+			<text class="tab-text">精彩回顾</text>
 		</view>
 	</view>
+
+	
 
 	<!-- 功能图标区 -->
 	<view class="area" v-if="currentTab === 'plw' || 0">
@@ -63,7 +86,8 @@
 		apiGetVideo,
 		apiGetLikelist,
 		apiGetIsLike,
-		apiCheckVideoPayment
+		apiCheckVideoPayment,
+		apiGetIssueNo
 	} from '../../api/apis';
 	import {
 		setToken,
@@ -123,9 +147,9 @@
 
 	// 初始化 store
 	const videoStore = useVideoStore()
-	// 下拉选择器相关数据
-	const pickerOptions = ref(['排列五', '排列三', '七星彩', '福彩3D']);
-	const pickerIndex = ref(0);
+	// 选项与当前索引（用于与 forum.vue 一致的标签切换）
+	const pickerOptions = ref(['排列五', '排列三', '七星彩', '福彩3D', '精彩回顾'])
+	const pickerIndex = ref(0)
 
 	// 响应式数据
 	const currentTab = ref('plw');
@@ -142,27 +166,84 @@
 	//点赞列表数据
 	const likeList = ref([]);
 
-	// 下拉选择器变化事件
-	const onPickerChange = (e) => {
-		const index = e.detail.value;
-		pickerIndex.value = index;
+	// 彩票类型与期号信息（与论坛页一致的请求逻辑）
+	const lotteryTypes = ref([
+		{ id: 17, name: '排列五', code: 'plw', status: '待开奖', time: '今天 21:30' },
+		{ id: 16, name: '排列三', code: 'pls', status: '待开奖', time: '今天 21:30' },
+		{ id: 15, name: '七星彩', code: 'qxc', status: '待开奖', time: '今天 21:30' },
+		{ id: 12, name: '福彩3D', code: 'fc', status: '待开奖', time: '今天 21:30' }
+	])
 
-		// 根据索引设置当前标签
+	const currentLotteryType = ref(lotteryTypes.value[0])
+	const isLoadingLottery = ref(false)
+	const currentIssueInfo = ref({ id: null, number: null, status: '待开奖', time: '今天 21:30' })
+
+	const loadLotteryDataByType = async (lotteryType) => {
+		if (isLoadingLottery.value || !lotteryType || !lotteryType.name) return
+		try {
+			isLoadingLottery.value = true
+			uni.showLoading({ title: '加载中...' })
+			const response = await apiGetIssueNo({ tname: lotteryType.name })
+			uni.hideLoading()
+			if (response.code === 200 && response.data !== null && response.data !== undefined) {
+				let issueNumber = null
+				let issueStatus = '待开奖'
+				let issueTime = '今天 21:30'
+				if (typeof response.data === 'number' || typeof response.data === 'string') {
+					issueNumber = response.data.toString()
+				} else if (typeof response.data === 'object') {
+					issueNumber = response.data.issueno || response.data.number || response.data.id
+					issueStatus = response.data.status || '待开奖'
+					issueTime = response.data.time || '今天 21:30'
+				}
+				lotteryType.status = issueStatus
+				lotteryType.time = issueTime
+				const idx = lotteryTypes.value.findIndex(t => t.code === lotteryType.code)
+				if (idx !== -1) {
+					lotteryTypes.value[idx].status = issueStatus
+					lotteryTypes.value[idx].time = issueTime
+				}
+				currentIssueInfo.value = { id: issueNumber, number: issueNumber, status: issueStatus, time: issueTime }
+			} else {
+				uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
+			}
+		} catch (error) {
+			uni.hideLoading()
+			uni.showToast({ title: error?.msg || error?.message || '网络错误，请重试', icon: 'none', duration: 3000 })
+		} finally {
+			isLoadingLottery.value = false
+		}
+	}
+
+	// 标签切换（与 forum.vue 的交互一致）
+	const switchTabByIndex = (index) => {
+		pickerIndex.value = index
 		switch (index) {
 			case 0:
-				currentTab.value = 'plw';
-				break;
+				currentTab.value = 'plw'
+				currentLotteryType.value = lotteryTypes.value.find(t => t.code === 'plw') || lotteryTypes.value[0]
+				break
 			case 1:
-				currentTab.value = 'pls';
-				break;
+				currentTab.value = 'pls'
+				currentLotteryType.value = lotteryTypes.value.find(t => t.code === 'pls') || lotteryTypes.value[0]
+				break
 			case 2:
-				currentTab.value = 'qxc';
-				break;
+				currentTab.value = 'qxc'
+				currentLotteryType.value = lotteryTypes.value.find(t => t.code === 'qxc') || lotteryTypes.value[0]
+				break
 			case 3:
-				currentTab.value = 'fc';
-				break;
+				currentTab.value = 'fc'
+				currentLotteryType.value = lotteryTypes.value.find(t => t.code === 'fc') || lotteryTypes.value[0]
+				break
+			case 4:
+				currentTab.value = 'review'
+				break
 		}
-	};
+		// 与论坛相同：切换时请求期号信息
+		if (currentTab.value !== 'review') {
+			loadLotteryDataByType(currentLotteryType.value)
+		}
+	}
 
 	// 方法
 	const switchTab = (tab) => {
@@ -360,6 +441,8 @@
 	// 生命周期钩子
 	onMounted(async () => {
 		fetchVideoList();
+		// 初次进入按默认标签请求期号
+		await loadLotteryDataByType(currentLotteryType.value)
 	});
 </script>
 
@@ -462,6 +545,42 @@
 		/* 两列等宽 */
 		gap: 30rpx;
 		/* 间距 */
+	}
+
+	/* 标签切换栏（参照 forum.vue） */
+	.switch-tabs {
+		position: sticky;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 88rpx;
+		background-color: #fff;
+		z-index: 10;
+		display: flex;
+	}
+
+	.tab-item {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		border-bottom: 4rpx solid transparent;
+		transition: all 0.2s ease;
+	}
+
+	.tab-item.active {
+		border-bottom-color: #ff4757;
+	}
+
+	.tab-text {
+		font-size: 28rpx;
+		color: #333;
+		font-weight: 500;
+	}
+
+	.tab-item.active .tab-text {
+		color: #ff4757;
 	}
 
 	.title {

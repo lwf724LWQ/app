@@ -425,6 +425,34 @@ import { ref, onMounted } from 'vue'
 import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
 import { getAccount } from '@/utils/request.js'
 
+// 工具与常量：安全本地存取、函数防抖、文本规范化
+const safeGet = (key, fallback) => {
+  try {
+    const v = uni.getStorageSync(key)
+    return v === undefined || v === null ? fallback : v
+  } catch (e) {
+    return fallback
+  }
+}
+
+const safeSet = (key, value) => {
+  try {
+    uni.setStorageSync(key, value)
+  } catch (e) {
+    // 非关键失败忽略
+  }
+}
+
+const debounce = (fn, delay = 300) => {
+  let timer
+  return (...args) => {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
+
+const normalizeText = (val) => String(val || '').toLowerCase()
+
 // 当前选中的标签
 const activeTab = ref('predict')
 
@@ -472,9 +500,7 @@ const predictionFilters = ref([
 ])
 
 // 其他筛选选项
-const otherFilters = ref([
-  '大师帖子', '靓规贴子', '点赞最多', '讨论最热'
-])
+const otherFilters = ref(['大师帖子', '靓规贴子', '点赞最多', '讨论最热'])
 
 // 分类标签列表
 const tags = ref([
@@ -596,13 +622,9 @@ onMounted(() => {
     return
   }
   
-  try {
-    const savedLotteryType = uni.getStorageSync('currentLotteryType')
-    if (savedLotteryType) {
-      currentLotteryType.value = savedLotteryType
-    }
-  } catch (error) {
-    // 静默处理错误
+  const savedLotteryType = safeGet('currentLotteryType', null)
+  if (savedLotteryType) {
+    currentLotteryType.value = savedLotteryType
   }
   
   autoSaveCurrentUserAvatar()
@@ -718,11 +740,7 @@ const loadLotteryDataByType = async (lotteryType) => {
         time: issueTime
       }
       
-      try {
-        uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
-      } catch (error) {
-        // 静默处理错误
-      }
+      safeSet('currentIssueInfo', currentIssueInfo.value)
       
       // 只有当期号发生变化或者是第一次加载时才加载帖子，避免重复请求
       if (oldIssueNumber !== newIssueNumber || oldIssueNumber === null) {
@@ -882,7 +900,7 @@ const toggleOtherFilter = (filter) => {
 }
 
 // 处理搜索输入
-const handleSearchInput = () => {
+const _handleSearchInput = () => {
   if (searchKeyword.value.trim()) {
     // 生成搜索建议
     generateSearchSuggestions()
@@ -893,22 +911,17 @@ const handleSearchInput = () => {
     clearSearchResults()
   }
 }
+const handleSearchInput = debounce(_handleSearchInput, 300)
 
 // 生成搜索建议
 const generateSearchSuggestions = () => {
-  const keyword = searchKeyword.value.trim().toLowerCase()
+  const keyword = normalizeText(searchKeyword.value.trim())
   const suggestions = []
   
-  // 从预测筛选选项中生成建议
-  predictionFilters.value.forEach(filter => {
-    if (filter.toLowerCase().includes(keyword)) {
-      suggestions.push(filter)
-    }
-  })
-  
-  // 从其他筛选选项中生成建议
-  otherFilters.value.forEach(filter => {
-    if (filter.toLowerCase().includes(keyword)) {
+  // 从两类筛选选项中生成建议
+  const candidates = [...predictionFilters.value, ...otherFilters.value]
+  candidates.forEach(filter => {
+    if (normalizeText(filter).includes(keyword)) {
       suggestions.push(filter)
     }
   })
@@ -934,7 +947,7 @@ const clearSearch = () => {
 
 // 执行模糊搜索
 const performFuzzySearch = () => {
-  const keyword = searchKeyword.value.trim().toLowerCase()
+  const keyword = normalizeText(searchKeyword.value.trim())
   
   if (!keyword) {
     clearSearchResults()
@@ -946,12 +959,12 @@ const performFuzzySearch = () => {
   // 对预测帖子进行模糊搜索
   filteredPredictList.value = predictList.value.filter(post => {
     // 搜索用户名
-    if (post.username && post.username.toLowerCase().includes(keyword)) {
+    if (post.username && normalizeText(post.username).includes(keyword)) {
       return true
     }
     
     // 搜索帖子内容
-    if (post.content && post.content.toLowerCase().includes(keyword)) {
+    if (post.content && normalizeText(post.content).includes(keyword)) {
       return true
     }
     
@@ -967,17 +980,17 @@ const performFuzzySearch = () => {
     
     if (keyword === '大师' || keyword === '大师帖子') {
       // 搜索包含"大师"关键词的帖子
-      return post.content && post.content.toLowerCase().includes('大师')
+      return post.content && post.content.includes('大师')
     }
     
     if (keyword === '靓规贴' || keyword === '靓规贴子') {
       // 搜索包含"靓规"关键词的帖子
-      return post.content && post.content.toLowerCase().includes('靓规')
+      return post.content && post.content.includes('靓规')
     }
     
     if (keyword === '过滤王') {
       // 搜索包含"过滤王"关键词的帖子
-      return post.content && post.content.toLowerCase().includes('过滤王')
+      return post.content && post.content.includes('过滤王')
     }
     
     if (keyword === '点赞最多') {
@@ -1265,66 +1278,40 @@ const loadPredictPosts = async () => {
 
 // 获取本地存储的点赞状态和数字
 const getLikedStatus = (postId) => {
-  try {
-    const likedPosts = uni.getStorageSync('likedPosts') || {}
-    return likedPosts[postId] || false
-  } catch (error) {
-    return false
-  }
+  const likedPosts = safeGet('likedPosts', {})
+  return likedPosts[postId] || false
 }
 
 // 获取本地存储的点赞数字
 const getLikedCount = (postId) => {
-  try {
-    const likedCounts = uni.getStorageSync('likedCounts') || {}
-    return likedCounts[postId] || 0
-  } catch (error) {
-    return 0
-  }
+  const likedCounts = safeGet('likedCounts', {})
+  return likedCounts[postId] || 0
 }
 
 // 保存点赞状态到本地存储
 const saveLikedStatus = (postId, isLiked) => {
-  try {
-    const likedPosts = uni.getStorageSync('likedPosts') || {}
-    likedPosts[postId] = isLiked
-    uni.setStorageSync('likedPosts', likedPosts)
-  } catch (error) {
-    // 静默处理错误
-  }
+  const likedPosts = safeGet('likedPosts', {})
+  likedPosts[postId] = isLiked
+  safeSet('likedPosts', likedPosts)
 }
 
 // 保存点赞数字到本地存储
 const saveLikedCount = (postId, count) => {
-  try {
-    const likedCounts = uni.getStorageSync('likedCounts') || {}
-    likedCounts[postId] = count
-    uni.setStorageSync('likedCounts', likedCounts)
-  } catch (error) {
-    // 静默处理错误
-  }
+  const likedCounts = safeGet('likedCounts', {})
+  likedCounts[postId] = count
+  safeSet('likedCounts', likedCounts)
 }
 
 // 获取用户头像
 const getUserAvatar = (account) => {
   try {
-    // 如果是当前登录用户，使用登录数据中的头像
     const currentAccount = getAccount()
     if (account === currentAccount) {
-      const loginData = uni.getStorageSync('loginData') || {}
-      if (loginData.himg) {
-        return loginData.himg
-      }
+      const loginData = safeGet('loginData', {})
+      if (loginData.himg) return loginData.himg
     }
-    
-    // 对于其他用户，尝试从本地存储中获取他们的头像
-    const userAvatars = uni.getStorageSync('userAvatars') || {}
-    if (userAvatars[account]) {
-      return userAvatars[account]
-    }
-    
-    // 如果都没有，使用默认头像
-    return 'http://video.caimizm.com/himg/user.png'
+    const userAvatars = safeGet('userAvatars', {})
+    return userAvatars[account] || 'http://video.caimizm.com/himg/user.png'
   } catch (error) {
     return 'http://video.caimizm.com/himg/user.png'
   }
@@ -1332,13 +1319,9 @@ const getUserAvatar = (account) => {
 
 // 保存用户头像信息
 const saveUserAvatar = (account, avatarUrl) => {
-  try {
-    const userAvatars = uni.getStorageSync('userAvatars') || {}
-    userAvatars[account] = avatarUrl
-    uni.setStorageSync('userAvatars', userAvatars)
-  } catch (error) {
-    // 静默处理错误
-  }
+  const userAvatars = safeGet('userAvatars', {})
+  userAvatars[account] = avatarUrl
+  safeSet('userAvatars', userAvatars)
 }
 
 // 格式化时间
@@ -1461,18 +1444,17 @@ const updatePostInList = (updatedPost) => {
 // 自动保存当前用户头像到本地存储
 const autoSaveCurrentUserAvatar = () => {
   try {
-    const loginData = uni.getStorageSync('loginData') || {}
+    const loginData = safeGet('loginData', {})
     const currentAccount = getAccount()
-    
     if (loginData.himg && currentAccount) {
-      const userAvatars = uni.getStorageSync('userAvatars') || {}
+      const userAvatars = safeGet('userAvatars', {})
       if (!userAvatars[currentAccount]) {
         userAvatars[currentAccount] = loginData.himg
-        uni.setStorageSync('userAvatars', userAvatars)
+        safeSet('userAvatars', userAvatars)
       }
     }
   } catch (error) {
-    // 静默处理错误
+    // ignore
   }
 }
 
