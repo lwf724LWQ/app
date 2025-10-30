@@ -338,3 +338,13 @@ export function apiBillQuery(data = {}) {
 		data
 	})
 }
+
+// 上传视频表格数据接口
+// 参数示例：{ videoId, content, issueno, tname, opendate, wimg }
+export function apiWordInsert(data = {}) {
+    return request({
+        url: "/web/word/insert",
+        method: "POST",
+        data
+    })
+}

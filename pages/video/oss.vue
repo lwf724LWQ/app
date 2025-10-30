@@ -37,12 +37,18 @@
 			</view>
 		</view>
 
-		<!-- 视频上传区域 -->
-		<view class="upload-area" @click="chooseFile">
-			<uni-icons name="plus" size="50" color="#3498db"></uni-icons>
-			<view class="upload-text">点击选择视频文件</view>
-			<view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
-		</view>
+        <!-- 视频上传区域 -->
+        <view class="upload-area" @click="chooseFile">
+            <block v-if="selectedVideoUrl">
+                <video :src="selectedVideoUrl" class="video-preview" controls muted></video>
+                <view class="file-brief">{{ selectedVideoName }}</view>
+            </block>
+            <block v-else>
+                <uni-icons name="plus" size="50" color="#3498db"></uni-icons>
+                <view class="upload-text">点击选择视频文件</view>
+                <view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
+            </block>
+        </view>
 
 		<!-- 封面选择区域 -->
 		<view class="cover-area" v-if="fileList.length > 0">
@@ -133,27 +139,55 @@
 	const isCharge = ref(1) // 1=免费，2=收费
 	const chargePrice = ref('')
 
-	// 封面图片
+    // 封面图片
 	const coverImage = ref('')
 	const coverFile = ref(null)
 
-	// 选择视频文件
-	const chooseFile = () => {
-		uni.chooseImage({
-			count: 1, // 限制只能选择一个文件
-			sizeType: ['original', 'compressed'],
-			sourceType: ['album', 'camera'],
-			success: (res) => {
-				const tempFilePaths = res.tempFilePaths
-				console.log(res.tempFilePaths)
-				fileList.value = res.tempFiles
-				statusMessage.value = `已选择${fileList.value.length}个文件，点击"开始上传"按钮上传`
-				statusClass.value = 'status-warning'
+    // 视频预览
+    const selectedVideoUrl = ref('')
+    const selectedVideoName = ref('')
 
-			
-			}
-		})
-	}
+    // 条件满足时跳转到表单页（收费视频）
+    const tryGotoBiaodan = () => {
+        if (isCharge.value === 2 && fileList.value.length > 0 && (coverFile.value || coverImage.value)) {
+            // 缓存草稿数据，便于表单页读取
+            try {
+                uni.setStorageSync('paidVideoDraft', {
+                    title: videoTitle.value,
+                    price: Number(chargePrice.value) || 0,
+                    videoPath: fileList.value[0].path || fileList.value[0].tempFilePath || '',
+                    coverPath: coverImage.value || (coverFile.value && coverFile.value.path) || '',
+                    account: getAccount(),
+                    timestamp: Date.now()
+                })
+            } catch (e) {}
+            uni.navigateTo({ url: '/pages/video/biaodan' })
+        }
+    }
+
+    // 选择视频文件（跨端：优先使用 chooseVideo）
+    const chooseFile = () => {
+        uni.chooseVideo({
+            sourceType: ['album','camera'],
+            success: (res) => {
+                // 统一成与 tempFiles 相似的数据结构，确保包含扩展名
+                const path = res.tempFilePath || ''
+                const filenameFromPath = path.split('/').pop() || 'video.mp4'
+                const hasExt = filenameFromPath.includes('.')
+                const name = hasExt ? filenameFromPath : `${filenameFromPath}.mp4`
+                const item = { path, size: res.size, name }
+                fileList.value = [item]
+                selectedVideoUrl.value = item.path
+                selectedVideoName.value = item.name
+                statusMessage.value = `已选择1个文件，点击"开始上传"按钮上传`
+                statusClass.value = 'status-warning'
+            },
+            fail: () => {
+                statusMessage.value = '未选择到文件'
+                statusClass.value = 'status-error'
+            }
+        })
+    }
 
 	// 选择封面
 	const chooseCover = () => {
@@ -171,97 +205,69 @@
 
 	// 开始上传
 	const startUpload = async () => {
-		if (fileList.value.length === 0) {
-			statusMessage.value = '请先选择文件'
-			statusClass.value = 'status-error'
-			return
-		}
-
-		// 验证表单
-		if (!videoTitle.value.trim()) {
-			statusMessage.value = '请输入视频标题'
-			statusClass.value = 'status-error'
-			return
-		}
-
-		if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
-			statusMessage.value = '请输入有效的收费价格'
-			statusClass.value = 'status-error'
-			return
-		}
-
-		statusMessage.value = '正在上传...'
-		statusClass.value = 'status-warning'
-		uploadProgress.value = 0
-
-		for (let i = 0; i < fileList.value.length; i++) {
-			const file = fileList.value[i]
-			try {
-				// 执行视频上传
-				const videoResult = await tool.oss.upload(file, {
-					folder: 'videos', // 视频存储文件夹
-					progress: (percentage) => {
-						uploadProgress.value = Math.floor(percentage * 100)
-						statusMessage.value = `视频上传中: ${uploadProgress.value}%`
-					},
-				})
-
-				console.log('视频上传成功:', videoResult.name)
-
-				// 上传封面图片到 vimg 文件夹
-				let coverUrl = ""
-				if (coverFile.value) {
-					statusMessage.value = '正在上传封面...'
-
-
-
-					// 上传封面图片到 vimg 文件夹
-					const coverResult = await tool.oss.upload(coverFile.value, {
-						folder: 'vimg', // 已经在文件名中指定了路径，所以这里设为空
-						progress: () => {} // 封面上传不需要显示进度
-					})
-
-					coverUrl = coverResult.name
-					console.log('封面上传成功:', coverUrl)
-				}
-
-				// 准备发送到后端的数据
-				const videoData = {
-					title: videoTitle.value,
-					flag: isCharge.value === 2,
-					price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
-					account: getAccount(),
-					url: videoResult.name,
-					vimg: coverUrl // 添加封面URL
-				}
-
-				// 提交视频信息到后端
-				const submitResult = await apiSubmitVideo(videoData)
-				console.log('视频信息提交成功:', submitResult)
-
-				// 添加到上传结果
-				uploadResults.value.push({
-					name: file.name,
-					size: file.size,
-					url: videoResult.url,
-					coverUrl: coverUrl
-				})
-
-				statusMessage.value = `文件"${file.name}"上传成功`
-				statusClass.value = 'status-success'
-
-				// 重置表单（可选）
-				videoTitle.value = ''
-				isCharge.value = 1
-				chargePrice.value = ''
-				coverImage.value = ''
-				coverFile.value = null
-			} catch (error) {
-				statusMessage.value = `文件"${file.name}"上传失败: ${error.message}`
-				statusClass.value = 'status-error'
-			}
-		}
-	}
+    if (fileList.value.length === 0) {
+        statusMessage.value = '请先选择文件'
+        statusClass.value = 'status-error'
+        return
+    }
+    if (!videoTitle.value.trim()) {
+        statusMessage.value = '请输入视频标题'
+        statusClass.value = 'status-error'
+        return
+    }
+    if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
+        statusMessage.value = '请输入有效的收费价格'
+        statusClass.value = 'status-error'
+        return
+    }
+    if (isCharge.value === 2 && (!coverImage.value && !coverFile.value)) {
+        uni.showToast({ title: '请先选择封面', icon: 'none' })
+        return
+    }
+    try {
+        uni.showLoading({ title: '上传视频...' })
+        const raw = fileList.value[0]
+        let uploadVideo = raw
+        if (typeof window !== 'undefined' && raw && raw.path && !raw.slice) {
+            const resp = await fetch(raw.path)
+            const blob = await resp.blob()
+            uploadVideo = new File([blob], raw.name || 'video.mp4', { type: blob.type || 'video/mp4' })
+        }
+        const videoResult = await tool.oss.upload(uploadVideo, {
+            folder: 'videos',
+            progress: (p) => { uploadProgress.value = Math.floor(p * 100) }
+        })
+        let coverUrl = ''
+        if (coverFile.value) {
+            uni.showLoading({ title: '上传封面...' })
+            let uploadCover = coverFile.value
+            if (typeof window !== 'undefined' && coverImage.value) {
+                const r = await fetch(coverImage.value)
+                const b = await r.blob()
+                uploadCover = new File([b], (coverFile.value && coverFile.value.name) || 'cover.jpg', { type: b.type || 'image/jpeg' })
+            }
+            const coverResult = await tool.oss.upload(uploadCover, {
+                folder: 'vimg',
+                progress: () => {}
+            })
+            coverUrl = coverResult.name
+        }
+        uni.hideLoading()
+        uni.setStorageSync('paidVideoDraft', {
+            title: videoTitle.value,
+            price: Number(chargePrice.value) || 0,
+            account: getAccount(),
+            videoId: videoResult.name,
+            coverPath: coverUrl,
+            timestamp: Date.now()
+        })
+        uni.navigateTo({ url: '/pages/video/biaodan' })
+    } catch (e) {
+        uni.hideLoading()
+        uni.showToast({ title: '上传失败，请重试', icon: 'none' })
+    }
+}
+	
 
 	// 清空文件
 	const clearFiles = () => {

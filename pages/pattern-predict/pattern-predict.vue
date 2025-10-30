@@ -174,11 +174,11 @@ const uploadObject = async (file, callback) => {
     const client = new OSS.default(ossConfig)
     
     // 上传文件
-    const result = await client.put(`himg/${upload_file_name}`, file)
+    const result = await client.put(`pimg/${upload_file_name}`, file)
     
     if (result && result.url) {
-      // 直接使用固定的自定义域名前缀 + 唯一文件名
-      const customUrl = `http://video.caimizm.com/himg/${upload_file_name}`
+      // 直接使用固定的自定义域名前缀 + 唯一文件名（改用 pimg）
+      const customUrl = `http://video.caimizm.com/pimg/${upload_file_name}`
       
       callback(customUrl)
     } else {
