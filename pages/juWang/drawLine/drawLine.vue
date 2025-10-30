@@ -439,6 +439,9 @@
 
 	let eventHandler;
 	onLoad((e) => {
+		
+		        resetDrawingState();
+		    
 		const instance = getCurrentInstance().proxy
 		const eventChannel = instance.getOpenerEventChannel();
 		eventChannel.emit('acceptDataFromOpenedPage', {
@@ -505,6 +508,7 @@
 		lineWidth.value = val
 	}
 	const {
+		resetDrawingState,
 		currentMode,
 		isDrawing,
 		isErasing,

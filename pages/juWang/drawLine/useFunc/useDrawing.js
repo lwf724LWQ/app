@@ -1132,7 +1132,7 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 					w: window.innerWidth,
 					h: containerHeight || window.innerHeight * 0.7
 				};
-
+console.log(canvasSize.value)
 				// 设置 Canvas 尺寸
 				canvasEl.style.width = `${canvasSize.value.w}px`;
 				canvasEl.style.height = `${canvasSize.value.h}px`;
@@ -1181,6 +1181,7 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 					w: systemInfo.windowWidth,
 					h: containerHeight
 				};
+				console.log(canvasSize.value)
 
 				canvasCtx.value.scale(dpr.value, dpr.value);
 
@@ -1209,6 +1210,26 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 			console.error('Canvas 初始化过程中发生错误:', error);
 		}
 	};
+	
+	// 重置函数（为解决第二次进入画规不能画线）
+	const resetDrawingState = () => {
+	    currentShape.value = {
+	        start: { x: 0, y: 0 },
+	        end: { x: 0, y: 0 },
+	        points: []
+	    };
+	    shapes.value = [];
+	    isDrawing.value = false;
+	    isErasing.value = false;
+	    
+	    // 清除Canvas
+	    if (canvasCtx.value) {
+	        canvasCtx.value.clearRect(0, 0, canvasSize.value.w, canvasSize.value.h);
+	    }
+	    if (tempCanvasCtx.value) {
+	        tempCanvasCtx.value.clearRect(0, 0, canvasSize.value.w, canvasSize.value.h);
+	    }
+	};
 
 	// 在模块初始化时设置滚动监听（确保DOM已加载）
 	nextTick().then(() => {
@@ -1216,6 +1237,7 @@ export default function useDrawing(numberGroups, highlighted, numberRefs, showNu
 	});
 
 	return {
+		resetDrawingState,
 		currentMode,
 		isDrawing,
 		isErasing,

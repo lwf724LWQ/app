@@ -1,5 +1,13 @@
 <template>
 	<view class="container">
+		<view class="loading-container" v-if="isLoading">
+			<view class="loading-spinner"></view>
+			<text>加载中...</text>
+		</view>
+		
+		<view class="no-more-data" v-if="noMoreData && !isLoading">
+			<text>没有更多数据了</text>
+		</view>
 		<!-- 自定义导航栏 -->
 		<view class="navbar">
 			<!-- 返回按钮 -->
@@ -74,14 +82,6 @@
 			</table>
 		</view>
 	</view>
-	<view class="loading-container" v-if="isLoading">
-		<view class="loading-spinner"></view>
-		<text>加载中...</text>
-	</view>
-
-	<view class="no-more-data" v-if="noMoreData && !isLoading">
-		<text>没有更多数据了</text>
-	</view>
 </template>
 
 <script setup>
@@ -143,7 +143,7 @@
 	//定义data参数
 	const queryParams = {
 		page: 1,
-		limit: 20,
+		limit: 15,
 		tname: '排列五'
 	}
 	const pageName = ref('')

@@ -39,7 +39,7 @@
 		
 		<!-- 开奖结果区域 - 排列五 -->
 		<view class="lottery-results-plw">
-			<view class="result-item-plw">
+			<view class="result-item-plw" @click="gotoGuiRead">
 				<view class="result-header-plw">
 					<view class="lottery-title-plw">排列三 排列五 {{ plwPeriod }}</view>
 					<view class="lottery-date">{{ plwDate }}</view>
@@ -81,7 +81,7 @@
 		<view class="function-area">
 			<view class="function-grid">
 			<!-- 第一行 -->
-			<view class="icon-item" @click="drawGui()">
+			<view class="icon-item" @click="drawGui">
 				<uni-icons type="compose" size="30" color="#4A90E2"></uni-icons>
 				<text>画规</text>
 			</view>
@@ -179,6 +179,11 @@
 			goToDreamInterpretation(){
 				uni.navigateTo({
 					url: '/pages/dream-interpretation/dream-interpretation'
+				});
+			},
+			gotoGuiRead(){
+				uni.navigateTo({
+					url: '/pages/juWang/drawLine/drawLineRead'
 				});
 			},
 			// 加载开奖结果
