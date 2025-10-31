@@ -107,6 +107,7 @@
 	import {
 		ref
 	} from 'vue'
+	import { onLoad } from '@dcloudio/uni-app'
 	import tool from '@/utils/tool.js'
 	import {
 		apiSubmitVideo
@@ -114,6 +115,18 @@
 	import {
 		getAccount
 	} from '@/utils/request.js'
+
+	// 接收从 video.vue 传递的 tname 参数
+	const routeParams = ref({
+		tname: ''
+	})
+
+	// 页面加载时接收参数
+	onLoad((options) => {
+		if (options.tname) {
+			routeParams.value.tname = decodeURIComponent(options.tname)
+		}
+	})
 
 	//导航栏
 	const goBack = () => {
@@ -272,6 +285,19 @@
 					coverUrl = coverResult.name
 				}
 
+				// 获取彩票名称（tname）- 优先使用 URL 参数，否则从本地存储获取
+				let tname = routeParams.value.tname || ''
+				if (!tname) {
+					try {
+						const currentLotteryType = uni.getStorageSync('currentLotteryType')
+						if (currentLotteryType && currentLotteryType.name) {
+							tname = currentLotteryType.name
+						}
+					} catch (error) {
+						// 静默处理错误
+					}
+				}
+
 				// 准备发送到后端的数据
 				const videoData = {
 					title: videoTitle.value,
@@ -279,8 +305,14 @@
 					price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
 					account: getAccount(),
 					url: videoResult.name,
-					vimg: coverUrl // 添加封面URL
+					vimg: coverUrl || '', // 视频封面
+					tname: tname || '' // 彩票名称，确保总是包含此字段
 				}
+
+				// 调试日志：检查 tname 是否正确获取
+				console.log('上传视频参数 videoData:', JSON.stringify(videoData, null, 2))
+				console.log('routeParams.value:', routeParams.value)
+				console.log('获取到的 tname:', tname)
 
 				// 提交视频信息到后端
 				const submitResult = await apiSubmitVideo(videoData)

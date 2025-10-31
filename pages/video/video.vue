@@ -1,75 +1,62 @@
 <template>
-	<!-- 为了适配小程序顶部高度的盒子-->
-	<StatusBarPlaceholder></StatusBarPlaceholder>
-	<!-- 图片 -->
-	<image class='photo' src="@/static/video/swiper.png" mode=""></image>
+	<view class="video-page-container">
+		<!-- 为了适配小程序顶部高度的盒子-->
+		<StatusBarPlaceholder></StatusBarPlaceholder>
+		<!-- 图片 -->
+		<image class='photo' src="@/static/video/swiper.png" mode=""></image>
 
-	<!-- 切换标签栏（参考 forum.vue 风格） -->
-	<view class="switch-tabs">
-		<view 
-			class="tab-item" 
-			:class="{ active: currentTab === 'plw' }"
-			@click="switchTabByIndex(0)"
-		>
-			<text class="tab-text">排列五</text>
-		</view>
-		<view 
-			class="tab-item" 
-			:class="{ active: currentTab === 'pls' }"
-			@click="switchTabByIndex(1)"
-		>
-			<text class="tab-text">排列三</text>
-		</view>
-		<view 
-			class="tab-item" 
-			:class="{ active: currentTab === 'qxc' }"
-			@click="switchTabByIndex(2)"
-		>
-			<text class="tab-text">七星彩</text>
-		</view>
-		<view 
-			class="tab-item" 
-			:class="{ active: currentTab === 'fc' }"
-			@click="switchTabByIndex(3)"
-		>
-			<text class="tab-text">福彩3D</text>
-		</view>
-		<view 
-			class="tab-item" 
-			:class="{ active: currentTab === 'review' }"
-			@click="switchTabByIndex(4)"
-		>
-			<text class="tab-text">精彩回顾</text>
-		</view>
-	</view>
-
-	
-
-	<!-- 功能图标区 -->
-	<view class="area" v-if="currentTab === 'plw' || 0">
-		<view class="title" v-for="(video, index) in videoList" :key="index">
-			<view class="video-title">{{ video.title }}</view>
-			<!-- 将 video 标签改为 img 标签 -->
-			<img :src="video.imgurl" class="video-image" @click="playVideo(video)"
-				:class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }" />
-
-			<view class="video-info">
-				<text class="video-price" v-if="video.flag && video.price > 0">
-					{{ video.hasPaid ? '已付费' : `付费视频 ${video.price}金币` }}
-				</text>
-				<text class="video-free" v-else>免费视频</text>
+		<!-- 切换标签栏（参考 forum.vue 风格） -->
+		<view class="switch-tabs">
+			<view 
+				class="tab-item" 
+				:class="{ active: currentTab === 'fc' }"
+				@click="switchTabByIndex(3)"
+			>
+				<text class="tab-text">福彩3D</text>
 			</view>
-			<!-- <view class="like-section">
-					<button class="like-btn" :class="{ 'liked': video.isLiked }" @click="toggleLike(video)">
-						<text class="like-icon">{{ video.isLiked ? '❤️' : '👍' }}</text>
-						<text class="like-count">{{ video.likeCount }}</text>
-					</button>
-				</view> -->
+			<view 
+				class="tab-item" 
+				:class="{ active: currentTab === 'plw' }"
+				@click="switchTabByIndex(0)"
+			>
+				<text class="tab-text">排列五</text>
+			</view>
+			<view 
+				class="tab-item" 
+				:class="{ active: currentTab === 'pls' }"
+				@click="switchTabByIndex(1)"
+			>
+				<text class="tab-text">排列三</text>
+			</view>
+			<view 
+				class="tab-item" 
+				:class="{ active: currentTab === 'qxc' }"
+				@click="switchTabByIndex(2)"
+			>
+				<text class="tab-text">七星彩</text>
+			</view>
 		</view>
-	</view>
-	<!-- 发布按钮 -->
-	<view class="publish-btn" @click="gotoOss()">
-		<uni-icons type="plus" size="20" color="#fff"></uni-icons>
+
+		<!-- 功能图标区 -->
+		<view class="area" v-if="currentTab !== 'review'">
+			<view class="title" v-for="(video, index) in videoList" :key="index">
+				<view class="video-title">{{ video.title }}</view>
+				<!-- 将 video 标签改为 img 标签 -->
+				<img :src="video.imgurl" class="video-image" @click="playVideo(video)"
+					:class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }" />
+
+				<view class="video-info">
+					<text class="video-price" v-if="video.flag && video.price > 0">
+						{{ video.hasPaid ? '已付费' : `付费视频 ${video.price}金币` }}
+					</text>
+					<text class="video-free" v-else>免费视频</text>
+				</view>
+			</view>
+		</view>
+		<!-- 发布按钮 -->
+		<view class="publish-btn" @click="gotoOss()">
+			<uni-icons type="plus" size="20" color="#fff"></uni-icons>
+		</view>
 	</view>
 </template>
 
@@ -439,8 +426,13 @@
 
 
 	const gotoOss = () => {
+		// 传递当前彩票类型名称（tname）到 oss.vue
+		let url = `/pages/video/oss`
+		if (currentLotteryType.value && currentLotteryType.value.name) {
+			url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`
+		}
 		uni.navigateTo({
-			url: `/pages/video/oss`
+			url: url
 		});
 	};
 
@@ -455,6 +447,10 @@
 </script>
 
 <style scoped>
+	.video-page-container {
+		min-height: 100vh;
+	}
+
 	.video-title {
 		font-size: 30rpx;
 		font-weight: 600;
