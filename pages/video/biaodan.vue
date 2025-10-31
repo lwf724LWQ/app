@@ -80,20 +80,106 @@
       <view class="submit-section">
         <button class="submit-btn" @click="handleSubmit">提交</button>
       </view>
+      
+      <!-- 隐藏的 Canvas（用于小程序环境生成图片） -->
+      <canvas 
+        canvas-id="formCanvas" 
+        id="formCanvas"
+        class="hidden-canvas"
+        :style="{ width: canvasWidth + 'px', height: canvasHeight + 'px' }"
+      ></canvas>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { apiWordInsert } from '@/api/apis.js'
-import { getCOSSecretKey } from '@/api/apis.js'
+import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { apiWordInsert, getCOSSecretKey } from '@/api/apis.js'
 
 // 表单数据
 const formData = ref({
   issueNo: '',
   name1: '',
   date: ''
+})
+
+// 接收从 video.vue 或 oss.vue 传递的参数
+const routeParams = ref({
+  videoId: '', // 视频ID
+  issueno: '', // 期号
+  tname: '', // 彩票名称
+  opendate: '' // 开奖日期
+})
+
+// 页面加载时接收参数
+onLoad((options) => {
+  // 从 URL 参数获取 videoId（优先）
+  if (options.videoId) {
+    routeParams.value.videoId = decodeURIComponent(options.videoId)
+  }
+  
+  // 从 URL 参数获取其他参数
+  if (options.issueno) {
+    routeParams.value.issueno = decodeURIComponent(options.issueno)
+    formData.value.issueNo = routeParams.value.issueno
+  }
+  if (options.tname) {
+    routeParams.value.tname = decodeURIComponent(options.tname)
+  }
+  if (options.opendate) {
+    routeParams.value.opendate = decodeURIComponent(options.opendate)
+    formData.value.date = routeParams.value.opendate
+  }
+  
+  // 从本地存储获取（如果从 oss.vue 跳转过来）
+  try {
+    const paidVideoInfo = uni.getStorageSync('paidVideoInfo')
+    if (paidVideoInfo) {
+      if (!routeParams.value.videoId && paidVideoInfo.videoId) {
+        routeParams.value.videoId = paidVideoInfo.videoId
+      }
+      if (!routeParams.value.issueno && paidVideoInfo.issueno) {
+        routeParams.value.issueno = paidVideoInfo.issueno
+        formData.value.issueNo = paidVideoInfo.issueno
+      }
+      if (!routeParams.value.tname && paidVideoInfo.tname) {
+        routeParams.value.tname = paidVideoInfo.tname
+      }
+      if (!routeParams.value.opendate && paidVideoInfo.opendate) {
+        routeParams.value.opendate = paidVideoInfo.opendate
+        formData.value.date = paidVideoInfo.opendate
+      }
+    }
+  } catch (error) {
+    // 静默处理错误
+  }
+  
+  // 从 video.vue 的当前状态获取（如果视频页面的期号信息存在）
+  try {
+    const currentIssueInfo = uni.getStorageSync('currentIssueInfo')
+    const currentLotteryType = uni.getStorageSync('currentLotteryType')
+    
+    if (currentIssueInfo && currentIssueInfo.number && !formData.value.issueNo) {
+      routeParams.value.issueno = currentIssueInfo.number
+      formData.value.issueNo = currentIssueInfo.number
+    }
+    
+    if (currentLotteryType && currentLotteryType.name && !routeParams.value.tname) {
+      routeParams.value.tname = currentLotteryType.name
+    }
+    
+    if (!formData.value.date) {
+      const today = new Date()
+      const year = today.getFullYear()
+      const month = String(today.getMonth() + 1).padStart(2, '0')
+      const day = String(today.getDate()).padStart(2, '0')
+      formData.value.date = `${year}-${month}-${day}`
+      routeParams.value.opendate = formData.value.date
+    }
+  } catch (error) {
+    // 静默处理错误
+  }
 })
 
 // 选项列表
@@ -111,41 +197,50 @@ const options = ref([
 
 // 备注
 const remark = ref('')
-// 从上传页传来的本地生成视频ID
-const videoId = ref('')
+
+// Canvas 尺寸（用于小程序环境）
+const canvasWidth = ref(750)
+const canvasHeight = ref(1200)
 
 // 返回上一页
 const goBack = () => {
   uni.navigateBack()
 }
 
-// 从存储中预填期号
-onMounted(() => {
-  try {
-    const issueInfo = uni.getStorageSync('currentIssueInfo') || {}
-    if (issueInfo && (issueInfo.number || issueInfo.id)) {
-      formData.value.issueNo = issueInfo.number || issueInfo.id
-    }
-    // 预填日期：优先使用接口返回的 opendate；兼容 time
-    if (issueInfo && (issueInfo.opendate || issueInfo.time)) {
-      formData.value.date = issueInfo.opendate || issueInfo.time
-    }
-    const draft = uni.getStorageSync('paidVideoDraft') || {}
-    if (draft && draft.videoId) {
-      videoId.value = draft.videoId
-    }
-  } catch (e) {}
-})
-
-// 与 pattern-predict.vue 相同的 OSS 上传方法（目标目录 pimg/）
+// OSS上传函数（参考 pattern-predict.vue）
 const uploadObject = async (file, callback) => {
   try {
-    let fileName = file.name || 'form.jpg'
-    const upload_file_name = new Date().getTime() + '.' + (fileName.split('.').pop() || 'jpg')
+    // 处理不同环境：file 可能是 File 对象或路径字符串
+    let fileName = ''
+    let fileToUpload = file
+    
+    if (typeof file === 'string') {
+      // 小程序环境：file 是路径字符串
+      fileName = file.split('/').pop() || `form-${Date.now()}.png`
+      fileToUpload = file
+    } else {
+      // H5 环境：file 是 File 对象
+      fileName = file.name || `form-${Date.now()}.png`
+      fileToUpload = file
+    }
+    
+    const origin_file_name = fileName.split(".").slice(0, fileName.split(".").length - 1).join('.')
+    
+    // 获取当前时间戳
+    const upload_file_name = new Date().getTime() + '.' + fileName.split(".")[fileName.split(".").length - 1]
+    
+    // 请求接口得到token
     let res = await getCOSSecretKey({})
-    if (res.code !== 200) throw new Error('获取上传凭证失败')
+    
+    if (res.code !== 200) {
+      throw new Error('获取上传凭证失败')
+    }
+    
+    // 动态导入ali-oss
     const OSS = await import('ali-oss')
-    const client = new OSS.default({
+    
+    // 根据STS接口实际返回的数据结构创建OSS客户端
+    const ossConfig = {
       region: res.data.region || 'cn-guangzhou',
       accessKeyId: res.data.STSaccessKeyId,
       accessKeySecret: res.data.STSsecretAccessKey,
@@ -153,118 +248,350 @@ const uploadObject = async (file, callback) => {
       bucket: res.data.bucket || 'cjvd',
       endpoint: 'https://oss-cn-guangzhou.aliyuncs.com',
       refreshSTSToken: async () => {
-        const n = await getCOSSecretKey({})
+        const newRes = await getCOSSecretKey({})
         return {
-          accessKeyId: n.data.STSaccessKeyId,
-          accessKeySecret: n.data.STSsecretAccessKey,
-          stsToken: n.data.security_token
+          accessKeyId: newRes.data.STSaccessKeyId,
+          accessKeySecret: newRes.data.STSsecretAccessKey,
+          stsToken: newRes.data.security_token
         }
       },
-      refreshSTSTokenInterval: 300000
-    })
-    const result = await client.put(`wimg/${upload_file_name}`, file)
+      refreshSTSTokenInterval: 300000 // 5分钟刷新一次
+    }
+    
+    const client = new OSS.default(ossConfig)
+    
+    // 处理上传文件：小程序环境可能需要读取文件
+    // #ifdef MP
+    // 小程序环境：如果 file 是路径字符串，需要读取文件
+    if (typeof fileToUpload === 'string') {
+      const fs = uni.getFileSystemManager()
+      try {
+        const fileData = fs.readFileSync(fileToUpload)
+        // 转换为 Blob/File 对象
+        const blob = new Blob([fileData], { type: 'image/png' })
+        fileToUpload = new File([blob], upload_file_name, { type: 'image/png' })
+      } catch (error) {
+        throw new Error('读取文件失败')
+      }
+    }
+    // #endif
+    
+    // 上传文件
+    const result = await client.put(`wimg/${upload_file_name}`, fileToUpload)
+    
     if (result && result.url) {
+      // 直接使用固定的自定义域名前缀 + 唯一文件名
       const customUrl = `http://video.caimizm.com/wimg/${upload_file_name}`
+      
       callback(customUrl)
     } else {
       throw new Error('上传失败')
     }
-  } catch (e) { throw e }
+    
+  } catch (error) {
+    throw error
+  }
 }
 
-// 生成表单图片并上传，返回图片URL
-const generateFormImage = () => {
+// 生成表单图片 - H5环境
+// #ifdef H5
+const generateFormImageH5 = () => {
   return new Promise((resolve, reject) => {
     try {
-      const width = 750
-      const lineHeight = 44
-      const padding = 30
-      const rows = 12 // 估算行数
-      const height = padding * 2 + lineHeight * (rows + options.value.length)
       const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      const width = 750
+      const height = 1200
       canvas.width = width
       canvas.height = height
-      const ctx = canvas.getContext('2d')
-      // 背景
-      ctx.fillStyle = '#fff'
-      ctx.fillRect(0,0,width,height)
-      ctx.fillStyle = '#333'
-      ctx.font = 'bold 28px sans-serif'
-      ctx.fillText('开奖号记录', padding, padding + 28)
-      ctx.font = '24px sans-serif'
-      let y = padding + 28 + 20
-      ctx.fillText(`期号: ${formData.value.issueNo}`, padding, y); y += lineHeight
-      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, padding, y); y += lineHeight
-      ctx.fillText(`日期: ${formData.value.date}`, padding, y); y += lineHeight
-
-      // 各项内容
-      options.value.forEach(opt => {
-        const inputs = (opt.inputs || []).join(' ')
-        ctx.fillText(`${opt.label}: ${inputs}`, padding, y)
-        y += lineHeight
+      
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, width, height)
+      
+      ctx.font = 'bold 32px Arial'
+      ctx.fillStyle = '#333333'
+      ctx.textAlign = 'center'
+      ctx.fillText('开奖号码记录', width / 2, 60)
+      
+      ctx.font = '24px Arial'
+      ctx.textAlign = 'left'
+      ctx.fillStyle = '#666666'
+      let yPos = 120
+      
+      ctx.fillText(`期号: ${formData.value.issueNo || ''}`, 40, yPos)
+      yPos += 40
+      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, 40, yPos)
+      yPos += 40
+      ctx.fillText(`日期: ${formData.value.date || ''}`, 40, yPos)
+      yPos += 60
+      
+      options.value.forEach((option) => {
+        if (option.hasInputs && option.inputs && option.inputs.some(input => input.trim())) {
+          ctx.fillStyle = '#333333'
+          ctx.font = 'bold 26px Arial'
+          const validInputs = option.inputs.filter(input => input.trim())
+          ctx.fillText(`${option.label}: ${validInputs.join(', ')}`, 40, yPos)
+          yPos += 35
+        }
       })
-      if (remark.value) { ctx.fillText(`备注: ${remark.value}`, padding, y); y += lineHeight }
-
-      canvas.toBlob(async (blob) => {
-        try {
-          const file = new File([blob], 'form.jpg', { type: 'image/jpeg' })
-          uploadObject(file, (url) => resolve(url))
-        } catch (e) { reject(e) }
-      }, 'image/jpeg', 0.92)
-    } catch (err) { reject(err) }
+      
+      if (remark.value.trim()) {
+        yPos += 20
+        ctx.fillStyle = '#666666'
+        ctx.font = '24px Arial'
+        ctx.fillText(`备注: ${remark.value}`, 40, yPos)
+      }
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], `form-${Date.now()}.png`, { type: 'image/png' })
+          resolve(file)
+        } else {
+          reject(new Error('生成图片失败'))
+        }
+      }, 'image/png')
+    } catch (error) {
+      reject(error)
+    }
   })
+}
+// #endif
+
+// 生成表单图片 - 小程序/App环境
+// #ifndef H5
+const generateFormImageMP = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const ctx = uni.createCanvasContext('formCanvas')
+      const width = canvasWidth.value
+      const height = canvasHeight.value
+      
+      ctx.setFillStyle('#ffffff')
+      ctx.fillRect(0, 0, width, height)
+      
+      ctx.setFillStyle('#333333')
+      ctx.setFontSize(32)
+      ctx.setTextAlign('center')
+      ctx.fillText('开奖号码记录', width / 2, 60)
+      
+      ctx.setFontSize(24)
+      ctx.setTextAlign('left')
+      ctx.setFillStyle('#666666')
+      let yPos = 120
+      
+      ctx.fillText(`期号: ${formData.value.issueNo || ''}`, 40, yPos)
+      yPos += 40
+      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, 40, yPos)
+      yPos += 40
+      ctx.fillText(`日期: ${formData.value.date || ''}`, 40, yPos)
+      yPos += 60
+      
+      options.value.forEach((option) => {
+        if (option.hasInputs && option.inputs && option.inputs.some(input => input.trim())) {
+          ctx.setFillStyle('#333333')
+          ctx.setFontSize(26)
+          const validInputs = option.inputs.filter(input => input.trim())
+          ctx.fillText(`${option.label}: ${validInputs.join(', ')}`, 40, yPos)
+          yPos += 35
+        }
+      })
+      
+      if (remark.value.trim()) {
+        yPos += 20
+        ctx.setFillStyle('#666666')
+        ctx.setFontSize(24)
+        ctx.fillText(`备注: ${remark.value}`, 40, yPos)
+      }
+      
+      ctx.draw(false, () => {
+        setTimeout(() => {
+          uni.canvasToTempFilePath({
+            canvasId: 'formCanvas',
+            success: (res) => {
+              resolve(res.tempFilePath)
+            },
+            fail: () => {
+              reject(new Error('生成图片失败'))
+            }
+          })
+        }, 300)
+      })
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+// #endif
+
+// 生成表单图片（统一入口）
+const generateFormImage = async () => {
+  // #ifdef H5
+  return await generateFormImageH5()
+  // #endif
+  // #ifndef H5
+  return await generateFormImageMP()
+  // #endif
 }
 
 // 提交表单
 const handleSubmit = async () => {
+  // 优先使用 routeParams 中的值，否则从本地存储获取
+  let videoId = routeParams.value.videoId || null
+  let issueno = routeParams.value.issueno || formData.value.issueNo
+  let tname = routeParams.value.tname || ''
+  let opendate = routeParams.value.opendate || formData.value.date
+  
+  // 从本地存储获取（如果 routeParams 中没有）
   try {
-    // 基础校验
-    if (!videoId.value) {
-      uni.showToast({ title: '未获取到视频ID，请返回上传页重试', icon: 'none' })
-      return
+    const paidVideoInfo = uni.getStorageSync('paidVideoInfo')
+    if (paidVideoInfo) {
+      if (!videoId && paidVideoInfo.videoId) {
+        videoId = paidVideoInfo.videoId
+      }
+      if (!issueno && paidVideoInfo.issueno) {
+        issueno = paidVideoInfo.issueno
+      }
+      if (!tname && paidVideoInfo.tname) {
+        tname = paidVideoInfo.tname
+      }
+      if (!opendate && paidVideoInfo.opendate) {
+        opendate = paidVideoInfo.opendate
+      }
     }
-    // 强依赖 video.vue 的来源数据，避免被手动改乱
-    const issueInfo = uni.getStorageSync('currentIssueInfo') || {}
-    const lot = uni.getStorageSync('currentLotteryType') || {}
-    const outIssueno = issueInfo.number || issueInfo.id || formData.value.issueNo
-    const outOpenDate = issueInfo.opendate || issueInfo.time || formData.value.date
-    const outTname = lot.name || ''
-    if (!outIssueno) { uni.showToast({ title: '期号不能为空', icon: 'none' }); return }
-    if (!outOpenDate) { uni.showToast({ title: '日期不能为空', icon: 'none' }); return }
-
-    // 序列化表格内容
-    const content = {
-      name: formData.value.name1 || '',
-      remark: remark.value || '',
-      options: options.value.map(o => ({ label: o.label, inputs: o.inputs }))
-    }
-
-    // 读取 tname 和 封面图（可选）
-    const tname = outTname
-    // 生成图片并上传，获取 wimg
-    uni.showLoading({ title: '生成图片...' })
-    let wimg = await generateFormImage()
-
-    uni.showLoading({ title: '提交中...' })
-    const res = await apiWordInsert({
-      videoId: videoId.value,
-      content: JSON.stringify(content),
-      issueno: outIssueno,
-      tname,
-      opendate: outOpenDate,
-      wimg
+  } catch (error) {
+    // 静默处理错误
+  }
+  
+  // 验证必填字段
+  if (!videoId || videoId === null || videoId === 'null' || videoId === '') {
+    uni.showToast({
+      title: '视频ID不能为空，请重新上传视频',
+      icon: 'none',
+      duration: 3000
     })
-    uni.hideLoading()
-
-    if (res && res.code === 200) {
-      uni.showToast({ title: res.msg || '提交成功', icon: 'success' })
-      setTimeout(() => uni.navigateBack(), 800)
-    } else {
-      uni.showToast({ title: (res && res.msg) || '提交失败', icon: 'none' })
+    return
+  }
+  
+  if (!issueno) {
+    uni.showToast({
+      title: '期号不能为空',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (!tname) {
+    uni.showToast({
+      title: '彩票名称不能为空',
+      icon: 'none'
+    })
+    return
+  }
+  
+  if (!opendate) {
+    uni.showToast({
+      title: '开奖日期不能为空',
+      icon: 'none'
+    })
+    return
+  }
+  
+  // 构建表单内容
+  let content = `姓名: ${formData.value.name1}\n\n`
+  
+  options.value.forEach((option, index) => {
+    if (option.hasInputs && option.inputs && option.inputs.some(input => input.trim())) {
+      content += `${option.label}: `
+      const validInputs = option.inputs.filter(input => input.trim())
+      if (validInputs.length > 0) {
+        content += validInputs.join(', ')
+      }
+      content += '\n'
     }
-  } catch (err) {
+  })
+  
+  if (remark.value.trim()) {
+    content += `\n备注: ${remark.value}`
+  }
+  
+  // 生成图片并上传
+  let wimgUrl = ''
+  try {
+    uni.showLoading({ title: '正在生成图片...' })
+    
+    // 生成图片
+    const imageResult = await generateFormImage()
+    
+    uni.showLoading({ title: '正在上传图片...' })
+    
+    // 处理不同环境返回的结果
+    let uploadFile = imageResult
+    
+    // #ifdef H5
+    if (typeof imageResult === 'string') {
+      // H5 环境：将路径转换为 File 对象
+      const response = await fetch(imageResult)
+      const blob = await response.blob()
+      uploadFile = new File([blob], `form-${Date.now()}.png`, { type: 'image/png' })
+    }
+    // #endif
+    
+    // 上传到 OSS
+    wimgUrl = await new Promise((resolve, reject) => {
+      uploadObject(uploadFile, (url) => {
+        resolve(url)
+      })
+    })
+  } catch (error) {
+    uni.showToast({
+      title: '生成图片失败，将继续提交表单',
+      icon: 'none',
+      duration: 2000
+    })
+  }
+  
+  try {
+    uni.showLoading({
+      title: '提交中...'
+    })
+    
+    // 准备提交数据
+    const submitData = {
+      videoId: videoId,
+      content: content,
+      issueno: issueno,
+      tname: tname,
+      opendate: opendate,
+      wimg: wimgUrl // 表单图片URL
+    }
+    
+    const response = await apiWordInsert(submitData)
+    
     uni.hideLoading()
-    uni.showToast({ title: '网络错误，请重试', icon: 'none' })
+    
+    if (response.code === 200) {
+      uni.showToast({
+        title: '提交成功',
+        icon: 'success'
+      })
+      
+      // 延迟返回上一页
+      setTimeout(() => {
+        uni.navigateBack()
+      }, 1500)
+    } else {
+      uni.showToast({
+        title: response.msg || '提交失败',
+        icon: 'none'
+      })
+    }
+  } catch (error) {
+    uni.hideLoading()
+    uni.showToast({
+      title: '提交失败，请重试',
+      icon: 'none'
+    })
   }
 }
 </script>
@@ -599,5 +926,14 @@ const handleSubmit = async () => {
 .submit-btn:active {
   transform: scale(0.95);
   box-shadow: 0 4rpx 12rpx rgba(40, 179, 137, 0.3);
+}
+
+/* 隐藏的 Canvas（用于小程序环境生成图片） */
+.hidden-canvas {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  visibility: hidden;
+  z-index: -1;
 }
 </style>

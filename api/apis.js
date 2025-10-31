@@ -343,7 +343,7 @@ export function apiBillQuery(data = {}) {
 // 参数示例：{ videoId, content, issueno, tname, opendate, wimg }
 export function apiWordInsert(data = {}) {
     return request({
-        url: "/web/word/insert",
+        url: "/web/vword/insert",
         method: "POST",
         data
     })

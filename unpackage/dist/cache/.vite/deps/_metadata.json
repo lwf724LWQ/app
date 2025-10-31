@@ -1,38 +1,26 @@
 {
-  "hash": "c357b08f",
-  "configHash": "0f2a0411",
+  "hash": "75d850d9",
+  "configHash": "878a3b37",
   "lockfileHash": "29148e3b",
-  "browserHash": "7f877ea4",
+  "browserHash": "88aaa71b",
   "optimized": {
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "a2814c8f",
-      "needsInterop": false
-    },
-    "qrcode": {
-      "src": "../../../../../node_modules/qrcode/lib/browser.js",
-      "file": "qrcode.js",
-      "fileHash": "2243f1af",
-      "needsInterop": true
-    },
-    "nanoid": {
-      "src": "../../../../../node_modules/nanoid/index.browser.js",
-      "file": "nanoid.js",
-      "fileHash": "d98cb3b2",
+    "nanoid/non-secure": {
+      "src": "../../../../../node_modules/nanoid/non-secure/index.js",
+      "file": "nanoid_non-secure.js",
+      "fileHash": "f5d84203",
       "needsInterop": false
     },
     "ali-oss": {
       "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
       "file": "ali-oss.js",
-      "fileHash": "46b1192d",
+      "fileHash": "55613cf9",
       "needsInterop": true
     },
-    "nanoid/non-secure": {
-      "src": "../../../../../node_modules/nanoid/non-secure/index.js",
-      "file": "nanoid_non-secure.js",
-      "fileHash": "113ab94a",
-      "needsInterop": false
+    "qrcode": {
+      "src": "../../../../../node_modules/qrcode/lib/browser.js",
+      "file": "qrcode.js",
+      "fileHash": "4380d0bf",
+      "needsInterop": true
     }
   },
   "chunks": {

@@ -37,21 +37,22 @@
 			</view>
 		</view>
 
-        <!-- 视频上传区域 -->
-        <view class="upload-area" @click="chooseFile">
-            <block v-if="selectedVideoUrl">
-                <video :src="selectedVideoUrl" class="video-preview" controls muted></video>
-                <view class="file-brief">{{ selectedVideoName }}</view>
-            </block>
-            <block v-else>
-                <uni-icons name="plus" size="50" color="#3498db"></uni-icons>
-                <view class="upload-text">点击选择视频文件</view>
-                <view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
-            </block>
-        </view>
+	<!-- 视频上传区域 -->
+	<view class="upload-area" @click="chooseFile">
+		<video v-if="selectedVideoUrl" :src="selectedVideoUrl" class="video-preview" controls></video>
+		<view v-if="selectedVideoName" class="video-info">
+			<text class="video-name">{{ selectedVideoName }}</text>
+			<text class="video-size" v-if="selectedVideoSize">{{ formatFileSize(selectedVideoSize) }}</text>
+		</view>
+		<view v-else class="upload-placeholder">
+			<uni-icons name="plus" size="50" color="#3498db"></uni-icons>
+			<view class="upload-text">点击选择视频文件</view>
+			<view class="upload-hint">支持上传所有类型文件，大小不超过5MB</view>
+		</view>
+	</view>
 
 		<!-- 封面选择区域 -->
-		<view class="cover-area" v-if="fileList.length > 0">
+		<view class="cover-area" v-if="selectedVideoUrl">
 			<text class="section-title">视频封面</text>
 			<view class="cover-preview" @click="chooseCover">
 				<image v-if="coverImage" :src="coverImage" class="cover-image"></image>
@@ -111,11 +112,8 @@
 		apiSubmitVideo
 	} from '@/api/apis';
 	import {
-		setToken,
-		getToken,
-		setAccount,
 		getAccount
-	} from '@/utils/request.js'; // 导入setToken，账号
+	} from '@/utils/request.js'
 
 	//导航栏
 	const goBack = () => {
@@ -139,55 +137,55 @@
 	const isCharge = ref(1) // 1=免费，2=收费
 	const chargePrice = ref('')
 
-    // 封面图片
+	// 封面图片
 	const coverImage = ref('')
 	const coverFile = ref(null)
 
-    // 视频预览
-    const selectedVideoUrl = ref('')
-    const selectedVideoName = ref('')
+	// 视频预览信息
+	const selectedVideoUrl = ref('')
+	const selectedVideoName = ref('')
+	const selectedVideoSize = ref(0)
 
-    // 条件满足时跳转到表单页（收费视频）
-    const tryGotoBiaodan = () => {
-        if (isCharge.value === 2 && fileList.value.length > 0 && (coverFile.value || coverImage.value)) {
-            // 缓存草稿数据，便于表单页读取
-            try {
-                uni.setStorageSync('paidVideoDraft', {
-                    title: videoTitle.value,
-                    price: Number(chargePrice.value) || 0,
-                    videoPath: fileList.value[0].path || fileList.value[0].tempFilePath || '',
-                    coverPath: coverImage.value || (coverFile.value && coverFile.value.path) || '',
-                    account: getAccount(),
-                    timestamp: Date.now()
-                })
-            } catch (e) {}
-            uni.navigateTo({ url: '/pages/video/biaodan' })
-        }
-    }
-
-    // 选择视频文件（跨端：优先使用 chooseVideo）
-    const chooseFile = () => {
-        uni.chooseVideo({
-            sourceType: ['album','camera'],
-            success: (res) => {
-                // 统一成与 tempFiles 相似的数据结构，确保包含扩展名
-                const path = res.tempFilePath || ''
-                const filenameFromPath = path.split('/').pop() || 'video.mp4'
-                const hasExt = filenameFromPath.includes('.')
-                const name = hasExt ? filenameFromPath : `${filenameFromPath}.mp4`
-                const item = { path, size: res.size, name }
-                fileList.value = [item]
-                selectedVideoUrl.value = item.path
-                selectedVideoName.value = item.name
-                statusMessage.value = `已选择1个文件，点击"开始上传"按钮上传`
-                statusClass.value = 'status-warning'
-            },
-            fail: () => {
-                statusMessage.value = '未选择到文件'
-                statusClass.value = 'status-error'
-            }
-        })
-    }
+	// 选择视频文件（使用 chooseVideo API）
+	const chooseFile = () => {
+		uni.chooseVideo({
+			sourceType: ['album', 'camera'],
+			maxDuration: 60, // 最大时长60秒
+			camera: 'back',
+			success: (res) => {
+				selectedVideoUrl.value = res.tempFilePath
+				
+				// 提取文件名，确保包含扩展名
+				let fileName = res.tempFilePath.split('/').pop() || 'video'
+				// 如果没有扩展名，添加 .mp4
+				if (!fileName.includes('.')) {
+					fileName = fileName + '.mp4'
+				}
+				// 确保扩展名是视频格式，如果不是则改为 .mp4
+				const ext = fileName.split('.').pop()?.toLowerCase()
+				if (!ext || !['mp4', 'mov', 'avi', 'm4v', 'webm'].includes(ext)) {
+					fileName = fileName.split('.').slice(0, -1).join('.') + '.mp4'
+				}
+				
+				selectedVideoName.value = fileName
+				selectedVideoSize.value = res.size || 0
+				
+				// 构建文件对象，用于后续上传
+				fileList.value = [{
+					path: res.tempFilePath,
+					name: fileName,
+					size: selectedVideoSize.value
+				}]
+				
+				statusMessage.value = `已选择视频，点击"开始上传"按钮上传`
+				statusClass.value = 'status-warning'
+			},
+			fail: () => {
+				statusMessage.value = '选择视频失败，请重试'
+				statusClass.value = 'status-error'
+			}
+		})
+	}
 
 	// 选择封面
 	const chooseCover = () => {
@@ -205,69 +203,223 @@
 
 	// 开始上传
 	const startUpload = async () => {
-    if (fileList.value.length === 0) {
-        statusMessage.value = '请先选择文件'
-        statusClass.value = 'status-error'
-        return
-    }
-    if (!videoTitle.value.trim()) {
-        statusMessage.value = '请输入视频标题'
-        statusClass.value = 'status-error'
-        return
-    }
-    if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
-        statusMessage.value = '请输入有效的收费价格'
-        statusClass.value = 'status-error'
-        return
-    }
-    if (isCharge.value === 2 && (!coverImage.value && !coverFile.value)) {
-        uni.showToast({ title: '请先选择封面', icon: 'none' })
-        return
-    }
-    try {
-        uni.showLoading({ title: '上传视频...' })
-        const raw = fileList.value[0]
-        let uploadVideo = raw
-        if (typeof window !== 'undefined' && raw && raw.path && !raw.slice) {
-            const resp = await fetch(raw.path)
-            const blob = await resp.blob()
-            uploadVideo = new File([blob], raw.name || 'video.mp4', { type: blob.type || 'video/mp4' })
-        }
-        const videoResult = await tool.oss.upload(uploadVideo, {
-            folder: 'videos',
-            progress: (p) => { uploadProgress.value = Math.floor(p * 100) }
-        })
-        let coverUrl = ''
-        if (coverFile.value) {
-            uni.showLoading({ title: '上传封面...' })
-            let uploadCover = coverFile.value
-            if (typeof window !== 'undefined' && coverImage.value) {
-                const r = await fetch(coverImage.value)
-                const b = await r.blob()
-                uploadCover = new File([b], (coverFile.value && coverFile.value.name) || 'cover.jpg', { type: b.type || 'image/jpeg' })
-            }
-            const coverResult = await tool.oss.upload(uploadCover, {
-                folder: 'vimg',
-                progress: () => {}
-            })
-            coverUrl = coverResult.name
-        }
-        uni.hideLoading()
-        uni.setStorageSync('paidVideoDraft', {
-            title: videoTitle.value,
-            price: Number(chargePrice.value) || 0,
-            account: getAccount(),
-            videoId: videoResult.name,
-            coverPath: coverUrl,
-            timestamp: Date.now()
-        })
-        uni.navigateTo({ url: '/pages/video/biaodan' })
-    } catch (e) {
-        uni.hideLoading()
-        uni.showToast({ title: '上传失败，请重试', icon: 'none' })
-    }
-}
-	
+		if (fileList.value.length === 0) {
+			statusMessage.value = '请先选择文件'
+			statusClass.value = 'status-error'
+			return
+		}
+
+		// 验证表单
+		if (!videoTitle.value.trim()) {
+			statusMessage.value = '请输入视频标题'
+			statusClass.value = 'status-error'
+			return
+		}
+
+		if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
+			statusMessage.value = '请输入有效的收费价格'
+			statusClass.value = 'status-error'
+			return
+		}
+
+		statusMessage.value = '正在上传...'
+		statusClass.value = 'status-warning'
+		uploadProgress.value = 0
+
+		for (let i = 0; i < fileList.value.length; i++) {
+			const fileItem = fileList.value[i]
+			try {
+				// 处理文件对象：如果是路径，需要转换为文件对象（H5环境）
+				let uploadFile = fileItem
+				// 确保文件名包含扩展名
+				let fileName = fileItem.name || selectedVideoName.value || 'video.mp4'
+				if (!fileName.includes('.')) {
+					fileName = fileName + '.mp4'
+				}
+				const ext = fileName.split('.').pop()?.toLowerCase()
+				if (!ext || !['mp4', 'mov', 'avi', 'm4v', 'webm'].includes(ext)) {
+					fileName = fileName.split('.').slice(0, -1).join('.') + '.mp4'
+				}
+				
+				if (fileItem.path && typeof window !== 'undefined') {
+					// H5环境：将临时路径转换为File对象
+					const response = await fetch(fileItem.path)
+					const blob = await response.blob()
+					uploadFile = new File([blob], fileName, { type: blob.type || 'video/mp4' })
+				} else if (fileItem.path) {
+					// 小程序环境：直接使用路径
+					uploadFile = fileItem.path
+				}
+				
+				// 执行视频上传
+				const videoResult = await tool.oss.upload(uploadFile, {
+					folder: 'videos', // 视频存储文件夹
+					progress: (percentage) => {
+						uploadProgress.value = Math.floor(percentage * 100)
+						statusMessage.value = `视频上传中: ${uploadProgress.value}%`
+					},
+				})
+
+				// 上传封面图片到 vimg 文件夹
+				let coverUrl = ""
+				if (coverFile.value) {
+					statusMessage.value = '正在上传封面...'
+					const coverResult = await tool.oss.upload(coverFile.value, {
+						folder: 'vimg',
+						progress: () => {}
+					})
+
+					coverUrl = coverResult.name
+				}
+
+				// 准备发送到后端的数据
+				const videoData = {
+					title: videoTitle.value,
+					flag: isCharge.value === 2,
+					price: isCharge.value === 2 ? Number(chargePrice.value) : 0,
+					account: getAccount(),
+					url: videoResult.name,
+					vimg: coverUrl // 添加封面URL
+				}
+
+				// 提交视频信息到后端
+				const submitResult = await apiSubmitVideo(videoData)
+
+				// 添加到上传结果
+				uploadResults.value.push({
+					name: fileItem.name || selectedVideoName.value,
+					size: fileItem.size || selectedVideoSize.value,
+					url: videoResult.url,
+					coverUrl: coverUrl
+				})
+
+				statusMessage.value = `文件"${fileItem.name || selectedVideoName.value}"上传成功`
+				statusClass.value = 'status-success'
+
+				// 如果是付费视频，保存数据并跳转到表单页面
+				if (isCharge.value === 2 && submitResult.code === 200) {
+					// 从 video.vue 的本地存储获取期号和彩票类型
+					let issueno = ''
+					let tname = ''
+					let opendate = ''
+					
+					try {
+						const currentIssueInfo = uni.getStorageSync('currentIssueInfo')
+						const currentLotteryType = uni.getStorageSync('currentLotteryType')
+						
+						if (currentIssueInfo && currentIssueInfo.number) {
+							issueno = currentIssueInfo.number
+						}
+						
+						if (currentLotteryType && currentLotteryType.name) {
+							tname = currentLotteryType.name
+						}
+						
+						// 开奖日期：如果没有，使用今天的日期
+						const today = new Date()
+						const year = today.getFullYear()
+						const month = String(today.getMonth() + 1).padStart(2, '0')
+						const day = String(today.getDate()).padStart(2, '0')
+						opendate = `${year}-${month}-${day}`
+					} catch (error) {
+						// 静默处理错误
+					}
+					
+					// 提取 videoId（支持多种响应格式）
+					let videoId = null
+					if (submitResult.data) {
+						// 尝试多种可能的字段名
+						videoId = submitResult.data.id || 
+						          submitResult.data.videoId || 
+						          submitResult.data.video_id ||
+						          submitResult.data.vId ||
+						          submitResult.id ||
+						          (typeof submitResult.data === 'number' ? submitResult.data : null) ||
+						          (typeof submitResult.data === 'string' ? submitResult.data : null) ||
+						          null
+					}
+					
+					// 如果 videoId 为空，尝试从响应体的其他位置获取
+					if (!videoId && submitResult.code === 200) {
+						// 有些接口直接返回 ID 字符串或数字
+						if (typeof submitResult.data === 'string' || typeof submitResult.data === 'number') {
+							videoId = submitResult.data
+						}
+					}
+					
+					// 保存视频数据到本地存储，供 biaodan.vue 使用
+					const videoInfo = {
+						videoId: videoId,
+						title: videoTitle.value,
+						price: Number(chargePrice.value) || 0,
+						account: getAccount(),
+						videoUrl: videoResult.url || `http://video.caimizm.com/${videoResult.name}`,
+						coverUrl: coverUrl || '',
+						issueno: issueno, // 期号
+						tname: tname, // 彩票名称
+						opendate: opendate, // 开奖日期
+						timestamp: Date.now()
+					}
+					
+					try {
+						uni.setStorageSync('paidVideoInfo', videoInfo)
+					} catch (error) {
+						// 静默处理错误
+					}
+
+					// 延迟跳转，让用户看到成功提示
+					setTimeout(() => {
+						// 通过 URL 参数传递 videoId（作为备用）
+						let url = '/pages/video/biaodan'
+						if (videoId) {
+							url += `?videoId=${videoId}`
+						}
+						
+						uni.navigateTo({
+							url: url,
+							success: () => {
+								// 重置表单
+								videoTitle.value = ''
+								isCharge.value = 1
+								chargePrice.value = ''
+								coverImage.value = ''
+								coverFile.value = null
+								selectedVideoUrl.value = ''
+								selectedVideoName.value = ''
+								selectedVideoSize.value = 0
+								fileList.value = []
+								uploadResults.value = []
+							},
+							fail: () => {
+								uni.showToast({
+									title: '跳转失败',
+									icon: 'none'
+								})
+							}
+						})
+					}, 1500)
+				} else {
+					// 免费视频：重置表单
+					videoTitle.value = ''
+					isCharge.value = 1
+					chargePrice.value = ''
+					coverImage.value = ''
+					coverFile.value = null
+					selectedVideoUrl.value = ''
+					selectedVideoName.value = ''
+					selectedVideoSize.value = 0
+					
+					// 延迟返回上一页
+					setTimeout(() => {
+						goBack()
+					}, 1500)
+				}
+			} catch (error) {
+				statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || '视频'}"上传失败: ${error.message}`
+				statusClass.value = 'status-error'
+			}
+		}
+	}
 
 	// 清空文件
 	const clearFiles = () => {
@@ -276,6 +428,9 @@
 		uploadProgress.value = 0
 		coverImage.value = ''
 		coverFile.value = null
+		selectedVideoUrl.value = ''
+		selectedVideoName.value = ''
+		selectedVideoSize.value = 0
 		statusMessage.value = '已清空所有文件'
 		statusClass.value = 'status-warning'
 	}
@@ -390,6 +545,39 @@
 		text-align: center;
 		background: #f8fafc;
 		margin-bottom: 20px;
+		position: relative;
+	}
+
+	.upload-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.video-preview {
+		width: 100%;
+		max-height: 400px;
+		border-radius: 8px;
+		margin-bottom: 15px;
+	}
+
+	.video-info {
+		margin-top: 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.video-name {
+		font-size: 16px;
+		font-weight: 500;
+		color: #333;
+		margin-bottom: 5px;
+	}
+
+	.video-size {
+		font-size: 14px;
+		color: #666;
 	}
 
 	.upload-text {

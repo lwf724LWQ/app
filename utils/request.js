@@ -1,4 +1,3 @@
-
 const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
 
 // 全局token变量
@@ -47,12 +46,18 @@ export function request(config={}){
 	} = config
 	
 	url = BASE_URL+url
-	// header['access-key'] = "xxxxxx"
-	//如果有令牌
+	
+	// 设置默认请求头
+	if (!header['Content-Type']) {
+		header['Content-Type'] = 'application/json'
+	}
+	
+	// 如果有令牌，添加到请求头
 	const token = getToken();
 	if (token) {
 	    header.Authorization = `${token}`;
 	}
+	
 	return new Promise((resolve,reject)=>{		
 		uni.request({
 			url,

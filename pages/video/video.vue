@@ -4,7 +4,7 @@
 	<!-- 图片 -->
 	<image class='photo' src="@/static/video/swiper.png" mode=""></image>
 
-
+	<!-- 切换标签栏（参考 forum.vue 风格） -->
 	<view class="switch-tabs">
 		<view 
 			class="tab-item" 
@@ -101,7 +101,8 @@
 	} from '@/stores/video.js'
 
 	// 下拉刷新钩子
-onPullDownRefresh(async () => {
+	onPullDownRefresh(async () => {
+		console.log('下拉刷新触发')
 		// 执行刷新数据的函数
 		await fetchVideoList();
 		// 停止下拉刷新
@@ -115,7 +116,8 @@ onPullDownRefresh(async () => {
 				page: 1,
 				limit: 10
 			};
-    const Videoinfo = await apiGetVideo(videoinfo);
+			const Videoinfo = await apiGetVideo(videoinfo);
+			console.log('API 返回数据:', Videoinfo);
 			if (Videoinfo.data && Videoinfo.data.records && Array.isArray(Videoinfo.data.records)) {
 				videoList.value = Videoinfo.data.records.map(item => ({
 					title: item.title,
@@ -129,9 +131,12 @@ onPullDownRefresh(async () => {
 					updateTime: item.updateTime,
 					imgurl: "http://video.caimizm.com/" + item.vimg
 				}));
-    } else {
-    }
+				console.log('更新后的 videoList:', videoList.value);
+			} else {
+				console.warn('API 返回数据格式不符合预期:', Videoinfo);
+			}
 		} catch (error) {
+			console.error('获取视频失败:', error);
 			uni.showToast({
 				title: '获取视频失败',
 				icon: 'none'
@@ -180,20 +185,17 @@ onPullDownRefresh(async () => {
 			uni.showLoading({ title: '加载中...' })
 			const response = await apiGetIssueNo({ tname: lotteryType.name })
 			uni.hideLoading()
-            if (response.code === 200 && response.data !== null && response.data !== undefined) {
-                let issueNumber = null
-                let issueStatus = '待开奖'
-                let issueTime = '今天 21:30'
-                let openDate = ''
-                if (typeof response.data === 'number' || typeof response.data === 'string') {
-                    issueNumber = response.data.toString()
-                } else if (typeof response.data === 'object') {
-                    issueNumber = response.data.issueno || response.data.number || response.data.id
-                    issueStatus = response.data.status || '待开奖'
-                    // 优先使用接口返回的 opendate；兼容旧字段 time
-                    openDate = response.data.opendate || ''
-                    issueTime = openDate || response.data.time || '今天 21:30'
-                }
+			if (response.code === 200 && response.data !== null && response.data !== undefined) {
+				let issueNumber = null
+				let issueStatus = '待开奖'
+				let issueTime = '今天 21:30'
+				if (typeof response.data === 'number' || typeof response.data === 'string') {
+					issueNumber = response.data.toString()
+				} else if (typeof response.data === 'object') {
+					issueNumber = response.data.issueno || response.data.number || response.data.id
+					issueStatus = response.data.status || '待开奖'
+					issueTime = response.data.time || '今天 21:30'
+				}
 				lotteryType.status = issueStatus
 				lotteryType.time = issueTime
 				const idx = lotteryTypes.value.findIndex(t => t.code === lotteryType.code)
@@ -201,11 +203,15 @@ onPullDownRefresh(async () => {
 					lotteryTypes.value[idx].status = issueStatus
 					lotteryTypes.value[idx].time = issueTime
 				}
-                currentIssueInfo.value = { id: issueNumber, number: issueNumber, status: issueStatus, time: issueTime, opendate: openDate }
-                try {
-                    uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
-                    uni.setStorageSync('currentLotteryType', currentLotteryType.value)
-                } catch (e) {}
+				currentIssueInfo.value = { id: issueNumber, number: issueNumber, status: issueStatus, time: issueTime }
+				
+				// 保存到本地存储，供 biaodan.vue 使用
+				try {
+					uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
+					uni.setStorageSync('currentLotteryType', lotteryType)
+				} catch (error) {
+					console.error('保存期号信息失败:', error)
+				}
 			} else {
 				uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
 			}
@@ -217,7 +223,7 @@ onPullDownRefresh(async () => {
 		}
 	}
 
-	
+	// 标签切换（与 forum.vue 的交互一致）
 	const switchTabByIndex = (index) => {
 		pickerIndex.value = index
 		switch (index) {
@@ -257,7 +263,8 @@ onPullDownRefresh(async () => {
 	};
 
 	const switchUpcomingAction = (action) => {
-    upcomingAction.value = action;
+		upcomingAction.value = action;
+		console.log('切换到:', action);
 	};
 
 	const handleSwiperChange = (e) => {
@@ -409,9 +416,16 @@ onPullDownRefresh(async () => {
 			video.likeCount = video.isLiked ? video.likeCount + 1 : video.likeCount - 1;
 
 			// 调用点赞API
-            const response = await apiGetIsLike(video);
-            await apiGetLikelist(getAccount());
+			console.log(video, "====过来的数据=====")
+			const response = await apiGetIsLike(video);
+			console.log('点赞操作成功');
+
+			const a = await apiGetLikelist(getAccount());
+
+			console.log(a);
 		} catch (error) {
+			console.error('点赞操作失败:', error);
+
 			// 恢复原始状态
 			video.isLiked = originalIsLiked;
 			video.likeCount = originalLikeCount;

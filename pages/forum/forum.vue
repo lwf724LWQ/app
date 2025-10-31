@@ -829,7 +829,7 @@ const selectFunction = (type) => {
         success: () => {
           hidePublishModal()
         },
-        fail: (err) => {
+        fail: () => {
           uni.showToast({
             title: '跳转失败',
             icon: 'none'
@@ -844,10 +844,10 @@ const selectFunction = (type) => {
         success: () => {
           hidePublishModal()
         },
-        fail: (err) => {
-      uni.showToast({
+        fail: () => {
+          uni.showToast({
             title: '跳转失败',
-        icon: 'none'
+            icon: 'none'
           })
         }
       })
@@ -1484,7 +1484,6 @@ const optimizeTouchEvents = () => {
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
   try {
-    
     // 检查帖子ID是否有效
     if (!post.id) {
       uni.showToast({
@@ -1515,7 +1514,6 @@ const handleAppendPost = (post) => {
         icon: 'none'
       })
     }
-    
   } catch (error) {
     uni.showToast({
       title: '操作失败，请重试',
@@ -1527,11 +1525,8 @@ const handleAppendPost = (post) => {
 // 跳转到追帖页面
 const navigateToAppendPost = (post) => {
   try {
-    
     // 从帖子内容中提取所有方案信息
     const schemeIds = extractSchemeFromContent(post.content)
-    
-    
     // 保存帖子信息到本地存储，供predict-scheme.vue使用
     const appendPostData = {
       postId: post.id,
@@ -1553,7 +1548,7 @@ const navigateToAppendPost = (post) => {
           icon: 'success'
         })
       },
-      fail: (err) => {
+      fail: () => {
         uni.showToast({
           title: '跳转失败',
           icon: 'none'
