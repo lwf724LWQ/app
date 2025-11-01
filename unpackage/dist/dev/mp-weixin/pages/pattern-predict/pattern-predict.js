@@ -61,9 +61,9 @@ const _sfc_main = {
           // 5分钟刷新一次
         };
         const client = new OSS.default(ossConfig);
-        const result = await client.put(`himg/${upload_file_name}`, file);
+        const result = await client.put(`pimg/${upload_file_name}`, file);
         if (result && result.url) {
-          const customUrl = `http://video.caimizm.com/himg/${upload_file_name}`;
+          const customUrl = `http://video.caimizm.com/pimg/${upload_file_name}`;
           callback(customUrl);
         } else {
           throw new Error("上传失败");
@@ -157,7 +157,7 @@ const _sfc_main = {
           return;
         }
         common_vendor.index.showLoading({ title: "加载期号中..." });
-        const response = await api_apis.apiGetIssueNo({ cpid: lotteryType.value.id });
+        const response = await api_apis.apiGetIssueNo({ tname: lotteryType.value.name });
         common_vendor.index.hideLoading();
         if (response.code === 200 && response.data !== null && response.data !== void 0) {
           let issueNumberValue = null;

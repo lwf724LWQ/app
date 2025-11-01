@@ -13,6 +13,7 @@
     "pages/classlist/classlist",
     "pages/user/edit-profile",
     "pages/video/oss",
+    "pages/video/biaodan",
     "pages/notice/notice",
     "pages/notice/detail",
     "pages/search/search",

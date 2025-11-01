@@ -31,6 +31,9 @@ function request(config = {}) {
     header = {}
   } = config;
   url = BASE_URL + url;
+  if (!header["Content-Type"]) {
+    header["Content-Type"] = "application/json";
+  }
   const token = getToken();
   if (token) {
     header.Authorization = `${token}`;

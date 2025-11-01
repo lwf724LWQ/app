@@ -27,7 +27,7 @@ const _sfc_main = {
     const noData = common_vendor.ref(false);
     const queryParams = {
       page: 1,
-      limit: 20,
+      limit: 15,
       tname: "排列五"
     };
     const pageName = common_vendor.ref("");
@@ -187,25 +187,29 @@ const _sfc_main = {
     });
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: common_vendor.p({
+        a: isLoading.value
+      }, isLoading.value ? {} : {}, {
+        b: noMoreData.value && !isLoading.value
+      }, noMoreData.value && !isLoading.value ? {} : {}, {
+        c: common_vendor.p({
           type: "left",
           size: "30"
         }),
-        b: common_vendor.o(goBack),
-        c: common_vendor.o(togglePopover),
-        d: common_vendor.p({
+        d: common_vendor.o(goBack),
+        e: common_vendor.o(togglePopover),
+        f: common_vendor.p({
           type: "color-filled",
           size: "30"
         }),
-        e: common_vendor.o(($event) => handleMenuClick("draw")),
-        f: isPopoverShow.value ? 1 : "",
-        g: common_vendor.o(() => {
+        g: common_vendor.o(($event) => handleMenuClick("draw")),
+        h: isPopoverShow.value ? 1 : "",
+        i: common_vendor.o(() => {
         }),
-        h: isPopoverShow.value
+        j: isPopoverShow.value
       }, isPopoverShow.value ? {
-        i: common_vendor.o(closePopover)
+        k: common_vendor.o(closePopover)
       } : {}, {
-        j: common_vendor.f(classifyList.value, (group, groupIndex, i0) => {
+        l: common_vendor.f(classifyList.value, (group, groupIndex, i0) => {
           return {
             a: common_vendor.t(group.qishu),
             b: common_vendor.t(group.qishu2),
@@ -222,11 +226,8 @@ const _sfc_main = {
             f: group.qishu,
             g: groupIndex
           };
-        }),
-        k: isLoading.value
-      }, isLoading.value ? {} : {}, {
-        l: noMoreData.value && !isLoading.value
-      }, noMoreData.value && !isLoading.value ? {} : {});
+        })
+      });
     };
   }
 };

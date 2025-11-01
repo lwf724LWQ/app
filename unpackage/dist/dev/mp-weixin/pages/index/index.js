@@ -12,7 +12,9 @@ const _sfc_main = {
       fc3dPeriod: "第25123期",
       plwPeriod: "第25285期",
       qxcPeriod: "第25123期",
-      lotteryDate: "10.26 周日",
+      fc3dDate: "10.26 周日",
+      plwDate: "10.26 周日",
+      qxcDate: "10.26 周日",
       isLoadingResults: false
       // 添加加载锁
     };
@@ -27,6 +29,11 @@ const _sfc_main = {
     goToDreamInterpretation() {
       common_vendor.index.navigateTo({
         url: "/pages/dream-interpretation/dream-interpretation"
+      });
+    },
+    gotoGuiRead() {
+      common_vendor.index.navigateTo({
+        url: "/pages/juWang/drawLine/drawLineRead"
       });
     },
     // 加载开奖结果
@@ -54,13 +61,25 @@ const _sfc_main = {
             if (tname && tname.includes("福彩3D")) {
               this.fc3dNumbers = this.parseNumbers(item.number);
               this.fc3dPeriod = "第" + item.issueno + "期";
+              if (item.opendate || item.date || item.createTime) {
+                const date = item.opendate || item.date || item.createTime;
+                this.fc3dDate = this.formatDate(date);
+              }
             }
             if (tname && tname.includes("排列五")) {
               this.plwNumbers = this.parseNumbers(item.number);
               this.plwPeriod = "第" + item.issueno + "期";
+              if (item.opendate || item.date || item.createTime) {
+                const date = item.opendate || item.date || item.createTime;
+                this.plwDate = this.formatDate(date);
+              }
             }
             if (tname && tname.includes("排列三")) {
               this.plwPeriod = "第" + item.issueno + "期";
+              if (item.opendate || item.date || item.createTime) {
+                const date = item.opendate || item.date || item.createTime;
+                this.plwDate = this.formatDate(date);
+              }
             }
             if (tname && tname.includes("七星彩")) {
               let numbers = this.parseNumbers(item.number);
@@ -69,16 +88,16 @@ const _sfc_main = {
               }
               this.qxcNumbers = numbers;
               this.qxcPeriod = "第" + item.issueno + "期";
-            }
-            if (item.opendate || item.date || item.createTime) {
-              const date = item.opendate || item.date || item.createTime;
-              this.lotteryDate = this.formatDate(date);
+              if (item.opendate || item.date || item.createTime) {
+                const date = item.opendate || item.date || item.createTime;
+                this.qxcDate = this.formatDate(date);
+              }
             }
           });
         }
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/index/index.vue:250", "加载开奖结果失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:273", "加载开奖结果失败:", error);
       } finally {
         this.isLoadingResults = false;
       }
@@ -125,12 +144,20 @@ const _sfc_main = {
     this.loadLotteryResults();
   }
 };
+if (!Array) {
+  const _easycom_uni_icons2 = common_vendor.resolveComponent("uni-icons");
+  _easycom_uni_icons2();
+}
+const _easycom_uni_icons = () => "../../uni_modules/uni-icons/components/uni-icons/uni-icons.js";
+if (!Math) {
+  _easycom_uni_icons();
+}
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_assets._imports_0,
     b: common_assets._imports_1,
     c: common_vendor.t($data.fc3dPeriod),
-    d: common_vendor.t($data.lotteryDate),
+    d: common_vendor.t($data.fc3dDate),
     e: common_vendor.f($data.fc3dNumbers, (num, index, i0) => {
       return {
         a: common_vendor.t(num),
@@ -139,7 +166,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     }),
     f: common_vendor.t($data.plwPeriod),
-    g: common_vendor.t($data.lotteryDate),
+    g: common_vendor.t($data.plwDate),
     h: common_vendor.f($data.plwNumbers, (num, index, i0) => {
       return {
         a: common_vendor.t(num),
@@ -147,9 +174,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         c: index
       };
     }),
-    i: common_vendor.t($data.qxcPeriod),
-    j: common_vendor.t($data.lotteryDate),
-    k: common_vendor.f($data.qxcNumbers, (num, index, i0) => {
+    i: common_vendor.o((...args) => $options.gotoGuiRead && $options.gotoGuiRead(...args)),
+    j: common_vendor.t($data.qxcPeriod),
+    k: common_vendor.t($data.qxcDate),
+    l: common_vendor.f($data.qxcNumbers, (num, index, i0) => {
       return {
         a: common_vendor.t(num),
         b: index === $data.qxcNumbers.length - 1 ? 1 : "",
@@ -157,24 +185,45 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         d: index
       };
     }),
-    l: common_assets._imports_2,
-    m: common_assets._imports_3,
-    n: common_vendor.o(($event) => $options.drawGui()),
-    o: common_assets._imports_4,
-    p: common_assets._imports_5,
-    q: common_assets._imports_6,
-    r: common_assets._imports_7,
-    s: common_assets._imports_8,
-    t: common_assets._imports_9,
-    v: common_assets._imports_6,
-    w: common_assets._imports_10,
-    x: common_assets._imports_11,
-    y: common_assets._imports_12,
-    z: common_vendor.o((...args) => $options.goToDreamInterpretation && $options.goToDreamInterpretation(...args)),
-    A: common_assets._imports_13,
-    B: common_assets._imports_11,
-    C: common_assets._imports_14,
-    D: common_assets._imports_15
+    m: common_vendor.p({
+      type: "sound",
+      size: "32",
+      color: "#FF8C00"
+    }),
+    n: common_vendor.p({
+      type: "right",
+      size: "28",
+      color: "#999"
+    }),
+    o: common_vendor.p({
+      type: "compose",
+      size: "30",
+      color: "#4A90E2"
+    }),
+    p: common_vendor.o((...args) => $options.drawGui && $options.drawGui(...args)),
+    q: common_assets._imports_2,
+    r: common_assets._imports_3,
+    s: common_assets._imports_4,
+    t: common_assets._imports_5,
+    v: common_vendor.p({
+      type: "videocam",
+      size: "30",
+      color: "#4A90E2"
+    }),
+    w: common_assets._imports_6,
+    x: common_assets._imports_4,
+    y: common_assets._imports_7,
+    z: common_assets._imports_8,
+    A: common_vendor.p({
+      type: "chat",
+      size: "30",
+      color: "#4A90E2"
+    }),
+    B: common_vendor.o((...args) => $options.goToDreamInterpretation && $options.goToDreamInterpretation(...args)),
+    C: common_assets._imports_9,
+    D: common_assets._imports_8,
+    E: common_assets._imports_10,
+    F: common_assets._imports_11
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-1cf27b2a"]]);

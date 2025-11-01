@@ -26,22 +26,70 @@ const _sfc_main = {
     const showPlayButton = common_vendor.ref(true);
     const isPlaying = common_vendor.ref(false);
     const videoContext = common_vendor.ref(null);
+    const hasPaid = common_vendor.ref(false);
     const isFreeVideo = common_vendor.computed(() => {
       return !videoData.value.flag || videoData.value.price === 0;
+    });
+    const buttonText = common_vendor.computed(() => {
+      if (isFreeVideo.value || hasPaid.value) {
+        return "开始学习";
+      }
+      return "点击购买";
     });
     const userInfo = common_vendor.ref({
       uname: "",
       himg: ""
     });
+    const showFormImage = common_vendor.ref(false);
+    const formImageUrl = common_vendor.ref("");
     const getAvatarUrl = (himg) => {
       if (!himg)
-        return "";
+        return "/static/images/defaultAvatar.png";
       return `http://video.caimizm.com/himg/${himg}`;
     };
-    common_vendor.onLoad(async (options) => {
-      if (options.id) {
-        const currentVideo = videoStore.getCurrentVideo;
-        if (currentVideo && currentVideo.id === options.id) {
+    const loadVideoData = async (videoId) => {
+      if (!videoId)
+        return;
+      try {
+        let currentVideo = videoStore.getCurrentVideo;
+        if (!currentVideo || currentVideo.id !== videoId) {
+          const storedVideo = common_vendor.index.getStorageSync(`video_${videoId}`);
+          if (storedVideo && storedVideo.id === videoId) {
+            currentVideo = storedVideo;
+            videoStore.setCurrentVideo(currentVideo);
+          }
+        }
+        if (!currentVideo || currentVideo.id !== videoId) {
+          common_vendor.index.showLoading({ title: "加载中..." });
+          const response = await api_apis.apiGetVideo({ id: videoId, limit: 1 });
+          common_vendor.index.hideLoading();
+          if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
+            const item = response.data.records[0];
+            currentVideo = {
+              id: item.id,
+              title: item.title,
+              src: `http://video.caimizm.com/${item.url}`,
+              account: item.account,
+              likeCount: item.likeCount || 0,
+              isLiked: item.isLiked || false,
+              flag: item.price > 0 ? item.flag : false,
+              price: item.price,
+              imgurl: `http://video.caimizm.com/${item.vimg}`
+            };
+            videoStore.setCurrentVideo(currentVideo);
+            common_vendor.index.setStorageSync(`video_${videoId}`, currentVideo);
+          } else {
+            common_vendor.index.showToast({
+              title: "视频不存在",
+              icon: "none"
+            });
+            setTimeout(() => {
+              common_vendor.index.navigateBack();
+            }, 1500);
+            return;
+          }
+        }
+        if (currentVideo && currentVideo.id === videoId) {
           videoData.value = {
             id: currentVideo.id,
             title: currentVideo.title,
@@ -52,12 +100,76 @@ const _sfc_main = {
             flag: currentVideo.flag,
             price: currentVideo.price
           };
-          await getUserInfo(currentVideo.account);
+          if (currentVideo.account) {
+            await getUserInfo(currentVideo.account);
+          }
+          if (videoData.value.src && !videoContext.value) {
+            videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+          }
+          if (!isFreeVideo.value) {
+            await checkPaymentStatus();
+          }
         }
+      } catch (error) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.showToast({
+          title: "加载视频失败",
+          icon: "none"
+        });
+      }
+    };
+    const checkPaymentStatus = async () => {
+      if (isFreeVideo.value) {
+        hasPaid.value = false;
+        return;
+      }
+      const token = utils_request.getToken();
+      if (!token) {
+        hasPaid.value = false;
+        return;
+      }
+      try {
+        const paymentCheck = await api_apis.apiCheckVideoPayment({
+          videoId: videoData.value.id,
+          account: utils_request.getAccount()
+        });
+        if (paymentCheck.data) {
+          hasPaid.value = true;
+        } else {
+          hasPaid.value = false;
+        }
+      } catch (error) {
+        hasPaid.value = false;
+      }
+    };
+    common_vendor.onLoad(async (options) => {
+      if (options.id) {
+        await loadVideoData(options.id);
+      }
+    });
+    common_vendor.onShow(async () => {
+      showFormImage.value = false;
+      formImageUrl.value = "";
+      if (!videoData.value.id) {
+        const pages = getCurrentPages();
+        const currentPage = pages[pages.length - 1];
+        const options = currentPage.options || {};
+        if (options.id) {
+          await loadVideoData(options.id);
+        }
+      } else {
+        await loadVideoData(videoData.value.id);
+      }
+      if (videoData.value.id && !isFreeVideo.value) {
+        await checkPaymentStatus();
       }
     });
     common_vendor.onMounted(() => {
-      videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+      setTimeout(() => {
+        if (videoData.value.src && !videoContext.value) {
+          videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+        }
+      }, 100);
     });
     const goBack = () => {
       common_vendor.index.navigateBack({
@@ -81,14 +193,12 @@ const _sfc_main = {
             himg: response.data.himg
           };
         } else {
-          common_vendor.index.__f__("error", "at pages/video/play.vue:201", "获取用户信息失败:", response.message);
           userInfo.value = {
             uname: account,
             himg: ""
           };
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/video/play.vue:209", "获取用户信息异常:", error);
         userInfo.value = {
           uname: account,
           himg: ""
@@ -109,7 +219,10 @@ const _sfc_main = {
         }, 1500);
         return;
       }
-      if (!videoData.value.flag || videoData.value.price === 0) {
+      if (isFreeVideo.value || hasPaid.value) {
+        if (!videoContext.value && videoData.value.src) {
+          videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+        }
         if (videoContext.value) {
           videoContext.value.play();
           isPlaying.value = true;
@@ -117,36 +230,31 @@ const _sfc_main = {
         }
         return;
       }
-      try {
-        const paymentCheck = await api_apis.apiCheckVideoPayment({
-          videoId: videoData.value.id,
-          account: utils_request.getAccount()
-        });
-        if (paymentCheck.data) {
+      if (!hasPaid.value) {
+        await checkPaymentStatus();
+        if (hasPaid.value) {
+          if (!videoContext.value && videoData.value.src) {
+            videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+          }
           if (videoContext.value) {
             videoContext.value.play();
             isPlaying.value = true;
             showPlayButton.value = false;
           }
-        } else {
-          common_vendor.index.showModal({
-            title: "付费视频",
-            content: `观看此视频需要支付${videoData.value.price}金币`,
-            confirmText: "立即支付",
-            cancelText: "取消",
-            success: async (res) => {
-              if (res.confirm) {
-                await payForVideo();
-              }
-            }
-          });
+          return;
         }
-      } catch (error) {
-        common_vendor.index.showToast({
-          title: error.message || "查询失败",
-          icon: "none"
-        });
       }
+      common_vendor.index.showModal({
+        title: "付费视频",
+        content: `观看此视频需要支付${videoData.value.price}金币`,
+        confirmText: "立即支付",
+        cancelText: "取消",
+        success: async (res) => {
+          if (res.confirm) {
+            await payForVideo();
+          }
+        }
+      });
     };
     const payForVideo = async () => {
       const paymentData = {
@@ -179,8 +287,129 @@ const _sfc_main = {
       isPlaying.value = false;
       showPlayButton.value = true;
     };
+    const onVideoEnded = async () => {
+      common_vendor.index.__f__("log", "at pages/video/play.vue:484", "视频播放结束，开始获取表单图片");
+      isPlaying.value = false;
+      showPlayButton.value = false;
+      await fetchFormImage();
+      common_vendor.index.__f__("log", "at pages/video/play.vue:492", "获取表单图片完成，showFormImage:", showFormImage.value, "formImageUrl:", formImageUrl.value);
+    };
+    const fetchFormImage = async () => {
+      if (!videoData.value.id) {
+        common_vendor.index.__f__("log", "at pages/video/play.vue:498", "获取表单图片失败：视频ID为空");
+        return;
+      }
+      const videoId = videoData.value.id;
+      let hasLocalImage = false;
+      try {
+        const storageKey = `formImage_${videoId}`;
+        common_vendor.index.__f__("log", "at pages/video/play.vue:508", "检查本地存储，key:", storageKey);
+        const storedFormImage = common_vendor.index.getStorageSync(storageKey);
+        common_vendor.index.__f__("log", "at pages/video/play.vue:510", "本地存储数据:", storedFormImage);
+        if (storedFormImage && storedFormImage.wimgUrl) {
+          common_vendor.index.__f__("log", "at pages/video/play.vue:513", "从本地存储获取表单图片:", storedFormImage.wimgUrl);
+          formImageUrl.value = storedFormImage.wimgUrl;
+          showFormImage.value = true;
+          hasLocalImage = true;
+          common_vendor.index.__f__("log", "at pages/video/play.vue:517", "表单图片已从本地存储设置, formImageUrl:", formImageUrl.value, "showFormImage:", showFormImage.value);
+        } else {
+          common_vendor.index.__f__("log", "at pages/video/play.vue:519", "本地存储中没有表单图片数据");
+          try {
+            const allKeys = common_vendor.index.getStorageInfoSync().keys;
+            common_vendor.index.__f__("log", "at pages/video/play.vue:523", "所有本地存储keys:", allKeys);
+            const relatedKeys = allKeys.filter((key) => key.includes("formImage") || key.includes("wimg"));
+            common_vendor.index.__f__("log", "at pages/video/play.vue:525", "相关的本地存储keys:", relatedKeys);
+          } catch (e) {
+            common_vendor.index.__f__("log", "at pages/video/play.vue:527", "无法获取本地存储keys:", e);
+          }
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/video/play.vue:531", "本地存储获取失败:", e);
+      }
+      {
+        try {
+          common_vendor.index.__f__("log", "at pages/video/play.vue:546", "开始获取表单图片，视频ID:", videoId);
+          const response = await api_apis.apiWordQuery({ videoId });
+          common_vendor.index.__f__("log", "at pages/video/play.vue:548", "表单图片API响应:", response);
+          if (response && response.code === 200 && response.data) {
+            let imageUrl = response.data.wimg || response.data.url || response.data.image || response.data.img || "";
+            common_vendor.index.__f__("log", "at pages/video/play.vue:553", "解析到的图片URL:", imageUrl);
+            if (imageUrl) {
+              if (!imageUrl.startsWith("http")) {
+                imageUrl = `http://video.caimizm.com/wimg/${imageUrl}`;
+              }
+              common_vendor.index.__f__("log", "at pages/video/play.vue:561", "处理后的图片URL:", imageUrl);
+              formImageUrl.value = imageUrl;
+              showFormImage.value = true;
+              common_vendor.index.__f__("log", "at pages/video/play.vue:564", "表单图片已从API设置，showFormImage:", showFormImage.value);
+            } else {
+              common_vendor.index.__f__("log", "at pages/video/play.vue:566", "未找到图片URL，响应数据:", response.data);
+              if (!hasLocalImage) {
+                common_vendor.index.showToast({
+                  title: "暂无表单记录",
+                  icon: "none",
+                  duration: 2e3
+                });
+              }
+            }
+          } else {
+            common_vendor.index.__f__("log", "at pages/video/play.vue:577", "API响应异常:", response);
+            if (response && response.code !== 200) {
+              common_vendor.index.__f__("log", "at pages/video/play.vue:579", "API返回错误码:", response.code, "错误信息:", response.message || response.msg);
+            }
+            if (!hasLocalImage) {
+              common_vendor.index.showToast({
+                title: "暂无表单记录",
+                icon: "none",
+                duration: 2e3
+              });
+            }
+          }
+        } catch (error) {
+          common_vendor.index.__f__("error", "at pages/video/play.vue:591", "获取表单图片异常:", error);
+          const errorMessage = error.message || error.errMsg || "";
+          const isCorsError = errorMessage.includes("CORS") || errorMessage.includes("Access-Control") || errorMessage.includes("ERR_FAILED") || errorMessage.includes("net::ERR_FAILED");
+          if (hasLocalImage) {
+            common_vendor.index.__f__("log", "at pages/video/play.vue:598", "API调用失败，但本地存储有数据，继续显示本地图片");
+            return;
+          }
+          if (isCorsError) {
+            common_vendor.index.showToast({
+              title: "获取表单图片失败",
+              icon: "none",
+              duration: 2e3
+            });
+          } else {
+            common_vendor.index.showToast({
+              title: "获取表单图片失败",
+              icon: "none",
+              duration: 2e3
+            });
+          }
+        }
+      }
+    };
+    const closeFormImage = () => {
+      showFormImage.value = false;
+      showPlayButton.value = true;
+    };
+    const handleFormImageError = (e) => {
+      common_vendor.index.__f__("error", "at pages/video/play.vue:638", "表单图片加载失败:", e);
+      common_vendor.index.__f__("error", "at pages/video/play.vue:639", "图片URL:", formImageUrl.value);
+      common_vendor.index.showToast({
+        title: "图片加载失败",
+        icon: "none",
+        duration: 2e3
+      });
+    };
+    const handleFormImageLoad = (e) => {
+      common_vendor.index.__f__("log", "at pages/video/play.vue:649", "表单图片加载成功:", formImageUrl.value);
+    };
     const handleBuyClick = async () => {
-      if (!videoData.value.flag || videoData.value.price === 0) {
+      if (isFreeVideo.value || hasPaid.value) {
+        if (!videoContext.value && videoData.value.src) {
+          videoContext.value = common_vendor.index.createVideoContext("videoPlayer");
+        }
         if (videoContext.value) {
           videoContext.value.play();
           isPlaying.value = true;
@@ -219,11 +448,8 @@ const _sfc_main = {
           account: utils_request.getAccount(),
           isLiked: videoData.value.isLiked
         });
-        common_vendor.index.__f__("log", "at pages/video/play.vue:377", "点赞操作成功");
         const likeList = await api_apis.apiGetLikelist(utils_request.getAccount());
-        common_vendor.index.__f__("log", "at pages/video/play.vue:381", likeList);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/video/play.vue:383", "点赞操作失败:", error);
         videoData.value.isLiked = originalIsLiked;
         videoData.value.likeCount = originalLikeCount;
         common_vendor.index.showToast({
@@ -240,52 +466,79 @@ const _sfc_main = {
         }),
         b: common_vendor.o(goBack),
         c: common_vendor.t(videoData.value.title),
-        d: videoData.value.src,
-        e: isPlaying.value,
-        f: common_vendor.o(onVideoPlay),
-        g: common_vendor.o(onVideoPause),
-        h: showPlayButton.value
-      }, showPlayButton.value ? {
-        i: common_vendor.p({
+        d: videoData.value.src
+      }, videoData.value.src ? {
+        e: videoData.value.src,
+        f: isPlaying.value,
+        g: common_vendor.o(onVideoPlay),
+        h: common_vendor.o(onVideoPause),
+        i: common_vendor.o(onVideoEnded)
+      } : {}, {
+        j: videoData.value.src && showPlayButton.value
+      }, videoData.value.src && showPlayButton.value ? {
+        k: common_vendor.p({
           type: "play-filled",
           size: "60",
           color: "#fff"
         }),
-        j: common_vendor.o(playVideo)
+        l: common_vendor.o(playVideo)
       } : {}, {
-        k: videoData.value.price && videoData.value.price > 0
-      }, videoData.value.price && videoData.value.price > 0 ? {
-        l: common_vendor.t(videoData.value.price),
-        m: common_vendor.o(handleBuyClick)
+        m: videoData.value.src && videoData.value.price && videoData.value.price > 0
+      }, videoData.value.src && videoData.value.price && videoData.value.price > 0 ? {
+        n: common_vendor.t(videoData.value.price),
+        o: common_vendor.o(handleBuyClick)
       } : {}, {
-        n: common_vendor.p({
+        p: showFormImage.value
+      }, showFormImage.value ? common_vendor.e({
+        q: common_vendor.p({
+          type: "close",
+          size: "24",
+          color: "#666"
+        }),
+        r: common_vendor.o(closeFormImage),
+        s: formImageUrl.value
+      }, formImageUrl.value ? {
+        t: formImageUrl.value,
+        v: common_vendor.o(handleFormImageError),
+        w: common_vendor.o(handleFormImageLoad)
+      } : {}, {
+        x: showFormImage.value && !formImageUrl.value
+      }, showFormImage.value && !formImageUrl.value ? {} : {}, {
+        y: common_vendor.o(() => {
+        }),
+        z: common_vendor.o(closeFormImage)
+      }) : {}, {
+        A: common_vendor.p({
           type: "gift-filled",
           size: "20",
           color: "#FF9500"
         }),
-        o: common_vendor.o(goToRewardPage),
-        p: common_vendor.p({
+        B: common_vendor.o(goToRewardPage),
+        C: common_vendor.p({
           type: videoData.value.isLiked ? "heart-filled" : "heart",
           size: "20",
           color: videoData.value.isLiked ? "#ff4757" : "#FF9500"
         }),
-        q: common_vendor.t(videoData.value.likeCount),
-        r: videoData.value.isLiked ? 1 : "",
-        s: common_vendor.o(toggleLike),
-        t: getAvatarUrl(userInfo.value.himg),
-        v: common_vendor.t(userInfo.value.uname),
-        w: videoData.value.price && videoData.value.price > 0
-      }, videoData.value.price && videoData.value.price > 0 ? {
-        x: common_vendor.t(videoData.value.price)
+        D: common_vendor.t(videoData.value.likeCount),
+        E: videoData.value.isLiked ? 1 : "",
+        F: common_vendor.o(toggleLike),
+        G: userInfo.value.himg || userInfo.value.uname
+      }, userInfo.value.himg || userInfo.value.uname ? {
+        H: getAvatarUrl(userInfo.value.himg)
       } : {}, {
-        y: common_vendor.t(videoData.value.title),
-        z: common_vendor.p({
+        I: common_vendor.t(userInfo.value.uname),
+        J: videoData.value.price && videoData.value.price > 0
+      }, videoData.value.price && videoData.value.price > 0 ? {
+        K: common_vendor.t(videoData.value.price)
+      } : {}, {
+        L: common_vendor.t(videoData.value.title),
+        M: common_vendor.p({
           type: "home",
           size: "24",
           color: "#FFD700"
         }),
-        A: common_vendor.t(isFreeVideo.value ? "开始学习" : "点击购买"),
-        B: common_vendor.o(handleBuyClick)
+        N: common_vendor.t(buttonText.value),
+        O: common_vendor.o(handleBuyClick)
       });
     };
   }

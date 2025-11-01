@@ -348,3 +348,13 @@ export function apiWordInsert(data = {}) {
         data
     })
 }
+
+// 查询视频表格数据接口
+// 参数：videoId
+export function apiWordQuery(data = {}) {
+    return request({
+        url: "/web/vword/query",
+        method: "POST",
+        data
+    })
+}

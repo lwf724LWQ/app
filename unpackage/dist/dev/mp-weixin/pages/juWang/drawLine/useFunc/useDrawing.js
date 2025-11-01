@@ -14,6 +14,7 @@ if (!Math) {
   "../../../classlist/classlist.js";
   "../../../user/edit-profile.js";
   "../../../video/oss.js";
+  "../../../video/biaodan.js";
   "../../../notice/notice.js";
   "../../../notice/detail.js";
   "../../../search/search.js";
@@ -31,19 +32,15 @@ if (!Math) {
 }
 const _sfc_main = {
   onLaunch: function() {
-    common_vendor.index.__f__("log", "at App.vue:4", "App Launch");
   },
   onShow: function() {
-    common_vendor.index.__f__("log", "at App.vue:7", "App Show");
   },
   onHide: function() {
-    common_vendor.index.__f__("log", "at App.vue:10", "App Hide");
   }
 };
 const platform = common_vendor.index.getSystemInfoSync().platform;
 const isH5 = platform === "web" || platform === "windows" || platform === "mac";
 const isApp = platform === "android" || platform === "ios" || platform === "mp-weixin";
-common_vendor.index.__f__("log", "at main.js:8", common_vendor.index$1);
 function createApp() {
   const app = common_vendor.createSSRApp(_sfc_main);
   app.use(common_vendor.createPinia());
@@ -806,6 +803,7 @@ function useDrawing(numberGroups, highlighted, numberRefs, showNumberSelectorCal
           w: window.innerWidth,
           h: containerHeight || window.innerHeight * 0.7
         };
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/useFunc/useDrawing.js:1135", canvasSize.value);
         canvasEl.style.width = `${canvasSize.value.w}px`;
         canvasEl.style.height = `${canvasSize.value.h}px`;
         canvasEl.width = canvasSize.value.w * dpr.value;
@@ -843,6 +841,7 @@ function useDrawing(numberGroups, highlighted, numberRefs, showNumberSelectorCal
           w: systemInfo.windowWidth,
           h: containerHeight
         };
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/useFunc/useDrawing.js:1184", canvasSize.value);
         canvasCtx.value.scale(dpr.value, dpr.value);
         const tempRes = await new Promise((resolve) => {
           query.select(".temp-canvas").fields({
@@ -860,15 +859,32 @@ function useDrawing(numberGroups, highlighted, numberRefs, showNumberSelectorCal
           tempCanvasCtx.value.scale(dpr.value, dpr.value);
         }
       }
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/useFunc/useDrawing.js:1207", "Canvas 初始化成功");
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/useFunc/useDrawing.js:1208", "Canvas 初始化成功");
     } catch (error) {
-      common_vendor.index.__f__("error", "at pages/juWang/drawLine/useFunc/useDrawing.js:1209", "Canvas 初始化过程中发生错误:", error);
+      common_vendor.index.__f__("error", "at pages/juWang/drawLine/useFunc/useDrawing.js:1210", "Canvas 初始化过程中发生错误:", error);
+    }
+  };
+  const resetDrawingState = () => {
+    currentShape.value = {
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 0 },
+      points: []
+    };
+    shapes.value = [];
+    isDrawing.value = false;
+    isErasing.value = false;
+    if (canvasCtx.value) {
+      canvasCtx.value.clearRect(0, 0, canvasSize.value.w, canvasSize.value.h);
+    }
+    if (tempCanvasCtx.value) {
+      tempCanvasCtx.value.clearRect(0, 0, canvasSize.value.w, canvasSize.value.h);
     }
   };
   common_vendor.nextTick$1().then(() => {
     setupTableScrollListener();
   });
   return {
+    resetDrawingState,
     currentMode,
     isDrawing,
     isErasing,

@@ -307,15 +307,10 @@
 					url: videoResult.name,
 					vimg: coverUrl || '', // 视频封面
 					tname: tname || '' // 彩票名称，确保总是包含此字段
-				}
+			}
 
-				// 调试日志：检查 tname 是否正确获取
-				console.log('上传视频参数 videoData:', JSON.stringify(videoData, null, 2))
-				console.log('routeParams.value:', routeParams.value)
-				console.log('获取到的 tname:', tname)
-
-				// 提交视频信息到后端
-				const submitResult = await apiSubmitVideo(videoData)
+			// 提交视频信息到后端
+			const submitResult = await apiSubmitVideo(videoData)
 
 				// 添加到上传结果
 				uploadResults.value.push({

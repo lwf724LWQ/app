@@ -244,6 +244,20 @@ function apiBillQuery(data = {}) {
     data
   });
 }
+function apiWordInsert(data = {}) {
+  return utils_request.request({
+    url: "/web/vword/insert",
+    method: "POST",
+    data
+  });
+}
+function apiWordQuery(data = {}) {
+  return utils_request.request({
+    url: "/web/vword/query",
+    method: "POST",
+    data
+  });
+}
 exports.apiBillQuery = apiBillQuery;
 exports.apiCheckVideoPayment = apiCheckVideoPayment;
 exports.apiDreamQuery = apiDreamQuery;
@@ -272,6 +286,8 @@ exports.apiTicketQuery = apiTicketQuery;
 exports.apiUpdateUserProfile = apiUpdateUserProfile;
 exports.apiUserRecharge = apiUserRecharge;
 exports.apiUserimg = apiUserimg;
+exports.apiWordInsert = apiWordInsert;
+exports.apiWordQuery = apiWordQuery;
 exports.apiWxpay = apiWxpay;
 exports.apigetsts = apigetsts;
 exports.apigoldpay = apigoldpay;

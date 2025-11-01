@@ -94,6 +94,14 @@ const _sfc_main = {
           contentElement.appendChild(doubNumberElement);
         }
       }
+      const hasValidNumbers = styleData.content.selectedNumbers && styleData.content.selectedNumbers.length === 1 && styleData.content.selectedNumbers.some((num) => {
+        const numValue = parseInt(num);
+        return numValue >= 1 && numValue <= 36;
+      });
+      if (hasValidNumbers) {
+        contentElement.style.fontSize = "26px";
+        contentElement.style.fontWeight = "bold";
+      }
     };
     common_vendor.ref(false);
     common_vendor.ref(true);
@@ -114,18 +122,18 @@ const _sfc_main = {
       canvasPointerEvents.value = value;
     };
     const handleSubmit = (data) => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:375", "子组件调用了父组件的提交方法，数据：", data);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:387", "子组件调用了父组件的提交方法，数据：", data);
       clearCanvas();
       common_vendor.index.showModal({
         title: "确认清除",
         content: "确定要清除所有绘制内容和样式吗？此操作不可撤销。",
         success: (res) => {
           if (res.confirm) {
-            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:384", "用户确认清除操作");
+            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:396", "用户确认清除操作");
             clearCanvas();
             clearAllGridContents();
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:388", "用户取消清除操作");
+            common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:400", "用户取消清除操作");
           }
         }
       });
@@ -142,7 +150,7 @@ const _sfc_main = {
       });
     };
     const handleChildEvent = (params) => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:410", "收到子组件事件，参数", params);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:422", "收到子组件事件，参数", params);
       switch (params.action) {
         case "submit":
           saveCanvasImage();
@@ -153,9 +161,10 @@ const _sfc_main = {
       }
     };
     const handleShareEvent = () => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:422", "子组件调用了父组件的分享方法");
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:434", "子组件调用了父组件的分享方法");
     };
     common_vendor.onLoad((e) => {
+      resetDrawingState();
       const instance = common_vendor.getCurrentInstance().proxy;
       const eventChannel = instance.getOpenerEventChannel();
       eventChannel.emit("acceptDataFromOpenedPage", {
@@ -165,7 +174,7 @@ const _sfc_main = {
         data: "data from test page for someEvent"
       });
       eventChannel.on("acceptDataFromOpenerPage", function(data) {
-        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:440", "acceptDataFromOpenerPage", data);
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:455", "acceptDataFromOpenerPage", data);
       });
     });
     const child = common_vendor.ref(null);
@@ -187,6 +196,7 @@ const _sfc_main = {
       lineWidth.value = val;
     };
     const {
+      resetDrawingState,
       currentMode,
       isDrawing,
       isErasing,
@@ -243,7 +253,7 @@ const _sfc_main = {
       domToImage
     } = pages_juWang_drawLine_useFunc_useScreenshot.useScreenshot(common_vendor.html2canvas);
     const undoDraw = () => {
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:559", "执行撤销操作");
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:575", "执行撤销操作");
       if (shapes.value.length > 0) {
         const lastShape = shapes.value.pop();
         if (lastShape.highlights && Array.isArray(lastShape.highlights)) {
@@ -257,18 +267,18 @@ const _sfc_main = {
             }
           });
           highlighted.value = currentHighlights;
-          common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:584", "撤销高亮样式，剩余高亮数量:", highlighted.value.length);
+          common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:600", "撤销高亮样式，剩余高亮数量:", highlighted.value.length);
         }
         redraw(false);
         updateHighlightDisplay();
-        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:591", "撤销完成，剩余形状数量:", shapes.value.length);
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:607", "撤销完成，剩余形状数量:", shapes.value.length);
         common_vendor.index.showToast({
           title: "已撤销上一步操作",
           icon: "success",
           duration: 1500
         });
       } else {
-        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:600", "没有可撤销的操作");
+        common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:616", "没有可撤销的操作");
         common_vendor.index.showToast({
           title: "没有可撤销的操作",
           icon: "none",
@@ -278,9 +288,9 @@ const _sfc_main = {
     };
     common_vendor.onMounted(async () => {
       await twocounterStore.getCounterInfo();
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:612", "数字元素数量:", numberRefs.value.length);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:628", "数字元素数量:", numberRefs.value.length);
       await initCanvas();
-      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:616", "初始化后数字元素数量:", numberRefs.value.length);
+      common_vendor.index.__f__("log", "at pages/juWang/drawLine/drawLine.vue:632", "初始化后数字元素数量:", numberRefs.value.length);
       setTimeout(() => {
         scrollToBottom();
       }, 0);

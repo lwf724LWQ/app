@@ -176,10 +176,13 @@
 		border-radius: 10rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
 }
-.notice-icon.data-v-1cf27b2a {
-		width: 32rpx;
-		height: 32rpx;
+
+	/* 通知横幅图标样式 */
+.notice-banner uni-icons[type="sound"].data-v-1cf27b2a {
 		margin-right: 10rpx;
+}
+.notice-banner uni-icons[type="right"].data-v-1cf27b2a {
+		margin-left: 0;
 }
 .notice-text.data-v-1cf27b2a {
 		font-size: 26rpx;
@@ -194,10 +197,7 @@
 		border-radius: 4rpx;
 		margin-right: 10rpx;
 }
-.notice-arrow.data-v-1cf27b2a {
-		font-size: 28rpx;
-		color: #999;
-}
+
 
 	/* 功能图标区 */
 .function-area.data-v-1cf27b2a {
@@ -223,6 +223,11 @@
 .icon-item image.data-v-1cf27b2a {
 		width: 60rpx;
 		height: 60rpx;
+		margin-bottom: 8rpx;
+}
+
+	/* uni-icons 图标样式 */
+.icon-item uni-icons.data-v-1cf27b2a {
 		margin-bottom: 8rpx;
 }
 .icon-item text.data-v-1cf27b2a {

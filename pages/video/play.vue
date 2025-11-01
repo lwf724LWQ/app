@@ -11,20 +11,39 @@
 			</view>
 		<!-- 视频播放器容器 -->
 		<view class="video-container">
-			<video :src="videoData.src" :controls="isPlaying" :autoplay="false" object-fit="cover" class="video-player"
-				id="videoPlayer" @play="onVideoPlay" @pause="onVideoPause"></video>
+			<video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" object-fit="cover" class="video-player"
+				id="videoPlayer" @play="onVideoPlay" @pause="onVideoPause" @ended="onVideoEnded"></video>
+			<view v-else class="video-placeholder">
+				<text class="placeholder-text">视频加载中...</text>
+			</view>
 
 			<!-- 播放按钮遮罩层 -->
-			<view class="play-overlay" v-if="showPlayButton" @click="playVideo">
+			<view class="play-overlay" v-if="videoData.src && showPlayButton" @click="playVideo">
 				<view class="play-button">
 					<uni-icons type="play-filled" size="60" color="#fff"></uni-icons>
 				</view>
 			</view>
 
 			<!-- 购买按钮（如果有价格） -->
-			<view class="buy-overlay" v-if="videoData.price && videoData.price > 0" @click="handleBuyClick">
+			<view class="buy-overlay" v-if="videoData.src && videoData.price && videoData.price > 0" @click="handleBuyClick">
 				<view class="buy-button">
 					<text class="buy-text">¥{{ videoData.price }}购买</text>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 表单图片显示遮罩层（独立层级） -->
+		<view class="form-image-overlay" v-if="showFormImage" @click="closeFormImage">
+			<view class="form-image-container" @click.stop>
+				<view class="form-image-header">
+					<text class="form-image-title">开奖号码记录</text>
+					<view class="form-image-close" @click="closeFormImage">
+						<uni-icons type="close" size="24" color="#666"></uni-icons>
+					</view>
+				</view>
+				<image v-if="formImageUrl" :src="formImageUrl" class="form-image" mode="aspectFit" @error="handleFormImageError" @load="handleFormImageLoad"></image>
+				<view v-if="showFormImage && !formImageUrl" class="form-image-loading">
+					<text>图片加载中...</text>
 				</view>
 			</view>
 		</view>
@@ -44,8 +63,8 @@
 
 		<!-- 作者和视频信息 -->
 		<view class="video-info-card">
-			<view class="info-header">
-				<image :src="getAvatarUrl(userInfo.himg)" class="author-avatar"></image>
+		<view class="info-header">
+			<image v-if="userInfo.himg || userInfo.uname" :src="getAvatarUrl(userInfo.himg)" class="author-avatar"></image>
 				<view class="author-info">
 					<text class="author-name">{{ userInfo.uname }}出品</text>
 					<text class="video-count">视频</text>
@@ -74,7 +93,7 @@
 
 			</view>
 			<button class="bottom-buy-btn" @click="handleBuyClick">
-				{{ isFreeVideo ? '开始学习' : '点击购买' }}
+				{{ buttonText }}
 			</button>
 		</view>
 	</view>
@@ -88,13 +107,16 @@
 		onMounted
 	} from 'vue';
 	import {
-		onLoad
+		onLoad,
+		onShow
 	} from '@dcloudio/uni-app';
 	import {
 		apiGetLikelist,
 		apiGetIsLike,
 		apiCheckVideoPayment,
-		apiUserimg
+		apiUserimg,
+		apiGetVideo,
+		apiWordQuery
 	} from '@/api/apis';
 	import {
 		getToken,
@@ -121,10 +143,19 @@
 	const showPlayButton = ref(true) // 控制播放按钮显示
 	const isPlaying = ref(false) // 视频播放状态
 	const videoContext = ref(null) // 视频上下文
+	const hasPaid = ref(false) // 是否已付费
 
 	// 计算是否为免费视频
 	const isFreeVideo = computed(() => {
 		return !videoData.value.flag || videoData.value.price === 0
+	})
+
+	// 计算按钮显示文本
+	const buttonText = computed(() => {
+		if (isFreeVideo.value || hasPaid.value) {
+			return '开始学习'
+		}
+		return '点击购买'
 	})
 	//用户头像，名字接口数据接收
 	const userInfo = ref({
@@ -132,19 +163,70 @@
 		himg: ''
 	});
 
+	// 表单图片相关数据
+	const showFormImage = ref(false) // 控制表单图片显示
+	const formImageUrl = ref('') // 表单图片URL
+
 	// 获取头像的方法
 	const getAvatarUrl = (himg) => {
-		if (!himg) return ''; // 如果没有头像，返回空字符串
+		if (!himg) return '/static/images/defaultAvatar.png'; // 如果没有头像，返回默认头像
 		return `http://video.caimizm.com/himg/${himg}`;
 	};
 
-	// 获取路由参数
-	onLoad(async (options) => {
-		if (options.id) {
-			// 从 Pinia store 获取视频数据
-			const currentVideo = videoStore.getCurrentVideo
-			if (currentVideo && currentVideo.id === options.id) {
-				// 使用 store 中的视频数据
+	// 加载视频数据的统一方法
+	const loadVideoData = async (videoId) => {
+		if (!videoId) return
+		
+		try {
+			// 优先从 store 获取
+			let currentVideo = videoStore.getCurrentVideo
+			
+			// 如果 store 中没有数据，尝试从本地存储恢复
+			if (!currentVideo || currentVideo.id !== videoId) {
+				const storedVideo = uni.getStorageSync(`video_${videoId}`)
+				if (storedVideo && storedVideo.id === videoId) {
+					currentVideo = storedVideo
+					// 恢复到 store
+					videoStore.setCurrentVideo(currentVideo)
+				}
+			}
+			
+			// 如果仍然没有数据，尝试通过 API 获取
+			if (!currentVideo || currentVideo.id !== videoId) {
+				uni.showLoading({ title: '加载中...' })
+				const response = await apiGetVideo({ id: videoId, limit: 1 })
+				uni.hideLoading()
+				
+				if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
+					const item = response.data.records[0]
+					currentVideo = {
+						id: item.id,
+						title: item.title,
+						src: `http://video.caimizm.com/${item.url}`,
+						account: item.account,
+						likeCount: item.likeCount || 0,
+						isLiked: item.isLiked || false,
+						flag: item.price > 0 ? item.flag : false,
+						price: item.price,
+						imgurl: `http://video.caimizm.com/${item.vimg}`
+					}
+					// 保存到 store 和本地存储
+					videoStore.setCurrentVideo(currentVideo)
+					uni.setStorageSync(`video_${videoId}`, currentVideo)
+				} else {
+					uni.showToast({
+						title: '视频不存在',
+						icon: 'none'
+					})
+					setTimeout(() => {
+						uni.navigateBack()
+					}, 1500)
+					return
+				}
+			}
+			
+			// 使用获取到的视频数据
+			if (currentVideo && currentVideo.id === videoId) {
 				videoData.value = {
 					id: currentVideo.id,
 					title: currentVideo.title,
@@ -156,15 +238,100 @@
 					price: currentVideo.price,
 				}
 				// 调用apiUserimg获取用户信息
-				await getUserInfo(currentVideo.account);
+				if (currentVideo.account) {
+					await getUserInfo(currentVideo.account)
+				}
+				
+				// 初始化视频上下文（如果视频数据已加载）
+				if (videoData.value.src && !videoContext.value) {
+					videoContext.value = uni.createVideoContext('videoPlayer')
+				}
+				
+				// 检查付费状态（仅对付费视频）
+				if (!isFreeVideo.value) {
+					await checkPaymentStatus()
+				}
 			}
+		} catch (error) {
+			uni.hideLoading()
+			uni.showToast({
+				title: '加载视频失败',
+				icon: 'none'
+			})
+		}
+	}
+	
+	// 检查付费状态
+	const checkPaymentStatus = async () => {
+		// 如果是免费视频，不需要检查
+		if (isFreeVideo.value) {
+			hasPaid.value = false
+			return
+		}
+		
+		// 检查是否登录
+		const token = getToken()
+		if (!token) {
+			hasPaid.value = false
+			return
+		}
+
+		try {
+			const paymentCheck = await apiCheckVideoPayment({
+				videoId: videoData.value.id,
+				account: getAccount()
+			})
+
+			if (paymentCheck.data) {
+				hasPaid.value = true
+			} else {
+				hasPaid.value = false
+			}
+		} catch (error) {
+			hasPaid.value = false
+		}
+	}
+
+	// 获取路由参数
+	onLoad(async (options) => {
+		if (options.id) {
+			await loadVideoData(options.id)
+		}
+	})
+	
+	// 页面显示时重新加载数据（刷新时触发）
+	onShow(async () => {
+		// 重置表单图片状态
+		showFormImage.value = false
+		formImageUrl.value = ''
+		
+		// 如果 videoData 中没有 id，尝试从 store 或 URL 参数获取
+		if (!videoData.value.id) {
+			const pages = getCurrentPages()
+			const currentPage = pages[pages.length - 1]
+			const options = currentPage.options || {}
+			if (options.id) {
+				await loadVideoData(options.id)
+			}
+		} else {
+			// 重新加载当前视频数据
+			await loadVideoData(videoData.value.id)
+		}
+		
+		// 重新检查付费状态
+		if (videoData.value.id && !isFreeVideo.value) {
+			await checkPaymentStatus()
 		}
 	})
 
 	// 在onMounted中初始化视频上下文
 	onMounted(() => {
-		// 创建视频上下文
-		videoContext.value = uni.createVideoContext('videoPlayer')
+		// 延迟初始化，确保视频元素已渲染
+		setTimeout(() => {
+			if (videoData.value.src && !videoContext.value) {
+				videoContext.value = uni.createVideoContext('videoPlayer')
+			}
+		}, 100)
 	})
 
 	//导航栏
@@ -198,7 +365,6 @@
 					himg: response.data.himg
 				};
 			} else {
-				console.error('获取用户信息失败:', response.message);
 				// 使用默认信息
 				userInfo.value = {
 					uname: account,
@@ -206,7 +372,6 @@
 				};
 			}
 		} catch (error) {
-			console.error('获取用户信息异常:', error);
 			// 使用默认信息
 			userInfo.value = {
 				uname: account,
@@ -231,9 +396,11 @@
 			}, 1500);
 			return;
 		}
-		// 判断是否为免费视频
-		if (!videoData.value.flag || videoData.value.price === 0) {
-			// 免费视频直接播放
+		// 免费视频或已付费视频，直接播放
+		if (isFreeVideo.value || hasPaid.value) {
+			if (!videoContext.value && videoData.value.src) {
+				videoContext.value = uni.createVideoContext('videoPlayer')
+			}
 			if (videoContext.value) {
 				videoContext.value.play()
 				isPlaying.value = true
@@ -241,42 +408,38 @@
 			}
 			return;
 		}
-		// 检查视频付费状态
-		try {
-			// 调用付费检查API
-			const paymentCheck = await apiCheckVideoPayment({
-				videoId: videoData.value.id,
-				account: getAccount()
-			});
-
-			if (paymentCheck.data) {
-				// 用户已付费，播放视频
+		
+		// 付费视频且未付费，需要检查或支付
+		// 如果 hasPaid 还未确定，先检查一次
+		if (!hasPaid.value) {
+			await checkPaymentStatus()
+			// 如果检查后发现已付费，直接播放
+			if (hasPaid.value) {
+				if (!videoContext.value && videoData.value.src) {
+					videoContext.value = uni.createVideoContext('videoPlayer')
+				}
 				if (videoContext.value) {
 					videoContext.value.play()
 					isPlaying.value = true
 					showPlayButton.value = false
 				}
-			} else {
-				// 用户未付费，显示付费提示
-				uni.showModal({
-					title: '付费视频',
-					content: `观看此视频需要支付${videoData.value.price}金币`,
-					confirmText: '立即支付',
-					cancelText: '取消',
-					success: async (res) => {
-						if (res.confirm) {
-							// 这里调用支付接口
-							await payForVideo();
-						}
-					}
-				});
+				return
 			}
-		} catch (error) {
-			uni.showToast({
-				title: error.message || '查询失败',
-				icon: 'none'
-			});
 		}
+		
+		// 用户未付费，显示付费提示
+		uni.showModal({
+			title: '付费视频',
+			content: `观看此视频需要支付${videoData.value.price}金币`,
+			confirmText: '立即支付',
+			cancelText: '取消',
+			success: async (res) => {
+				if (res.confirm) {
+					// 跳转到支付页面
+					await payForVideo();
+				}
+			}
+		});
 	};
 
 	const payForVideo = async () => {
@@ -316,17 +479,190 @@
 		showPlayButton.value = true
 	}
 
+	// 视频播放结束事件
+	const onVideoEnded = async () => {
+		console.log('视频播放结束，开始获取表单图片')
+		isPlaying.value = false
+		showPlayButton.value = false
+		
+		// 获取表单图片
+		await fetchFormImage()
+		
+		// 检查最终状态
+		console.log('获取表单图片完成，showFormImage:', showFormImage.value, 'formImageUrl:', formImageUrl.value)
+	}
+
+	// 获取表单图片
+	const fetchFormImage = async () => {
+		if (!videoData.value.id) {
+			console.log('获取表单图片失败：视频ID为空')
+			return
+		}
+
+		const videoId = videoData.value.id
+		
+		// 首先尝试从本地存储获取
+		let hasLocalImage = false
+		try {
+			const storageKey = `formImage_${videoId}`
+			console.log('检查本地存储，key:', storageKey)
+			const storedFormImage = uni.getStorageSync(storageKey)
+			console.log('本地存储数据:', storedFormImage)
+			
+			if (storedFormImage && storedFormImage.wimgUrl) {
+				console.log('从本地存储获取表单图片:', storedFormImage.wimgUrl)
+				formImageUrl.value = storedFormImage.wimgUrl
+				showFormImage.value = true
+				hasLocalImage = true
+				console.log('表单图片已从本地存储设置, formImageUrl:', formImageUrl.value, 'showFormImage:', showFormImage.value)
+			} else {
+				console.log('本地存储中没有表单图片数据')
+				// 尝试检查所有相关的本地存储
+				try {
+					const allKeys = uni.getStorageInfoSync().keys
+					console.log('所有本地存储keys:', allKeys)
+					const relatedKeys = allKeys.filter(key => key.includes('formImage') || key.includes('wimg'))
+					console.log('相关的本地存储keys:', relatedKeys)
+				} catch (e) {
+					console.log('无法获取本地存储keys:', e)
+				}
+			}
+		} catch (e) {
+			console.error('本地存储获取失败:', e)
+		}
+
+		// 尝试从 API 获取最新数据（后台更新）
+		// 如果在 H5 环境且本地存储已有数据，跳过 API 调用以避免 CORS 错误
+		let shouldSkipApi = false
+		// #ifdef H5
+		if (hasLocalImage) {
+			console.log('H5环境且有本地图片，跳过API调用以避免CORS错误')
+			shouldSkipApi = true
+		}
+		// #endif
+		
+		if (!shouldSkipApi) {
+			try {
+				console.log('开始获取表单图片，视频ID:', videoId)
+				const response = await apiWordQuery({ videoId: videoId })
+				console.log('表单图片API响应:', response)
+				
+				if (response && response.code === 200 && response.data) {
+					// 尝试多种可能的数据结构
+					let imageUrl = response.data.wimg || response.data.url || response.data.image || response.data.img || ''
+					console.log('解析到的图片URL:', imageUrl)
+					
+					if (imageUrl) {
+						// 处理图片 URL：如果是完整 URL 直接使用，否则拼接完整路径
+						if (!imageUrl.startsWith('http')) {
+							// 如果不是完整 URL，拼接为完整路径（wimg 文件夹）
+							imageUrl = `http://video.caimizm.com/wimg/${imageUrl}`
+						}
+						console.log('处理后的图片URL:', imageUrl)
+						formImageUrl.value = imageUrl
+						showFormImage.value = true
+						console.log('表单图片已从API设置，showFormImage:', showFormImage.value)
+					} else {
+						console.log('未找到图片URL，响应数据:', response.data)
+						// 如果API没有图片，但本地存储有，继续显示本地的
+						if (!hasLocalImage) {
+							uni.showToast({
+								title: '暂无表单记录',
+								icon: 'none',
+								duration: 2000
+							})
+						}
+					}
+				} else {
+					console.log('API响应异常:', response)
+					if (response && response.code !== 200) {
+						console.log('API返回错误码:', response.code, '错误信息:', response.message || response.msg)
+					}
+					// API 返回异常，但本地存储有数据，继续显示本地的
+					if (!hasLocalImage) {
+						uni.showToast({
+							title: '暂无表单记录',
+							icon: 'none',
+							duration: 2000
+						})
+					}
+				}
+			} catch (error) {
+				console.error('获取表单图片异常:', error)
+				// 检测是否为 CORS 错误（H5 环境）
+				const errorMessage = error.message || error.errMsg || ''
+				const isCorsError = errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('ERR_FAILED') || errorMessage.includes('net::ERR_FAILED')
+				
+				// 如果本地存储有数据，不需要显示错误提示
+				if (hasLocalImage) {
+					console.log('API调用失败，但本地存储有数据，继续显示本地图片')
+					return
+				}
+				
+				// 如果本地存储也没有数据，显示错误提示
+				if (isCorsError) {
+					// #ifdef H5
+					uni.showToast({
+						title: 'H5环境请在小程序中查看',
+						icon: 'none',
+						duration: 2000
+					})
+					// #endif
+					// #ifndef H5
+					uni.showToast({
+						title: '获取表单图片失败',
+						icon: 'none',
+						duration: 2000
+					})
+					// #endif
+				} else {
+					// 其他错误显示提示
+					uni.showToast({
+						title: '获取表单图片失败',
+						icon: 'none',
+						duration: 2000
+					})
+				}
+			}
+		}
+	}
+
+	// 关闭表单图片
+	const closeFormImage = () => {
+		showFormImage.value = false
+		showPlayButton.value = true
+	}
+
+	// 处理表单图片加载错误
+	const handleFormImageError = (e) => {
+		console.error('表单图片加载失败:', e)
+		console.error('图片URL:', formImageUrl.value)
+		uni.showToast({
+			title: '图片加载失败',
+			icon: 'none',
+			duration: 2000
+		})
+	}
+
+	// 处理表单图片加载成功
+	const handleFormImageLoad = (e) => {
+		console.log('表单图片加载成功:', formImageUrl.value)
+	}
+
 	// 处理购买按钮点击
 	const handleBuyClick = async () => {
-		if (!videoData.value.flag || videoData.value.price === 0) {
-			// 免费视频直接播放
+		// 免费视频或已付费视频，直接播放
+		if (isFreeVideo.value || hasPaid.value) {
+			if (!videoContext.value && videoData.value.src) {
+				videoContext.value = uni.createVideoContext('videoPlayer')
+			}
 			if (videoContext.value) {
 				videoContext.value.play()
 				isPlaying.value = true
 				showPlayButton.value = false
 			}
 		} else {
-			// 付费视频，跳转到支付
+			// 付费视频且未付费，跳转到支付
 			await payForVideo()
 		}
 	}
@@ -374,14 +710,9 @@
 				isLiked: videoData.value.isLiked
 			});
 
-			console.log('点赞操作成功');
-
 			// 获取点赞列表（可选）
 			const likeList = await apiGetLikelist(getAccount());
-			console.log(likeList);
 		} catch (error) {
-			console.error('点赞操作失败:', error);
-
 			// 恢复原始状态
 			videoData.value.isLiked = originalIsLiked;
 			videoData.value.likeCount = originalLikeCount;
@@ -653,5 +984,79 @@
 		font-size: 32rpx;
 		font-weight: 600;
 		margin-left: 40rpx;
+	}
+
+	/* 视频加载占位符 */
+	.video-placeholder {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: #000;
+	}
+
+	.placeholder-text {
+		color: #fff;
+		font-size: 28rpx;
+	}
+
+	/* 表单图片显示 */
+	.form-image-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+	}
+
+	.form-image-container {
+		width: 90%;
+		max-width: 600rpx;
+		background-color: #fff;
+		border-radius: 20rpx;
+		overflow: hidden;
+		max-height: 80vh;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-image-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 30rpx;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.form-image-title {
+		font-size: 32rpx;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.form-image-close {
+		width: 48rpx;
+		height: 48rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.form-image {
+		width: 100%;
+		max-height: 70vh;
+	}
+
+	.form-image-loading {
+		padding: 60rpx;
+		text-align: center;
+		color: #666;
+		font-size: 28rpx;
 	}
 </style>

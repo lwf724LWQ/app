@@ -571,6 +571,20 @@ const handleSubmit = async () => {
     uni.hideLoading()
     
     if (response.code === 200) {
+      // 保存表单图片 URL 到本地存储（以便视频播放后可以显示）
+      if (wimgUrl && videoId) {
+        try {
+          const formImageData = {
+            videoId: videoId,
+            wimgUrl: wimgUrl,
+            timestamp: Date.now()
+          }
+          uni.setStorageSync(`formImage_${videoId}`, formImageData)
+        } catch (e) {
+          // 静默处理存储错误
+        }
+      }
+      
       uni.showToast({
         title: '提交成功',
         icon: 'success'

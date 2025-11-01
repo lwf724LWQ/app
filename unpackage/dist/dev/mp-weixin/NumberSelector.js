@@ -13,7 +13,7 @@ const _sfc_main = {
       if (props.numIndex == 0) {
         const numbers2 = [];
         for (let i = 0; i <= 36; i++) {
-          numbers2.push(i.toString().padStart(2, "0"));
+          numbers2.push(i.toString());
         }
         return numbers2;
       } else {
@@ -145,82 +145,80 @@ const _sfc_main = {
       } : {}, {
         g: props.numIndex !== 5 && props.numIndex !== 0
       }, props.numIndex !== 5 && props.numIndex !== 0 ? common_vendor.e({
-        h: previewType.value === "solid" ? 1 : "",
-        i: common_vendor.o(($event) => previewType.value = "solid"),
-        j: selectedCondition.value !== "稳码"
+        h: selectedCondition.value !== "稳码"
       }, selectedCondition.value !== "稳码" ? common_vendor.e({
+        i: __props.numIndex === 1
+      }, __props.numIndex === 1 ? {
+        j: common_vendor.t(selectedCondition.value)
+      } : {}, {
         k: __props.numIndex === 1
       }, __props.numIndex === 1 ? {
-        l: common_vendor.t(selectedCondition.value)
+        l: common_vendor.t(selectedNumbers2.value)
       } : {}, {
         m: __props.numIndex === 1
       }, __props.numIndex === 1 ? {
-        n: common_vendor.t(selectedNumbers2.value)
+        n: common_vendor.t(selecteddoubNumber.value)
       } : {}, {
-        o: __props.numIndex === 1
-      }, __props.numIndex === 1 ? {
-        p: common_vendor.t(selecteddoubNumber.value)
-      } : {}, {
-        q: __props.numIndex === 1 ? 1 : "",
-        r: __props.numIndex !== 1 ? 1 : ""
+        o: __props.numIndex === 1 ? 1 : "",
+        p: __props.numIndex !== 1 ? 1 : ""
       }) : {}, {
-        s: selectedCondition.value !== "稳码"
+        q: selectedCondition.value !== "稳码"
       }, selectedCondition.value !== "稳码" ? common_vendor.e({
+        r: __props.numIndex === 2
+      }, __props.numIndex === 2 ? {
+        s: common_vendor.t(selectedCondition.value)
+      } : {}, {
         t: __props.numIndex === 2
       }, __props.numIndex === 2 ? {
-        v: common_vendor.t(selectedCondition.value)
+        v: common_vendor.t(selectedNumbers2.value)
       } : {}, {
         w: __props.numIndex === 2
       }, __props.numIndex === 2 ? {
-        x: common_vendor.t(selectedNumbers2.value)
+        x: common_vendor.t(selecteddoubNumber.value)
       } : {}, {
-        y: __props.numIndex === 2
-      }, __props.numIndex === 2 ? {
-        z: common_vendor.t(selecteddoubNumber.value)
-      } : {}, {
-        A: __props.numIndex === 2 ? 1 : "",
-        B: __props.numIndex !== 2 ? 1 : ""
+        y: __props.numIndex === 2 ? 1 : "",
+        z: __props.numIndex !== 2 ? 1 : ""
       }) : {}, {
-        C: selectedCondition.value !== "稳码"
+        A: selectedCondition.value !== "稳码"
       }, selectedCondition.value !== "稳码" ? common_vendor.e({
+        B: __props.numIndex === 3
+      }, __props.numIndex === 3 ? {
+        C: common_vendor.t(selectedCondition.value)
+      } : {}, {
         D: __props.numIndex === 3
       }, __props.numIndex === 3 ? {
-        E: common_vendor.t(selectedCondition.value)
+        E: common_vendor.t(selectedNumbers2.value)
       } : {}, {
         F: __props.numIndex === 3
       }, __props.numIndex === 3 ? {
-        G: common_vendor.t(selectedNumbers2.value)
+        G: common_vendor.t(selecteddoubNumber.value)
       } : {}, {
-        H: __props.numIndex === 3
-      }, __props.numIndex === 3 ? {
-        I: common_vendor.t(selecteddoubNumber.value)
-      } : {}, {
-        J: __props.numIndex === 3 ? 1 : "",
-        K: __props.numIndex !== 3 ? 1 : ""
+        H: __props.numIndex === 3 ? 1 : "",
+        I: __props.numIndex !== 3 ? 1 : ""
       }) : {}, {
-        L: selectedCondition.value !== "稳码"
+        J: selectedCondition.value !== "稳码"
       }, selectedCondition.value !== "稳码" ? common_vendor.e({
+        K: __props.numIndex === 4
+      }, __props.numIndex === 4 ? {
+        L: common_vendor.t(selectedCondition.value)
+      } : {}, {
         M: __props.numIndex === 4
       }, __props.numIndex === 4 ? {
-        N: common_vendor.t(selectedCondition.value)
+        N: common_vendor.t(selectedNumbers2.value)
       } : {}, {
         O: __props.numIndex === 4
       }, __props.numIndex === 4 ? {
-        P: common_vendor.t(selectedNumbers2.value)
+        P: common_vendor.t(selecteddoubNumber.value)
       } : {}, {
-        Q: __props.numIndex === 4
-      }, __props.numIndex === 4 ? {
-        R: common_vendor.t(selecteddoubNumber.value)
-      } : {}, {
-        S: __props.numIndex === 4 ? 1 : "",
-        T: __props.numIndex !== 4 ? 1 : ""
+        Q: __props.numIndex === 4 ? 1 : "",
+        R: __props.numIndex !== 4 ? 1 : ""
       }) : {}, {
-        U: selectedCondition.value === "稳码"
+        S: selectedCondition.value === "稳码"
       }, selectedCondition.value === "稳码" ? {
-        V: common_vendor.t(selectedNumbers2.value)
+        T: common_vendor.t(selectedNumbers2.value)
       } : {}) : {}, {
-        W: common_vendor.o(close),
-        X: common_vendor.o(confirm)
+        U: common_vendor.o(close),
+        V: common_vendor.o(confirm)
       });
     };
   }

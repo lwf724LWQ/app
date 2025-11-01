@@ -15,6 +15,28 @@ if (!Math) {
 const _sfc_main = {
   __name: "forum",
   setup(__props) {
+    const safeGet = (key, fallback) => {
+      try {
+        const v = common_vendor.index.getStorageSync(key);
+        return v === void 0 || v === null ? fallback : v;
+      } catch (e) {
+        return fallback;
+      }
+    };
+    const safeSet = (key, value) => {
+      try {
+        common_vendor.index.setStorageSync(key, value);
+      } catch (e) {
+      }
+    };
+    const debounce = (fn, delay = 300) => {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+      };
+    };
+    const normalizeText = (val) => String(val || "").toLowerCase();
     const activeTab = common_vendor.ref("predict");
     const activeTag = common_vendor.ref(0);
     const showPeriodDropdown = common_vendor.ref(false);
@@ -31,6 +53,7 @@ const _sfc_main = {
     const isSearching = common_vendor.ref(false);
     const isLoadingPosts = common_vendor.ref(false);
     const isLoadingLottery = common_vendor.ref(false);
+    const currentQueryKey = common_vendor.ref(null);
     const predictionFilters = common_vendor.ref([
       "头尾",
       "芝麻",
@@ -71,12 +94,7 @@ const _sfc_main = {
       "百个不合",
       "十个不合"
     ]);
-    const otherFilters = common_vendor.ref([
-      "大师帖子",
-      "靓规贴子",
-      "点赞最多",
-      "讨论最热"
-    ]);
+    const otherFilters = common_vendor.ref(["大师帖子", "靓规贴子", "点赞最多", "讨论最热"]);
     const tags = common_vendor.ref([
       "#全部",
       "#大师",
@@ -179,15 +197,11 @@ const _sfc_main = {
     const isPageInitialized = common_vendor.ref(false);
     common_vendor.onMounted(() => {
       if (isPageInitialized.value) {
-        common_vendor.index.__f__("log", "at pages/forum/forum.vue:594", "页面已经初始化，跳过重复加载");
         return;
       }
-      try {
-        const savedLotteryType = common_vendor.index.getStorageSync("currentLotteryType");
-        if (savedLotteryType) {
-          currentLotteryType.value = savedLotteryType;
-        }
-      } catch (error) {
+      const savedLotteryType = safeGet("currentLotteryType", null);
+      if (savedLotteryType) {
+        currentLotteryType.value = savedLotteryType;
       }
       autoSaveCurrentUserAvatar();
       optimizeTouchEvents();
@@ -213,7 +227,6 @@ const _sfc_main = {
     };
     const selectLotteryType = (lotteryType) => {
       if (currentLotteryType.value.code === lotteryType.code) {
-        common_vendor.index.__f__("log", "at pages/forum/forum.vue:653", "彩票类型未变化，跳过加载");
         showPeriodDropdown.value = false;
         return;
       }
@@ -223,21 +236,20 @@ const _sfc_main = {
         common_vendor.index.setStorageSync("currentLotteryType", lotteryType);
       } catch (error) {
       }
-      loadLotteryData(lotteryType.code);
+      loadLotteryDataByType(lotteryType);
     };
-    const loadLotteryData = async (lotteryCode) => {
+    const loadLotteryDataByType = async (lotteryType) => {
+      var _a;
       if (isLoadingLottery.value) {
-        common_vendor.index.__f__("log", "at pages/forum/forum.vue:674", "正在加载彩票数据，跳过重复请求");
+        return;
+      }
+      if (!lotteryType || !lotteryType.name) {
         return;
       }
       try {
         isLoadingLottery.value = true;
-        const lotteryType = lotteryTypes.value.find((type) => type.code === lotteryCode);
-        if (!lotteryType) {
-          return;
-        }
         common_vendor.index.showLoading({ title: "加载中..." });
-        const response = await api_apis.apiGetIssueNo({ cpid: lotteryType.id });
+        const response = await api_apis.apiGetIssueNo({ tname: lotteryType.name });
         common_vendor.index.hideLoading();
         if (response.code === 200 && response.data !== null && response.data !== void 0) {
           let issueNumber = null;
@@ -252,30 +264,48 @@ const _sfc_main = {
           }
           lotteryType.status = issueStatus;
           lotteryType.time = issueTime;
-          if (currentLotteryType.value.code === lotteryCode) {
-            currentLotteryType.value.status = lotteryType.status;
-            currentLotteryType.value.time = lotteryType.time;
+          if (currentLotteryType.value.code === lotteryType.code) {
+            currentLotteryType.value.status = issueStatus;
+            currentLotteryType.value.time = issueTime;
           }
+          const index = lotteryTypes.value.findIndex((type) => type.code === lotteryType.code);
+          if (index !== -1) {
+            lotteryTypes.value[index].status = issueStatus;
+            lotteryTypes.value[index].time = issueTime;
+          }
+          const oldIssueNumber = (_a = currentIssueInfo.value) == null ? void 0 : _a.number;
+          const newIssueNumber = issueNumber;
           currentIssueInfo.value = {
             id: issueNumber,
             number: issueNumber,
             status: issueStatus,
             time: issueTime
           };
-          try {
-            common_vendor.index.setStorageSync("currentIssueInfo", currentIssueInfo.value);
-          } catch (error) {
+          safeSet("currentIssueInfo", currentIssueInfo.value);
+          if (oldIssueNumber !== newIssueNumber || oldIssueNumber === null) {
+            loadPredictPosts();
           }
-          loadPredictPosts();
         } else {
           common_vendor.index.showToast({ title: response.msg || "数据加载失败", icon: "none" });
         }
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.showToast({ title: "网络错误，请重试", icon: "none" });
+        const errorMsg = (error == null ? void 0 : error.msg) || (error == null ? void 0 : error.message) || "网络错误，请重试";
+        common_vendor.index.showToast({
+          title: errorMsg,
+          icon: "none",
+          duration: 3e3
+        });
       } finally {
         isLoadingLottery.value = false;
       }
+    };
+    const loadLotteryData = async (lotteryCode) => {
+      const lotteryType = lotteryTypes.value.find((type) => type.code === lotteryCode);
+      if (!lotteryType) {
+        return;
+      }
+      await loadLotteryDataByType(lotteryType);
     };
     const isMultipleImages = (imageStr) => {
       return imageStr && imageStr.includes(",");
@@ -316,7 +346,7 @@ const _sfc_main = {
             success: () => {
               hidePublishModal();
             },
-            fail: (err) => {
+            fail: () => {
               common_vendor.index.showToast({
                 title: "跳转失败",
                 icon: "none"
@@ -330,7 +360,7 @@ const _sfc_main = {
             success: () => {
               hidePublishModal();
             },
-            fail: (err) => {
+            fail: () => {
               common_vendor.index.showToast({
                 title: "跳转失败",
                 icon: "none"
@@ -373,7 +403,7 @@ const _sfc_main = {
         selectedOtherFilter.value = filter;
       }
     };
-    const handleSearchInput = () => {
+    const _handleSearchInput = () => {
       if (searchKeyword.value.trim()) {
         generateSearchSuggestions();
         performFuzzySearch();
@@ -381,16 +411,13 @@ const _sfc_main = {
         clearSearchResults();
       }
     };
+    const handleSearchInput = debounce(_handleSearchInput, 300);
     const generateSearchSuggestions = () => {
-      const keyword = searchKeyword.value.trim().toLowerCase();
+      const keyword = normalizeText(searchKeyword.value.trim());
       const suggestions = [];
-      predictionFilters.value.forEach((filter) => {
-        if (filter.toLowerCase().includes(keyword)) {
-          suggestions.push(filter);
-        }
-      });
-      otherFilters.value.forEach((filter) => {
-        if (filter.toLowerCase().includes(keyword)) {
+      const candidates = [...predictionFilters.value, ...otherFilters.value];
+      candidates.forEach((filter) => {
+        if (normalizeText(filter).includes(keyword)) {
           suggestions.push(filter);
         }
       });
@@ -408,17 +435,17 @@ const _sfc_main = {
       clearSearchResults();
     };
     const performFuzzySearch = () => {
-      const keyword = searchKeyword.value.trim().toLowerCase();
+      const keyword = normalizeText(searchKeyword.value.trim());
       if (!keyword) {
         clearSearchResults();
         return;
       }
       isSearching.value = true;
       filteredPredictList.value = predictList.value.filter((post) => {
-        if (post.username && post.username.toLowerCase().includes(keyword)) {
+        if (post.username && normalizeText(post.username).includes(keyword)) {
           return true;
         }
-        if (post.content && post.content.toLowerCase().includes(keyword)) {
+        if (post.content && normalizeText(post.content).includes(keyword)) {
           return true;
         }
         if (post.period && post.period.toString().includes(keyword)) {
@@ -428,13 +455,13 @@ const _sfc_main = {
           return true;
         }
         if (keyword === "大师" || keyword === "大师帖子") {
-          return post.content && post.content.toLowerCase().includes("大师");
+          return post.content && post.content.includes("大师");
         }
         if (keyword === "靓规贴" || keyword === "靓规贴子") {
-          return post.content && post.content.toLowerCase().includes("靓规");
+          return post.content && post.content.includes("靓规");
         }
         if (keyword === "过滤王") {
-          return post.content && post.content.toLowerCase().includes("过滤王");
+          return post.content && post.content.includes("过滤王");
         }
         if (keyword === "点赞最多") {
           return post.likes > 0;
@@ -545,16 +572,26 @@ const _sfc_main = {
       return filters.join("+");
     };
     const loadPredictPosts = async () => {
+      var _a, _b, _c;
       if (isLoadingPosts.value) {
-        common_vendor.index.__f__("log", "at pages/forum/forum.vue:1138", "正在加载帖子，跳过重复请求");
+        return;
+      }
+      const tname = (_a = currentLotteryType.value) == null ? void 0 : _a.name;
+      const issueno = ((_b = currentIssueInfo.value) == null ? void 0 : _b.number) || ((_c = currentIssueInfo.value) == null ? void 0 : _c.id) || "--";
+      if (!tname || !issueno) {
+        return;
+      }
+      const queryKey = `${tname}_${issueno}`;
+      if (currentQueryKey.value === queryKey) {
         return;
       }
       try {
         isLoadingPosts.value = true;
+        currentQueryKey.value = queryKey;
         const queryData = {
-          tname: currentLotteryType.value.name,
+          tname,
           // 查询预测帖
-          issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || "--",
+          issueno,
           page: "1",
           limit: "20"
         };
@@ -566,9 +603,9 @@ const _sfc_main = {
           }
         }
         const patternQueryData = {
-          tname: `${currentLotteryType.value.name}-规律预测`,
+          tname: `${tname}-规律预测`,
           // 查询规律帖
-          issueno: currentIssueInfo.value.number || currentIssueInfo.value.id || "--",
+          issueno,
           page: "1",
           limit: "20"
         };
@@ -615,42 +652,31 @@ const _sfc_main = {
           predictList.value = [];
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/forum/forum.vue:1224", "加载帖子失败:", error);
         predictList.value = [];
       } finally {
         isLoadingPosts.value = false;
+        currentQueryKey.value = null;
       }
     };
     const getLikedStatus = (postId) => {
-      try {
-        const likedPosts = common_vendor.index.getStorageSync("likedPosts") || {};
-        return likedPosts[postId] || false;
-      } catch (error) {
-        return false;
-      }
+      const likedPosts = safeGet("likedPosts", {});
+      return likedPosts[postId] || false;
     };
     const saveLikedStatus = (postId, isLiked) => {
-      try {
-        const likedPosts = common_vendor.index.getStorageSync("likedPosts") || {};
-        likedPosts[postId] = isLiked;
-        common_vendor.index.setStorageSync("likedPosts", likedPosts);
-      } catch (error) {
-      }
+      const likedPosts = safeGet("likedPosts", {});
+      likedPosts[postId] = isLiked;
+      safeSet("likedPosts", likedPosts);
     };
     const getUserAvatar = (account) => {
       try {
         const currentAccount = utils_request.getAccount();
         if (account === currentAccount) {
-          const loginData = common_vendor.index.getStorageSync("loginData") || {};
-          if (loginData.himg) {
+          const loginData = safeGet("loginData", {});
+          if (loginData.himg)
             return loginData.himg;
-          }
         }
-        const userAvatars = common_vendor.index.getStorageSync("userAvatars") || {};
-        if (userAvatars[account]) {
-          return userAvatars[account];
-        }
-        return "http://video.caimizm.com/himg/user.png";
+        const userAvatars = safeGet("userAvatars", {});
+        return userAvatars[account] || "http://video.caimizm.com/himg/user.png";
       } catch (error) {
         return "http://video.caimizm.com/himg/user.png";
       }
@@ -746,13 +772,13 @@ const _sfc_main = {
     };
     const autoSaveCurrentUserAvatar = () => {
       try {
-        const loginData = common_vendor.index.getStorageSync("loginData") || {};
+        const loginData = safeGet("loginData", {});
         const currentAccount = utils_request.getAccount();
         if (loginData.himg && currentAccount) {
-          const userAvatars = common_vendor.index.getStorageSync("userAvatars") || {};
+          const userAvatars = safeGet("userAvatars", {});
           if (!userAvatars[currentAccount]) {
             userAvatars[currentAccount] = loginData.himg;
-            common_vendor.index.setStorageSync("userAvatars", userAvatars);
+            safeSet("userAvatars", userAvatars);
           }
         }
       } catch (error) {
@@ -834,7 +860,7 @@ const _sfc_main = {
               icon: "success"
             });
           },
-          fail: (err) => {
+          fail: () => {
             common_vendor.index.showToast({
               title: "跳转失败",
               icon: "none"
@@ -963,7 +989,7 @@ const _sfc_main = {
           size: "16",
           color: "#999"
         }),
-        z: common_vendor.o([($event) => searchKeyword.value = $event.detail.value, handleSearchInput]),
+        z: common_vendor.o([($event) => searchKeyword.value = $event.detail.value, (...args) => common_vendor.unref(handleSearchInput) && common_vendor.unref(handleSearchInput)(...args)]),
         A: common_vendor.o(($event) => showSearchSuggestions.value = true),
         B: searchKeyword.value,
         C: searchKeyword.value

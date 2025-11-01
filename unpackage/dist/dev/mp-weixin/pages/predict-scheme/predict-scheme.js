@@ -1064,7 +1064,7 @@ const _sfc_main = {
         }
         isLoadingIssueInfo.value = true;
         common_vendor.index.showLoading({ title: "加载中..." });
-        const response = await api_apis.apiGetIssueNo({ cpid: currentLotteryType.value.id });
+        const response = await api_apis.apiGetIssueNo({ tname: currentLotteryType.value.name });
         common_vendor.index.hideLoading();
         if (response.code === 200 && response.data !== null && response.data !== void 0) {
           let issueNumber = null;
