@@ -8,6 +8,7 @@ import {EraseRedo} from "./eraser";
 import {filledRect, hollowRect} from "./graphs/Rect";
 import { filledCircle, hollowCircle } from "./graphs/Circle";
 import Text from "./graphs/Text"
+import tools from "./tools"
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
@@ -243,6 +244,8 @@ export default class Table {
         this.autolineSetting = Object.assign({}, autolineSetting)
     }
     //
+    touchStartPosition: Position | null = null;
+    lastTouchPosition: Position | null = null;
     touchEvent(touche: TouchEvent) {
         const tableCanvasContext = this.tableCanvasContext;
         const panStyle = this.panStyle
@@ -254,7 +257,8 @@ export default class Table {
             case 'touchstart':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
-
+                this.touchStartPosition = position
+                this.lastTouchPosition = position
                 if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
                     // 如果是智能线，判断一下是否为点到控制点
                     if (this.drawNowGraph.isInControlPoint(position)) {
@@ -291,10 +295,14 @@ export default class Table {
             case 'touchmove':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
-
+                this.lastTouchPosition = position
                 this.drawNowGraph?.moveTo(position, 'touchmove')
                 break;
             case "touchend":
+                if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5)) {
+                    // 视为一次点击
+                    
+                }
                 if (this.drawNowGraph instanceof baseGraph) {
                     this.drawNowGraph.moveEnd()   
                 }

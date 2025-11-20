@@ -40,10 +40,11 @@ export default class Background extends baseGraph {
             ctx.setTextBaseline('middle')
             ctx.fillText(data.issueno, style.width/2, lineHeight*y + (w*0.04))
 
-
-            ctx.setFontSize(uni.upx2px(24))
-            const dayString = `${moment(data?.opendate).format("MM-DD")} ${this.getDayOfWeek()}`
-            ctx.fillText(dayString, style.width/2, lineHeight*y + (w*0.08))
+            if (data?.opendate) {
+                ctx.setFontSize(uni.upx2px(24))
+                const dayString = `${moment(data?.opendate).format("MM-DD")} ${this.getDayOfWeek()}`
+                ctx.fillText(dayString, style.width/2, lineHeight*y + (w*0.08))
+            }
         }
     }
 

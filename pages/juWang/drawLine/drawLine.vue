@@ -27,6 +27,8 @@
 				<!-- 画笔粗细选择 -->
 				<pansize v-model="pansize" :color="color" @change="setPanStyle"></pansize>
 			</view>
+			<!-- 画笔颜色选择按钮 -->
+			<color-select-menu v-model="color" @change="setPanStyle"></color-select-menu>
 			<view class="lock-btn">
 				<!-- 锁定按钮 -->
 			</view>
@@ -56,8 +58,6 @@
 			@touchcancel="touchevent"></cover-view>
 		<!-- #endif -->
 
-		<!-- 画笔颜色选择按钮 -->
-		<color-select-menu v-model="color" @change="setPanStyle"></color-select-menu>
 
 		<view class="canvas-text-box" v-if="isShowTextInputBox">
 			<input class="uni-input" focus placeholder="输入文本" v-model.trim="textValue" @confirm="textConfirm" />
@@ -112,6 +112,16 @@ export default {
 	methods: {
 		// 处理数据
 		handleData(data) {
+			const lastData = data[data.length - 1]
+			data.push({
+				id: '',
+				tname: lastData.tname,
+				issueno: Number(lastData.issueno) + 1,
+				number: "",
+				refernumber: '',
+				opendate: false,
+				createTime: ''
+			})
 			this.data = data.map(item => ({
 				...item,
 				number: item.number.split(" ")
@@ -142,6 +152,7 @@ export default {
 		},
 		// 设置笔绘制参数
 		setPanStyle: function () {
+			this.bottomIsShow = false
 			this.table.setPanStyle(this.createPanStyleObj())
 		},
 		// 创建笔样式对象

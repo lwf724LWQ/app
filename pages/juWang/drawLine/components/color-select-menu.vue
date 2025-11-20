@@ -49,11 +49,7 @@ export default {
     overflow: hidden;
 }
 
-.color-control-wrapper {
-    position: fixed;
-    bottom: 90rpx;
-    left: ;
-}
+.color-control-wrapper {}
 
 .color-select-menu {
     display: flex;
