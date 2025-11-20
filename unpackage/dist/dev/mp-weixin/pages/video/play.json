@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "视频播放",
-  "enablePullDownRefresh": false,
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "uni-icons": "../../uni_modules/uni-icons/components/uni-icons/uni-icons"
-  }
-}

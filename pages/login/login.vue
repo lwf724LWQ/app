@@ -1,8 +1,8 @@
 <template>
-  <view class="login-wrapper">
+  <view class="login-wrapper" v-show="loginShow">
     <!-- 状态栏 -->
-  
-    
+
+
     <!-- 头部区域 -->
     <view class="header">
       <view class="back-btn" @click="goBack">
@@ -12,12 +12,12 @@
         <text class="wave-icon">🌊</text>
       </view>
     </view>
-    
+
     <!-- 主标题 -->
     <view class="title-section">
       <text class="main-title">欢迎登陆</text>
     </view>
-    
+
     <!-- 登录表单 -->
     <view class="login-form">
       <!-- 手机号输入框 -->
@@ -28,29 +28,19 @@
           </view>
           <text class="country-code">+86</text>
           <view class="separator"></view>
-          <input 
-            type="text" 
-            placeholder="请输入手机号" 
-            placeholder-class="input-placeholder" 
-            v-model="account"
-            class="phone-input"
-          />
+          <input type="text" placeholder="请输入手机号" placeholder-class="input-placeholder" v-model="account"
+            class="phone-input" />
         </view>
       </view>
-      
+
       <!-- 密码输入框 -->
       <view class="input-group">
         <view class="input-container">
           <view class="input-icon lock-icon">
             <view class="lock-icon-svg"></view>
           </view>
-          <input 
-            :type="showPassword ? 'text' : 'password'" 
-            placeholder="请输入密码" 
-            placeholder-class="input-placeholder" 
-            v-model="password"
-            class="password-input"
-          />
+          <input :type="showPassword ? 'text' : 'password'" placeholder="请输入密码" placeholder-class="input-placeholder"
+            v-model="password" class="password-input" />
           <view class="eye-icon" @click="togglePasswordVisibility">
             <view class="eye-icon-svg" :class="{ 'eye-open': showPassword }">
               <view class="eye-ball"></view>
@@ -58,18 +48,18 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 链接区域 -->
       <view class="links-section">
         <text class="register-link" @click="goToReg">还没账户?去注册</text>
         <text class="forgot-link" @click="goForgetPwdPage1">忘记密码</text>
       </view>
-      
+
       <!-- 登录按钮 -->
       <view class="login-btn-container">
         <button class="login-btn" @click="gologin">登录</button>
       </view>
-      
+
       <!-- 用户协议 -->
       <view class="agreement-section">
         <view class="checkbox-container">
@@ -84,14 +74,14 @@
           </text>
         </view>
       </view>
-      
+
       <!-- 第三方登录分隔线 -->
       <view class="divider">
         <view class="divider-line"></view>
         <text class="divider-text">第三方账号登录</text>
         <view class="divider-line"></view>
       </view>
-      
+
       <!-- 第三方登录按钮 -->
       <view class="third-party-login">
         <button class="wechat-btn" @click="wechatLogin">
@@ -100,21 +90,22 @@
           </view>
           <text class="btn-text">微信账号登录</text>
         </button>
-        
-      
+
+
       </view>
     </view>
-    
+
     <!-- 底部指示器 -->
     <view class="bottom-indicator"></view>
   </view>
 </template>
 
 <script lang="ts" setup>
-import { ref,reactive,watch } from 'vue'
-import {apilogin} from '../../api/apis.js'
-import { apigetsts } from '../../api/apis.js';
-import { setToken,getToken,setAccount,getAccount } from '../../utils/request.js'; // 导入setToken和setAccount方法
+import { onLoad } from '@dcloudio/uni-app'
+import { ref, reactive, watch } from 'vue'
+import { apilogin } from '../../api/apis.js'
+import { apigetsts, apiUserimg } from '../../api/apis.js';
+import { setToken, getToken, setAccount, getAccount } from '../../utils/request.js'; // 导入setToken和setAccount方法
 
 // 声明uni类型
 declare const uni: any;
@@ -123,91 +114,103 @@ declare const uni: any;
 //----------------------------------
 
 
-const type=ref('0');//0代表用户密码登录
-const account=ref('');
-const password=ref('');
-const code=ref('');
-const tocken=ref('');
-const isAgreed=ref(true);
-const showPassword=ref(false);
+const type = ref('0');//0代表用户密码登录
+const account = ref('');
+const password = ref('');
+const code = ref('');
+const tocken = ref('');
+const isAgreed = ref(true);
+const showPassword = ref(false);
 const Userinfo = reactive({
-    type: '',
-    account: '',
-    password: '',
+  type: '',
+  account: '',
+  password: '',
 });
 //同步输入的参数
 watch([type, account, password, code], ([newtype, newaccount, newpassword]) => {
-    Userinfo.type = newtype;
-    Userinfo.account = newaccount;
-    Userinfo.password = newpassword;
+  Userinfo.type = newtype;
+  Userinfo.account = newaccount;
+  Userinfo.password = newpassword;
 }, { immediate: true });
 
+const loginShow = ref(false);
+
+onLoad(() => {
+  apiUserimg({})
+    .then((res) => {
+      login()
+    })
+    .catch((error) => {
+      loginShow.value = true;
+    });
+})
+
 // 点击登录从这里拿到tocken信息
-const gologin=async ()=>{
-	// 检查是否同意用户协议
-	if (!isAgreed.value) {
-		uni.showToast({
-			title: '请先同意用户协议',
-			icon: 'none',
-			duration: 2000
-		})
-		return
-	}
-	
-	// 检查输入是否完整
-	if (!account.value || !password.value) {
-		uni.showToast({
-			title: '请输入手机号和密码',
-			icon: 'none',
-			duration: 2000
-		})
-		return
-	}
-	
-	// 显示加载提示
-	uni.showLoading({
-		title: '登录中...'
-	})
-	
-	try {
-	    const success = await apilogin(Userinfo);
-	    
-	    // 隐藏加载提示
-	    uni.hideLoading()
-	    
-	    if (success) {
-	      // 打印登录返回的完整数据，用于调试
-	      console.log('登录API返回的完整数据:', success);
-	      
-	      // 设置全局token
-	      if (success.data?.token) {
-	        setToken(success.data.token);
-	      } else {
-	        uni.showModal({
-	        	title: '登录失败',
-	        	content: '未获取到token，请重试',
-	        	showCancel: false
-	        })
-	        return;
-	      }
-	      
-	      // 设置全局account
-	      if (account.value) {
-	        setAccount(account.value);
-	      } else {
-	        uni.showModal({
-	        	title: '登录失败',
-	        	content: '账号信息异常，请重试',
-	        	showCancel: false
-	        })
-	        return;
-	      }
-	      
-	      // 直接使用登录返回的用户信息
-	      try {
-	        // 从登录返回的数据中提取用户信息
-	        const loginData = success.data || {};
-	        
+const gologin = async () => {
+  // 检查是否同意用户协议
+  if (!isAgreed.value) {
+    uni.showToast({
+      title: '请先同意用户协议',
+      icon: 'none',
+      duration: 2000
+    })
+    return
+  }
+
+  // 检查输入是否完整
+  if (!account.value || !password.value) {
+    uni.showToast({
+      title: '请输入手机号和密码',
+      icon: 'none',
+      duration: 2000
+    })
+    return
+  }
+
+  // 显示加载提示
+  uni.showLoading({
+    title: '登录中...'
+  })
+
+  try {
+    const success = await apilogin(Userinfo);
+
+    // 隐藏加载提示
+    uni.hideLoading()
+
+    if (success) {
+      // 打印登录返回的完整数据，用于调试
+      console.log('登录API返回的完整数据:', success);
+
+      // 设置全局token
+      if (success.data?.token) {
+        setToken(success.data.token);
+      } else {
+        uni.showModal({
+          title: '登录失败',
+          content: '未获取到token，请重试',
+          showCancel: false
+        })
+        return;
+      }
+
+      // 设置全局account
+      if (account.value) {
+        setAccount(account.value);
+      } else {
+        uni.showModal({
+          title: '登录失败',
+          content: '账号信息异常，请重试',
+          showCancel: false
+        })
+        return;
+      }
+
+      // 直接使用登录返回的用户信息
+      try {
+        // 从登录返回的数据中提取用户信息
+        const loginData = success.data || {};
+
         // 处理头像URL
         let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
         if (loginData.himg) {
@@ -219,14 +222,14 @@ const gologin=async ()=>{
             avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
           }
         }
-        
+
         // 保存用户信息到本地存储
         const userInfo = {
           nickname: loginData.uname || '用户',
           avatar: avatarUrl,
           phone: account.value
         };
-        
+
         // 保存到本地存储，供用户页面使用
         uni.setStorageSync('userInfo', userInfo);
         uni.setStorageSync('loginData', {
@@ -234,14 +237,14 @@ const gologin=async ()=>{
           himg: avatarUrl, // 保存完整的头像URL
           account: account.value
         });
-        
+
         console.log('登录成功，用户信息已保存:', userInfo);
         console.log('登录数据已保存:', {
           uname: loginData.uname,
           himg: avatarUrl, // 显示完整的头像URL
           account: account.value
         });
-        
+
         // 自动保存当前用户头像到userAvatars本地存储
         try {
           const userAvatars = uni.getStorageSync('userAvatars') || {}
@@ -251,7 +254,7 @@ const gologin=async ()=>{
         } catch (error) {
           console.error('保存用户头像到userAvatars失败:', error)
         }
-        
+
       } catch (error) {
         console.error('保存用户信息失败:', error);
         // 使用默认用户信息
@@ -268,39 +271,39 @@ const gologin=async ()=>{
           account: account.value
         });
       }
-	      
-	      // 显示登录成功提示
-	      uni.showToast({
-	      	title: '登录成功',
-	      	icon: 'success',
-	      	duration: 1500
-	      })
-	      
-	      // 延迟跳转，让用户看到成功提示
-	      setTimeout(() => {
-	      	// 跳转到用户页面
-		  	uni.switchTab({
-			  	url: '/pages/index/index',
-		  	})
-	      }, 1500)
-	      
-	    } else {
-	      uni.showModal({
-	      	title: '登录失败',
-	      	content: '用户名或密码错误，请重试',
-	      	showCancel: false
-	      })
-	    }
-	  } catch (error) {
-	  	// 隐藏加载提示
-	  	uni.hideLoading()
-	  	
-	    uni.showModal({
-	    	title: '登录失败',
-	    	content: '网络错误，请检查网络连接后重试',
-	    	showCancel: false
-	    })
-	  }
+
+      // 显示登录成功提示
+      uni.showToast({
+        title: '登录成功',
+        icon: 'success',
+        duration: 1500
+      })
+
+      // 延迟跳转，让用户看到成功提示
+      setTimeout(() => {
+        // 跳转到用户页面
+        uni.switchTab({
+          url: '/pages/index/index',
+        })
+      }, 1500)
+
+    } else {
+      uni.showModal({
+        title: '登录失败',
+        content: '用户名或密码错误，请重试',
+        showCancel: false
+      })
+    }
+  } catch (error) {
+    // 隐藏加载提示
+    uni.hideLoading()
+
+    uni.showModal({
+      title: '登录失败',
+      content: '网络错误，请检查网络连接后重试',
+      showCancel: false
+    })
+  }
 }
 
 //-------------------------------------------------------------
@@ -380,7 +383,7 @@ const wechatLogin = () => {
     })
     return
   }
-  
+
   uni.showModal({
     title: '微信登录',
     content: '微信登录功能正在开发中，敬请期待',
@@ -412,17 +415,17 @@ const wechatLogin = () => {
   align-items: center;
   padding: 20rpx 40rpx;
   height: 60rpx;
-  
+
   .time {
     font-size: 28rpx;
     font-weight: 600;
     color: #000;
   }
-  
+
   .status-icons {
     display: flex;
     gap: 10rpx;
-    
+
     .signal-icon,
     .wifi-icon,
     .battery-icon {
@@ -438,7 +441,7 @@ const wechatLogin = () => {
   align-items: center;
   padding: 20rpx 40rpx;
   margin-bottom: 40rpx;
-  
+
   .back-btn {
     width: 60rpx;
     height: 60rpx;
@@ -447,14 +450,14 @@ const wechatLogin = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .back-icon {
       font-size: 32rpx;
       color: #28B389;
       font-weight: bold;
     }
   }
-  
+
   .header-wave {
     .wave-icon {
       font-size: 32rpx;
@@ -467,7 +470,7 @@ const wechatLogin = () => {
 .title-section {
   text-align: center;
   margin-bottom: 80rpx;
-  
+
   .main-title {
     font-size: 56rpx;
     font-weight: 700;
@@ -479,10 +482,10 @@ const wechatLogin = () => {
 /* 登录表单 */
 .login-form {
   padding: 0 60rpx;
-  
+
   .input-group {
     margin-bottom: 40rpx;
-    
+
     .input-container {
       background: #fff;
       border-radius: 20rpx;
@@ -490,7 +493,7 @@ const wechatLogin = () => {
       display: flex;
       align-items: center;
       box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-      
+
       .input-icon {
         width: 40rpx;
         height: 40rpx;
@@ -498,14 +501,14 @@ const wechatLogin = () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        
+
         .phone-icon-svg {
           width: 32rpx;
           height: 48rpx;
           border: 3rpx solid #28B389;
           border-radius: 8rpx;
           position: relative;
-          
+
           &::before {
             content: '';
             position: absolute;
@@ -516,7 +519,7 @@ const wechatLogin = () => {
             border: 2rpx solid #28B389;
             border-radius: 4rpx;
           }
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -529,12 +532,12 @@ const wechatLogin = () => {
             border-radius: 50%;
           }
         }
-        
+
         .lock-icon-svg {
           width: 32rpx;
           height: 32rpx;
           position: relative;
-          
+
           &::before {
             content: '';
             position: absolute;
@@ -547,7 +550,7 @@ const wechatLogin = () => {
             border-bottom: none;
             border-radius: 10rpx 10rpx 0 0;
           }
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -561,21 +564,21 @@ const wechatLogin = () => {
           }
         }
       }
-      
+
       .country-code {
         font-size: 32rpx;
         color: #000;
         font-weight: 500;
         margin-right: 20rpx;
       }
-      
+
       .separator {
         width: 2rpx;
         height: 40rpx;
         background: #ddd;
         margin-right: 20rpx;
       }
-      
+
       .phone-input,
       .password-input {
         flex: 1;
@@ -585,11 +588,11 @@ const wechatLogin = () => {
         outline: none;
         background: transparent;
       }
-      
+
       .eye-icon {
         margin-left: 20rpx;
         cursor: pointer;
-        
+
         .eye-icon-svg {
           width: 32rpx;
           height: 20rpx;
@@ -597,7 +600,7 @@ const wechatLogin = () => {
           border: 2rpx solid #666;
           border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
           transition: all 0.3s ease;
-          
+
           .eye-ball {
             position: absolute;
             top: 50%;
@@ -609,10 +612,10 @@ const wechatLogin = () => {
             border-radius: 50%;
             transition: all 0.3s ease;
           }
-          
+
           &.eye-open {
             border-color: #28B389;
-            
+
             .eye-ball {
               background: #28B389;
               width: 10rpx;
@@ -623,28 +626,28 @@ const wechatLogin = () => {
       }
     }
   }
-  
+
   /* 链接区域 */
   .links-section {
     display: flex;
     justify-content: space-between;
     margin-bottom: 60rpx;
-    
+
     .register-link {
       font-size: 28rpx;
       color: #28B389;
     }
-    
+
     .forgot-link {
       font-size: 28rpx;
       color: #999;
     }
   }
-  
+
   /* 登录按钮 */
   .login-btn-container {
     margin-bottom: 40rpx;
-    
+
     .login-btn {
       width: 100%;
       height: 100rpx;
@@ -659,16 +662,16 @@ const wechatLogin = () => {
       justify-content: center;
     }
   }
-  
+
   /* 用户协议 */
   .agreement-section {
     margin-bottom: 60rpx;
-    
+
     .checkbox-container {
       display: flex;
       align-items: flex-start;
       gap: 20rpx;
-      
+
       .checkbox {
         width: 32rpx;
         height: 32rpx;
@@ -678,11 +681,11 @@ const wechatLogin = () => {
         align-items: center;
         justify-content: center;
         margin-top: 4rpx;
-        
+
         &.checked {
           background: #28B389;
           border-color: #28B389;
-          
+
           .checkmark {
             color: #fff;
             font-size: 20rpx;
@@ -690,45 +693,45 @@ const wechatLogin = () => {
           }
         }
       }
-      
+
       .agreement-text {
         flex: 1;
         font-size: 24rpx;
         color: #999;
         line-height: 1.5;
-        
+
         .link-text {
           color: #28B389;
         }
       }
     }
   }
-  
+
   /* 分隔线 */
   .divider {
     display: flex;
     align-items: center;
     margin: 60rpx 0 40rpx;
-    
+
     .divider-line {
       flex: 1;
       height: 2rpx;
       background: #ddd;
     }
-    
+
     .divider-text {
       margin: 0 30rpx;
       font-size: 24rpx;
       color: #999;
     }
   }
-  
+
   /* 第三方登录 */
   .third-party-login {
     display: flex;
     flex-direction: column;
     gap: 20rpx;
-    
+
     .wechat-btn,
     .qq-btn {
       width: 100%;
@@ -741,16 +744,16 @@ const wechatLogin = () => {
       justify-content: center;
       padding: 0 40rpx;
       gap: 20rpx;
-      
+
       .btn-icon {
         font-size: 40rpx;
-        
+
         &.wechat-icon {
           .wechat-icon-svg {
             width: 40rpx;
             height: 40rpx;
             position: relative;
-            
+
             &::before {
               content: '';
               position: absolute;
@@ -762,7 +765,7 @@ const wechatLogin = () => {
               border-radius: 50%;
               border: 2rpx solid #07C160;
             }
-            
+
             &::after {
               content: '';
               position: absolute;
@@ -776,12 +779,12 @@ const wechatLogin = () => {
             }
           }
         }
-        
+
         &.qq-icon {
           color: #007aff;
         }
       }
-      
+
       .btn-text {
         font-size: 32rpx;
         color: #333;

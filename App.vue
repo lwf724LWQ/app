@@ -1,14 +1,17 @@
 <script>
-	export default {
-		onLaunch: function() {
-		},
-		onShow: function() {
-		},
-		onHide: function() {
-		}
+export default {
+	onLaunch: function () {
+	},
+	onShow: function () {
+	},
+	onHide: function () {
 	}
+}
 </script>
 
 <style>
-	/*每个页面公共css */
+/*每个页面公共css */
+* {
+	font-weight: bold
+}
 </style>

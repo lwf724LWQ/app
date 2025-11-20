@@ -1,1 +1,0 @@
-import{P as e}from"./index-D0AdlXYI.js";const r=e("video",{state:()=>({currentVideo:null}),actions:{setCurrentVideo(e){this.currentVideo=e,console.log(e,"这是仓库中的")},clearCurrentVideo(){this.currentVideo=null}},getters:{getCurrentVideo:e=>e.currentVideo}});export{r as u};

@@ -1,6 +1,6 @@
 import "./chunk-TDUMLE5V.js";
 
-// C:/梓梅2.0/梓梅xcx/my-painting-rules-project/node_modules/nanoid/non-secure/index.js
+// ../../../../dujunji/caimixcx/node_modules/nanoid/non-secure/index.js
 var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 var customAlphabet = (alphabet, defaultSize = 21) => {
   return (size = defaultSize) => {

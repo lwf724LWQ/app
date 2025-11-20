@@ -4,15 +4,12 @@
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar">
-            <image 
-              :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'" 
-              mode="aspectFill"
-              @error="handleAvatarError"
-            ></image>
+            <image :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'" mode="aspectFill"
+              @error="handleAvatarError"></image>
           </view>
           <view class="user-details">
             <text class="username">{{ memberStore.profile?.nickname || '欢迎您' }}</text>
-           
+
           </view>
         </view>
         <view class="edit-btn" @click="goToEditProfile">
@@ -69,95 +66,96 @@
         </view>
       </view>
     </view>
-	
-	
-	
-	<!-- 数据展示区域 -->
-	<view class="data-section">
-	  <view class="data-card" @click="toggleBalanceVisibility">
-	    <text class="data-number">{{ isBalanceVisible ? '0.00' : '****' }}</text>
-	    <text class="data-label">我的收益</text>
-	    <view class="eye-icon" @click="toggleBalanceVisibility">
-	      <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
-	    </view>
-	  </view>
-	  <view class="data-card" @click="goToRecharge">
-	    <text class="data-number">
-	      <text v-if="isBalanceVisible">{{ userBalance }}</text>
-	      <text v-else>****</text>
-	    </text>
-	    <text class="data-label">我的金币</text>
-	    <view class="eye-icon" @click="toggleBalanceVisibility">
-	      <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
-	    </view>
-	  </view>
-	</view>
-	
-	<!-- 我的充值区域 -->
-	<view class="recharge-section">
-	  <text class="section-title"></text>
-	  <view class="recharge-items">
-	    <view class="recharge-item">
-	      <view class="recharge-icon purple">💳</view>
-	      <text class="recharge-text">大师包月</text>
-	    </view>
-	    <view class="recharge-item" @click="goToOrders">
-	      <view class="recharge-icon blue">📋</view>
-	      <text class="recharge-text">我的订单</text>
-	    </view>
-	    <view class="recharge-item" @click="goToTransaction">
-	      <view class="recharge-icon yellow">¥</view>
-	      <text class="recharge-text">消费明细</text>
-	    </view>
-	    <view class="recharge-item">
-	      <view class="recharge-icon red">🎁</view>
-	      <text class="recharge-text">收藏</text>
-	    </view>
-	  </view>
-	</view>
-	
-	<!-- 其他服务区域 -->
-	<view class="services-section">
-	  <text class="section-title">其它服务</text>
-	  <view class="services-grid">
-	    <view class="service-item">
-	      <uni-icons type="headphones" size="24" color="#222"></uni-icons>
-	      <text class="service-text">联系客服</text>
-	    </view>
-	    <view class="service-item">
-	      <uni-icons type="compose" size="24" color="#222"></uni-icons>
-	      <text class="service-text">意见反馈</text>
-	    </view>
-	    <view class="service-item" @click="logout">
-	      <uni-icons type="settings" size="24" color="#222"></uni-icons>
-	      <text class="service-text">设置</text>
-	    </view>
-	    <view class="service-item">
-	      <uni-icons type="locked" size="24" color="#222"></uni-icons>
-	      <text class="service-text">隐私政策</text>
-	    </view>
-	    <view class="service-item">
-	      <uni-icons type="gift" size="24" color="#222"></uni-icons>
-	      <text class="service-text">每日福利</text>
-	    </view>
-	    <view class="service-item">
-	      <uni-icons type="help" size="24" color="#222"></uni-icons>
-	      <text class="service-text">常见问题</text>
-	    </view>
-	    <view class="service-item">
-	      <uni-icons type="link" size="24" color="#222"></uni-icons>
-	      <text class="service-text">关于我们</text>
-	    </view>
-	  </view>
-	</view>
-	
+
+
+
+    <!-- 数据展示区域 -->
+    <view class="data-section">
+      <view class="data-card" @click="toggleBalanceVisibility">
+        <text class="data-number">{{ isBalanceVisible ? '0.00' : '****' }}</text>
+        <text class="data-label">我的收益</text>
+        <view class="eye-icon" @click="toggleBalanceVisibility">
+          <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+        </view>
+      </view>
+      <view class="data-card">
+        <text class="data-number">
+          <text v-if="isBalanceVisible">{{ userBalance }}</text>
+          <text v-else>****</text>
+        </text>
+        <text class="data-label">我的金币</text>
+        <!--  -->
+        <view class="eye-icon" @click="toggleBalanceVisibility">
+          <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+        </view>
+      </view>
+    </view>
+
+    <!-- 我的充值区域 -->
+    <view class="recharge-section">
+      <text class="section-title"></text>
+      <view class="recharge-items">
+        <view class="recharge-item" @click="goToRecharge">
+          <view class="recharge-icon purple">💳</view>
+          <text class="recharge-text">充值</text>
+        </view>
+        <view class="recharge-item" @click="goToOrders">
+          <view class="recharge-icon blue">📋</view>
+          <text class="recharge-text">我的订单</text>
+        </view>
+        <view class="recharge-item" @click="goToTransaction">
+          <view class="recharge-icon yellow">¥</view>
+          <text class="recharge-text">消费明细</text>
+        </view>
+        <view class="recharge-item">
+          <view class="recharge-icon red">🎁</view>
+          <text class="recharge-text">收藏</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 其他服务区域 -->
+    <view class="services-section">
+      <text class="section-title">其它服务</text>
+      <view class="services-grid">
+        <view class="service-item">
+          <uni-icons type="headphones" size="24" color="#222"></uni-icons>
+          <text class="service-text">联系客服</text>
+        </view>
+        <view class="service-item">
+          <uni-icons type="compose" size="24" color="#222"></uni-icons>
+          <text class="service-text">意见反馈</text>
+        </view>
+        <view class="service-item" @click="logout">
+          <uni-icons type="settings" size="24" color="#222"></uni-icons>
+          <text class="service-text">设置</text>
+        </view>
+        <view class="service-item">
+          <uni-icons type="locked" size="24" color="#222"></uni-icons>
+          <text class="service-text">隐私政策</text>
+        </view>
+        <view class="service-item">
+          <uni-icons type="gift" size="24" color="#222"></uni-icons>
+          <text class="service-text">每日福利</text>
+        </view>
+        <view class="service-item">
+          <uni-icons type="help" size="24" color="#222"></uni-icons>
+          <text class="service-text">常见问题</text>
+        </view>
+        <view class="service-item">
+          <uni-icons type="link" size="24" color="#222"></uni-icons>
+          <text class="service-text">关于我们</text>
+        </view>
+      </view>
+    </view>
+
   </view>
 </template>
 
 <script setup>
-import { ref ,reactive, onMounted} from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import {getNavBarHeight} from "@/utils/system.js"
+import { getNavBarHeight } from "@/utils/system.js"
 import { getToken, removeToken, getAccount } from "@/utils/request.js";
 import { apiGetUserBalance } from "@/api/apis.js";
 
@@ -188,18 +186,18 @@ const getUserBalance = async () => {
     console.log('正在加载余额，跳过重复请求')
     return
   }
-  
+
   try {
     isLoadingBalance.value = true
     const account = getAccount()
-    
+
     if (!account) {
       userBalance.value = 0
       return
     }
-    
+
     const response = await apiGetUserBalance({ account })
-    
+
     if (response.code === 200) {
       userBalance.value = response.data || 0
     } else {
@@ -220,7 +218,7 @@ const checkLoginStatus = async () => {
     console.log('正在检查登录状态，跳过重复请求')
     return
   }
-  
+
   try {
     isLoadingLogin.value = true
     const token = getToken();
@@ -229,7 +227,7 @@ const checkLoginStatus = async () => {
         // 从本地存储获取登录时保存的用户信息
         const savedUserInfo = uni.getStorageSync('userInfo') || {}
         const loginData = uni.getStorageSync('loginData') || {}
-        
+
         // 优先使用登录时保存的完整数据
         if (loginData.uname || loginData.account) {
           memberStore.profile = {
@@ -243,7 +241,7 @@ const checkLoginStatus = async () => {
             nickname: savedUserInfo.nickname || '欢迎您'
           };
         }
-        
+
       } catch (error) {
         // 从本地存储获取用户信息作为后备
         const savedUserInfo = uni.getStorageSync('userInfo') || {}
@@ -252,7 +250,7 @@ const checkLoginStatus = async () => {
           nickname: savedUserInfo.nickname || '欢迎您'
         };
       }
-      
+
       // 获取用户余额
       getUserBalance()
     } else {
@@ -287,35 +285,35 @@ const logout = () => {
 }
 //-------------------------------------------------------------------------
 const menuList = ref([
-  { 
+  {
     icon: 'contact',     // uni-icons 内置图标名（联系客服）
-    title: '联系客服', 
-    subTitle: '', 
-    hasArrow: true 
+    title: '联系客服',
+    subTitle: '',
+    hasArrow: true
   },
-  { 
+  {
     icon: 'paperplane-filled',       // uni-icons 内置图标名（软件分享）
-    title: '软件分享', 
-    subTitle: '分享给朋友', 
-    hasArrow: true 
+    title: '软件分享',
+    subTitle: '分享给朋友',
+    hasArrow: true
   },
-  { 
+  {
     icon: 'email-filled',    // uni-icons 内置图标名（建议反馈）
-    title: '建议反馈', 
-    subTitle: '', 
-    hasArrow: true 
+    title: '建议反馈',
+    subTitle: '',
+    hasArrow: true
   },
-  { 
+  {
     icon: 'upload-filled',    // uni-icons 内置图标名（版本箭头示意）
-    title: '版本', 
-    subTitle: '已是最新版V3.4.0.2', 
-    hasArrow: true 
+    title: '版本',
+    subTitle: '已是最新版V3.4.0.2',
+    hasArrow: true
   },
-  { 
+  {
     icon: 'settings',    // uni-icons 内置图标名（设置）
-    title: '设置', 
-    subTitle: '', 
-    hasArrow: true 
+    title: '设置',
+    subTitle: '',
+    hasArrow: true
   },
 ]);
 
@@ -359,7 +357,7 @@ const goToEditProfile = () => {
 const toggleBalanceVisibility = (e) => {
   e.stopPropagation(); // 阻止事件冒泡
   isBalanceVisible.value = !isBalanceVisible.value;
-  
+
   // 如果显示余额且已登录，刷新余额数据
   if (isBalanceVisible.value && memberStore.profile) {
     getUserBalance();
@@ -393,7 +391,7 @@ const handleMenuClick = (item) => {
       icon: 'none',
     });
   }
-  
+
   // 示例：跳转页面（需提前配置 pages.json 路由）
   // if (item.title === '联系客服') {
   //   uni.navigateTo({ url: '/pages/customer-service/index' });
@@ -403,14 +401,14 @@ const handleMenuClick = (item) => {
 // 页面加载时检查登录状态
 onMounted(() => {
   checkLoginStatus();
-  
+
   // 监听用户信息更新事件
   uni.$on('userProfileUpdated', (data) => {
     if (memberStore.profile) {
       // 更新用户信息
       memberStore.profile.nickname = data.nickname;
       memberStore.profile.avatar = data.avatar;
-      
+
       uni.showToast({
         title: '用户信息已更新',
         icon: 'success'
@@ -427,57 +425,66 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
-.userLayout{
+.userLayout {
   background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
-  
-  .userInfo{
+
+  .userInfo {
     background: transparent;
     padding: 60rpx 32rpx 40rpx;
     margin-top: 0;
-    .user-header{
+
+    .user-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 30rpx;
-      .avatar-section{
+
+      .avatar-section {
         display: flex;
         align-items: center;
-        .avatar{
+
+        .avatar {
           width: 120rpx;
           height: 120rpx;
           border-radius: 50%;
           overflow: hidden;
           margin-right: 20rpx;
-          image{
+
+          image {
             width: 100%;
             height: 100%;
           }
         }
-        .user-details{
-          .username{
+
+        .user-details {
+          .username {
             font-size: 36rpx;
             font-weight: 600;
             color: #333;
             display: block;
             margin-bottom: 8rpx;
           }
-          .vip-tag{
+
+          .vip-tag {
             background-color: #ffa726;
             padding: 4rpx 12rpx;
             border-radius: 12rpx;
-            .vip-text{
+
+            .vip-text {
               font-size: 20rpx;
               color: #fff;
               font-weight: 500;
             }
           }
-          .login-btn{
+
+          .login-btn {
             background-color: #ffa726;
             padding: 4rpx 12rpx;
             border-radius: 12rpx;
-            .login-text{
+
+            .login-text {
               font-size: 20rpx;
               color: #fff;
               font-weight: 500;
@@ -485,34 +492,41 @@ onShow(() => {
           }
         }
       }
-      .edit-btn{
+
+      .edit-btn {
         background-color: #ffa726;
         padding: 12rpx 20rpx;
         border-radius: 20rpx;
-        .edit-text{
+
+        .edit-text {
           font-size: 24rpx;
           color: #fff;
         }
       }
     }
-    .user-stats{
+
+    .user-stats {
       display: flex;
       justify-content: space-between;
-      .stat-item{
+
+      .stat-item {
         text-align: center;
-        .stat-label{
-          font-size: 24rpx;
-          color: #999;
+
+        .stat-label {
+          font-size: 40rpx;
+          color: #414141;
           display: block;
           margin-bottom: 8rpx;
         }
-        .stat-value{
-          font-size: 32rpx;
+
+        .stat-value {
+          font-size: 50rpx;
           color: #333;
           font-weight: 600;
         }
       }
     }
+
     .gray {
       filter: grayscale(100%);
     }
@@ -525,10 +539,12 @@ onShow(() => {
   background: linear-gradient(135deg, #ffa726 0%, #ffeb3b 100%);
   border-radius: 16rpx;
   padding: 30rpx;
+
   .banner-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     .banner-text {
       .banner-title {
         font-size: 32rpx;
@@ -537,17 +553,20 @@ onShow(() => {
         display: block;
         margin-bottom: 8rpx;
       }
+
       .banner-subtitle {
         font-size: 24rpx;
         color: #fff;
         opacity: 0.9;
       }
     }
+
     .invite-btn {
       background-color: #fff;
       border: 2rpx solid #ffa726;
       padding: 16rpx 24rpx;
       border-radius: 20rpx;
+
       .invite-btn-text {
         font-size: 24rpx;
         color: #ffa726;
@@ -677,7 +696,8 @@ onShow(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1px solid #f5f5f5; /* 分隔线 */
+  border-bottom: 1px solid #f5f5f5;
+  /* 分隔线 */
 }
 
 /* 文字区域（主标题 + 副标题） */
@@ -685,7 +705,8 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   margin-left: 12rpx;
-  flex: 1; /* 让文字区域占满中间空间 */
+  flex: 1;
+  /* 让文字区域占满中间空间 */
 }
 
 .title {
@@ -703,20 +724,24 @@ onShow(() => {
 /* 我的充值区域 */
 .recharge-section {
   margin: 20rpx 32rpx;
+
   .section-title {
     font-size: 32rpx;
     font-weight: 600;
     color: #333;
     margin-bottom: 20rpx;
   }
+
   .recharge-items {
     display: flex;
     justify-content: space-between;
+
     .recharge-item {
       display: flex;
       flex-direction: column;
       align-items: center;
       flex: 1;
+
       .recharge-icon {
         width: 60rpx;
         height: 60rpx;
@@ -726,26 +751,32 @@ onShow(() => {
         justify-content: center;
         font-size: 32rpx;
         margin-bottom: 12rpx;
+
         &.purple {
           background-color: #9c27b0;
           color: #fff;
         }
+
         &.blue {
           background-color: #2196f3;
           color: #fff;
         }
+
         &.yellow {
           background-color: #ffeb3b;
           color: #333;
         }
+
         &.red {
           background-color: #f44336;
           color: #fff;
         }
       }
+
       .recharge-text {
-        font-size: 24rpx;
-        color: #333;
+        font-size: 40rpx;
+        font-weight: bold;
+        color: #000000;
         text-align: center;
       }
     }
@@ -755,23 +786,28 @@ onShow(() => {
 /* 其他服务区域 */
 .services-section {
   margin: 40rpx 32rpx 20rpx;
+
   .section-title {
     font-size: 32rpx;
     font-weight: 600;
     color: #333;
     margin-bottom: 20rpx;
   }
+
   .services-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 30rpx;
+
     .service-item {
       display: flex;
       flex-direction: column;
       align-items: center;
+
       .service-text {
-        font-size: 22rpx;
-        color: #333;
+        font-size: 50rpx;
+        font-weight: bold;
+        color: #000000;
         text-align: center;
         margin-top: 12rpx;
       }

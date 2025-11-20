@@ -1,6 +1,6 @@
 {
     "name" : "caimi",
-    "appid" : "__UNI__3BB98A2",
+    "appid" : "__UNI__FA93A0C",
     "description" : "彩迷",
     "versionName" : "1.0.0",
     "versionCode" : "100",
@@ -60,9 +60,9 @@
             "postcss" : true,
             "es6" : false
         },
-		"optimization":{
-			"subPackages":true
-		},
+        "optimization" : {
+            "subPackages" : true
+        },
         "usingComponents" : true
     },
     "mp-alipay" : {

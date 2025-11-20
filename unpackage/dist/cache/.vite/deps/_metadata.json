@@ -1,31 +1,31 @@
 {
-  "hash": "75d850d9",
-  "configHash": "878a3b37",
-  "lockfileHash": "29148e3b",
-  "browserHash": "d00d8e45",
+  "hash": "07c1fefb",
+  "configHash": "9b4c5529",
+  "lockfileHash": "4db0b816",
+  "browserHash": "7b4a0629",
   "optimized": {
     "nanoid/non-secure": {
       "src": "../../../../../node_modules/nanoid/non-secure/index.js",
       "file": "nanoid_non-secure.js",
-      "fileHash": "ef8bb341",
+      "fileHash": "35155726",
       "needsInterop": false
     },
     "ali-oss": {
       "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
       "file": "ali-oss.js",
-      "fileHash": "1bc86f65",
+      "fileHash": "bf5d2394",
       "needsInterop": true
     },
     "qrcode": {
       "src": "../../../../../node_modules/qrcode/lib/browser.js",
       "file": "qrcode.js",
-      "fileHash": "7f317072",
+      "fileHash": "526cc6a2",
       "needsInterop": true
     },
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "5e5fd410",
+    "moment": {
+      "src": "../../../../../node_modules/moment/dist/moment.js",
+      "file": "moment.js",
+      "fileHash": "a75f6ee2",
       "needsInterop": false
     }
   },

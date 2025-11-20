@@ -1,1 +1,0 @@
-<view class="code-container data-v-0b74c6a3"><input type="number" placeholder="{{a}}" placeholder-class="holder-class" class="code-input data-v-0b74c6a3" bindinput="{{b}}" value="{{c}}"/><button type="default" class="code-btn data-v-0b74c6a3" disabled="{{e}}" bindtap="{{f}}">{{d}}</button></view>

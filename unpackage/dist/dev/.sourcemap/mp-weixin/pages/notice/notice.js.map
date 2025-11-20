@@ -1,1 +1,0 @@
-{"version":3,"file":"notice.js","sources":["D:/uniapp/HBuilderX/plugins/uniapp-cli-vite/uniPage:/cGFnZXMvbm90aWNlL25vdGljZS52dWU"],"sourcesContent":["import MiniProgramPage from 'C:/梓梅2.0/梓梅xcx/my-painting-rules-project/pages/notice/notice.vue'\nwx.createPage(MiniProgramPage)"],"names":[],"mappings":";;;;;;;AACA,GAAG,WAAW,eAAe;"}

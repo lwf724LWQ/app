@@ -1,9 +1,0 @@
-{
-  "navigationBarTitleText": "视频",
-  "enablePullDownRefresh": true,
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "status-bar-placeholder": "../../components/StatusBarPlaceholder/StatusBarPlaceholder",
-    "uni-icons": "../../uni_modules/uni-icons/components/uni-icons/uni-icons"
-  }
-}
