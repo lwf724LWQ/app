@@ -647,7 +647,7 @@ onMounted(async () => {
 .video-image {
 	flex: 1 1 calc(50% - 30px);
 	width: 100%;
-	height: 200px;
+	height: 80px;
 	/* 设置固定高度 */
 	background: rgba(255, 255, 255, 0.95);
 	border-radius: 16px;

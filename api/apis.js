@@ -73,6 +73,12 @@ export function apiGetVideo(data = {}) {
 		data
 	})
 }
+export function apiGetVideoDetail(data = {}) {
+	return request({
+		url: "/web/video/find_by_id",
+		data
+	})
+}
 //点赞接口（用户针对某个视频是否点赞）
 export function apiGetIsLike(data = {}) {
 	return request({

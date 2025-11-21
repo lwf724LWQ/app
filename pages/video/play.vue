@@ -124,7 +124,8 @@ import {
 	apiCheckVideoPayment,
 	apiUserimg,
 	apiGetVideo,
-	apiWordQuery
+	apiWordQuery,
+	apiGetVideoDetail
 } from '@/api/apis';
 import {
 	getToken,
@@ -202,11 +203,11 @@ const loadVideoData = async (videoId) => {
 		// 如果仍然没有数据，尝试通过 API 获取
 		if (!currentVideo || currentVideo.id !== videoId) {
 			uni.showLoading({ title: '加载中...' })
-			const response = await apiGetVideo({ id: videoId, limit: 1 })
+			const response = await apiGetVideoDetail({ videoId: videoId })
 			uni.hideLoading()
 
-			if (response.code === 200 && response.data && response.data.records && response.data.records.length > 0) {
-				const item = response.data.records[0]
+			if (response.code === 200 && response.data) {
+				const item = response.data
 				currentVideo = {
 					id: item.id,
 					title: item.title,
