@@ -43,11 +43,31 @@ const tool = {
         })
         
         // 使用 put 方法（兼容性更好）
-        return await ossClient.put(remoteFileName, file, {
-          progress: options.progress || function(p) {
-            console.log('上传进度:', Math.round(p * 100) + '%')
-          },
-        })
+
+        const result = await client.multipartUpload(remoteFileName, file, {
+          timeout: 600000,
+          parallel: 4,
+          partSize: 1024 * 1024,
+          progress: function (p, cpt, res) {
+            if (options.progress instanceof Function) {
+              options.progress(p)
+            }
+            // console.log(p);
+            // console.log(cpt);
+            // console.log(res);
+          }
+        });
+        return result;
+
+        // return await ossClient.put(remoteFileName, file, {
+        //   timeout: options.timeout || 600000,
+        //   progress: options.progress || function(p) {
+        //     if (options.callback instanceof Function) {
+        //       options.callback(Math.round(p * 100))
+        //     }
+        //     console.log('上传进度:', Math.round(p * 100) + '%')
+        //   },
+        // })
       } catch (error) {
         console.error('上传文件时发生错误:', error)
         throw error

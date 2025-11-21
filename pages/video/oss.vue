@@ -75,7 +75,7 @@
 
 		<!-- 操作按钮 -->
 		<view class="action-buttons">
-			<button type="primary" @click="startUpload" :disabled="fileList.length === 0">
+			<button type="primary" @click="startUpload" :disabled="isUploading">
 				开始上传
 			</button>
 			<button type="default" @click="clearFiles" :disabled="fileList.length === 0">
@@ -229,7 +229,7 @@ const chooseCover = () => {
 		}
 	})
 }
-
+const isUploading = ref(false)
 // 开始上传
 const startUpload = async () => {
 	if (fileList.value.length === 0) {
@@ -254,6 +254,8 @@ const startUpload = async () => {
 	statusMessage.value = '正在上传...'
 	statusClass.value = 'status-warning'
 	uploadProgress.value = 0
+
+	isUploading.value = true
 
 	for (let i = 0; i < fileList.value.length; i++) {
 		const fileItem = fileList.value[i]
@@ -461,7 +463,9 @@ const startUpload = async () => {
 		} catch (error) {
 			statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || '视频'}"上传失败: ${error.message}`
 			statusClass.value = 'status-error'
+
 		}
+		isUploading.value = false
 	}
 }
 
