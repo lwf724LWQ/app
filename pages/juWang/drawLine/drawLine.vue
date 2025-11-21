@@ -5,6 +5,7 @@
 			<canvas canvas-id="bg_canvas" id="bg_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="line_canvas" id="line_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="topicon_canvas" id="topicon_canvas" class="canvas" :style="style"></canvas>
+			<canvas canvas-id="diyNumber_canvas" id="diyNumber_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="control_canvas" id="control_canvas" class="canvas" :style="style"
 				@touchstart="touchevent" @touchmove="touchevent" @touchend="touchevent"
 				@touchcancel="touchevent"></canvas>
@@ -58,6 +59,8 @@
 			@touchcancel="touchevent"></cover-view>
 		<!-- #endif -->
 
+		<!-- 数字选择器 -->
+		<number-select ref="numberSelect" @confirm="numberSelectConfirm"></number-select>
 
 		<view class="canvas-text-box" v-if="isShowTextInputBox">
 			<input class="uni-input" focus placeholder="输入文本" v-model.trim="textValue" @confirm="textConfirm" />
@@ -71,10 +74,11 @@ import colorSelectMenu from './components/color-select-menu.vue';
 import pansize from './components/pansize.vue';
 import lineTypeSelect from './components/line-type-select.vue';
 import autoLineSettingMenu from './components/auto-line-setting-menu.vue';
+import numberSelect from './components/number-select.vue';
 
 export default {
 	components: {
-		colorSelectMenu, pansize, lineTypeSelect, autoLineSettingMenu
+		colorSelectMenu, pansize, lineTypeSelect, autoLineSettingMenu, numberSelect
 	},
 
 	data() {
@@ -120,11 +124,13 @@ export default {
 				number: "",
 				refernumber: '',
 				opendate: false,
-				createTime: ''
+				createTime: '',
+				isWrite: true
 			})
 			this.data = data.map(item => ({
 				...item,
-				number: item.number.split(" ")
+				number: item.number.split(" "),
+				isWrite: item.isWrite || false
 			}))
 		},
 		// 阻止滚动
@@ -199,6 +205,9 @@ export default {
 			const value = this.textValue
 			this.table.textInput(value)
 			this.isShowTextInputBox = false
+		},
+		numberSelectConfirm: function (res) {
+			this.table.numberSelect(res)
 		}
 	},
 	onReady: function () {
@@ -214,16 +223,15 @@ export default {
 			}
 		])
 		let width = uni.getSystemInfoSync().windowWidth
-
 		this.$nextTick(() => {
-			const canvas_id = { bg_canvas: "bg_canvas", line_canvas: "line_canvas", topicon_canvas: "topicon_canvas", control_canvas: "control_canvas" }
+
+			const canvas_id = { bg_canvas: "bg_canvas", line_canvas: "line_canvas", topicon_canvas: "topicon_canvas", control_canvas: "control_canvas", diyNumber_canvas: "diyNumber_canvas" }
 
 			this.table = new Table(canvas_id, this.width, this.height, this.createPanStyleObj(), this.data, this.createAutolineSettingObj(), () => {
 				this.isShowTextInputBox = true;
-				console.log(1)
+			}, (placeValue, y) => {
+				this.$refs.numberSelect.open(placeValue, y)
 			})
-
-
 		})
 	},
 

@@ -41,7 +41,9 @@ export default class Rect extends baseGraph {
     moveEnd(){
         this.isEnd = true
     }
-    draw(ctx: UniApp.CanvasContext) {
+    
+
+    draw(ctx: UniApp.CanvasContext, alpha=0.5) {
         if (this.eraserRes.isEraser) {
             return
         }
@@ -54,7 +56,7 @@ export default class Rect extends baseGraph {
             ctx.beginPath()
             ctx.setLineWidth(this.panStyle.size)
             ctx.setStrokeStyle(this.panStyle.color)
-            ctx.setFillStyle(tools.hexToRgba(this.panStyle.color, 0.5))
+            ctx.setFillStyle(tools.hexToRgba(this.panStyle.color, alpha))
 
             // 找到矩形的边界坐标
             const a1 = {

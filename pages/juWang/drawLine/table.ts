@@ -10,11 +10,13 @@ import { filledCircle, hollowCircle } from "./graphs/Circle";
 import Text from "./graphs/Text"
 import tools from "./tools"
 import IconNum from "./iconNum";
+import DiyNumberRect from "./DiyNumberRect"
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
     line_canvas: UniApp.CanvasContext; // 该canvas用于画线
     topicon_canvas: UniApp.CanvasContext; // 该canvas用于画顶部图标
+    diyNumber_canvas: UniApp.CanvasContext; // 该canvas用于画数字选择器的高级面板中的东西
     control_canvas: UniApp.CanvasContext;
 }
 // 坐标及高宽，样式属性
@@ -44,9 +46,10 @@ export interface lineData {
     id: string,
     tname: string,
     issueno: string,
-    number: number[],
+    number: (number|string)[],
     refernumber: string,
     opendate: string,
+    isWrite: Boolean,
     createTime: string
 }
 
@@ -75,8 +78,7 @@ export const graphClass = {
     filledRect: filledRect,
     hollowRect: hollowRect,
     filledCircle: filledCircle,
-    hollowCircle: hollowCircle,
-    text: Text
+    hollowCircle: hollowCircle
 }
 
 export function getTableNumberStyle(){
@@ -88,6 +90,28 @@ export interface TouchEvent {
     x: number | undefined;
     y: number | undefined;
 }
+
+export type numberType = "单" | "双" | "大" | "小" | "X" | "中肚合" | "千百合" | "百个合" | "杀" | "稳码";
+// 数字选择器返回格式
+interface AdvancedNumberSelectData {
+    type: "advanced";
+    XY: {x: number, y: number};
+    data: {
+        type: numberType;
+        numbers: string[];
+    };
+}
+
+interface SimpleNumberSelectData {
+    type: "simple";
+    XY: {x: number, y: number};
+    data: {
+        string: string;
+    };
+}
+
+export type numberSelectData = AdvancedNumberSelectData | SimpleNumberSelectData;
+
 
 /**
  * 表格
@@ -119,8 +143,10 @@ export default class Table {
     
     data: Data
     iconNum: IconNum;
+    DiyNumberRect: DiyNumberRect;
     openTextInput: Function; // 打开输入框的
-    constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function ){
+    openNumberSelect: Function; // 打开数字选择框的
+    constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function, openNumberSelect:Function){
         this.canvasId = canvasId;
         this.width = width
         this.height = height
@@ -129,7 +155,8 @@ export default class Table {
             bg_canvas: uni.createCanvasContext(canvasId.bg_canvas),
             line_canvas: uni.createCanvasContext(canvasId.line_canvas),
             topicon_canvas: uni.createCanvasContext(canvasId.topicon_canvas),
-            control_canvas: uni.createCanvasContext(canvasId.control_canvas)
+            control_canvas: uni.createCanvasContext(canvasId.control_canvas),
+            diyNumber_canvas: uni.createCanvasContext(canvasId.diyNumber_canvas)
         }
         this.panStyle = Object.assign({}, panStyle)
 
@@ -146,6 +173,9 @@ export default class Table {
         this.openTextInput = openTextInput
 
         this.iconNum = new IconNum(this.tableCanvasContext.topicon_canvas, data)
+        this.DiyNumberRect = new DiyNumberRect(this.tableCanvasContext.diyNumber_canvas, this, data)
+
+        this.openNumberSelect = openNumberSelect
     }
 
     // 输入文本
@@ -247,6 +277,7 @@ export default class Table {
         this.autolineSetting = Object.assign({}, autolineSetting)
     }
     //
+    isTouching = false;
     touchStartPosition: Position | null = null;
     lastTouchPosition: Position | null = null;
     touchEvent(touche: TouchEvent) {
@@ -261,61 +292,78 @@ export default class Table {
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
                 this.touchStartPosition = position
                 this.lastTouchPosition = position
-                if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
-                    // 如果是智能线，判断一下是否为点到控制点
-                    if (this.drawNowGraph.isInControlPoint(position)) {
-                        // 如果是点到智能线控制点的话，这里创建新的图形
-                        // 由后面的touchmove处理
-                        // this.drawNowGraph.setControlPointMode(true)
-                        console.log('进到编辑')
-                        break;
-                    }
-                }
-                if (panStyle.type === 'text') {
-                    this.openTextInput()
-                }
-                if (panStyle.type === 'eraser'){
-                    this.drawNowGraph = new Eraser(this, position);
-                }else if (panStyle.type === 'autoLine') {
-                    this.cleaDraw()
-                    this.overdrawForBg()
-                    // 智能线特殊处理
-                    const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum)
-                    this.drawNowGraph = graph
-
-                    this.drawTopCTX()
-                }else{
-                    // 其他图形
-                    const graph = graphClass[panStyle.type]
-                    if (graph) {
-                        this.cleaDraw()
-                        this.overdrawForBg()
-                        this.drawNowGraph = new graph(panStyle, position)
-                    }
-                }
+                
                 
             case 'touchmove':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
-                this.lastTouchPosition = position
-                this.drawNowGraph?.moveTo(position, 'touchmove')
+                
+                if (this.isTouching) {
+                    this.lastTouchPosition = position
+                    this.drawNowGraph?.moveTo(position, 'touchmove')
+                }else{
+                    if (this.touchStartPosition && tools.distanceBetweenPoints(this.touchStartPosition,position)>5) {
+                        this.isTouching = true
+                        if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
+                            // 如果是智能线，判断一下是否为点到控制点
+                            if (this.drawNowGraph.isInControlPoint(position)) {
+                                // 如果是点到智能线控制点的话，这里创建新的图形
+                                // 由后面的touchmove处理
+                                // this.drawNowGraph.setControlPointMode(true)
+                                console.log('进到编辑')
+                                break;
+                            }
+                        }
+                        if (panStyle.type === 'eraser'){
+                            this.drawNowGraph = new Eraser(this, position);
+                        }else if (panStyle.type === 'autoLine') {
+                            this.cleaDraw()
+                            this.overdrawForBg()
+                            // 智能线特殊处理
+                            const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum)
+                            this.drawNowGraph = graph
+        
+                            this.drawTopCTX()
+                        }else{
+                            // 其他图形
+                            const graph = graphClass[panStyle.type]
+                            if (graph) {
+                                this.cleaDraw()
+                                this.overdrawForBg()
+                                this.drawNowGraph = new graph(panStyle, position)
+                            }
+                        }
+                    }
+                }
+                
                 break;
             case "touchend":
-                if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5) && !(['eraser','autoLine'].includes(this.panStyle.type))) {
-                    // 视为一次点击
-                    this.iconNum.tap(this.lastTouchPosition,this.panStyle)
-                    this.drawTopCTX()
-
-                    // 这里判断是否为可填写行
-                    
+                this.isTouching = false
+                if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5) && !(['eraser'].includes(this.panStyle.type))) {
+                    if (this.panStyle.type == 'text') {
+                        this.drawNowGraph = new Text(panStyle, this.lastTouchPosition)
+                        this.openTextInput()
+                    }else{
+                        // 这里判断是否为可填写行
+                        const data = this.data;
+                        const m = this.lastTouchPosition.getMatrixPosition()
+                        if (data[m.y]?.isWrite === true){
+                            // 判断为可写入时，调起页面填写
+                            const placeValue = ["小","千","百","十","个","末"][m.x]
+                            this.openNumberSelect(placeValue, m)
+                        }else{
+                            this.iconNum.tap(this.lastTouchPosition,this.panStyle)
+                            this.drawTopCTX()
+                        }
+                    }
                 }
                 if (this.drawNowGraph instanceof baseGraph) {
-                    this.drawNowGraph.moveEnd()   
+                    this.drawNowGraph.moveEnd()
                 }
                 this.setTimer()
 
                 if (this.drawNowGraph instanceof AutoLine) {
-                    // 这里需要把顶层重新绘制一次
+                    // 这里AutoLine会添加顶层图标等需要把顶层重新绘制一次
                     this.drawTopCTX()
                 }
 
@@ -513,6 +561,10 @@ export default class Table {
             
             
         })
+    }
+
+    numberSelect(res: numberSelectData){
+        this.DiyNumberRect.handleConfirm(res)
     }
 
     // 重新绘制顶层

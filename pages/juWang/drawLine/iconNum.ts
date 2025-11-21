@@ -43,11 +43,15 @@ export default class IconNum {
         const real = position.getRealPosition()
         const m = position.getMatrixPosition()
         const iconList = this.iconList
+        const lineData = this.data[m.y]
         if (iconList[m.y] && iconList[m.y][m.x] && real) {
             const itemObj = Object.assign({}, iconList[m.y][m.x])
             // 判断一下有没有在这个圆中
             if (tools.distanceBetweenPoints(new Position(m, PositionType.matrix), position) <= itemObj.numStyle.width/2) {
                 iconList[m.y][m.x] = null
+                if (lineData.isWrite) {
+                    lineData.number[m.x] = ''
+                }
                 return {
                     isEraser: true,
                     data: {itemObj, position_matrix: new Position(m.x, m.y, PositionType.matrix)}

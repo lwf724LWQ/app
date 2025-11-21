@@ -1,8 +1,8 @@
 <template>
     <view class="color-control-wrapper">
-        <view class="btn">
+        <!-- <view class="btn">
             画笔颜色
-        </view>
+        </view> -->
         <scroll-view class="color-select-menu" scroll-y="true" :show-scrollbar="false">
             <view v-for="(item, index) in colors" :key="index" @click="selectColor(item.color)">
                 <view class="color-item" :class="{ selected: item.color == modelValue }"

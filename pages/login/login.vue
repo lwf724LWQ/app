@@ -142,6 +142,9 @@ onLoad(() => {
     })
     .catch((error) => {
       loginShow.value = true;
+    })
+    .finally(() => {
+      loginShow.value = true;
     });
 })
 
