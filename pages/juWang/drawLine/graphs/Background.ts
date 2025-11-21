@@ -27,7 +27,6 @@ export default class Background extends baseGraph {
 
     drawDateInfo(ctx: UniApp.CanvasContext, style: style, y: number, data: lineData|undefined) {
         const lineHeight = this.tableformat.lineHeight
-        console.log(y)
         ctx.setFillStyle(style.bgColor)
         ctx.fillRect(style.left, lineHeight*y,style.width, lineHeight)
 

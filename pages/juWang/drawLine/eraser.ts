@@ -4,6 +4,7 @@ import Table from "./table";
 import {EraserRes} from "./graphs/baseGraph"
 import FreeLine from "./graphs/FreeLine";
 import tools from "./tools";
+import IconNum from "./iconNum";
 
 /**
  * 橡皮擦
@@ -44,6 +45,11 @@ export default class Eraser{
                 f = true
             }
         })
+        const eraserRes = this.table.iconNum.eraser(realPosition)
+        if (eraserRes.isEraser) {
+            this.table.redoList.push(new EraseRedo(this.table.iconNum, Object.assign({},eraserRes)))
+            f = true
+        }
         if (f) {
             this.table.overdrawForBg()
             this.table.drawTopCTX()
@@ -60,9 +66,9 @@ export default class Eraser{
  * 这个方法会调用被擦除的图形的undo方法
  */
 export class EraseRedo{
-    graph: baseGraph;
+    graph: baseGraph|IconNum;
     eraserRes: EraserRes;
-    constructor(graph: baseGraph, eraserRes: EraserRes){
+    constructor(graph: baseGraph|IconNum, eraserRes: EraserRes){
         this.graph = graph;
         this.eraserRes = eraserRes;
     }

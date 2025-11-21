@@ -9,6 +9,7 @@ import {filledRect, hollowRect} from "./graphs/Rect";
 import { filledCircle, hollowCircle } from "./graphs/Circle";
 import Text from "./graphs/Text"
 import tools from "./tools"
+import IconNum from "./iconNum";
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
@@ -117,7 +118,7 @@ export default class Table {
     timer: number|NodeJS.Timeout = 0;
     
     data: Data
-
+    iconNum: IconNum;
     openTextInput: Function; // 打开输入框的
     constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function ){
         this.canvasId = canvasId;
@@ -143,6 +144,8 @@ export default class Table {
         context.bg_canvas.draw()
 
         this.openTextInput = openTextInput
+
+        this.iconNum = new IconNum(this.tableCanvasContext.topicon_canvas, data)
     }
 
     // 输入文本
@@ -252,7 +255,6 @@ export default class Table {
         
         const position = new Position(touche.x || 0, touche.y || 0, PositionType.real)
         clearTimeout(this.timer)
-        console.log(position)
         switch (touche.type) {
             case 'touchstart':
                 if(!touche) break;
@@ -278,7 +280,7 @@ export default class Table {
                     this.cleaDraw()
                     this.overdrawForBg()
                     // 智能线特殊处理
-                    const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data)
+                    const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum)
                     this.drawNowGraph = graph
 
                     this.drawTopCTX()
@@ -299,8 +301,12 @@ export default class Table {
                 this.drawNowGraph?.moveTo(position, 'touchmove')
                 break;
             case "touchend":
-                if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5)) {
+                if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5) && !(['eraser','autoLine'].includes(this.panStyle.type))) {
                     // 视为一次点击
+                    this.iconNum.tap(this.lastTouchPosition,this.panStyle)
+                    this.drawTopCTX()
+
+                    // 这里判断是否为可填写行
                     
                 }
                 if (this.drawNowGraph instanceof baseGraph) {
@@ -514,16 +520,20 @@ export default class Table {
         // 这里需要把顶层重新绘制一次
         const tableCanvasContext = this.tableCanvasContext;
         const topCTX = tableCanvasContext.topicon_canvas
-        const lineCTX = tableCanvasContext.line_canvas
-        this.graphs.forEach(graph => {
-            if (graph instanceof AutoLine) {
-                graph.draw(false, topCTX)
-            }
-        })
-        if (this.drawNowGraph instanceof AutoLine) {
-            this.drawNowGraph?.draw(lineCTX, topCTX)
-        }
+        this.iconNum.draw()
         topCTX.draw()
+        // const tableCanvasContext = this.tableCanvasContext;
+        // const topCTX = tableCanvasContext.topicon_canvas
+        // const lineCTX = tableCanvasContext.line_canvas
+        // this.graphs.forEach(graph => {
+        //     if (graph instanceof AutoLine) {
+        //         graph.draw(false, topCTX)
+        //     }
+        // })
+        // if (this.drawNowGraph instanceof AutoLine) {
+        //     this.drawNowGraph?.draw(lineCTX, topCTX)
+        // }
+        // topCTX.draw()
     }
 
     draw() {
