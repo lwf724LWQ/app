@@ -25,10 +25,13 @@ export default class Rect extends baseGraph {
         if (this.eraserRes.isEraser) {
             return this.eraserRes
         }
-        if (tools.isPointInRectangle(position, this.start, this.end)) {
+        if (this.isInGraph(position)) {
             return this.eraserRes = {isEraser: true}
         }
         return this.eraserRes
+    }
+    isInGraph(position: Position): boolean {
+        return tools.isPointInRectangle(position, this.start, this.end)
     }
     undo(){
         this.eraserRes = {isEraser: false}

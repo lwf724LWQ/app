@@ -25,7 +25,6 @@ export default class Circle extends baseGraph {
             return this.eraserRes
         }
         if (isPointInEllipse(position, this.start, this.end)) {
-            console.log('1')
             return this.eraserRes = {isEraser: true}
         }
         return this.eraserRes

@@ -2,6 +2,7 @@ import baseGraph from "./baseGraph";
 import { Position, PositionType, TableFormat, lineData, TableCanvasContext, style, PanStyle } from "../table";
 import tools from "../tools";
 import { EraserRes } from "./baseGraph";
+import ControlEvent, { ClickGraph } from "../controlEvent";
 
 // 贝塞尔曲线
 export default class Bezier extends baseGraph {
@@ -141,24 +142,34 @@ export default class Bezier extends baseGraph {
 export class BezierControl extends baseGraph { 
     bezier: Bezier
     position: Position
-    constructor(bezier: Bezier, panStyle:PanStyle) { 
+    controlEvent: ControlEvent;
+    controlId: Symbol;
+    r=uni.upx2px(10);
+
+    constructor(bezier: Bezier, panStyle:PanStyle, controlEvent: ControlEvent, target: baseGraph) { 
         super(panStyle, new Position(0,0, PositionType.real))
         this.bezier = bezier
         this.position = bezier.getControlPoint() as Position
-    }
-    // 判断是否点在控制点周围
-    isInControlPoint(position: Position) {
-        const control = this.bezier.getControlPoint()?.getRealPosition()
-        if (!control){
-            return false
-        }
-        const distance = Math.sqrt(Math.pow(position.x - control.x, 2) + Math.pow(position.y - control.y, 2))
-        if (distance < uni.upx2px(30))
-            return true
-        else
-            return false
+
+        this.controlEvent = controlEvent
+        this.controlId = controlEvent.registerEvent('touchmove', {
+            clickGraph: new ClickGraph('Circle', this.position, uni.upx2px(70)),
+            callBack: (start, now, table) => {
+                table.upToNowDraw(target)
+                this.moveTo(now)
+
+                this.draw(table.tableCanvasContext.control_canvas)
+                table.tableCanvasContext.control_canvas.draw()
+            }
+        })
     }
 
+    isRecycle = false
+    recycle(): void {
+        // 解绑事件
+        this.isRecycle = true
+        this.controlEvent.recycle(this.controlId)
+    }
     moveTo(position: Position): void {
         this.position = position
         this.bezier.control = position
@@ -167,13 +178,16 @@ export class BezierControl extends baseGraph {
         const real = this.bezier.getControlPoint()?.getRealPosition()
         if (real) {
             ctx.beginPath()
-            ctx.arc(real.x, real.y, uni.upx2px(10), 0, 2 * Math.PI)
+            ctx.arc(real.x, real.y, this.r, 0, 2 * Math.PI)
             ctx.setFillStyle(this.panStyle.color)
             ctx.fill()
         }
     }
 
     draw(controlCTX): void {
+        if (this.isRecycle) {
+            return    
+        }
         this.drawPointIcon(controlCTX)
     }
 }

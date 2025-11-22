@@ -3,10 +3,11 @@ import Line from "./line"
 import Bezier from "./Bezier"
 import colors from "../colors"
 import {BezierControl} from "./Bezier"
-import { Position, PositionType, Data, TableFormat, lineData, TableCanvasContext, style, PanStyle, tableStyle, AutolineSetting, getTableNumberStyle } from "../table";
+import Table,{ Position, PositionType, Data, TableFormat, lineData, TableCanvasContext, style, PanStyle, tableStyle, AutolineSetting, getTableNumberStyle } from "../table";
 import { EraserRes } from "./baseGraph";
 import tools from "../tools"
 import IconNum from "../iconNum"
+import ControlEvent from "../controlEvent"
 
 // 处理多个智能线
 export default class extends baseGraph {
@@ -19,7 +20,10 @@ export default class extends baseGraph {
     control: BezierControl | null = null;
 
     iconNum: IconNum;
-    constructor(panStyle:PanStyle, start: Position, autolineSetting: AutolineSetting, data: Data, iconNum: IconNum){
+
+    timer: number|NodeJS.Timeout = 0;
+    table: Table;
+    constructor(panStyle:PanStyle, start: Position, autolineSetting: AutolineSetting, data: Data, iconNum: IconNum, controlEvent: ControlEvent, table:Table){
         super(panStyle, start)
         this.autolineSetting = autolineSetting;
         this.data = data;
@@ -28,6 +32,7 @@ export default class extends baseGraph {
         let colorIndex = colors.findIndex(item => item.color === panStyle.color) || 0;
         const lineInterval = this.lineInterval = interval*lineHeight;
         const real_start = start.getRealPosition()
+
         if (real_start) {
             for (let index = 0; index < panCount; index++) {
                 const newStart = new Position(real_start.x, real_start.y + (lineInterval * index), PositionType.real)
@@ -38,7 +43,7 @@ export default class extends baseGraph {
             }
             if (controlSwitch && (lineType == 'bottomBezier' || lineType == 'topBezier')) {
                 // 初始化控制点
-                const control = new BezierControl(this.autoLine[0].line as Bezier, panStyle)
+                const control = new BezierControl(this.autoLine[0].line as Bezier, panStyle, controlEvent, this)
                 this.control = control
             }
     
@@ -47,6 +52,7 @@ export default class extends baseGraph {
         }
 
         this.iconNum = iconNum
+        this.table = table
     }
 
 
@@ -64,26 +70,21 @@ export default class extends baseGraph {
         this.autoLine.forEach((item, index) => item.undo(eraserRes.data[index]))
     }
 
-
-    isInControlPoint(position: Position) { 
-        if (this.control?.isInControlPoint(position)) {
-            this.setControlPointMode(true)
-            return true
-        }
-        return false
-    }
     // 设置是否为控制点模式
     isControlPointMode:Boolean = false;
     setControlPointMode(mode: Boolean){
         this.isControlPointMode = mode
+        if (this.control) {
+            this.control.recycle()
+        }
     }
     isOver = false;
     over(): void {
-        this.setControlPointMode(false)
-        this.isOver = true
+        
     }
 
     moveTo(position: Position): void {
+        clearTimeout(this.timer)
         if (this.isControlPointMode) {
             this.control?.moveTo(position)
             return
@@ -96,6 +97,14 @@ export default class extends baseGraph {
     }
     
     moveEnd(){
+        this.timer = setTimeout(()=>{
+            this.setControlPointMode(false)
+            this.table.setNowGraph(null)
+            this.table.draw()
+            this.table.overdrawForBg()
+            console.log("123")
+        }, 3000)
+
         this.autoLine.forEach(item => {
             item.moveEnd()
         })
@@ -115,6 +124,9 @@ export default class extends baseGraph {
         this.autoLine.forEach(item => {
             item.draw(lineCTX)
         })
+        if (this.control) {
+            this.control.draw(lineCTX)
+        }
     }
 }
 

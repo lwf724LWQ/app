@@ -183,6 +183,7 @@ export default {
             }
             this.numbers = []
             this.nowSelectPlaceValue = placeValue
+            this.type = ""
             this.XY = XY; // 这个y用于回传
             this.$refs.popup.open()
         },

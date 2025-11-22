@@ -12,6 +12,7 @@ import tools from "./tools"
 import IconNum from "./iconNum";
 import DiyNumberRect from "./DiyNumberRect"
 import { UndoRedo } from "./tools";
+import ControlEvent, {ClickGraph} from "./controlEvent";
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
@@ -129,8 +130,7 @@ export default class Table {
 
     bg: baseGraph; // 背景图形
 
-    graphs:(baseGraph|UndoRedo)[] = []; // 固定绘制到低层画布的图形
-    topIconGraphList: baseGraph[] = []; // 顶部图层的图形
+    graphs:(baseGraph|UndoRedo)[] = []; // 绘制到低层画布的图形
     drawNowGraph: baseGraph|Eraser|UndoRedo|null = null; // 目前正在绘制的图形
     redoList:(baseGraph|EraseRedo|UndoRedo)[] = []; // 撤销堆栈
 
@@ -140,13 +140,14 @@ export default class Table {
 
     autolineSetting: AutolineSetting; // 智能笔设置
 
-    timer: number|NodeJS.Timeout = 0;
+    
     
     data: Data
     iconNum: IconNum;
     DiyNumberRect: DiyNumberRect;
     openTextInput: Function; // 打开输入框的
     openNumberSelect: Function; // 打开数字选择框的
+    controlEvent: ControlEvent = new ControlEvent(this); // 管理控制事件
     constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function, openNumberSelect:Function){
         this.canvasId = canvasId;
         this.width = width
@@ -177,6 +178,25 @@ export default class Table {
         this.DiyNumberRect = new DiyNumberRect(this.tableCanvasContext.diyNumber_canvas, this, data)
 
         this.openNumberSelect = openNumberSelect
+
+        // this.graphs.push(new filledRect(panStyle, new Position(200, 200, PositionType.real)))
+        // this.graphs[0].end = new Position(600, 1000, PositionType.real)
+        // this.overdrawForBg()
+        // this.controlEvent.registerEvent('click', {
+        //     clickGraph: new ClickGraph('Rect', new Position(200, 200, PositionType.real), new Position(600, 1000, PositionType.real)),
+        //     callBack: (start, now) => {
+        //         console.log(start, now)
+        //     }
+        // })
+    }
+    // 将被封存在graphs中的重新拿到nowDraw中
+    upToNowDraw(graph: baseGraph){
+        const index = this.graphs.indexOf(graph)
+        if (index>=0) {
+            this.graphs.splice(index, 1)
+            this.setNowGraph(graph)
+            this.overdrawForBg()
+        }
     }
 
     // 输入文本
@@ -281,19 +301,20 @@ export default class Table {
     isTouching = false;
     touchStartPosition: Position | null = null;
     lastTouchPosition: Position | null = null;
+    isControlMode = false;
     touchEvent(touche: TouchEvent) {
         const tableCanvasContext = this.tableCanvasContext;
         const panStyle = this.panStyle
         
         const position = new Position(touche.x || 0, touche.y || 0, PositionType.real)
-        clearTimeout(this.timer)
+        
         switch (touche.type) {
             case 'touchstart':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
                 this.touchStartPosition = position
                 this.lastTouchPosition = position
-                
+                this.isControlMode = false;
                 
             case 'touchmove':
                 if(!touche) break;
@@ -301,31 +322,30 @@ export default class Table {
                 
                 if (this.isTouching) {
                     this.lastTouchPosition = position
-                    if (this.drawNowGraph instanceof UndoRedo) {
-                        
+                    if (this.isControlMode && this.touchStartPosition && this.controlEvent.touchmove(this.touchStartPosition, position)){
+                        // 被控制类接手 交由控制类处理
+                    }else if (this.drawNowGraph instanceof UndoRedo) {
+                        // 这个类是用来管理特殊操作的撤回的
                     }else{
                         this.drawNowGraph?.moveTo(position, 'touchmove')
                     }
                 }else{
                     if (this.touchStartPosition && tools.distanceBetweenPoints(this.touchStartPosition,position)>5) {
+                        // 进入到这里代表本次触摸被视为拖动，这里会被排除掉一些抖动的误操作
+                        // 而这里是开始算开始事件
                         this.isTouching = true
-                        // if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
-                        //     // 如果是智能线，判断一下是否为点到控制点
-                        //     if (this.drawNowGraph.isInControlPoint(position)) {
-                        //         // 如果是点到智能线控制点的话，这里创建新的图形
-                        //         // 由后面的touchmove处理
-                        //         // this.drawNowGraph.setControlPointMode(true)
-                        //         console.log('进到编辑')
-                        //         break;
-                        //     }
-                        // }
-                        if (panStyle.type === 'eraser'){
-                            this.setNowGraph(new Eraser(this, position))
+                        
+                        if(this.controlEvent.touchmove(this.touchStartPosition, position)){
+                            // 被控制类接手 交由控制类处理
+                            console.log("接管")
+                            this.isControlMode = true;
+                        }else if (panStyle.type === 'eraser'){
+                            this.setNowGraph(new Eraser(this, position)); // 橡皮擦
                         }else if (panStyle.type === 'autoLine') {
                             this.cleaDraw()
                             this.overdrawForBg()
                             // 智能线特殊处理
-                            const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum)
+                            const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum, this.controlEvent, this)
                             this.setNowGraph(graph)
                             this.drawTopCTX()
                         }else{
@@ -344,7 +364,10 @@ export default class Table {
             case "touchend":
                 this.isTouching = false
                 if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5) && !(['eraser'].includes(this.panStyle.type))) {
-                    if (this.panStyle.type == 'text') {
+                    // 视为点击事件
+                    if (this.controlEvent.tap(this.touchStartPosition, this.lastTouchPosition)) {
+                        // 被控制类接手 交由控制类处理
+                    }else if (this.panStyle.type == 'text') {
                         this.setNowGraph(new Text(panStyle, this.lastTouchPosition))
                         this.openTextInput()
                     }else{
@@ -360,6 +383,7 @@ export default class Table {
                         }
                     }
                 }else{
+                    // 滑动结束
                     if (this.drawNowGraph instanceof baseGraph) {
                         const graph = this.drawNowGraph
                         this.drawNowGraph.moveEnd()
@@ -369,20 +393,18 @@ export default class Table {
                         this.setNowGraph(null)
                         this.overdrawForBg()
                     }
-                    this.setTimer()
                     
                     if (this.drawNowGraph instanceof Eraser) {
                         this.drawNowGraph = null
                         this.tableCanvasContext.control_canvas.draw()
                     }
-
                 }
                 
                 break;
             case "touchcancel":
-                // this.drawNowGraph = null
-                // 从graphs中删除最后一个
-                // this.graphs.pop()
+                // 滑动被打断
+                // 使其为结束处理
+                this.touchEvent({type: 'touchend',x:undefined,y:undefined});
                 break;
         }
         this.draw()
@@ -398,16 +420,6 @@ export default class Table {
         this.drawNowGraph = graph
     }
 
-    // 设置一个定时器，一定时间后，将线绘制到背景中
-    setTimer() {
-        this.timer = setTimeout(() => {
-            this.cleaDraw()
-            this.overdrawForBg()
-            this.drawTopCTX()
-            this.tableCanvasContext.control_canvas.draw()
-            this.draw()
-        }, 2500)
-    }
     // 将绘制中的图形固定到graphs
     cleaDraw(){
         // 判断是否有绘制中的图像
@@ -415,6 +427,7 @@ export default class Table {
     }
 
     // 完全重新绘制一次背景,并将绘制中的图像也绘制上去
+    // 该操作消耗性能，不要过多调用
     overdrawForBg(drawBefore?:Function){
         console.log("绘制底层");
         const bgCTX = this.tableCanvasContext.bg_canvas
@@ -487,9 +500,6 @@ export default class Table {
             // this.redoList.push(...this.graphs)
             this.graphs = []
         }
-        if (this.topIconGraphList.length) {
-            this.topIconGraphList = []
-        }
         // 每次操作图形数组后都要重新绘制一次背景
         this.iconNum.clear()
         this.DiyNumberRect.clear()
@@ -555,8 +565,6 @@ export default class Table {
     }
     // outBase64
     async outBase64():Promise<string>{
-        // 清除定时器
-        clearTimeout(this.timer)
 
         // 将目前绘制中的固定到gr列表
         this.cleaDraw()
@@ -580,10 +588,11 @@ export default class Table {
     }
 
     draw() {
-        if (this.drawNowGraph instanceof AutoLine) {
-            this.drawNowGraph.drawControl(this.tableCanvasContext.control_canvas)
-            this.tableCanvasContext.control_canvas.draw()
-        }
+        // if (this.drawNowGraph instanceof AutoLine) {
+        //     this.drawNowGraph.drawControl(this.tableCanvasContext.control_canvas)
+        //     this.tableCanvasContext.control_canvas.draw()
+        // }
+
         if (this.drawNowGraph instanceof baseGraph) {
             this.drawNowGraph.draw(this.tableCanvasContext.line_canvas)   
         }

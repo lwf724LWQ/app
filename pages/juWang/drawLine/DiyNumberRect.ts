@@ -91,8 +91,8 @@ export default class DiyNumberRect {
             const numberType = numberSelectData.data.type;
             const oldRectList = [...this.rectList]
             if (numberType === '稳码') {
-                this.wenmaRect(numberSelectData.XY, numberSelectData)
                 this.rectList = []
+                this.wenmaRect(numberSelectData.XY, numberSelectData)
             }else if (['单', '双', '大', '小', 'X', '杀',''].includes(numberType)) {
                 this.normalRect(numberSelectData.XY, numberSelectData)
             }else if (numberType === '中肚合') {
