@@ -1,8 +1,10 @@
 import { Position, PositionType, Data, TableFormat, lineData, TableCanvasContext, style, PanStyle, tableStyle, AutolineSetting, getTableNumberStyle } from "./table";
 import { EraserRes } from "./graphs/baseGraph";
 import tools from "./tools"
+import { UndoRedo } from "./tools";
+import Table from "./table"
 
-interface styleObj {panStyle: PanStyle, numStyle:style}
+interface styleObj {panStyle: PanStyle, numStyle:style, number: string}
 interface EraserResForIcon extends EraserRes {
     data?: {
         itemObj: styleObj,
@@ -12,19 +14,22 @@ interface EraserResForIcon extends EraserRes {
 export default class IconNum {
     ctx: UniApp.CanvasContext;
     data:Data;
-    iconList: (styleObj|null)[][]=[]
-    constructor(ctx: UniApp.CanvasContext, data:Data){
+    iconList: (styleObj|null)[][]=[];
+    table: Table;
+    constructor(ctx: UniApp.CanvasContext,table: Table, data:Data){
         this.ctx = ctx;
-        this.data = data
+        this.data = data;
+        this.table = table
     }
 
     tap(position: Position, PanStyle: PanStyle){
         this.addIcon(position, PanStyle)
     }
 
-    addIcon(position: Position, PanStyle: PanStyle, isOverlap = false){
+    addIcon(position: Position, PanStyle: PanStyle, isOverlap = false, number:string = ''){
         const matrix = position.getMatrixPosition()
         const iconList = this.iconList
+        const oldIconList = [...iconList.map(item=>item?[...item]:[])]
         if (iconList[matrix.y] && iconList[matrix.y][matrix.x] && !isOverlap) {
             iconList[matrix.y][matrix.x] = null
         }else{
@@ -33,9 +38,11 @@ export default class IconNum {
             }
             iconList[matrix.y][matrix.x] = {
                 panStyle: PanStyle,
-                numStyle: getTableNumberStyle()[matrix.x]
+                numStyle: getTableNumberStyle()[matrix.x],
+                number
             }
         }
+        this.table.setNowGraph(new MyUndoRedo(this, iconList, oldIconList))
     }
 
     eraserRes: EraserResForIcon = {isEraser: false};
@@ -49,7 +56,7 @@ export default class IconNum {
             // 判断一下有没有在这个圆中
             if (tools.distanceBetweenPoints(new Position(m, PositionType.matrix), position) <= itemObj.numStyle.width/2) {
                 iconList[m.y][m.x] = null
-                if (lineData.isWrite) {
+                if (lineData?.isWrite) {
                     lineData.number[m.x] = ''
                 }
                 return {
@@ -68,12 +75,11 @@ export default class IconNum {
     }
 
     // 画圆
-    drawCircle(position: Position, styleObj: styleObj) {
+    drawCircle(position: Position, styleObj: styleObj, ctx: UniApp.CanvasContext) {
         const {panStyle, numStyle} = styleObj
-        const ctx = this.ctx
         const matrix = position.getMatrixPosition()
         const real = position.getRealPosition()
-        const number = this.data[matrix.y]?.number[matrix.x] || ''
+        const number = styleObj.number || this.data[matrix.y]?.number[matrix.x]?.toString() || ''
         if(!real){
             return 0
         }
@@ -98,7 +104,7 @@ export default class IconNum {
         ctx.arc(real.x, real.y, r, 0, 2 * Math.PI)
         ctx.stroke()
 
-        ctx.setFontSize(numStyle.textSize)
+        ctx.setFontSize(numStyle.textSize * (number.length>1?0.5:1))
         ctx.setFillStyle("#fff")
         ctx.setTextAlign('center')
         ctx.setTextBaseline('middle')
@@ -107,17 +113,45 @@ export default class IconNum {
         return r
     }
 
-    draw(){
+    clear(){
+        this.iconList = []
+        this.draw()
+    }
+
+    draw(ctx: UniApp.CanvasContext = this.ctx, isDraw: boolean = true){
         const iconList = this.iconList
         for (let y = 0; y < iconList.length; y++) {
             if (iconList[y] instanceof Array) {
                 for (let x = 0; x < iconList[y].length; x++) {
                     const item = iconList[y][x];
                     if (item) {
-                        this.drawCircle(new Position(x, y, PositionType.matrix), item)
+                        this.drawCircle(new Position(x, y, PositionType.matrix), item, ctx)
                     }
                 }
             }
         }
+        isDraw ? ctx.draw() : ""
+    }
+}
+
+// 提供给撤销恢复的，iconNum类里的undo方法是给擦除那边调的 两者不同
+class MyUndoRedo extends UndoRedo { 
+    iconNum: IconNum;
+    iconList: (styleObj|null)[][]=[];
+    oldIconList: (styleObj|null)[][]=[]
+    constructor(iconNum: IconNum, iconList: (styleObj|null)[][], oldIconList: (styleObj|null)[][]){
+        super()
+        this.iconNum = iconNum;
+        this.iconList = [...iconList.map(item=>item?[...item]:[])]
+        this.oldIconList = [...oldIconList.map(item=>item?[...item]:[])]
+    }
+
+    recycle(){
+        console.log("撤销 图标")
+        this.iconNum.iconList = [...this.oldIconList.map(item=>item?[...item]:[])]
+    }
+    redo(){
+        this.iconNum.iconList = [...this.iconList.map(item=>item?[...item]:[])]
+        this.iconNum.draw()
     }
 }

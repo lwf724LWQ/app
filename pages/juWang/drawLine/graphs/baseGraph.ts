@@ -8,6 +8,7 @@ export default abstract class baseGraph {
         this.start = start
     }
     eraserRes:EraserRes = {isEraser: false}
+    recycle(){}
     eraser(position: Position):EraserRes{throw new Error("未定义擦除方法")}
     undo(eraserRes: EraserRes){}
     touch(position: Position){}

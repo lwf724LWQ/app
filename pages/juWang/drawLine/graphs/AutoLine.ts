@@ -43,7 +43,7 @@ export default class extends baseGraph {
             }
     
             // 初始化擦除
-            this.eraserRes = this.eraser(new Position(-99999, -99999, PositionType.real))    
+            this.eraserRes = this.eraser(new Position(-99999, -99999, PositionType.real))
         }
 
         this.iconNum = iconNum
@@ -111,9 +111,9 @@ export default class extends baseGraph {
             this.control?.draw(controlCTX)   
         }
     }
-    draw(lineCTX: UniApp.CanvasContext| false, iconCTX?: UniApp.CanvasContext){
+    draw(lineCTX: UniApp.CanvasContext| false){
         this.autoLine.forEach(item => {
-            item.draw(lineCTX, iconCTX)
+            item.draw(lineCTX)
         })
     }
 }
@@ -176,12 +176,13 @@ class AutoLine extends baseGraph {
                 this.end = null
             }else{
                 this.iconNum.addIcon(this.end, this.panStyle, true)
+                this.iconNum.draw()
             }
         }
         this.isEnd = true
         this.line.moveEnd()
     }
-    draw(lineCTX: UniApp.CanvasContext | false, iconCTX?: UniApp.CanvasContext){
+    draw(lineCTX: UniApp.CanvasContext | false){
         if (lineCTX && this.end) {
             this.line.draw(lineCTX)
         }

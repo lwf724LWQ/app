@@ -276,3 +276,10 @@ export default {
     hexToRgba,
     GetRectCenter
 };
+
+// 给特殊图形用的 撤销恢复
+export abstract class UndoRedo {
+  constructor(){}
+  recycle(){}
+  redo(){}
+}

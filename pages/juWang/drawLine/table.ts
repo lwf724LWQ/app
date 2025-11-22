@@ -11,6 +11,7 @@ import Text from "./graphs/Text"
 import tools from "./tools"
 import IconNum from "./iconNum";
 import DiyNumberRect from "./DiyNumberRect"
+import { UndoRedo } from "./tools";
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
@@ -93,7 +94,7 @@ export interface TouchEvent {
 
 export type numberType = "单" | "双" | "大" | "小" | "X" | "中肚合" | "千百合" | "百个合" | "杀" | "稳码";
 // 数字选择器返回格式
-interface AdvancedNumberSelectData {
+export interface AdvancedNumberSelectData {
     type: "advanced";
     XY: {x: number, y: number};
     data: {
@@ -102,7 +103,7 @@ interface AdvancedNumberSelectData {
     };
 }
 
-interface SimpleNumberSelectData {
+export interface SimpleNumberSelectData {
     type: "simple";
     XY: {x: number, y: number};
     data: {
@@ -119,7 +120,7 @@ export type numberSelectData = AdvancedNumberSelectData | SimpleNumberSelectData
  * 
  */
 export default class Table {
-    canvasId:{bg_canvas: string, line_canvas: string, topicon_canvas: string};
+    canvasId:{bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string};
     tableCanvasContext: TableCanvasContext;
 
     // 画布
@@ -128,10 +129,10 @@ export default class Table {
 
     bg: baseGraph; // 背景图形
 
-    graphs:baseGraph[] = []; // 固定绘制到低层画布的图形
+    graphs:(baseGraph|UndoRedo)[] = []; // 固定绘制到低层画布的图形
     topIconGraphList: baseGraph[] = []; // 顶部图层的图形
-    drawNowGraph: baseGraph|Eraser|null = null; // 目前正在绘制的图形
-    redoList:(baseGraph|EraseRedo)[] = []; // 撤销堆栈
+    drawNowGraph: baseGraph|Eraser|UndoRedo|null = null; // 目前正在绘制的图形
+    redoList:(baseGraph|EraseRedo|UndoRedo)[] = []; // 撤销堆栈
 
     tableformat: TableFormat; // 表格配置
 
@@ -172,7 +173,7 @@ export default class Table {
 
         this.openTextInput = openTextInput
 
-        this.iconNum = new IconNum(this.tableCanvasContext.topicon_canvas, data)
+        this.iconNum = new IconNum(this.tableCanvasContext.topicon_canvas, this, data)
         this.DiyNumberRect = new DiyNumberRect(this.tableCanvasContext.diyNumber_canvas, this, data)
 
         this.openNumberSelect = openNumberSelect
@@ -300,29 +301,32 @@ export default class Table {
                 
                 if (this.isTouching) {
                     this.lastTouchPosition = position
-                    this.drawNowGraph?.moveTo(position, 'touchmove')
+                    if (this.drawNowGraph instanceof UndoRedo) {
+                        
+                    }else{
+                        this.drawNowGraph?.moveTo(position, 'touchmove')
+                    }
                 }else{
                     if (this.touchStartPosition && tools.distanceBetweenPoints(this.touchStartPosition,position)>5) {
                         this.isTouching = true
-                        if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
-                            // 如果是智能线，判断一下是否为点到控制点
-                            if (this.drawNowGraph.isInControlPoint(position)) {
-                                // 如果是点到智能线控制点的话，这里创建新的图形
-                                // 由后面的touchmove处理
-                                // this.drawNowGraph.setControlPointMode(true)
-                                console.log('进到编辑')
-                                break;
-                            }
-                        }
+                        // if (this.drawNowGraph instanceof AutoLine || this.drawNowGraph instanceof Text){
+                        //     // 如果是智能线，判断一下是否为点到控制点
+                        //     if (this.drawNowGraph.isInControlPoint(position)) {
+                        //         // 如果是点到智能线控制点的话，这里创建新的图形
+                        //         // 由后面的touchmove处理
+                        //         // this.drawNowGraph.setControlPointMode(true)
+                        //         console.log('进到编辑')
+                        //         break;
+                        //     }
+                        // }
                         if (panStyle.type === 'eraser'){
-                            this.drawNowGraph = new Eraser(this, position);
+                            this.setNowGraph(new Eraser(this, position))
                         }else if (panStyle.type === 'autoLine') {
                             this.cleaDraw()
                             this.overdrawForBg()
                             // 智能线特殊处理
                             const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum)
-                            this.drawNowGraph = graph
-        
+                            this.setNowGraph(graph)
                             this.drawTopCTX()
                         }else{
                             // 其他图形
@@ -330,7 +334,7 @@ export default class Table {
                             if (graph) {
                                 this.cleaDraw()
                                 this.overdrawForBg()
-                                this.drawNowGraph = new graph(panStyle, position)
+                                this.setNowGraph(new graph(panStyle, position))
                             }
                         }
                     }
@@ -341,36 +345,39 @@ export default class Table {
                 this.isTouching = false
                 if ((this.touchStartPosition && this.lastTouchPosition && tools.distanceBetweenPoints(this.touchStartPosition,this.lastTouchPosition)<5) && !(['eraser'].includes(this.panStyle.type))) {
                     if (this.panStyle.type == 'text') {
-                        this.drawNowGraph = new Text(panStyle, this.lastTouchPosition)
+                        this.setNowGraph(new Text(panStyle, this.lastTouchPosition))
                         this.openTextInput()
                     }else{
                         // 这里判断是否为可填写行
                         const data = this.data;
                         const m = this.lastTouchPosition.getMatrixPosition()
                         if (data[m.y]?.isWrite === true){
-                            // 判断为可写入时，调起页面填写
-                            const placeValue = ["小","千","百","十","个","末"][m.x]
-                            this.openNumberSelect(placeValue, m)
+                            // 判断为可写入时，调起页面填写                            
+                            this.DiyNumberRect.tap(m)
                         }else{
                             this.iconNum.tap(this.lastTouchPosition,this.panStyle)
                             this.drawTopCTX()
                         }
                     }
-                }
-                if (this.drawNowGraph instanceof baseGraph) {
-                    this.drawNowGraph.moveEnd()
-                }
-                this.setTimer()
+                }else{
+                    if (this.drawNowGraph instanceof baseGraph) {
+                        const graph = this.drawNowGraph
+                        this.drawNowGraph.moveEnd()
+                        if (graph instanceof AutoLine) {
+                            this.overdrawForBg()
+                        }
+                        this.setNowGraph(null)
+                        this.overdrawForBg()
+                    }
+                    this.setTimer()
+                    
+                    if (this.drawNowGraph instanceof Eraser) {
+                        this.drawNowGraph = null
+                        this.tableCanvasContext.control_canvas.draw()
+                    }
 
-                if (this.drawNowGraph instanceof AutoLine) {
-                    // 这里AutoLine会添加顶层图标等需要把顶层重新绘制一次
-                    this.drawTopCTX()
                 }
-
-                if (this.drawNowGraph instanceof Eraser) {
-                    this.drawNowGraph = null
-                    this.tableCanvasContext.control_canvas.draw()
-                }
+                
                 break;
             case "touchcancel":
                 // this.drawNowGraph = null
@@ -379,6 +386,16 @@ export default class Table {
                 break;
         }
         this.draw()
+    }
+    setNowGraph(graph: baseGraph | null | UndoRedo | Eraser) {
+        if (this.drawNowGraph) {
+            if (this.drawNowGraph instanceof Eraser) {
+                
+            }else{
+                this.graphs.push(this.drawNowGraph)
+            }
+        }
+        this.drawNowGraph = graph
     }
 
     // 设置一个定时器，一定时间后，将线绘制到背景中
@@ -394,23 +411,24 @@ export default class Table {
     // 将绘制中的图形固定到graphs
     cleaDraw(){
         // 判断是否有绘制中的图像
-        if (this.drawNowGraph && this.drawNowGraph instanceof baseGraph) {
-            this.graphs.push(this.drawNowGraph)
-        }
-        this.drawNowGraph = null
+        this.setNowGraph(null)
     }
 
     // 完全重新绘制一次背景,并将绘制中的图像也绘制上去
     overdrawForBg(drawBefore?:Function){
+        console.log("绘制底层");
         const bgCTX = this.tableCanvasContext.bg_canvas
 
         this.bg.draw(bgCTX)
         this.graphs.forEach(graph => {
+            if (graph instanceof UndoRedo) {
+                return;
+            }
             graph.over()
             graph.draw(bgCTX)
         })
         if (drawBefore) {
-            drawBefore()
+            drawBefore(bgCTX)
         }
         bgCTX.draw()
     }
@@ -418,22 +436,26 @@ export default class Table {
     undo(){
         if(this.drawNowGraph){
             if (this.drawNowGraph instanceof Eraser) {
-                this.drawNowGraph = null;
+                this.drawNowGraph = null
                 return this.undo()
             }
+            console.log("recycle")
+            this.drawNowGraph.recycle()
             this.redoList.push(this.drawNowGraph)
             this.drawNowGraph = null
             this.draw()
+            this.overdrawForBg()
             this.drawTopCTX()
         }else if(this.graphs.length){
             const lastGraph = this.graphs.pop()
             if (lastGraph) {
-                this.drawNowGraph = lastGraph
+                this.setNowGraph(lastGraph)
             }
+            this.undo()
             // 每次操作图形数组后都要重新绘制一次背景
-            this.overdrawForBg()
-            this.drawTopCTX()
-            this.draw()
+            // this.overdrawForBg()
+            // this.drawTopCTX()
+            // this.draw()
         }
         
     }
@@ -443,14 +465,13 @@ export default class Table {
         if(this.redoList.length){
             const lastGraph = this.redoList.pop()
             if (lastGraph) {
-                if (lastGraph instanceof EraseRedo) {
+                if (lastGraph instanceof UndoRedo) {
                     lastGraph.redo()
                 }
-                else if (this.drawNowGraph instanceof baseGraph) {
-                    this.graphs.push(this.drawNowGraph)
-                    this.drawNowGraph = lastGraph
+                if (lastGraph instanceof EraseRedo) {
+                    lastGraph.redo()
                 }else{
-                    this.drawNowGraph = lastGraph
+                    this.setNowGraph(lastGraph)
                 }
                 // 每次操作图形数组后都要重新绘制一次背景
                 this.overdrawForBg()
@@ -461,21 +482,18 @@ export default class Table {
     }
     // 清除画布内容
     clear(){
+        this.drawNowGraph = null
         if (this.graphs.length) {
             // this.redoList.push(...this.graphs)
             this.graphs = []
-        }
-        if (this.drawNowGraph) {
-            // this.redoList.push(this.drawNowGraph)
-            this.drawNowGraph = null;
         }
         if (this.topIconGraphList.length) {
             this.topIconGraphList = []
         }
         // 每次操作图形数组后都要重新绘制一次背景
+        this.iconNum.clear()
+        this.DiyNumberRect.clear()
         this.overdrawForBg()
-        this.drawTopCTX()
-        this.tableCanvasContext.control_canvas.draw()
         this.draw()
     }
 
@@ -506,6 +524,7 @@ export default class Table {
                     icon: 'success'
                 });
                 uni.hideLoading()
+                this.overdrawForBg()
             },
             fail: function (err) {
                 console.error('保存失败：', err);
@@ -520,47 +539,34 @@ export default class Table {
         
     }
 
-    // outBase64
-    outBase64():Promise<string>{
-        return new Promise((resolve) => {
-            // 清除定时器
-            clearTimeout(this.timer)
-
-            // 将目前绘制中的固定到gr列表
-            this.cleaDraw()
-            
-            // 将顶部图层绘制到底部然后导出
-            this.overdrawForBg(()=>{
-                const tableCanvasContext = this.tableCanvasContext;
-                const bgCTX = tableCanvasContext.bg_canvas
-                this.graphs.forEach(graph => {
-                    if (graph instanceof AutoLine) {
-                        graph.draw(false, bgCTX)
-                    }
-                })
-            })
-
+    static async asyncUniCanvasToTemp(canvasId):Promise<string>{
+        return new Promise((resolve, reject) => {
             uni.canvasToTempFilePath({
-                canvasId: this.canvasId.bg_canvas, // 替换为实际的canvas ID
+                canvasId: canvasId, // 替换为实际的canvas ID
                 success: (res) => {
-                    this.overdrawForBg();
                     resolve(res.tempFilePath)
                 },
                 fail: (err) => {
                     console.error('转换临时文件失败：', err);
-                    uni.hideLoading()
+                    reject()
                 }
             });
-
-
-            //**
-            // context.drawImage(res.tempFilePath, 48, 48)
-            // context.restore()
-            // context.draw()
-            
-            
-            
         })
+    }
+    // outBase64
+    async outBase64():Promise<string>{
+        // 清除定时器
+        clearTimeout(this.timer)
+
+        // 将目前绘制中的固定到gr列表
+        this.cleaDraw()
+        
+        // 将顶部图层绘制到底部然后导出
+        this.overdrawForBg((ctx)=>{
+            this.iconNum.draw(ctx, false)
+            this.DiyNumberRect.draw(ctx, false)
+        })
+        return Table.asyncUniCanvasToTemp(this.canvasId.bg_canvas)
     }
 
     numberSelect(res: numberSelectData){
@@ -570,22 +576,7 @@ export default class Table {
     // 重新绘制顶层
     drawTopCTX(){
         // 这里需要把顶层重新绘制一次
-        const tableCanvasContext = this.tableCanvasContext;
-        const topCTX = tableCanvasContext.topicon_canvas
         this.iconNum.draw()
-        topCTX.draw()
-        // const tableCanvasContext = this.tableCanvasContext;
-        // const topCTX = tableCanvasContext.topicon_canvas
-        // const lineCTX = tableCanvasContext.line_canvas
-        // this.graphs.forEach(graph => {
-        //     if (graph instanceof AutoLine) {
-        //         graph.draw(false, topCTX)
-        //     }
-        // })
-        // if (this.drawNowGraph instanceof AutoLine) {
-        //     this.drawNowGraph?.draw(lineCTX, topCTX)
-        // }
-        // topCTX.draw()
     }
 
     draw() {
@@ -684,3 +675,4 @@ function base64ToBlob(base64Data) {
     
     return new Blob([uInt8Array], { type: contentType });
 }
+

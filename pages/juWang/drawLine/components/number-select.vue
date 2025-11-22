@@ -4,89 +4,147 @@
             <view class="number-select-wrapper">
                 <view class="title-box">
                     <view class="popup-title">数字选择器</view>
-                    <view class="right-sw">
-                        <view class="">高级</view>
-                        <view class="">简易</view>
-                    </view>
-                </view>
-                <view class="popup-item">
-                    <view class="popup-item-title">选择号码</view>
-                    <view class="grid-container">
-                        <view class="grid-item" @click="handleSelectNumber(index)" v-for="(item, index) in 10"
-                            :key="index">
-                            <view class="number-item" :class="{ active: numbers.includes(index) }">{{ index }}</view>
-                        </view>
+                    <view class="right-sw" v-if="!['小', '末'].includes(nowSelectPlaceValue)">
+                        <view class="" @click="swSelectType('advanced')">高级</view>
+                        <view class="" @click="swSelectType('simple')">简易</view>
                     </view>
                 </view>
 
                 <!-- 高级版 -->
-                <view class="popup-item">
-                    <view class="popup-item-title">选择条件</view>
-                    <view class="grid-container">
-                        <view v-for="item in typeList" :key="item" class="grid-item type-item"
-                            :class="{ active: type == item }" @click="handleSelectType(item)">{{ item }}</view>
+                <template v-if="selectType == 'advanced'">
+                    <view class="popup-item">
+                        <view class="popup-item-title">选择号码</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(index)" v-for="(item, index) in 10"
+                                :key="index">
+                                <view class="number-item" :class="{ active: numbers.includes(index) }">{{ index }}
+                                </view>
+                            </view>
+                        </view>
                     </view>
-                </view>
-                <view class="popup-item">
-                    <view class="popup-item-title">效果预览</view>
+                    <view class="popup-item">
+                        <view class="popup-item-title">选择条件</view>
+                        <view class="grid-container">
+                            <view v-for="item in typeList" :key="item" class="grid-item type-item"
+                                :class="{ active: type == item }" @click="handleSelectType(item)">{{ item }}</view>
+                        </view>
+                    </view>
+                    <view class="popup-item">
+                        <view class="popup-item-title">效果预览</view>
 
-                    <view class="preview-wrapper">
-                        <view class="preview-box wenshangyima" v-if="type == '稳码'">{{ outPreview('稳码', '', numbers,
-                            type) }}</view>
-                        <view class="grid-container preview-box grid4" v-else>
-                            <view class="grid-item preview-item"
-                                :class="{ active: outPreview('千', 'bg', numbers, type) }">
-                                <view class="top">
-                                    <!-- 类型 双 单 百个合 等等 -->
-                                    {{ outPreview('千', 'top', numbers, type) }}
+                        <view class="preview-wrapper">
+                            <view class="preview-box wenshangyima" v-if="type == '稳码'">{{ outPreview('稳码', '', numbers,
+                                type) }}</view>
+                            <view class="grid-container preview-box grid4" v-else>
+                                <view class="grid-item preview-item"
+                                    :class="{ active: outPreview('千', 'bg', numbers, type) }">
+                                    <view class="top">
+                                        <!-- 类型 双 单 百个合 等等 -->
+                                        {{ outPreview('千', 'top', numbers, type) }}
+                                    </view>
+                                    <view class="center">
+                                        <!-- 数字 -->
+                                        {{ outPreview('千', 'num', numbers, type) }}
+                                    </view>
                                 </view>
-                                <view class="center">
-                                    <!-- 数字 -->
-                                    {{ outPreview('千', 'num', numbers, type) }}
+                                <view class="grid-item preview-item"
+                                    :class="{ active: outPreview('百', 'bg', numbers, type) }">
+                                    <view class="top">
+                                        <!-- 类型 双 单 百个合 等等 -->
+                                        {{ outPreview('百', 'top', numbers, type) }}
+                                    </view>
+                                    <view class="center">
+                                        <!-- 数字 -->
+                                        {{ outPreview('百', 'num', numbers, type) }}
+                                    </view>
+                                </view>
+                                <view class="grid-item preview-item"
+                                    :class="{ active: outPreview('十', 'bg', numbers, type) }">
+                                    <view class="top">
+                                        <!-- 类型 双 单 百个合 等等 -->
+                                        {{ outPreview('十', 'top', numbers, type) }}
+                                    </view>
+                                    <view class="center">
+                                        <!-- 数字 -->
+                                        {{ outPreview('十', 'num', numbers, type) }}
+                                    </view>
+                                </view>
+                                <view class="grid-item preview-item"
+                                    :class="{ active: outPreview('个', 'bg', numbers, type) }">
+                                    <view class="top">
+                                        <!-- 类型 双 单 百个合 等等 -->
+                                        {{ outPreview('个', 'top', numbers, type) }}
+                                    </view>
+                                    <view class="center">
+                                        <!-- 数字 -->
+                                        {{ outPreview('个', 'num', numbers, type) }}
+                                    </view>
                                 </view>
                             </view>
-                            <view class="grid-item preview-item"
-                                :class="{ active: outPreview('百', 'bg', numbers, type) }">
-                                <view class="top">
-                                    <!-- 类型 双 单 百个合 等等 -->
-                                    {{ outPreview('百', 'top', numbers, type) }}
-                                </view>
-                                <view class="center">
-                                    <!-- 数字 -->
-                                    {{ outPreview('百', 'num', numbers, type) }}
-                                </view>
+                            <view class="grid-container grid4" v-if="type != '稳码'">
+                                <view class="grid-item">千A</view>
+                                <view class="grid-item">百B</view>
+                                <view class="grid-item">十C</view>
+                                <view class="grid-item">个D</view>
                             </view>
-                            <view class="grid-item preview-item"
-                                :class="{ active: outPreview('十', 'bg', numbers, type) }">
-                                <view class="top">
-                                    <!-- 类型 双 单 百个合 等等 -->
-                                    {{ outPreview('十', 'top', numbers, type) }}
-                                </view>
-                                <view class="center">
-                                    <!-- 数字 -->
-                                    {{ outPreview('十', 'num', numbers, type) }}
-                                </view>
-                            </view>
-                            <view class="grid-item preview-item"
-                                :class="{ active: outPreview('个', 'bg', numbers, type) }">
-                                <view class="top">
-                                    <!-- 类型 双 单 百个合 等等 -->
-                                    {{ outPreview('个', 'top', numbers, type) }}
-                                </view>
-                                <view class="center">
-                                    <!-- 数字 -->
-                                    {{ outPreview('个', 'num', numbers, type) }}
-                                </view>
-                            </view>
-                        </view>
-                        <view class="grid-container grid4" v-if="type != '稳码'">
-                            <view class="grid-item">千A</view>
-                            <view class="grid-item">百B</view>
-                            <view class="grid-item">十C</view>
-                            <view class="grid-item">个D</view>
                         </view>
                     </view>
-                </view>
+                </template>
+                <!-- 简易版 -->
+                <template v-if="selectType == 'simple'">
+                    <view class="popup-item">
+                        <view class="popup-item-title">选择号码</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(index)" v-for="(item, index) in 10"
+                                :key="index">
+                                <view class="number-item" :class="{ active: numbers.includes(index) }">{{ index }}
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="popup-item">
+                        <view class="popup-item-title">选择对数</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(item)"
+                                v-for="(item, index) in ['0/5', '1/6', '2/7', '3/8', '4/9']" :key="index">
+                                <view class="number-item" :class="{ active: numbers.includes(item) }">{{ item }}
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="popup-item">
+                        <view class="popup-item-title">单双大小</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(item)"
+                                v-for="(item, index) in ['单', '双', '大', '小', 'X']" :key="index">
+                                <view class="number-item type-item" :class="{ active: numbers.includes(item) }">{{
+                                    item }}</view>
+                            </view>
+                        </view>
+                    </view>
+                </template>
+                <template v-if="selectType == 'onlyNumber'">
+                    <view class="popup-item">
+                        <view class="popup-item-title">选择号码</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(index)" v-for="(item, index) in 36"
+                                :key="index">
+                                <view class="number-item" :class="{ active: numbers.includes(index) }">{{ index }}
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="popup-item">
+                        <view class="popup-item-title">单双大小</view>
+                        <view class="grid-container">
+                            <view class="grid-item" @click="handleSelectNumber(item)"
+                                v-for="(item, index) in ['单', '双', '大', '小']" :key="index">
+                                <view class="number-item type-item" :class="{ active: numbers.includes(item) }">{{
+                                    item }}</view>
+                            </view>
+                        </view>
+                    </view>
+                </template>
                 <view class="btn-wrapper">
                     <button type="primary" @click="handleConfirm">确定</button>
                     <button type="default" @click="handleCancel">取消</button>
@@ -102,7 +160,7 @@ export default {
     data() {
         return {
             XY: { x: 0, y: 0 },
-            selectType: "advanced", // selectType: "simple" | "advanced"
+            selectType: "advanced", // selectType: "simple" | "advanced" | "onlyNumber"
             // 高级版
             nowSelectPlaceValue: "十",
             numbers: [],
@@ -116,15 +174,28 @@ export default {
     methods: {
         open: function (placeValue, XY) {
             // 传进来的是位置
+            if (placeValue == "末") {
+                this.selectType = "simple"
+            } else if (placeValue == "小") {
+                this.selectType = "onlyNumber"
+            } else {
+                this.selectType = "advanced"
+            }
+            this.numbers = []
             this.nowSelectPlaceValue = placeValue
             this.XY = XY; // 这个y用于回传
             this.$refs.popup.open()
         },
+        swSelectType: function (type) {
+            this.selectType = type
+            this.numbers = []
+            this.type = ""
+        },
         handleConfirm: function () {
             let data = {}
-            if (this.selectType == 'simple') {
+            if (this.selectType == 'simple' || this.selectType == 'onlyNumber') {
                 data = {
-
+                    string: this.numbers.join("")
                 }
             } else if (this.selectType == 'advanced') {
                 data = {
@@ -143,6 +214,10 @@ export default {
             this.$refs.popup.close()
         },
         handleSelectNumber: function (index) {
+            if (this.selectType === 'simple' || this.selectType === 'onlyNumber') {
+                this.numbers = [index]
+                return
+            }
             if (this.type == "X") {
                 this.numbers = []
             }
