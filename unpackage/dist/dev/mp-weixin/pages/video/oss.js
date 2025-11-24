@@ -350,7 +350,7 @@ const _sfc_main = {
       }, uploadResults.value.length > 0 ? {
         I: common_vendor.f(uploadResults.value, (result, index, i0) => {
           return {
-            a: "c26648de-3-" + i0,
+            a: "42af48bd-3-" + i0,
             b: common_vendor.t(result.name),
             c: common_vendor.t(formatFileSize(result.size)),
             d: common_vendor.t(result.url),

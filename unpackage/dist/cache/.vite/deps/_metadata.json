@@ -1,37 +1,15 @@
 {
-  "hash": "75d850d9",
-  "configHash": "878a3b37",
-  "lockfileHash": "29148e3b",
-  "browserHash": "d00d8e45",
+  "hash": "25a60653",
+  "configHash": "a1e02b99",
+  "lockfileHash": "a6381842",
+  "browserHash": "85c9b543",
   "optimized": {
-    "nanoid/non-secure": {
-      "src": "../../../../../node_modules/nanoid/non-secure/index.js",
-      "file": "nanoid_non-secure.js",
-      "fileHash": "ef8bb341",
-      "needsInterop": false
-    },
-    "ali-oss": {
-      "src": "../../../../../node_modules/ali-oss/dist/aliyun-oss-sdk.js",
-      "file": "ali-oss.js",
-      "fileHash": "1bc86f65",
+    "dayjs": {
+      "src": "../../../../../node_modules/dayjs/dayjs.min.js",
+      "file": "dayjs.js",
+      "fileHash": "1bca1487",
       "needsInterop": true
-    },
-    "qrcode": {
-      "src": "../../../../../node_modules/qrcode/lib/browser.js",
-      "file": "qrcode.js",
-      "fileHash": "7f317072",
-      "needsInterop": true
-    },
-    "html2canvas": {
-      "src": "../../../../../node_modules/html2canvas/dist/html2canvas.esm.js",
-      "file": "html2canvas.js",
-      "fileHash": "5e5fd410",
-      "needsInterop": false
     }
   },
-  "chunks": {
-    "chunk-TDUMLE5V": {
-      "file": "chunk-TDUMLE5V.js"
-    }
-  }
+  "chunks": {}
 }

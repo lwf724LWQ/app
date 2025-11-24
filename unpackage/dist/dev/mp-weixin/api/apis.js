@@ -6,12 +6,6 @@ function apiGetClassify(data = {}) {
     data
   });
 }
-function apiTicketQuery(data = {}) {
-  return utils_request.request({
-    url: "/web/ticket/query",
-    data
-  });
-}
 function apiRegInfo(data = {}) {
   return utils_request.request({
     url: "/web/user/insert",
@@ -282,7 +276,6 @@ exports.apiRewardVideo = apiRewardVideo;
 exports.apiSearchData = apiSearchData;
 exports.apiSendCode = apiSendCode;
 exports.apiSubmitVideo = apiSubmitVideo;
-exports.apiTicketQuery = apiTicketQuery;
 exports.apiUpdateUserProfile = apiUpdateUserProfile;
 exports.apiUserRecharge = apiUserRecharge;
 exports.apiUserimg = apiUserimg;

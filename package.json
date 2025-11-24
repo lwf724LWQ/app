@@ -2,6 +2,7 @@
   "dependencies": {
     "@dcloudio/uni-ui": "^1.5.11",
     "ali-oss": "^6.23.0",
+    "dayjs": "^1.11.19",
     "element-ui": "^2.15.14",
     "html2canvas": "^1.4.1",
     "nanoid": "^5.1.6",

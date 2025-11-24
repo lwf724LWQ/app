@@ -1,9 +1,8 @@
 {
   "pages": [
     "pages/login/login",
-    "pages/index/index",
-    "pages/juWang/drawLine/drawLineRead",
     "pages/juWang/drawLine/drawLine",
+    "pages/index/index",
     "pages/classify/classify",
     "pages/user/user",
     "pages/video/play",

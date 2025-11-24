@@ -1,0 +1,125 @@
+{
+    "msg": "查询成功",
+    "code": 200,
+    "data": {
+        "records": [
+            {
+                "id": "1963424104940883970",
+                "tname": "排列5",
+                "issueno": "25236",
+                "number": "1 5 1 1 1",
+                "refernumber": "1",
+                "opendate": "2025-09-03",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105213513729",
+                "tname": "排列5",
+                "issueno": "25235",
+                "number": "3 2 1 4 8",
+                "refernumber": "1",
+                "opendate": "2025-09-02",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105213513730",
+                "tname": "排列5",
+                "issueno": "25234",
+                "number": "2 8 2 5 7",
+                "refernumber": "1",
+                "opendate": "2025-09-01",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105213513731",
+                "tname": "排列5",
+                "issueno": "25233",
+                "number": "1 4 3 9 0",
+                "refernumber": "1",
+                "opendate": "2025-08-31",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105284816898",
+                "tname": "排列5",
+                "issueno": "25232",
+                "number": "3 9 7 6 2",
+                "refernumber": "1",
+                "opendate": "2025-08-30",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105284816899",
+                "tname": "排列5",
+                "issueno": "25231",
+                "number": "2 5 8 5 4",
+                "refernumber": "1",
+                "opendate": "2025-08-29",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105284816900",
+                "tname": "排列5",
+                "issueno": "25230",
+                "number": "1 7 8 0 5",
+                "refernumber": "1",
+                "opendate": "2025-08-28",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105339342849",
+                "tname": "排列5",
+                "issueno": "25229",
+                "number": "1 2 3 0 2",
+                "refernumber": "1",
+                "opendate": "2025-08-27",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105339342850",
+                "tname": "排列5",
+                "issueno": "25228",
+                "number": "1 6 4 6 5",
+                "refernumber": "1",
+                "opendate": "2025-08-26",
+                "createTime": "2025-09-04 10:09:20"
+            },
+            {
+                "id": "1963424105339342854",
+                "tname": "排列5",
+                "issueno": "25227",
+                "number": "4 5 3 9 1",
+                "refernumber": "1",
+                "opendate": "2025-08-25",
+                "createTime": "2025-09-04 10:09:20"
+            },
+			{
+			    "id": "1963424105339342853",
+			    "tname": "排列5",
+			    "issueno": "25227",
+			    "number": "4 5 3 9 1",
+			    "refernumber": "1",
+			    "opendate": "2025-08-25",
+			    "createTime": "2025-09-04 10:09:20"
+			},
+			{
+			    "id": "1963424105339342852",
+			    "tname": "排列5",
+			    "issueno": "25227",
+			    "number": "4 5 3 9 1",
+			    "refernumber": "1",
+			    "opendate": "2025-08-25",
+			    "createTime": "2025-09-04 10:09:20"
+			}
+        ],
+        "total": 100,
+        "size": 10,
+        "current": 1,
+        "orders": [],
+        "optimizeCountSql": true,
+        "searchCount": true,
+        "maxLimit": null,
+        "countId": null,
+        "pages": 10
+    }
+}

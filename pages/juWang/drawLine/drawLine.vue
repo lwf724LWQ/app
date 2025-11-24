@@ -1,1073 +1,1163 @@
 <template>
-	<view class="container">
-		<!-- 自定义导航栏 -->
-		<custom-juwang-nav-bar title="drawLine" :onSubmit="handleSubmit" @child-event="handleChildEvent"
-			@share-event="handleShareEvent"></custom-juwang-nav-bar>
-		<!-- <draw-select ref="child" @message-from-child="handleMessage"></draw-select> -->
-		<!-- 修改线条颜色,粗细的 -->
-		<select-color @select-color="handleColorMessage" @select-line-width="handleLineMessage"></select-color>
-		<view class="modal-overlay" v-if="showNumberSelector" @click="closeNumberSelector">
-			<view class="modal-content" @click.stop>
-				<NumberSelector class='boxNumber' ref="numberSelector" @close="closeNumberSelector"
-					@confirm="handleConfirmSelection" :groupIndex="selectedGroupIndex" :numIndex="selectedNumIndex" />
-			</view>
-		</view>
-		<!-- ----------------------------------------------------------------------------------------------------------------- -->
-		<!-- 表格样式数字容器 -->
-		<view class="numbers-table-container">
-			<table class="numbers-table">
-				<!-- 列宽定义 -->
-				<colgroup>
-					<col class="col-def-1"> <!-- 第一列 -->
-					<col class="col-def-2"> <!-- 第二列（变窄） -->
-					<col class="col-def-3"> <!-- 第三列 -->
-					<col class="col-def-4"> <!-- 第四列 -->
-					<col class="col-def-5"> <!-- 第五列 -->
-					<col class="col-def-6"> <!-- 第六列 -->
-					<col class="col-def-7"> <!-- 第七列（变窄） -->
-				</colgroup>
+  <view class="draw-line">
+    <Popup ref="popup" @sbumit="popupSbumit"></Popup>
+    <view class="tools">
+      <view class="">
+        <uni-icons type="left" size="20" color="#fff"></uni-icons>
+      </view>
+      <view class="" @click="revoke">
+        <uni-icons type="undo" size="20" color="#fff"></uni-icons>
+        <view class="">撤销</view>
+      </view>
+      <view class="" @click="trash">
+        <uni-icons type="trash" size="20" color="#fff"></uni-icons>
+        <view class="">清除</view>
+      </view>
+      <view class="">
+        <uni-icons type="redo" size="20" color="#fff"></uni-icons>
+        <view class="">分享</view>
+      </view>
+      <view class="">
+        <uni-icons type="download" size="20" color="#fff"></uni-icons>
+        <view class="">保存</view>
+      </view>
+      <view class="">
+        <uni-icons type="settings" size="20" color="#fff"></uni-icons>
+        <view class="">设置</view>
+      </view>
+    </view>
 
-				<!-- 表格内容 -->
-				<tbody>
-					<tr v-for="(group, groupIndex) in twocounterStore.List" :key="group.qishu" class="table-row"
-						:data-qishu="group.qishu" :data-group-index="groupIndex"
-						:class="{ 'target-row': isTargetRow(groupIndex) }">
-						<!-- 期数列 (第一列) - 不可绘制区域 -->
-						<td class="table-cell col-1 non-drawable-area">
-							<view class="cell-content">
-								{{ group.qishu }}
-							</view>
-						</td>
-						<td v-for="(num, numIndex) in group.numbers" :key="numIndex" class="table-cell"
-							:class="'col-' + (2 + numIndex) + (isTargetRow(groupIndex) ? ' clickable' : '')"
-							@click="handleCellClick(groupIndex, numIndex)">
-							<view class="number-item" :class="{ highlighted: isHighlighted(groupIndex, numIndex) }"
-								:data-group-index="groupIndex" :data-num-index="numIndex" ref="numberRefs">
-								{{ num }}
-								<!-- 添加内容容器 -->
-								<div class="grid-content"></div>
-							</view>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+    <scroll-view class="container" id="container" @scroll="scroll" :scroll-y="isScroll">
+      <view v-if="data" class="data">
+        <!-- 绘制图形 -->
+        <canvas
+          class="line-canvas"
+          canvas-id="lineCanvas"
+          id="lineCanvas"
+          @touchstart="canvasTouchStart"
+          @touchmove="canvasTouchMove"
+          @touchend="canvasTouchEnd"
+        ></canvas>
+        <!-- 数字区域 -->
+        <view
+          class="row"
+          v-for="item in data"
+          :key="item.id"
+          @touchmove="touchmove"
+          @touchend="touchend"
+        >
+          <view class="column-1">
+            <view class="issueno">{{ item.issueno }}</view>
+            <view class="date">{{ dateFromat(item.opendate) }}</view>
+          </view>
 
-			<!-- 绘图Canvas -->
-			<canvas type="2d" canvas-id="drawCanvas" class="draw-canvas" @touchstart.stop="onCanvasStart"
-				@touchmove.stop="onCanvasMove" @touchend.stop="onCanvasEnd" @mousedown="onCanvasStart"
-				@mousemove="onCanvasMove" @mouseup="onCanvasEnd"
-				:style="{ pointerEvents: canvasPointerEvents }"></canvas>
+          <view class="column-2">
+            <view
+              class="item"
+              :class="{ active: pointActives[item.id + 0] }"
+              :style="{ backgroundColor: pointActives[item.id + 0]?.color || '' }"
+              :id="item.id + 0"
+              @touchstart="touchstart($event, item.id + 0)"
+              >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
+            >
+          </view>
 
-			<!-- 临时绘制层 -->
-			<canvas type="2d" canvas-id="tempCanvas" class="temp-canvas"></canvas>
+          <view class="column-3">
+            <view v-for="(number, index) in item.number" :key="index">
+              <view
+                class="item"
+                :class="{ active: pointActives[item.id + (index + 1)] }"
+                :style="{ backgroundColor: pointActives[item.id + (index + 1)]?.color || '' }"
+                :id="item.id + (index + 1)"
+                @touchstart="touchstart($event, item.id + (index + 1))"
+                >{{ number }}</view
+              >
+            </view>
+          </view>
+        </view>
+        <!-- 空白区域 -->
+        <view
+          class="row"
+          v-for="row in 6"
+          :key="row"
+          @touchmove="touchmove"
+          @touchend="spaceTouchend"
+        >
+          <view class="column-1"></view>
 
-			<!-- 文字标注容器 -->
-			<view class="text-container">
-				<view v-for="(label, idx) in textLabels" :key="label.id" class="text-label"
-					:style="getLabelStyle(label)" @touchstart.stop="handleLabelTouchStart(idx, $event)"
-					@touchmove.stop="handleLabelTouchMove(idx, $event)"
-					@touchend.stop="handleLabelTouchEnd(idx, $event)" @click.stop="handleLabelClick(idx)"
-					@dblclick.stop="handleLabelDblClick(idx)" :data-index="idx">
-					<span :contenteditable="label.editing" @blur="finishEditLabel(idx)"
-						@input="updateLabelText(idx, $event)" class="text-content" :spellcheck="false">
-						{{ label.text }}
-					</span>
-				</view>
-			</view>
+          <view class="column-2">
+            <view
+              class="marker"
+              v-if="marks[`${row}-0`]"
+              :style="{ backgroundColor: marks[`${row}-0`].style.color || '' }"
+            >
+              <view class="condition">{{ marks[`${row}-0`].marker.condition }}</view>
+              <view class="number">{{ marks[`${row}-0`].marker.numbers.join('') }}</view>
+            </view>
+            <view
+              class="item"
+              v-else
+              :class="{ active: pointActives[`${row}0`] }"
+              :id="`${row}0`"
+              @touchstart="touchstart($event, `${row}0`)"
+            ></view>
+          </view>
 
-		</view>
-		<image src="/static/clock.png" class="switch-mode-css" @click="switchDrawMode('none')"
-			v-show="canvasPointerValue"></image>
-		<image src="/static/scroll.png" class="switch-mode-css" @click="switchDrawMode('auto')"
-			v-show="!canvasPointerValue"></image>
-		<!-- Fab按钮组 -->
-		<view class="fab-wrapper">
-			<!-- 主按钮 -->
-			<view class="fab-main" @click.stop="toggleFab">
-				<i class="fab-main-icon">{{ isFabOpen ? '✕' : '+' }}</i>
-			</view>
+          <view class="column-3">
+            <view v-for="(val, index) in 5" :key="val">
+              <view
+                v-if="marks[`${row}-${index + 1}`]"
+                :class="{ marker: index !== 4, 'marker-5': index === 4 }"
+                :style="getColorStyle(`${row}-${index + 1}`)"
+              >
+                <view class="condition">{{ marks[`${row}-${index + 1}`].marker.condition }}</view>
+                <view class="number">{{
+                  marks[`${row}-${index + 1}`].marker.numbers.join('')
+                }}</view>
+              </view>
+              <view
+                class="item"
+                v-else
+                :class="{ active: pointActives[`${row}${index + 1}`] }"
+                :style="{ backgroundColor: pointActives[`${row}${index + 1}`]?.color || '' }"
+                :id="`${row}${index + 1}`"
+                @touchstart="touchstart($event, `${row}${index + 1}`)"
+              ></view>
+            </view>
+          </view>
+        </view>
+        <!-- 悬浮文字 -->
+        <view
+          class="text"
+          v-for="(item, index) in textList"
+          :key="index"
+          :style="{
+            top: item.text.position.y - 100 * ratio + 'px',
+            left: item.text.position.x + 'px',
+            fontSize: item.style.fontSize + 'px',
+            lineHeight: item.style.fontSize + 'px',
+            borderColor: item.style.color
+          }"
+        >
+          <view
+            class="text-container"
+            :style="textStyle(index)"
+            @touchstart="textPositionStart($event, index)"
+            @touchmove="textPositionMove($event, index)"
+            @touchend="textPositionEnd($event, index)"
+          >
+            <view
+              class="text-item"
+              :style="{
+                width: item.style.width === 'auto' ? 'auto' : item.style.width + 'px',
+                height: item.style.height === 'auto' ? 'auto' : item.style.height + 'px'
+              }"
+            >
+              <view class="text-content" :id="`text${index}`">{{ item.text.content }}</view>
+            </view>
+          </view>
+          <view
+            class="text-btn-left"
+            :style="{ backgroundColor: item.style.color }"
+            @click="changeTextSolid(item.index)"
+            >透</view
+          >
+          <view
+            class="text-btn-right"
+            :style="{ backgroundColor: item.style.color }"
+            @touchstart="textTouchstart($event, index)"
+            @touchmove="textTouchmove($event, index)"
+            @touchend="textTouchend($event, index)"
+            >拉</view
+          >
+        </view>
+        <!-- 悬浮文字输入框 -->
+        <textarea
+          class="text-input"
+          focus
+          auto-height
+          v-if="isTextInputShow"
+          v-model="textareaValue"
+          :cursor="cursor"
+        />
+      </view>
+    </scroll-view>
 
-			<!-- 子按钮容器 -->
-			<view class="fab-items-o" :class="{ 'fab-items fab-open': isFabOpen }">
-				<!-- 子按钮 - 模式切换 -->
-				<view class="fab-item" @click.stop="switchMode('freeDraw')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">✏️</i>
-						<text class="fab-item-text">曲线</text>
-					</div>
-				</view>
-				<view class="fab-item" @click.stop="switchMode('straightLine')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">—️</i>
-						<text class="fab-item-text">直线</text>
-					</div>
-				</view>
-				<view class="fab-item" @click.stop="switchMode('rectangle')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">□</i>
-						<text class="fab-item-text">矩形</text>
-					</div>
-				</view>
-				<view class="fab-item" @click.stop="switchMode('circle')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">○</i>
-						<text class="fab-item-text">圆形</text>
-					</div>
-				</view>
-				<view class="fab-item" @click.stop="switchMode('smart')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">🧠</i>
-						<text class="fab-item-text">智能模式</text>
-					</div>
-				</view>
+    <uni-icons
+      type="closeempty"
+      size="20"
+      class="curve-handle"
+      color="red"
+      @touchstart="curveTouchstart"
+      @touchmove="curveTouchmove"
+      v-show="iscurveHandleShow"
+    ></uni-icons>
 
-				<view class="fab-item" @click.stop="switchMode('eraser')">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">🧽</i>
-						<text class="fab-item-text">橡皮擦</text>
-					</div>
-				</view>
-
-				<!-- 子按钮 - 操作按钮 -->
-				<view class="fab-item fab-item-accent" @click.stop="addTextLabel">
-					<div class="fab-item-inner">
-						<i class="fab-item-icon">➕</i>
-						<text class="fab-item-text">添加文字</text>
-					</div>
-				</view>
-				<!-- 子按钮 - 操作按钮 -->
-				<view class="fab-item fab-item-accent" @click.stop="clickBlank">
-					<div class="fab-item-inner">
-						<i class="fas fa-square">空</i>
-						<text class="fab-item-text">空白点击</text>
-					</div>
-				</view>
-			</view>
-		</view>
-	</view>
+    <ColorSelect
+      class="color-select"
+      v-model:color="color"
+      v-model:size="size"
+      v-show="isColorSelectShow"
+      @click="changeColor"
+    ></ColorSelect>
+    <ModeSelect
+      class="mode-select"
+      v-model="mode"
+      v-show="isModeSelectShow"
+      @click="changeMode"
+    ></ModeSelect>
+    <view class="lock" @click="lock" v-show="isLockShow">
+      <uni-icons type="locked-filled" size="30" color="#fff"></uni-icons>
+    </view>
+  </view>
 </template>
 
 <script setup>
-	import {
-		onLoad,
-		onUnload,
-		onReachBottom
-	} from "@dcloudio/uni-app"
-	import {
-		ref,
-		onMounted,
-		getCurrentInstance,
-		nextTick,
-		watch,
-		reactive
-	} from 'vue';
-	import html2canvas from 'html2canvas';
-	import useDrawing from './useFunc/useDrawing';
-	import useTableData from './useFunc/useTableData';
-	import useTextLabels from './useFunc/useTextLabels';
-	import useFabActions from './useFunc/useFabActions';
-	import useScreenshot from './useFunc/useScreenshot';
-	import {
-		usetwoCounterStore
-	} from "@/stores/twocounter.js";
-	import {
-		useCounterStore
-	} from "@/stores/counter.js";
-	import NumberSelector from '../../../components/NumberSelector/NumberSelector.vue';
-	// 创建本地的 onCanvasEnd 处理函数
-	const onCanvasEnd = (event) => {
-		// 首先调用从 useDrawing 导入的函数
-		drawingOnCanvasEnd(event);
-		// 然后添加您的自定义逻辑
-		const endPoint = currentShape.value.end;
-		const numberPos = checkPointOnNumber(endPoint);
-		
-		
-	};
+import { ref, nextTick, computed, watch } from 'vue'
+import { onReady } from '@dcloudio/uni-app'
+import { getCurrentInstance } from 'vue'
+// import mock from './mock.json'
+import Popup from '@/components/juWang/Popup.vue'
+import ColorSelect from '@/components/juWang/ColorSelect.vue'
+import ModeSelect from '@/components/juWang/ModeSelect.vue'
+import { DrawShape } from './drawMethod'
+import dayjs from 'dayjs'
 
+//解析日期
+const weekMap = {
+  0: '日',
+  1: '一',
+  2: '二',
+  3: '三',
+  4: '四',
+  5: '五',
+  6: '六'
+}
+const dateFromat = (dateStr) => {
+  const dateArr = dateStr.split('-')
+  const date = dayjs(dateStr).format('M/D')
+  const dateArr2 = date.split('/')
+  const dateStr2 = `${dateArr2[0]}/${dateArr2[1]} ${weekMap[dayjs(dateStr).format('d')]}`
+  return dateStr2
+}
 
-	//下面是关于组件数字选择器的处理
-	// 添加状态控制
-	const showNumberSelector = ref(false);
-	//存储格子信息，将信息传给数字选择器，方便修改条件选择
-	const selectedGroupIndex = ref(null);
-	const selectedNumIndex = ref(null);
+const instance = getCurrentInstance()
+let ratio
+let lineCtx
+// let graphicsCtx
+const popup = ref(null)
 
-	const counterStore = useCounterStore();
-	console.log(counterStore)
-	const classifyList = ref([]);
-	//存储预览样式信息的
-	const gridStyles = ref({});
-	// 打开数字选择器
-	const openNumberSelector = (groupIndex, numIndex) => {
-		selectedGroupIndex.value = groupIndex;
-		selectedNumIndex.value = numIndex;
-		showNumberSelector.value = true;
-	};
+// const uni.getSystemInfo
+const systemInfo = ref(uni.getSystemInfoSync())
+// console.log(systemInfo.value)
 
+// 页面数据
+const data = ref([])
+let positionList
+const getData = async () => {
+  const res = await uni.request({
+    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=10'
+  })
+  data.value = res.data.data.records.reverse()
+  data.value.forEach((item) => {
+    item.number = item.number.split(' ').slice(0, 5)
+  })
+  // data.value = mock.data.records
+  // data.value.forEach((item) => {
+  //   item.number = item.number.split(' ').slice(0, 5)
+  // })
 
-	// 关闭数字选择器
-	const closeNumberSelector = () => {
-		showNumberSelector.value = false;
-	};
+  await nextTick()
+  const query = uni.createSelectorQuery().in(instance.proxy)
+  query
+    .selectAll('.item')
+    .boundingClientRect((data) => {
+      // console.log("节点离页面顶部的距离为" ,data);
+      positionList = data
+    })
+    .exec()
+}
+getData()
 
-	// 处理确认选择
-	const handleConfirmSelection = (data) => {
-		console.log('确认选择:', data);
-		console.log('格子位置:', selectedGroupIndex.value, selectedNumIndex.value);
-		const key = `${data.groupIndex}-${data.numIndex}`;
-		gridStyles.value[key] = {
-			previewType: data.previewType,
-			content: {
-				selectedCondition: data.selectedCondition,
-				selectedNumbers: data.selectedNumbers,
-				selecteddoubNumber: data.selecteddoubNumber
-			}
-		};
-		console.log(gridStyles.value) //20-2  + 内容
-		closeNumberSelector();
-		// 应用样式到对应格子
-		applyStyleToGrid(data.groupIndex, data.numIndex);
-		// 这里可以处理选择的数据
-	};
-	// 应用样式到格子
-	const applyStyleToGrid = (groupIndex, numIndex) => {
-		const key = `${groupIndex}-${numIndex}`;
-		const styleData = gridStyles.value[key];
-		if (!styleData) return;
-		// 找到对应的格子元素
-		const gridElement = document.querySelector(
-			`[data-group-index="${groupIndex}"][data-num-index="${numIndex}"]`
-		);
-		if (!gridElement) return;
-		// 清除之前的样式
-		gridElement.classList.remove('solid', 'hollow');
+// 绘制连接线
+const curveLineX = ref(0) // 曲线中间坐标
+const curveLineY = ref(0)
 
-		// 应用新样式
-		if (styleData.previewType === 'solid') {
-			gridElement.classList.add('solid');
-		} else {
-			gridElement.classList.add('hollow');
-		}
-		// 更新内容
-		const contentElement = gridElement.querySelector('.grid-content');
-		console.log(styleData.content.selectedCondition);
-		if (contentElement) {
-			contentElement.innerHTML = '';
+const iscurveHandleShow = ref(false)
 
-			if (styleData.content.selectedCondition) {
-				const conditionElement = document.createElement('div');
-				conditionElement.textContent = styleData.content.selectedCondition;
-				contentElement.appendChild(conditionElement);
-			}
+const color = ref('#f2232b')
+const size = ref(3)
 
-			if (styleData.content.selectedNumbers && styleData.content.selectedNumbers.length > 0) {
-				const numbersElement = document.createElement('div');
-				numbersElement.textContent = styleData.content.selectedNumbers.join(' ');
-				contentElement.appendChild(numbersElement);
-			}
+let drawnStraightLine,
+  drawnCurveLine,
+  drawnTrack,
+  drawSolidRect,
+  drawHollowRect,
+  drawSolidCircle,
+  drawHollowCircle
 
-			if (styleData.content.selecteddoubNumber) {
-				const doubNumberElement = document.createElement('div');
-				doubNumberElement.textContent = styleData.content.selecteddoubNumber;
-				contentElement.appendChild(doubNumberElement);
-			}
-		}
-		// 检查是否有选中的数字，并且这些数字在1-36范围内
-		const hasValidNumbers = styleData.content.selectedNumbers && 
-		    styleData.content.selectedNumbers.length === 1 && 
-		    styleData.content.selectedNumbers.some(num => {
-		        const numValue = parseInt(num);
-		        return numValue >= 1 && numValue <= 36;
-		    });
-			// 设置字体大小
-			if (hasValidNumbers) {
-				contentElement.style.fontSize = '26px';
-				contentElement.style.fontWeight = 'bold';
-			}
-	};
+// 绘制曲线
+const curveLine = (startX, startY, endX, endY) => {
+  drawnStraightLine(startX, startY, endX, endY)
+  curveLineX.value = (startX + endX) / 2
+  curveLineY.value = (startY + endY) / 2 - scrolltop
+}
+// 绘制所有线
+const drawnLineAll = () => {
+  record.value.forEach((item) => {
+    if (!item?.line) return
+    const type = item.line.type
+    const color = item.style.color
+    const size = item.style.size
 
-	//------------------------------------------------------
+    if (type === 'straight') {
+      const { startX, startY, endX, endY } = item.line.position
+      drawnStraightLine(startX, startY, endX, endY, color, size)
+    }
+    if (type === 'curve') {
+      const { startX, startY, centerX, centerY, endX, endY } = item.line.position
+      const center = startY / 2 + endY / 2
+      const y = (centerY - center) * 2 + center
+      drawnCurveLine(startX, startY, centerX, y, endX, endY, color, size)
+    }
+    if (type === 'track') {
+      const track = item.line.position
+      drawnTrack(track, color, size)
+    }
+    if (type === 'solidRect') {
+      const { x, y, width, height } = item.line.position
+      drawSolidRect(x, y, width, height, color)
+    }
+    if (type === 'hollowRect') {
+      const { x, y, width, height } = item.line.position
+      drawHollowRect(x, y, width, height, color, size)
+    }
+    if (type === 'solidCircle') {
+      const { startX, startY, endX, endY } = item.line.position
+      drawSolidCircle(startX, startY, endX, endY, color, size)
+    }
+    if (type === 'hollowCircle') {
+      const { startX, startY, endX, endY } = item.line.position
+      drawHollowCircle(startX, startY, endX, endY, color, size)
+    }
+  })
+}
+// 监听触摸事件
+const record = ref([]) // [{point:[12,34] , line:{type:straight/curve,position:{}} , marker:{} , style:{color,size}} , text:'']
+let startX, startY, endX, endY
 
-	// 加载状态管理
-	const isLoading = ref(false);
-	const hasMore = ref(true);
-	const loadError = ref(null);
-	// 获取异步请求的画布真实数据
-	//先拿到store实例对象
-	const twocounterStore = usetwoCounterStore()
-	// console.log(twocounterStore.List)
-	// onReachBottom(async () => {
+const getPosition = (x, y) => {
+  const result = positionList.find((item) => {
+    return x < item.right && y < item.bottom
+  })
+  return result
+}
 
-	// 	// 防止重复加载
-	// 	if (isLoading.value || !hasMore.value) {
-	// 		console.log("正在加载或没有更多数据，跳过");
-	// 		return;
-	// 	}
+const touchstart = (event, id) => {
+  event.preventDefault()
+  isScroll.value = false
 
-	// 	try {
-	// 		// 设置加载状态
-	// 		isLoading.value = true;
-	// 		loadError.value = null;
+  iscurveHandleShow.value = false
+  const { clientX, clientY } = event.touches[0]
+  const position = getPosition(clientX, clientY + scrolltop)
+  startX = position.left + position.width / 2
+  startY = position.top + position.height / 2
+  record.value.push({ point: [position.id] })
+}
 
-	// 		// 显示加载提示
-	// 		uni.showLoading({
-	// 			title: '加载更多数据...',
-	// 			mask: false
-	// 		});
+const touchmove = (event) => {
+  event.preventDefault()
+  const { clientX, clientY } = event.touches[0]
+  drawnLineAll()
+  drawnStraightLine(startX, startY, clientX, clientY + scrolltop)
+  lineCtx.draw()
+}
 
-	// 		// 调用 store 的加载更多方法
-	// 		await twocounterStore.loadMoreData();
+const touchend = (event) => {
+  isScroll.value = true
 
-	// 		// 更新状态
-	// 		hasMore.value = twocounterStore.hasMore;
+  const { clientX, clientY } = event.changedTouches[0]
+  const position = getPosition(clientX, clientY + scrolltop)
+  endX = position.left + position.width / 2
+  endY = position.top + position.height / 2
 
-	// 		console.log("加载更多完成，当前数据量:", twocounterStore.List.length);
+  drawnLineAll()
 
-	// 		// 显示成功提示（可选）
-	// 		if (hasMore.value) {
-	// 			uni.showToast({
-	// 				title: `已加载 ${twocounterStore.List.length} 条数据`,
-	// 				icon: 'none',
-	// 				duration: 1500
-	// 			});
-	// 		}
+  const lastRecord = record.value[record.value.length - 1]
+  lastRecord.style = { color: color.value, size: size.value }
+  if (lastRecord.point[0] !== position.id) {
+    lastRecord.point.push(position.id)
+    lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
+    iscurveHandleShow.value = true
+    curveLine(startX, startY, endX, endY)
+  } else {
+    iscurveHandleShow.value = false
+  }
+  lineCtx.draw()
+}
 
-	// 	} catch (error) {
-	// 		console.error('加载更多失败:', error);
-	// 		loadError.value = error;
-	// 		uni.showToast({
-	// 			title: '加载失败，请重试',
-	// 			icon: 'none'
-	// 		});
-	// 	} finally {
-	// 		isLoading.value = false;
-	// 		uni.hideLoading();
-	// 	}
-	// });
-	// // 添加重试方法
-	// const retryLoadMore = () => {
-	// 	if (loadError.value) {
-	// 		loadError.value = null;
-	// 		onReachBottom(); // 重新触发加载
-	// 	}
-	// };
+const curveTouchstart = () => {
+  const item = record.value[record.value.length - 1]
+  item.line.type = 'curve'
+  const { startX, startY, endX, endY } = item.line.position
+  item.line.position.centerX = startX / 2 + endX / 2
+  item.line.position.centerY = startY / 2 + endY / 2
+}
+const curveTouchmove = (event) => {
+  event.preventDefault()
+  const { pageX, pageY } = event.touches[0]
+  curveLineX.value = pageX
+  curveLineY.value = pageY
+  const item = record.value[record.value.length - 1]
+  item.line.position.centerX = pageX
+  item.line.position.centerY = pageY + scrolltop
+  drawnLineAll()
+  lineCtx.draw()
+}
 
-	// // 监听 store 状态变化
-	// watch(() => twocounterStore.isLoading, (loading) => {
-	// 	isLoading.value = loading;
-	// });
+// 激活列表
+const pointActives = computed(() => {
+  const result = {}
+  record.value.forEach((item) => {
+    if (!item?.point) return
+    item.point.forEach((id) => {
+      result[id] = { color: item.style?.color, isSolid: item.marker?.isSolid }
+    })
+  })
+  return result
+})
+// 撤销
+const revoke = () => {
+  iscurveHandleShow.value = false
+  record.value.pop()
+  drawnLineAll()
+  lineCtx.draw()
+}
+// 清除
+const trash = () => {
+  iscurveHandleShow.value = false
+  record.value = []
+  drawnLineAll()
+  lineCtx.draw()
+}
+// 获取元素位置信息
+const getRect = (id) => {
+  return new Promise((resolve) => {
+    const query = uni.createSelectorQuery().in(instance.proxy)
+    query
+      .select(id)
+      .boundingClientRect((data) => {
+        resolve(data)
+      })
+      .exec()
+  })
+}
+onReady(async () => {
+  lineCtx = uni.createCanvasContext('lineCanvas')
+  ratio = (await getRect('.container')).width / 750
+  ;({
+    drawnStraightLine,
+    drawnCurveLine,
+    drawnTrack,
+    drawSolidRect,
+    drawHollowRect,
+    drawSolidCircle,
+    drawHollowCircle
+  } = new DrawShape(color, size, lineCtx))
+})
 
-	// watch(() => twocounterStore.hasMore, (more) => {
-	// 	hasMore.value = more;
-	// });
+// 标记列表
+const marks = computed(() => {
+  const result = {}
+  record.value.forEach((item) => {
+    const row = item.marker?.row
+    const indexs = item.marker?.indexs
+    if (row && indexs) {
+      indexs.forEach((index) => {
+        result[`${row}-${index}`] = { marker: item.marker, style: item.style }
+      })
+    }
+  })
+  return result
+})
+const popupSbumit = (val) => {
+  const item = record.value[record.value.length - 1]
+  item.marker = val
+  item.marker.row = +item.point[item.point.length - 1][0]
+}
 
-	// watch(() => twocounterStore.error, (error) => {
-	// 	if (error) {
-	// 		loadError.value = error;
-	// 	}
-	// });
+// 滚动高度
+let scrolltop = 0
+const isScroll = ref(true)
+const scroll = (event) => {
+  scrolltop = event.detail.scrollTop
+  curveLineY.value += event.detail.deltaY
+}
 
+const spaceTouchend = (event) => {
+  touchend(event)
+  const item = record.value[record.value.length - 1]
+  if (item.point[item.point.length - 1].endsWith('0')) {
+    popup.value.openRefernumber()
+  } else if (item.point[item.point.length - 1].endsWith('5')) {
+    popup.value.openSimple()
+  } else {
+    popup.value.open(item.point[item.point.length - 1][1] - 1)
+  }
+}
 
+// 样式控制
+const getColorStyle = (id) => {
+  const meta = marks.value[id]
 
-	//-------------------------------------------------------
-	const canvasPointerValue = ref(true)
-	const switchDrawMode = (value) => {
-		uni.showToast({
-			title: `当前为${value==='none'?'滚动':'画规'}模式`,
-			icon: 'none', // 可选值：success, loading, none
-			duration: 2000, // 提示持续时间（毫秒）
-			position: 'bottom' // 可选值：top, center, bottom
-		});
-		canvasPointerValue.value = !canvasPointerValue.value
-		canvasPointerEvents.value = value
-	}
-	// 父组件的方法
-	const handleSubmit = (data) => {
-		console.log('子组件调用了父组件的提交方法，数据：', data);
-		// 可以在这里处理提交逻辑
-		clearCanvas()
-		 // 显示确认对话框
-			  uni.showModal({
-			    title: '确认清除',
-			    content: '确定要清除所有绘制内容和样式吗？此操作不可撤销。',
-			    success: (res) => {
-			      if (res.confirm) {
-			        console.log('用户确认清除操作');
-			        clearCanvas(); // 清除画布
-			        clearAllGridContents(); // 清除grid-content内容
-			      } else if (res.cancel) {
-			        console.log('用户取消清除操作');
-			      }
-			    }
-			  });
-			};
-			const clearAllGridContents = () => {
-			   // 清除存储的所有样式
-			     gridStyles.value = {};
-			     
-			     // 清除所有格子的样式和内容
-			     const gridElements = document.querySelectorAll('[data-group-index][data-num-index]');
-			     gridElements.forEach(element => {
-			       element.classList.remove('solid', 'hollow');
-			       
-			       const contentElement = element.querySelector('.grid-content');
-			       if (contentElement) {
-			         contentElement.innerHTML = '';
-			       }
-			     });
-	};
+  if (id.endsWith('5')) {
+    return {
+      backgroundColor: meta.style.color
+    }
+  }
 
-	const handleChildEvent = (params) => {
-		console.log('收到子组件事件，参数', params)
-		switch (params.action) {
-			case 'submit':
-				saveCanvasImage()
-				break
-			case 'undo':
-				undoDraw()
-				break
-		}
+  return {
+    backgroundColor: meta.marker.isSolid ? meta.style.color : '#fff',
+    border: meta.marker.isSolid ? undefined : `5rpx solid ${meta.style.color}`,
+    color: meta.marker.isSolid ? '#fefdf8' : meta.style.color
+  }
+}
 
-	}
-	const handleShareEvent = () => {
-		console.log('子组件调用了父组件的分享方法')
+// 绘制图形
+const mode = ref('智能曲线')
+const pointerEvents = ref('auto') // none | auto
 
-	}
+watch(mode, (val) => {
+  if (val === '智能曲线') {
+    pointerEvents.value = 'auto'
+  } else {
+    pointerEvents.value = 'none'
+  }
+})
 
+// 临时记录
+let track = [] // 轨迹
+let straightLine = {} // 直线
+let rect = {} // 方框
+let circle = {} // 圆
 
+const isTextInputShow = ref(false)
+const textareaPosition = ref({}) // textarea坐标
+let textPosition = {}
+const textareaValue = ref('')
 
-	let eventHandler;
-	onLoad((e) => {
-		
-		        resetDrawingState();
-		    
-		const instance = getCurrentInstance().proxy
-		const eventChannel = instance.getOpenerEventChannel();
-		eventChannel.emit('acceptDataFromOpenedPage', {
-			data: 'data from test page'
-		});
-		eventChannel.emit('someEvent', {
-			data: 'data from test page for someEvent'
-		});
-		// 监听acceptDataFromOpenerPage事件，获取上一页面通过eventChannel传送到当前页面的数据
-		eventChannel.on('acceptDataFromOpenerPage', function(data) {
-			console.log("acceptDataFromOpenerPage", data)
-		})
+const textList = computed(() => {
+  const result = []
+  for (let i = 0; i < record.value.length; i++) {
+    const item = record.value[i]
+    if (item.text) {
+      result.push({ text: item.text, style: item.style, isSolid: item.isSolid, index: i })
+    }
+  }
+  return result
+})
 
+const textStyle = (index) => {
+  const meta = textList.value[index]
 
+  return {
+    backgroundColor: meta.isSolid ? meta.style.color : 'transparent',
+    color: meta.isSolid ? '#fff' : meta.style.color
+  }
+}
 
-	})
-	//----------------------------------------------------
+const canvasTouchStart = (event) => {
+  // console.log('canvasTouchStart', isTextInputShow.value)
 
+  let { x, y } = event.touches[0]
+  // 控制页面滚动
+  if (x < 250 * ratio) {
+    isScroll.value = true
+    return
+  } else {
+    isScroll.value = false
+  }
 
-	//从useTableData.js中传过来的网络请求数据无法及时更新	---------------
+  switch (mode.value) {
+    case '自由线':
+      track = []
+      track.push({ x, y })
+      break
+    case '直线':
+      straightLine = {
+        startX: x,
+        startY: y
+      }
+      break
+    case '添加文字':
+      if (!isTextInputShow.value) {
+        textPosition = { x, y }
 
-	// 子组件引用
-	const child = ref(null);
-	// classifyList.value = [...newDataSort,...classifyList.value];
-	// 定义 formattedClassifyList，用于存储从 drawLineRead.vue 传递过来的数据
-	// const formattedClassifyList = ref(null);
-	// const externalData=ref([]);
+        if (x > (750 - 300) * ratio) x = (750 - 300) * ratio
+        if (y < 200 * ratio) y = 200 * ratio
+        if (y > 1000 * ratio) y = 1000 * ratio
+        textareaPosition.value = { x, y }
+        isTextInputShow.value = true
+      } else {
+        isTextInputShow.value = false
+        // 修改文字
+        if (textChangeIndex !== null) {
+          const meta = textList.value[textChangeIndex]
+          meta.text.content = textareaValue.value
+          // 重新计算文字框大小
+          meta.style.width = 'auto'
+          meta.style.height = 'auto'
+          nextTick(async () => {
+            const { width, height } = await getRect(`#text${textChangeIndex}`)
+            meta.style.width = width
+            meta.style.height = height
+            textChangeIndex = null
+            textareaValue.value = ''
+          })
 
-	// console.log(externalData,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-	//------------------------------------------------------------------------
-	function logDataComparison(a, externalData) {
-		console.group('数据比较');
-		console.log('a:', a);
-		console.log('externalData:', externalData);
-		console.log('a === externalData:', a === externalData);
-		console.log('JSON.stringify(a) === JSON.stringify(externalData):',
-			JSON.stringify(a) === JSON.stringify(externalData));
+          return
+        }
 
-		if (isRef(externalData)) {
-			console.log('externalData 是 ref');
-			console.log('externalData.value:', externalData.value);
-			console.log('a === externalData.value:', a === externalData.value);
-		}
-		console.groupEnd();
-	}
+        if (!textareaValue.value) return
+        record.value.push({
+          text: {
+            content: textareaValue.value,
+            position: textPosition
+          },
+          style: {
+            color: color.value,
+            // width: 0,
+            // height: 0,
+            fontSize: 20
+          },
+          isSolid: true
+        })
+        textareaValue.value = ''
+        nextTick(async () => {
+          const query = uni.createSelectorQuery().in(instance.proxy)
+          const { width, height } = await getRect(`#text${record.value.length - 1}`)
+          const item = record.value[record.value.length - 1]
+          item.style.width = width
+          item.style.height = height
+        })
+      }
 
+      break
+    case '实心方框':
+    case '空心方框':
+      rect = {}
+      rect = {
+        x,
+        y
+      }
+      break
+    case '实心圆框':
+    case '空心圆框':
+      circle = {
+        startX: x,
+        startY: y
+      }
+      break
+  }
+}
 
-	// 导入各个功能模块
-	const {
-		numberGroups,
-		highlighted,
-		numberRefs,
-		getTargetRowIndex,
-		isTargetRow,
-		handleCellClick,
-		isHighlighted,
-		toggleHighlight,
-		handleMessage
-	} = useTableData(child,null,openNumberSelector);
-	const handleColorMessage = (val) => {
-		strokeColor.value = val
-	}
-	const handleLineMessage = (val) => {
-		lineWidth.value = val
-	}
-	const {
-		resetDrawingState,
-		currentMode,
-		isDrawing,
-		isErasing,
-		canvasPointerEvents,
-		strokeColor,
-		lineWidth,
-		canvasCtx,
-		tempCanvasCtx,
-		canvasSize,
-		dpr,
-		currentShape,
-		shapes,
-		eraserSize,
-		onCanvasStart,
-		onCanvasMove,
-		onCanvasEnd: drawingOnCanvasEnd, // 重命名以避免冲突
-		redraw,
-		initCanvas,
-		selectedColor,
-		checkPointOnNumber
-	} = useDrawing(numberGroups, highlighted, numberRefs, openNumberSelector);
+const canvasTouchMove = (event) => {
+  if (isScroll.value) return
+  const { x, y } = event.touches[0]
+  drawnLineAll()
+  switch (mode.value) {
+    case '自由线':
+      track.push({ x, y })
+      drawnTrack(track)
+      break
+    case '直线':
+      drawnStraightLine(straightLine.startX, straightLine.startY, x, y)
+      straightLine.endX = x
+      straightLine.endY = y
+      break
+    case '添加文字':
+      break
+    case '实心方框':
+    case '空心方框':
+      rect.width = x - rect.x
+      rect.height = y - rect.y
+      if (mode.value === '实心方框') {
+        drawSolidRect(rect.x, rect.y, rect.width, rect.height)
+      } else {
+        drawHollowRect(rect.x, rect.y, rect.width, rect.height)
+      }
+      break
+    case '实心圆框':
+    case '空心圆框':
+      circle.endX = x
+      circle.endY = y
+      if (mode.value === '实心圆框') {
+        drawSolidCircle(circle.startX, circle.startY, circle.endX, circle.endY)
+      } else {
+        drawHollowCircle(circle.startX, circle.startY, circle.endX, circle.endY)
+      }
+      break
+  }
+  lineCtx.draw()
+}
 
-	nextTick()
-	const {
-		textLabels,
-		movingLabel,
-		touchStartTime,
-		touchStartPos,
-		touchEndTime,
-		touchCount,
-		touchTimer,
-		labelOffset,
-		longPressDetected,
-		handleLabelTouchStart,
-		handleLabelTouchMove,
-		handleLabelTouchEnd,
-		handleLabelClick,
-		handleLabelDblClick,
-		addTextLabel,
-		editLabel,
-		updateLabelText,
-		finishEditLabel,
-		getLabelStyle
-	} = useTextLabels(canvasSize);
+const canvasTouchEnd = (event) => {
+  if (isScroll.value) return
+  switch (mode.value) {
+    case '自由线':
+      record.value.push({
+        line: {
+          type: 'track',
+          position: track
+        },
+        style: { color: color.value, size: size.value }
+      })
+      track = []
+      break
+    case '直线':
+      record.value.push({
+        line: {
+          type: 'straight',
+          position: straightLine
+        },
+        style: { color: color.value, size: size.value }
+      })
 
-	const {
-		isFabOpen,
-		toggleFab,
-		switchMode,
-		clearCanvas,
-		clickBlank
-	} = useFabActions(currentMode, canvasPointerEvents, shapes, textLabels, highlighted, redraw);
+      straightLine = {}
+      break
+    case '添加文字':
+      // if (isTextInputShow.value) {
+      //   record.value.push({
+      //     text: { content: textareaValue.value, position: textPosition },
+      //     style: { color: color.value }
+      //   })
+      //   console.log(record.value)
+      // }
+      break
+    case '实心方框':
+      record.value.push({
+        line: {
+          type: 'solidRect',
+          position: rect
+        },
+        style: { color: color.value }
+      })
+      rect = {}
+      break
+    case '空心方框':
+      record.value.push({
+        line: {
+          type: 'hollowRect',
+          position: rect
+        },
+        style: { color: color.value, size: size.value }
+      })
+      break
+    case '实心圆框':
+      record.value.push({
+        line: {
+          type: 'solidCircle',
+          position: circle
+        },
+        style: { color: color.value, size: size.value }
+      })
+      break
+    case '空心圆框':
+      record.value.push({
+        line: {
+          type: 'hollowCircle',
+          position: circle
+        },
+        style: { color: color.value, size: size.value }
+      })
+      break
+  }
+}
 
-	const {
-		saveCanvasImage,
-		domToImage
-	} = useScreenshot(html2canvas);
-	const undoDraw = () => {
-		// console.log('undoDraw')
-		// if (shapes.value.length > 0) {
-		// 	shapes.value.pop();
-		// 	redraw(false);
-		// }
-		console.log('执行撤销操作');
-		  
-		  if (shapes.value.length > 0) {
-		    // 获取最后绘制的形状
-		    const lastShape = shapes.value.pop();
-		    
-		    // 撤销关联的高亮样式
-		    if (lastShape.highlights && Array.isArray(lastShape.highlights)) {
-		      // 备份当前高亮状态
-		      const currentHighlights = [...highlighted.value];
-		      
-		      // 移除该形状关联的高亮
-		      lastShape.highlights.forEach(highlightToRemove => {
-		        const index = currentHighlights.findIndex(item => 
-		          item.groupIndex === highlightToRemove.groupIndex && 
-		          item.numIndex === highlightToRemove.numIndex
-		        );
-		        
-		        if (index > -1) {
-		          currentHighlights.splice(index, 1);
-		        }
-		      });
-		      
-		      // 更新高亮状态
-		      highlighted.value = currentHighlights;
-		      console.log('撤销高亮样式，剩余高亮数量:', highlighted.value.length);
-		    }
-		    
-		    // 重绘画布和更新高亮显示
-		    redraw(false);
-		    updateHighlightDisplay();
-		    
-		    console.log('撤销完成，剩余形状数量:', shapes.value.length);
-		    
-		    // 显示撤销成功提示
-		    uni.showToast({
-		      title: '已撤销上一步操作',
-		      icon: 'success',
-		      duration: 1500
-		    });
-		  } else {
-		    console.log('没有可撤销的操作');
-		    uni.showToast({
-		      title: '没有可撤销的操作',
-		      icon: 'none',
-		      duration: 1500
-		    });
-		  }
-	};
-	// 初始化
-	onMounted(async () => {
-		await twocounterStore.getCounterInfo();
-		// await nextTick();
-		console.log('数字元素数量:', numberRefs.value.length);
-		await initCanvas();
-		// await nextTick();
+// 悬浮文字框
+let textStartX, textStartY
+let tmpTextWidth, tmpTextHeight
 
-		console.log('初始化后数字元素数量:', numberRefs.value.length);
-		// console.log('目标行索引:', getTargetRowIndex());
-		// 添加滚动到底部的代码
-		 setTimeout(() => {
-		   scrollToBottom();
-		 },0); // 延迟300ms确保内容完全渲染
-	});
+const changeTextFontSize = (index) => {
+  const item = textList.value[index]
+  const style = item.style
+  const contentLength = item.text.content.length
 
-	// 监听形状变化
-	watch(shapes, () => redraw(false), {
-		deep: true
-	});
-	 // 滚动到底部的方法
-	 const scrollToBottom = () => {
-	   // 获取页面高度
-	   const query = uni.createSelectorQuery();
-	   query.select('.container').boundingClientRect();
-	   query.selectViewport().scrollOffset();
-	   query.exec((res) => {
-	     if (res[0]) {
-	       // 计算需要滚动的高度
-	       const pageHeight = res[0].height;
-	       // 滚动到底部
-	       uni.pageScrollTo({
-	         scrollTop: pageHeight,
-	         duration: 0
-	       });
-	     }
-	   });
-	 };
+  let row = 1
+  while (true) {
+    const fs = style.height / row
+    const cloumn = Math.floor(style.width / (fs * 0.6))
+    if (row * cloumn >= contentLength) {
+      if (fs > 80) {
+        style.fontSize = 80
+        return
+      } else {
+        style.fontSize = fs
+        return
+      }
+    }
+    row++
+    if (row > 10) return
+  }
+}
+
+const textTouchstart = (e) => {
+  isScroll.value = false
+  const { pageX, pageY } = e.touches[0]
+
+  textStartX = pageX
+  textStartY = pageY
+  const { width, height } = textList.value[textList.value.length - 1].style
+
+  tmpTextWidth = width
+  tmpTextHeight = height
+}
+
+const textTouchmove = (e, index) => {
+  const { pageX, pageY } = e.touches[0]
+
+  const changeWidth = pageX - textStartX
+  const changeHeight = pageY - textStartY
+
+  const item = textList.value[index]
+
+  if (item.style.fontSize < 20 && (changeWidth < 0 || changeHeight < 0)) return
+  item.style.width = changeWidth + tmpTextWidth
+  item.style.height = changeHeight + tmpTextHeight
+
+  changeTextFontSize(index)
+}
+const textTouchend = async (e, index) => {
+  const { width, height } = await getRect(`#text${index}`)
+  const item = textList.value[index]
+  item.style.width = width
+  item.style.height = height
+
+  isScroll.value = true
+  isTextClick = true
+}
+
+const changeTextSolid = (index) => {
+  record.value[index].isSolid = !record.value[index].isSolid
+}
+
+// 更新文字位置
+let tmpTextX, tmpTextY
+let isTextClick = true
+const textPositionStart = (e, index) => {
+  isScroll.value = false
+  const { pageX, pageY } = e.touches[0]
+  textStartX = pageX
+  textStartY = pageY
+
+  const { x, y } = record.value[index].text.position
+  tmpTextX = x
+  tmpTextY = y
+}
+const textPositionMove = (e, index) => {
+  isTextClick = false
+
+  const { pageX, pageY } = e.touches[0]
+
+  const item = record.value[index]
+  item.text.position.x = pageX - textStartX + tmpTextX
+  item.text.position.y = pageY - textStartY + tmpTextY
+}
+
+let textChangeIndex = null
+const cursor = ref(0)
+const textPositionEnd = (e, index) => {
+  if (isTextClick) {
+    isTextInputShow.value = true
+    textChangeIndex = index
+    textareaValue.value = record.value[index].text.content
+    const { pageX: x, pageY: y } = e.changedTouches[0]
+    textareaPosition.value = { x, y }
+    cursor.value = record.value[index].text.content.length
+    return
+  }
+  isTextClick = true
+  isScroll.value = true
+}
+
+// 锁定页面
+const isModeSelectShow = ref(true)
+const isColorSelectShow = ref(true)
+const isLockShow = ref(true)
+const containerPointerEvents = ref('auto')
+
+const lock = () => {
+  isModeSelectShow.value = !isModeSelectShow.value
+  isColorSelectShow.value = !isColorSelectShow.value
+  containerPointerEvents.value = isLockShow.value ? 'none' : 'auto'
+}
+const changeColor = () => {
+  isModeSelectShow.value = !isModeSelectShow.value
+  isLockShow.value = !isLockShow.value
+}
+const changeMode = () => {
+  isColorSelectShow.value = !isColorSelectShow.value
+  isLockShow.value = !isLockShow.value
+}
 </script>
 
-<style scoped lang="less">
-	.modal-overlay {
-	    position: fixed;
-	    top: 0;
-	    left: 0;
-	    right: 0;
-	    bottom: 0;
-	    background-color: rgba(0, 0, 0, 0.5);
-	    z-index: 1000;
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
-	    padding: 40rpx;
-	}
-	
-	.modal-content {
-	    width: 100%;
-	      max-width: 600rpx;
-	      background-color: #fff;
-	      border-radius: 30rpx;
-	      max-height: auto;
-	      display: flex;
-	      flex-direction: column;
-	      box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
-	}
-	
-	/* 优化 NumberSelector 容器样式 */
-	.boxNumber {
-	    width: 100%;
-	    min-height: auto;
-	    padding: 0;
-	    box-sizing: border-box;
-	    background-color: #f9f9f9;
-	}
-
-	.container {
-		position: relative;
-		width: 100%;
-		min-height: 100vh;
-		padding: 0;
-		box-sizing: border-box;
-		background-color: #f9f9f9;
-		overflow: hidden;
-	}
-	
-
-	.numbers-table-container {
-		width: 100%;
-		padding: 0rpx;
-		box-sizing: border-box;
-		position: relative;
-		z-index: 10; //表格高于画布z-index
-	}
-
-	.switch-mode-css {
-		width: 100rpx;
-		height: 100rpx;
-		position: fixed;
-		right: 200rpx;
-		bottom: 40rpx;
-		z-index: 100;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.numbers-table {
-		width: 100%;
-		border-collapse: collapse;
-		background-color: #fff;
-		border-radius: 15rpx;
-		overflow: hidden;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-		z-index: 51;
-	}
-
-	/* 列宽定义 */
-	.col-def-1 {
-		width: 120rpx;
-	}
-
-	.col-def-2 {
-		width: 60rpx;
-	}
-
-	.col-def-3 {
-		width: 90rpx;
-	}
-
-	.col-def-4 {
-		width: 90rpx;
-	}
-
-	.col-def-5 {
-		width: 90rpx;
-	}
-
-	.col-def-6 {
-		width: 90rpx;
-	}
-
-	.col-def-7 {
-		width: 60rpx;
-	}
-
-	.table-row {
-		transition: background-color 0.2s;
-	}
-
-	.table-row:nth-child(even) {
-		background-color: rgba(0, 0, 0, 0.02);
-	}
-
-	.table-row:hover {
-		background-color: rgba(0, 0, 0, 0.03);
-	}
-
-	.table-row:nth-child(4n) .table-cell {
-		border-bottom: 4px solid #8BAF95;
-	}
-
-	/* 目标行样式 */
-	.target-row {
-		background-color: rgba(255, 248, 225, 0.5);
-	}
-
-	.table-cell {
-		padding: 0;
-		text-align: center;
-		border: 1px solid #dbe7d6;
-		height: 100rpx;
-		box-sizing: border-box;
-		white-space: nowrap;
-		overflow: hidden;
-		transition: all 0.2s;
-	}
-.table-cell {
-	.col-1{
-		width: 200%;
-	}
+<style lang="scss" scoped>
+@use 'sass:math';
+.draw-line {
+  height: 100vh;
+  position: relative;
+  margin-top: v-bind('systemInfo.safeArea.top');
+  .color-select {
+    position: absolute;
+    bottom: 30rpx;
+    left: 30rpx;
+    z-index: 999;
+  }
+  .mode-select {
+    position: absolute;
+    bottom: 30rpx;
+    right: 0;
+    z-index: 999;
+  }
+  .lock {
+    position: absolute;
+    bottom: 30rpx;
+    z-index: 999;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10rpx;
+    background-color: rgba($color: #000000, $alpha: 0.6);
+    border-radius: 50%;
+  }
 }
-	/* 可点击单元格样式 */
-	.clickable {
-		cursor: pointer;
-		position: relative;
-	}
+$tools-height: 100rpx;
+.container {
+  position: relative;
+  max-height: calc(100vh - 100rpx);
+  view {
+    pointer-events: v-bind('containerPointerEvents');
+  }
+  .data {
+    position: relative;
+    .line-canvas {
+      position: absolute;
+      top: -$tools-height;
+      width: 100vw;
+      height: calc(100% + $tools-height);
+      z-index: 2;
+    }
+    & > .row:nth-child(1) {
+      border-top: 2px solid #8baf9b;
+    }
+    & > .row:nth-child(4n) {
+      border-bottom: 4px solid #8baf9b;
+    }
+    & > .row:last-child {
+      border-bottom: 0;
+    }
+    .text {
+      padding: 9rpx;
+      position: absolute;
+      border: 2px solid;
+      border-radius: 5rpx;
+      z-index: 5;
+      .text-container {
+        padding: 5rpx 15rpx;
+        border-radius: 10rpx;
+        .text-item {
+          .text-content {
+            display: inline-block;
+            word-break: break-all;
+            vertical-align: top;
+          }
+        }
+      }
+      $text-font-size: 25rpx;
+      .text-btn-left,
+      .text-btn-right {
+        position: absolute;
+        width: 35rpx;
+        height: 35rpx;
+        // bottom: -$text-font-size / 2 - 2rpx - 5rpx;
+        bottom: math.div(-$text-font-size, 2) - 2rpx - 5rpx;
+        font-size: $text-font-size;
+        line-height: 35rpx;
+        border-radius: 50%;
+        background-color: v-bind(color);
+        color: #fff;
+        text-align: center;
+      }
+      .text-btn-left {
+        // left: -$text-font-size / 2 - 2rpx - 5rpx;
+        left: math.div(-$text-font-size, 2) - 2rpx - 5rpx;
+      }
+      .text-btn-right {
+        // right: -$text-font-size / 2 - 2rpx - 5rpx;
+        right: math.div(-$text-font-size, 2) - 2rpx - 5rpx;
+      }
+    }
+    .text-input {
+      border: 5rpx solid #f89121;
+      width: 300rpx;
+      position: absolute;
+      z-index: 5;
+      left: v-bind('textareaPosition.x + "px"');
+      top: calc(v-bind('textareaPosition.y + "px"') - 100rpx);
+      background-color: rgba($color: #fff, $alpha: 0.8);
+      transform: translate(-10%, -10%);
+    }
+  }
+}
 
-	.clickable::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(255, 215, 0, 0.1);
-		opacity: 0;
-		transition: opacity 0.2s;
-	}
+.row {
+  display: flex;
+  border-bottom: 2px solid #8baf9b;
+  height: 120rpx;
+  text-align: center;
+  font-weight: 700;
+  color: #91c182;
+}
+.column-1 {
+  width: 160rpx;
+  border-right: 4px solid #8baf9b;
+  background-color: #90c380;
+  color: #e0f0bb;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  padding: 26rpx 0;
+  .issueno {
+    height: 28rpx;
+    font-size: 28rpx;
+    line-height: 28rpx;
+  }
+  .date {
+    height: 24rpx;
+    font-size: 24rpx;
+    line-height: 24rpx;
+  }
+}
+.column-2 {
+  width: 90rpx;
+  border-right: 4px solid #8baf9b;
+  background-color: #e0ecbc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .item {
+    width: 35rpx;
+    height: 35rpx;
+    border-radius: 50%;
+    line-height: 35rpx;
+  }
+  .marker {
+    width: 35rpx;
+    height: 35rpx;
+    border-radius: 50%;
+    color: #fefdf8;
+    border: 5rpx solid #fefdf8;
+    position: relative;
+    z-index: 2;
+    font-size: 25rpx;
+    line-height: 35rpx;
+    background-color: #f7212d;
+  }
+}
+.column-3 {
+  width: 530rpx;
+  display: flex;
+  border-right: 2px solid #8baf9b;
+  font-size: 60rpx;
+  & > view {
+    border-right: 2px solid #8baf9b;
+    width: 106rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .item {
+      width: 72rpx;
+      height: 72rpx;
+      border-radius: 50%;
+      line-height: 72rpx;
+    }
+  }
+  & :nth-child(4) {
+    border-right: 0;
+  }
+  & :nth-child(5) {
+    background-color: #e0ecbc;
+    border-left: 4px solid #8baf9b;
+    border-right: 0;
+  }
+  .marker {
+    width: 90rpx;
+    height: 110rpx;
+    color: #f7212d;
+    font-size: 25rpx;
+    line-height: 25rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+    .number {
+      width: 50rpx;
+      overflow-wrap: break-word;
+    }
+  }
+  .marker-5 {
+    width: 70rpx;
+    height: 70rpx;
+    font-size: 30rpx;
+    // background-color: #f7212d;
+    border-radius: 50%;
+    color: #fff;
+    text-align: center;
+    line-height: 70rpx;
+    border: 5rpx solid #f0eee7;
+    position: relative;
+    z-index: 2;
+  }
+}
 
-	.clickable:active::after {
-		opacity: 1;
-	}
+.active {
+  background-color: v-bind(color);
+  color: #fff;
+  border: 6rpx solid #f0eee7;
+}
+.item {
+  position: relative;
+  z-index: 3;
+  pointer-events: v-bind(pointerEvents);
+}
 
-	.cell-content {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-		font-size: 28rpx;
-		font-weight: 500;
-		padding: 0 5rpx;
-	}
-
-	/* 列背景色设置 */
-	.col-1 {
-		 background-color: #90C380;
-		    color: #DDEBB8;
-		    width: 80px; /* 改为固定像素值 */
-		    min-width: 40px; /* 确保最小宽度 */
-		    max-width: 40px; /* 确保最大宽度 */
-	}
-	
-	.col-def-1 {
-	    width: 40px; 
-	}
-	/* 确保单元格内容适应固定宽度 */
-	.col-1 .cell-content {
-	    width: 100%;
-	    text-align: center;
-	    white-space: nowrap; /* 防止文字换行 */
-	    overflow: hidden;
-	    text-overflow: ellipsis; /* 文字过长显示省略号 */
-	}
-	
-	.cell-content{
-		width: 100%;
-	}
-
-	.col-2 {
-		border-right: 4px solid #89B197;
-		border-left: 4px solid #89B197;
-		background-color: #DFEDBC;
-
-		.cell-content {
-			font-size: 40rpx !important;
-		}
-	}
-	.col-2 .number-item {
-			font-size: 50rpx;
-		}
-
-	.col-3,
-	.col-4,
-	.col-5,
-	.col-6 {
-		background-color: #FFFFFF;
-	}
-	.col-3 .number-item,
-		.col-4 .number-item,
-		.col-5 .number-item,
-		.col-6 .number-item {
-			font-size: 73rpx; /* 中间四列的数字字体大小 */
-		}
-
-	.col-7 {
-		border-left: 4px solid #8CB699;
-		background-color: #DFEDBC;
-
-		.number-item {
-			font-size: 70rpx !important;
-		}
-	}
-
-	.number-item {
-		position: relative;
-		width: 70rpx;
-		height: 70rpx;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 38rpx;
-		font-weight: bold;
-		color: #93C381;
-		transition: all 0.2s;
-		cursor: pointer;
-		box-sizing: border-box;
-		padding: 0;
-		margin: 0 auto;
-		pointer-events: none;
-		z-index: 88;
-	}
-
-	.number-item.highlighted {
-		background-color: #1a1ad9;
-		color: white;
-		font-weight: bold;
-	}
-
-	/* Canvas样式 */
-	.draw-canvas,
-	.temp-canvas {
-		width: 100%;
-		height: 100%;
-		position: absolute;
-		top: 0;
-		left: 0;
-		background-color: transparent;
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	.draw-canvas {
-		z-index: 1;
-	}
-
-	.temp-canvas {
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	/* 文字标注样式 */
-	.text-container {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-		z-index: 999;
-	}
-
-	.text-label {
-		position: absolute;
-		padding: 15rpx;
-		background-color: rgba(255, 255, 255, 0.95);
-		border: 2rpx solid #ccc;
-		border-radius: 10rpx;
-		font-size: 80rpx;
-		color: red;
-		width: 20rpx;
-		background-color: pink;
-		pointer-events: auto;
-		min-width: 120rpx;
-		max-width: 400rpx;
-		box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
-		user-select: none;
-		touch-action: manipulation;
-	}
-
-	.text-content {
-		background-color: pink;
-	}
-
-	/* Fab按钮样式 */
-	.fab-wrapper {
-		position: fixed;
-		right: 40rpx;
-		bottom: 50rpx;
-		z-index: 100;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.fab-main {
-		width: 80rpx;
-		height: 80rpx;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #007aff, #0051a8);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 6rpx 15rpx rgba(0, 122, 255, 0.3);
-		font-size: 40rpx;
-		cursor: pointer;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		border: 4rpx solid rgba(255, 255, 255, 0.2);
-		z-index: 10;
-	}
-
-	.fab-items-o {
-		display: none;
-	}
-
-	.fab-items {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		position: absolute;
-		bottom: 90rpx;
-	}
-
-	.fab-item {
-		width: 100rpx;
-		height: 100rpx;
-		margin-bottom: 20rpx;
-		opacity: 0;
-		transform: translateY(50rpx) scale(0.9);
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		position: relative;
-	}
-
-	.fab-item-inner {
-		width: 100%;
-		height: 100%;
-		border-radius: 20rpx;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 10rpx;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
-		background-color: white;
-		color: #333;
-		border: 1rpx solid rgba(0, 0, 0, 0.05);
-	}
-
-	.fab-open .fab-item {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-
-	/* drawLine.vue 中的样式 */
-	.number-item.solid {
-		height: 100%;
-		width: 100%;
-		border-radius: 0px;
-		background-color: #0000ff;
-		color: white;
-	}
-
-	.number-item.hollow {
-		border: 2px solid #0000ff;
-		background-color: transparent;
-	}
-
-	.grid-content {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		font-size: 22rpx;
-		text-align: center;
-		z-index: 20;
-		width: 100%;
-	}
+.tools {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  height: $tools-height;
+  background-color: #90c380;
+  width: 100vw;
+  display: flex;
+  justify-content: space-around;
+  font-size: 20rpx;
+  color: #fff;
+  > view {
+    width: 150rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+}
+.curve-handle {
+  position: absolute;
+  width: 50px;
+  z-index: 4;
+  top: v-bind('curveLineY + "px"');
+  left: v-bind('curveLineX + "px"');
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
 </style>

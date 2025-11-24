@@ -40,6 +40,7 @@ const _sfc_main = {
     const isLoadingLottery = common_vendor.ref(false);
     const currentIssueInfo = common_vendor.ref({ id: null, number: null, status: "待开奖", time: "今天 21:30" });
     common_vendor.onPullDownRefresh(async () => {
+      common_vendor.index.__f__("log", "at pages/video/video.vue:143", "下拉刷新触发");
       await fetchVideoList();
       common_vendor.index.stopPullDownRefresh();
     });
@@ -51,6 +52,10 @@ const _sfc_main = {
         };
         if (currentTab.value !== "review" && currentLotteryType.value && currentLotteryType.value.name) {
           videoinfo.tname = currentLotteryType.value.name;
+        } else if (currentTab.value === "review") {
+          common_vendor.index.__f__("log", "at pages/video/video.vue:164", "精彩回顾模式，不限制彩票类型");
+        } else {
+          common_vendor.index.__f__("warn", "at pages/video/video.vue:166", "无法获取彩票类型信息");
         }
         const Videoinfo = await api_apis.apiGetVideo(videoinfo);
         if (Videoinfo.code === 200 && Videoinfo.data && Videoinfo.data.records && Array.isArray(Videoinfo.data.records)) {
@@ -72,12 +77,14 @@ const _sfc_main = {
             duration: 1500
           });
         } else {
+          common_vendor.index.__f__("warn", "at pages/video/video.vue:193", "API 返回数据格式不符合预期:", Videoinfo);
           common_vendor.index.showToast({
             title: Videoinfo.msg || "数据格式错误",
             icon: "none"
           });
         }
       } catch (error) {
+        common_vendor.index.__f__("error", "at pages/video/video.vue:200", "获取视频失败:", error);
         common_vendor.index.showToast({
           title: "获取视频失败，请检查网络",
           icon: "none"
@@ -115,6 +122,7 @@ const _sfc_main = {
             common_vendor.index.setStorageSync("currentIssueInfo", currentIssueInfo.value);
             common_vendor.index.setStorageSync("currentLotteryType", lotteryType);
           } catch (error) {
+            common_vendor.index.__f__("error", "at pages/video/video.vue:240", "保存期号信息失败:", error);
           }
         } else {
           common_vendor.index.showToast({ title: response.msg || "数据加载失败", icon: "none" });
@@ -169,7 +177,6 @@ const _sfc_main = {
         return;
       }
       videoStore.setCurrentVideo(video);
-      common_vendor.index.setStorageSync(`video_${video.id}`, video);
       if (!video.flag || video.price === 0) {
         common_vendor.index.navigateTo({
           url: `/pages/video/play?id=${video.id}`
@@ -243,7 +250,7 @@ const _sfc_main = {
     });
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: common_assets._imports_0$3,
+        a: common_assets._imports_0$2,
         b: currentTab.value === "fc" ? 1 : "",
         c: common_vendor.o(($event) => switchTabByIndex(3)),
         d: currentTab.value === "plw" ? 1 : "",

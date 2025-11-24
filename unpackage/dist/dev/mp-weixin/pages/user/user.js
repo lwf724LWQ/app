@@ -206,7 +206,7 @@ const _sfc_main = {
       } : {}, {
         f: !memberStore.profile
       }, !memberStore.profile ? {
-        g: common_assets._imports_0$2,
+        g: common_assets._imports_0$1,
         h: common_vendor.o(goToLogin)
       } : {}, {
         i: common_vendor.t(isBalanceVisible.value ? "0.00" : "****"),
