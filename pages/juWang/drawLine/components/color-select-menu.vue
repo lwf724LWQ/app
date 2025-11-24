@@ -1,8 +1,5 @@
 <template>
-    <view class="color-control-wrapper">
-        <!-- <view class="btn">
-            画笔颜色
-        </view> -->
+    <view @touchmove.stop.prevent class="color-control-wrapper" :class="{ open: open }">
         <scroll-view class="color-select-menu" scroll-y="true" :show-scrollbar="false">
             <view v-for="(item, index) in colors" :key="index" @click="selectColor(item.color)">
                 <view class="color-item" :class="{ selected: item.color == modelValue }"
@@ -19,14 +16,17 @@ export default {
     name: "color-select-menu",
     data() {
         return {
-            colors,
-            open: false
+            colors
         }
     },
     props: {
         modelValue: {
             type: String,
             default: "#000000"
+        },
+        open: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['update:modelValue', "change"],
@@ -41,27 +41,34 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.open {}
-
-.close {
-    height: 100rpx;
-    width: 90rpx;
+.color-control-wrapper {
+    height: 0;
     overflow: hidden;
-}
+    transition: height .3s;
 
-.color-control-wrapper {}
+    position: fixed;
+    left: 21rpx;
+    bottom: 140rpx;
+
+
+    &.open {
+        height: 620rpx;
+    }
+}
 
 .color-select-menu {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    padding: 10rpx;
 
     height: 600rpx;
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 40rpx;
-    width: 80rpx;
+    width: 100rpx;
+
+    box-sizing: border-box;
+    padding: 10rpx 10rpx;
 
     .color-item {
         margin: 10rpx 0;

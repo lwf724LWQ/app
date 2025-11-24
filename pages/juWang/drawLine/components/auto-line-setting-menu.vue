@@ -1,5 +1,5 @@
 <template>
-    <view class="auto-line-setting-menu" v-show="show">
+    <view @touchmove.stop.prevent class="auto-line-setting-menu" v-show="show">
         <view class="auto-line-setting-menu-item">
             <view class="flex" v-show="modelValue.panCount == 1">
                 <view>号码拖拽点</view>
@@ -15,7 +15,8 @@
                             <radio value="true" :checked="!modelValue.isMoreColor" />单色
                         </label>
                         <label class="radio">
-                            <radio value="false" :checked="modelValue.isMoreColor" />多彩
+                            <radio value="false" :checked="modelValue.isMoreColor"
+                                :disabled="modelValue.panCount == 1" />多彩
                         </label>
                     </radio-group>
                 </view>
@@ -46,12 +47,13 @@
                     </radio-group>
                 </view>
             </view>
-            <view v-show="modelValue.panCount == 1">
+            <view>
                 <view>间隔</view>
                 <view>
                     <radio-group @change="intervalChange">
                         <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
-                            <radio :value="i" :checked="modelValue.interval === i" />{{ i }}期
+                            <radio :value="i" :checked="modelValue.interval === i"
+                                :disabled="modelValue.panCount == 1" />{{ i }}期
                         </label>
                     </radio-group>
                 </view>
@@ -71,10 +73,10 @@ export default {
             default: function () {
                 return {
                     controlSwitch: true,
-                    lineType: 'topBezier',
-                    isMoreColor: true,
+                    isMoreColor: false,
                     interval: 1,
-                    panCount: 1
+                    panCount: 1,
+                    lineType: 'topBezier'
                 }
             }
         },
@@ -103,7 +105,13 @@ export default {
             this.$emit('change')
         },
         panCountChange(e) {
-            this.$emit('update:modelValue', { ...this.modelValue, panCount: parseInt(e.detail.value) });
+            const data = {}
+            if (e.detail.value == 1) {
+                data.isMoreColor = false
+                data.interval = 1
+            }
+
+            this.$emit('update:modelValue', { ...this.modelValue, data, panCount: parseInt(e.detail.value) });
             this.$emit('change')
         },
         lineTypeChange(e) {

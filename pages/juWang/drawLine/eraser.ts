@@ -38,7 +38,7 @@ export default class Eraser{
         if (eraserResForIconNum.isEraser) {
             const eraserRedo = new EraseRedo(this.table.iconNum, Object.assign({},eraserResForIconNum))
             this.table.redoList.push(eraserRedo)
-            this.table.graphs.push(eraserRedo)
+            // this.table.graphs.push(eraserRedo)
             f = true
         }
         const oldEraserResForDiyNumberRect = tools.deepCloneJSON(this.table.DiyNumberRect.eraserRes)
@@ -71,7 +71,7 @@ export default class Eraser{
                 // 被擦除了的话，得将该操作添加到撤销堆栈中
                 const eraserRedo = new EraseRedo(graph, Object.assign({},eraserRes))
                 table.redoList.push(eraserRedo)
-                table.graphs.push(eraserRedo)
+                // table.graphs.push(eraserRedo)
                 f = true
             }
         })

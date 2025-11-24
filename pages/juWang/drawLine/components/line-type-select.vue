@@ -1,10 +1,9 @@
 <template>
-    <view class="line-type-select-menu">
-        <view v-for="(item, index) in types" :key="index" @click="selectType(item.type)">
-            <view class="line-type-item" :class="{ selected: item.type == modelValue }">
-                <view class="line-type-item-text" :style="{ backgroundColor: item.type == modelValue ? color : '' }">
-                    {{ item.name }}</view>
-            </view>
+    <view @touchmove.stop.prevent class="line-type-select-menu" :class="{ open: open }">
+        <view v-for="(item, index) in types" :key="index" @click="selectType(item.type)" class="line-type-item"
+            :class="{ selected: item.type == modelValue }">
+            <view class="line-type-item-text" :style="{ backgroundColor: item.type == modelValue ? color : '' }">
+                {{ item.name }}</view>
         </view>
     </view>
 </template>
@@ -34,7 +33,11 @@ export default {
             type: String,
             default: "freeLine"
         },
-        color: { type: String }, default: "#ff0000"
+        color: { type: String }, default: "#ff0000",
+        open: {
+            type: Boolean,
+            default: false
+        }
     },
     emits: ['update:modelValue', "change"],
     methods: {
@@ -48,11 +51,23 @@ export default {
 
 <style lang="scss" scoped>
 .line-type-select-menu {
+    position: fixed;
+    right: 20rpx;
+    bottom: 130rpx;
+
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    padding: 10rpx;
+    box-sizing: border-box;
+
+    width: 0;
+    overflow: hidden;
+    transition: width .3s;
+
+    &.open {
+        width: 300rpx;
+    }
 
     .line-type-item {
         margin: 10rpx 0;
@@ -60,8 +75,8 @@ export default {
         padding: 5rpx 12rpx;
         height: 80rpx;
         display: flex;
-        justify-content: center;
-        align-self: center;
+        justify-content: flex-end;
+        align-self: flex-end;
         align-items: center;
         background-color: rgba(0, 0, 0, 0.5);
 
@@ -72,9 +87,11 @@ export default {
         .line-type-item-text {
             color: #fff;
             display: block;
-            text-align: center;
+            text-align: right;
             line-height: 60rpx;
             font-size: 45rpx;
+            white-space: nowrap;
+            overflow: hidden;
         }
     }
 }

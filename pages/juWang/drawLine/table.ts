@@ -421,9 +421,9 @@ export default class Table {
                 
             }else{
                 this.graphs.push(this.drawNowGraph)
+                this.overdrawForBg()
             }
         }
-        console.log(this.graphs)
         this.drawNowGraph = graph
     }
 
