@@ -1,5 +1,5 @@
 import baseGraph from "./baseGraph";
-import { Position, PositionType, TableFormat, lineData, TableCanvasContext, style, PanStyle } from "../table";
+import Table, { Position, PositionType, TableFormat, lineData, TableCanvasContext, style, PanStyle } from "../table";
 import tools from "../tools";
 import { EraserRes } from "./baseGraph";
 import ControlEvent, { ClickGraph } from "../controlEvent";
@@ -34,7 +34,6 @@ export default class Bezier extends baseGraph {
 
     }
 
-
     eraserRes: EraserRes = {isEraser: false};
     eraser(position: Position):EraserRes {
         if (this.eraserRes.isEraser) {
@@ -55,8 +54,10 @@ export default class Bezier extends baseGraph {
 
     moveTo(position: Position): void {
         this.end = position
-        // const control_matrix = position.getMatrixPosition()
-        // this.end = new Position(control_matrix.x, control_matrix.y, PositionType.matrix)
+
+        const controlPosition = this.getControlPoint()
+        this.control = controlPosition
+        this.controlChangeCallback(controlPosition)
     }
     moveEnd(){
         const end_matrix = this.end.getMatrixPosition()
@@ -74,13 +75,14 @@ export default class Bezier extends baseGraph {
         const end = this.end.getRealPosition()
         const control = this.control
         if(!start || !end){
-            return
+            return null
         }
-        if (!control) {
-            const xy = calculateEquilateralTriangle(start,end,50, this.defWise === 'right').C
-            return new Position(xy.x, xy.y, PositionType.real)
-        }
-        return control
+        const xy = calculateEquilateralTriangle(start,end,50, this.defWise === 'right').C
+        return new Position(xy.x, xy.y, PositionType.real)
+    }
+    controlChangeCallback: (position: Position | null) => void = (position: Position | null) => {};
+    registerControlChangeCallBack(callBack: (position: Position | null) => void) {
+        this.controlChangeCallback = callBack
     }
     draw(ctx: UniApp.CanvasContext) {
         if (this.eraserRes.isEraser) {
@@ -89,7 +91,7 @@ export default class Bezier extends baseGraph {
 
         const start = this.start.getRealPosition()
         const end = this.end.getRealPosition()
-        const control = this.getControlPoint()?.getRealPosition()
+        const control = this.control?.getRealPosition()
         if (!start || !end || !control) {
             return
         }
@@ -141,32 +143,64 @@ export default class Bezier extends baseGraph {
 // 贝塞尔曲线控制点
 export class BezierControl extends baseGraph { 
     bezier: Bezier
-    position: Position
+    position: Position | null
     controlEvent: ControlEvent;
-    controlId: Symbol;
+    controlId: string;
     r=uni.upx2px(10);
+    target: baseGraph;
+    clickGraph: ClickGraph;
 
-    constructor(bezier: Bezier, panStyle:PanStyle, controlEvent: ControlEvent, target: baseGraph) { 
+    static bezierControlList: BezierControl[] = [];
+    timer: number = 0;
+
+    table: Table;
+    constructor(bezier: Bezier, panStyle:PanStyle, controlEvent: ControlEvent, target: baseGraph, table:Table) { 
         super(panStyle, new Position(0,0, PositionType.real))
         this.bezier = bezier
-        this.position = bezier.getControlPoint() as Position
+        this.position = bezier.control
 
         this.controlEvent = controlEvent
+        this.target = target
+
+        this.clickGraph = new ClickGraph('Circle', this.position, uni.upx2px(70))
+        this.clickGraph.registerDrawFn(this.drawPointIcon.bind(this))
+        this.registEventToTable()
+        
+        const that = this;
+        bezier.registerControlChangeCallBack(function(position: Position | null){
+            if (that.isRecycle) {
+                return
+            }
+            if (position) {
+                that.position = position
+                that.clickGraph.setNewPosition(position)
+            }
+        })
+        this.table = table
+        BezierControl.bezierControlList.forEach(item => item.recycle())
+        BezierControl.bezierControlList.push(this)
+    }
+    registEventToTable(){
+        const controlEvent = this.controlEvent
+        const target = this.target
         this.controlId = controlEvent.registerEvent('touchmove', {
-            clickGraph: new ClickGraph('Circle', this.position, uni.upx2px(70)),
+            clickGraph: this.clickGraph,
             callBack: (start, now, table) => {
+                this.timer ? (clearTimeout(this.timer),this.timer = 0) : ''
                 table.upToNowDraw(target)
                 this.moveTo(now)
-
-                this.draw(table.tableCanvasContext.control_canvas)
-                table.tableCanvasContext.control_canvas.draw()
-            }
+            },
+            moveend:(table) => {
+                console.log("end")
+                this.moveEnd()
+            },
         })
     }
 
     isRecycle = false
     recycle(): void {
         // 解绑事件
+        console.log("清除")
         this.isRecycle = true
         this.controlEvent.recycle(this.controlId)
     }
@@ -174,8 +208,19 @@ export class BezierControl extends baseGraph {
         this.position = position
         this.bezier.control = position
     }
-    drawPointIcon(ctx){
-        const real = this.bezier.getControlPoint()?.getRealPosition()
+    moveEnd(){
+        this.timer = setTimeout(()=>{
+            this.recycle()
+            this.table.tableCanvasContext.control_canvas.draw()
+        }, 3000)
+        if (this.position) {
+            this.clickGraph.setNewPosition(this.position)   
+        }else{
+            console.error("bezierControl.moveTo: position is null")
+        }
+    }
+    drawPointIcon(ctx: UniApp.CanvasContext){
+        const real = this.position?.getRealPosition()
         if (real) {
             ctx.beginPath()
             ctx.arc(real.x, real.y, this.r, 0, 2 * Math.PI)
@@ -184,7 +229,7 @@ export class BezierControl extends baseGraph {
         }
     }
 
-    draw(controlCTX): void {
+    draw(controlCTX: UniApp.CanvasContext): void {
         if (this.isRecycle) {
             return    
         }

@@ -14,7 +14,6 @@ export default abstract class baseGraph {
     touch(position: Position){}
     moveTo(position: Position, type:'touchstart'|'touchmove'|'touchend'){}
     moveEnd(){}
-    over(){}// 固定后调用
     draw(ctx: UniApp.CanvasContext){}
 }
 

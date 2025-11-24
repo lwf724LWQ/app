@@ -2,7 +2,7 @@ import baseGraph from "./graphs/baseGraph";
 import Background from "./graphs/Background";
 import FreeLine from "./graphs/FreeLine";
 import Line from "./graphs/line";
-import AutoLine from "./graphs/autoLine";
+import AutoLines from "./graphs/autoLine";
 import Eraser from "./eraser";
 import {EraseRedo} from "./eraser";
 import {filledRect, hollowRect} from "./graphs/Rect";
@@ -13,6 +13,7 @@ import IconNum from "./iconNum";
 import DiyNumberRect from "./DiyNumberRect"
 import { UndoRedo } from "./tools";
 import ControlEvent, {ClickGraph} from "./controlEvent";
+import { text } from "stream/consumers";
 
 export interface TableCanvasContext {
     bg_canvas: UniApp.CanvasContext; // 该canvas用于画背景以及导出
@@ -130,9 +131,10 @@ export default class Table {
 
     bg: baseGraph; // 背景图形
 
-    graphs:(baseGraph|UndoRedo)[] = []; // 绘制到低层画布的图形
-    drawNowGraph: baseGraph|Eraser|UndoRedo|null = null; // 目前正在绘制的图形
+    graphs:(baseGraph|UndoRedo|EraseRedo)[] = []; // 绘制到低层画布的图形
+    drawNowGraph: baseGraph|Eraser|UndoRedo|null|EraseRedo = null; // 目前正在绘制的图形
     redoList:(baseGraph|EraseRedo|UndoRedo)[] = []; // 撤销堆栈
+    
 
     tableformat: TableFormat; // 表格配置
 
@@ -147,7 +149,7 @@ export default class Table {
     DiyNumberRect: DiyNumberRect;
     openTextInput: Function; // 打开输入框的
     openNumberSelect: Function; // 打开数字选择框的
-    controlEvent: ControlEvent = new ControlEvent(this); // 管理控制事件
+    controlEvent: ControlEvent; // 管理控制事件
     constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function, openNumberSelect:Function){
         this.canvasId = canvasId;
         this.width = width
@@ -179,15 +181,7 @@ export default class Table {
 
         this.openNumberSelect = openNumberSelect
 
-        // this.graphs.push(new filledRect(panStyle, new Position(200, 200, PositionType.real)))
-        // this.graphs[0].end = new Position(600, 1000, PositionType.real)
-        // this.overdrawForBg()
-        // this.controlEvent.registerEvent('click', {
-        //     clickGraph: new ClickGraph('Rect', new Position(200, 200, PositionType.real), new Position(600, 1000, PositionType.real)),
-        //     callBack: (start, now) => {
-        //         console.log(start, now)
-        //     }
-        // })
+        this.controlEvent = new ControlEvent(this)
     }
     // 将被封存在graphs中的重新拿到nowDraw中
     upToNowDraw(graph: baseGraph){
@@ -202,6 +196,13 @@ export default class Table {
     // 输入文本
     isTextInputMode = false
     textInput(value: string){
+        value = value.trim()
+        if (value === '') {
+            return
+        }
+        this.cleaDraw()
+        this.overdrawForBg()
+        this.setNowGraph(new Text(this.panStyle, this.lastTouchPosition, this))
         if (value.length && this.drawNowGraph instanceof Text) {
             this.drawNowGraph.confirm(value)
         }
@@ -302,6 +303,7 @@ export default class Table {
     touchStartPosition: Position | null = null;
     lastTouchPosition: Position | null = null;
     isControlMode = false;
+    touchId: Symbol = Symbol("touchId");
     touchEvent(touche: TouchEvent) {
         const tableCanvasContext = this.tableCanvasContext;
         const panStyle = this.panStyle
@@ -315,19 +317,21 @@ export default class Table {
                 this.touchStartPosition = position
                 this.lastTouchPosition = position
                 this.isControlMode = false;
-                
+                this.touchId = Symbol("touchId")
             case 'touchmove':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
                 
                 if (this.isTouching) {
                     this.lastTouchPosition = position
-                    if (this.isControlMode && this.touchStartPosition && this.controlEvent.touchmove(this.touchStartPosition, position)){
+                    if (this.isControlMode && this.touchStartPosition && this.controlEvent.touchmove(this.touchId, this.touchStartPosition, position)){
                         // 被控制类接手 交由控制类处理
                     }else if (this.drawNowGraph instanceof UndoRedo) {
                         // 这个类是用来管理特殊操作的撤回的
                     }else{
-                        this.drawNowGraph?.moveTo(position, 'touchmove')
+                        if (this.drawNowGraph instanceof baseGraph || this.drawNowGraph instanceof Eraser) {
+                            this.drawNowGraph?.moveTo(position, 'touchmove')   
+                        }
                     }
                 }else{
                     if (this.touchStartPosition && tools.distanceBetweenPoints(this.touchStartPosition,position)>5) {
@@ -335,7 +339,7 @@ export default class Table {
                         // 而这里是开始算开始事件
                         this.isTouching = true
                         
-                        if(this.controlEvent.touchmove(this.touchStartPosition, position)){
+                        if(this.controlEvent.touchmove(this.touchId, this.touchStartPosition, position)){
                             // 被控制类接手 交由控制类处理
                             console.log("接管")
                             this.isControlMode = true;
@@ -345,7 +349,7 @@ export default class Table {
                             this.cleaDraw()
                             this.overdrawForBg()
                             // 智能线特殊处理
-                            const graph = new AutoLine(panStyle, position, this.autolineSetting, this.data, this.iconNum, this.controlEvent, this)
+                            const graph = new AutoLines(panStyle, position, this.autolineSetting, this.data, this.iconNum, this.controlEvent, this)
                             this.setNowGraph(graph)
                             this.drawTopCTX()
                         }else{
@@ -368,7 +372,6 @@ export default class Table {
                     if (this.controlEvent.tap(this.touchStartPosition, this.lastTouchPosition)) {
                         // 被控制类接手 交由控制类处理
                     }else if (this.panStyle.type == 'text') {
-                        this.setNowGraph(new Text(panStyle, this.lastTouchPosition))
                         this.openTextInput()
                     }else{
                         // 这里判断是否为可填写行
@@ -383,11 +386,14 @@ export default class Table {
                         }
                     }
                 }else{
+                    console.log("触发操作，滑动结束")
                     // 滑动结束
-                    if (this.drawNowGraph instanceof baseGraph) {
+                    if (this.controlEvent.moveEnd(this.touchId)) {
+                        
+                    }else if (this.drawNowGraph instanceof baseGraph) {
                         const graph = this.drawNowGraph
                         this.drawNowGraph.moveEnd()
-                        if (graph instanceof AutoLine) {
+                        if (graph instanceof AutoLines) {
                             this.overdrawForBg()
                         }
                         this.setNowGraph(null)
@@ -399,7 +405,7 @@ export default class Table {
                         this.tableCanvasContext.control_canvas.draw()
                     }
                 }
-                
+                this.touchId = Symbol("touchId")
                 break;
             case "touchcancel":
                 // 滑动被打断
@@ -409,7 +415,7 @@ export default class Table {
         }
         this.draw()
     }
-    setNowGraph(graph: baseGraph | null | UndoRedo | Eraser) {
+    setNowGraph(graph: baseGraph | null | UndoRedo | Eraser | EraseRedo) {
         if (this.drawNowGraph) {
             if (this.drawNowGraph instanceof Eraser) {
                 
@@ -417,6 +423,7 @@ export default class Table {
                 this.graphs.push(this.drawNowGraph)
             }
         }
+        console.log(this.graphs)
         this.drawNowGraph = graph
     }
 
@@ -434,10 +441,9 @@ export default class Table {
 
         this.bg.draw(bgCTX)
         this.graphs.forEach(graph => {
-            if (graph instanceof UndoRedo) {
+            if (graph instanceof UndoRedo || graph instanceof EraseRedo) {
                 return;
             }
-            graph.over()
             graph.draw(bgCTX)
         })
         if (drawBefore) {
@@ -446,14 +452,20 @@ export default class Table {
         bgCTX.draw()
     }
     // 撤销上一步操作
-    undo(){
+    undo():void {
         if(this.drawNowGraph){
             if (this.drawNowGraph instanceof Eraser) {
                 this.drawNowGraph = null
                 return this.undo()
             }
-            console.log("recycle")
-            this.drawNowGraph.recycle()
+            if (this.drawNowGraph instanceof EraseRedo) {
+                this.drawNowGraph.redo()
+                const index = this.redoList.indexOf(this.drawNowGraph)
+                this.redoList.splice(index,1)
+            }else{
+                console.log("recycle")
+                this.drawNowGraph.recycle()
+            }            
             this.redoList.push(this.drawNowGraph)
             this.drawNowGraph = null
             this.draw()
@@ -483,6 +495,8 @@ export default class Table {
                 }
                 if (lastGraph instanceof EraseRedo) {
                     lastGraph.redo()
+                    const index = this.graphs.indexOf(lastGraph)
+                    this.graphs.splice(index,1)
                 }else{
                     this.setNowGraph(lastGraph)
                 }
@@ -527,7 +541,7 @@ export default class Table {
         //#ifdef APP-PLUS
         uni.saveFile({
             tempFilePath: tempFilePath,
-            success: function (result) {
+            success: (result) => {
                 console.log('保存成功，文件路径：', result.savedFilePath);
                 uni.showToast({
                     title: '保存成功',
@@ -549,7 +563,7 @@ export default class Table {
         
     }
 
-    static async asyncUniCanvasToTemp(canvasId):Promise<string>{
+    static async asyncUniCanvasToTemp(canvasId: string):Promise<string>{
         return new Promise((resolve, reject) => {
             uni.canvasToTempFilePath({
                 canvasId: canvasId, // 替换为实际的canvas ID
@@ -570,7 +584,7 @@ export default class Table {
         this.cleaDraw()
         
         // 将顶部图层绘制到底部然后导出
-        this.overdrawForBg((ctx)=>{
+        this.overdrawForBg((ctx: UniApp.CanvasContext)=>{
             this.iconNum.draw(ctx, false)
             this.DiyNumberRect.draw(ctx, false)
         })
@@ -671,7 +685,7 @@ export class Position {
 }
 
 // 将Base64数据转换为Blob对象
-function base64ToBlob(base64Data) {
+function base64ToBlob(base64Data: string) {
     const parts = base64Data.split(';base64,');
     const contentType = parts[0].split(':')[1];
     const raw = atob(parts[1]);

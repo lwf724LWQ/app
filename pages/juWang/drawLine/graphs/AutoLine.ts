@@ -10,7 +10,8 @@ import IconNum from "../iconNum"
 import ControlEvent from "../controlEvent"
 
 // 处理多个智能线
-export default class extends baseGraph {
+export default class AutoLines extends baseGraph {
+    panStyle:PanStyle;
     autolineSetting: AutolineSetting;
     data:Data;
 
@@ -21,10 +22,19 @@ export default class extends baseGraph {
 
     iconNum: IconNum;
 
-    timer: number|NodeJS.Timeout = 0;
     table: Table;
+    controlEvent: ControlEvent
+
+    graphId = Symbol("autoLine")
     constructor(panStyle:PanStyle, start: Position, autolineSetting: AutolineSetting, data: Data, iconNum: IconNum, controlEvent: ControlEvent, table:Table){
         super(panStyle, start)
+        
+        this.iconNum = iconNum
+        this.table = table
+
+        this.panStyle = panStyle
+        this.controlEvent = controlEvent
+
         this.autolineSetting = autolineSetting;
         this.data = data;
         const { panCount, isMoreColor, interval, controlSwitch, lineType } = autolineSetting;
@@ -41,18 +51,23 @@ export default class extends baseGraph {
     
                 colorIndex++
             }
-            if (controlSwitch && (lineType == 'bottomBezier' || lineType == 'topBezier')) {
-                // 初始化控制点
-                const control = new BezierControl(this.autoLine[0].line as Bezier, panStyle, controlEvent, this)
-                this.control = control
-            }
+            this.initControlSwitch()
     
             // 初始化擦除
             this.eraserRes = this.eraser(new Position(-99999, -99999, PositionType.real))
         }
 
-        this.iconNum = iconNum
-        this.table = table
+    }
+    initControlSwitch(){
+        const { autolineSetting, panStyle, controlEvent} = this;
+        const controlSwitch = autolineSetting.controlSwitch;
+        const { lineType } = autolineSetting;
+
+        if (controlSwitch && (lineType == 'bottomBezier' || lineType == 'topBezier')) {
+            // 初始化控制点
+            const control = new BezierControl(this.autoLine[0].line as Bezier, panStyle, controlEvent, this, this.table)
+            this.control = control
+        }
     }
 
 
@@ -70,25 +85,14 @@ export default class extends baseGraph {
         this.autoLine.forEach((item, index) => item.undo(eraserRes.data[index]))
     }
 
-    // 设置是否为控制点模式
-    isControlPointMode:Boolean = false;
-    setControlPointMode(mode: Boolean){
-        this.isControlPointMode = mode
-        if (this.control) {
-            this.control.recycle()
-        }
-    }
     isOver = false;
     over(): void {
-        
     }
 
     moveTo(position: Position): void {
-        clearTimeout(this.timer)
-        if (this.isControlPointMode) {
-            this.control?.moveTo(position)
-            return
-        }
+        this.timer ? clearTimeout(this.timer) : ''
+        this.timer = null
+
         const lineInterval = this.lineInterval
         this.autoLine.forEach((item, index) => {
             const newPosition = new Position(position.x, position.y + (lineInterval * (index)), PositionType.real)
@@ -97,35 +101,26 @@ export default class extends baseGraph {
     }
     
     moveEnd(){
-        this.timer = setTimeout(()=>{
-            this.setControlPointMode(false)
-            this.table.setNowGraph(null)
-            this.table.draw()
-            this.table.overdrawForBg()
-            console.log("123")
-        }, 3000)
-
         this.autoLine.forEach(item => {
             item.moveEnd()
         })
-
-        if (this.autoLine.length === 1) {
-            if (!this.autoLine[0].end) {
-                this.over()
-            }
+        if (this.control) {
+            this.control.moveEnd()
         }
     }
     drawControl(controlCTX: UniApp.CanvasContext){
         if (!this.isOver) {
-            this.control?.draw(controlCTX)   
+            this.control?.draw(controlCTX)
+            controlCTX.draw()
         }
     }
     draw(lineCTX: UniApp.CanvasContext| false){
         this.autoLine.forEach(item => {
             item.draw(lineCTX)
         })
-        if (this.control) {
-            this.control.draw(lineCTX)
+        if (this.control && lineCTX) {
+            const controlCTX = this.table.tableCanvasContext.control_canvas
+            this.drawControl(controlCTX)
         }
     }
 }
@@ -142,7 +137,7 @@ class AutoLine extends baseGraph {
     autolineSetting: AutolineSetting;
     data:Data;
 
-    line: baseGraph;
+    line: baseGraph | null = null;
 
     iconNum: IconNum;
     constructor(panStyle:PanStyle, start: Position, autolineSetting: AutolineSetting, data: Data, iconNum: IconNum) { 
@@ -166,16 +161,23 @@ class AutoLine extends baseGraph {
     // 擦除相关
     eraserRes: EraserRes = {isEraser: false};
     eraser(position: Position):EraserRes {
-        // 调用线方法判断是否被擦除
-        return this.eraserRes = this.line.eraser(position)
+        if (this.line) {
+            // 调用线方法判断是否被擦除
+            return this.eraserRes = this.line.eraser(position)   
+        }
+        return this.eraserRes
     }
     undo(eraserRes: EraserRes){
-        this.line.undo(eraserRes)
-        this.eraserRes = eraserRes
+        if (this.line) {
+            this.line.undo(eraserRes)
+            this.eraserRes = eraserRes   
+        }
     }
 
     moveTo(position: Position): void {
-        this.line.moveTo(position, 'touchmove')
+        if (this.line) {
+            this.line.moveTo(position, 'touchmove')   
+        }
         const position_matrix = position.getMatrixPosition()
         this.end = new Position(position_matrix.x, position_matrix.y, PositionType.matrix)
     }
@@ -192,10 +194,12 @@ class AutoLine extends baseGraph {
             }
         }
         this.isEnd = true
-        this.line.moveEnd()
+        if (this.line) {
+            this.line.moveEnd()   
+        }
     }
     draw(lineCTX: UniApp.CanvasContext | false){
-        if (lineCTX && this.end) {
+        if (lineCTX && this.end && this.line) {
             this.line.draw(lineCTX)
         }
     }

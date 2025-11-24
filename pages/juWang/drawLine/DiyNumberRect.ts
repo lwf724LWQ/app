@@ -120,7 +120,7 @@ export default class DiyNumberRect {
     }
     
     // 稳码
-    wenmaRect(XY,numberSelectData: numberSelectData){
+    wenmaRect(XY: {x: number, y: number},numberSelectData: numberSelectData){
         const leftNumStyle = getTableNumberStyle()[1]
         const rightNumStyle = getTableNumberStyle()[4]
         const width = leftNumStyle.width * 4
@@ -141,7 +141,7 @@ export default class DiyNumberRect {
         this.rectList.push(new MyRect(panStyle, ltPoint, rbPoint, center, numberSelectData, this))
     }
     // 普通
-    normalRect(XY,numberSelectData: numberSelectData){
+    normalRect(XY: {x: number, y: number},numberSelectData: numberSelectData){
         const numStyle = getTableNumberStyle()[XY.x]
         const halfWidth = numStyle.width / 2
         const halfHeigth = this.table.tableformat.lineHeight / 2

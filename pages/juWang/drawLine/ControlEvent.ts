@@ -3,22 +3,53 @@ import tools from "./tools";
 
 interface Register {
     clickGraph: ClickGraph,
-    callBack: (start: Position, now: Position, table: Table)=>void
+    callBack: (start: Position, now: Position, table: Table)=>void,
+    moveStart?: (start, now, table) => void,
+    moveend?: (table: Table)=>void
+}
+function UUID(){
+    return crypto.randomUUID();
 }
 export default class ControlEvent {
     table: Table
     constructor(table: Table){this.table = table}
-    touchmove(start: Position, now: Position): Boolean{
+    moveEnd(touchId: string){
+        if (touchId === this.lastTouchId) {
+            const register = this.registerTouchMoveList.get(this.lastEventId)
+            if (register && register.moveend) {
+                register.moveend(this.table)
+                this.draw()
+            }
+            return true
+        }
+        return false
+    }
+    lastEventId: string = UUID()
+    lastTouchId: string = UUID()
+    touchmove(touchId: string,start: Position, now: Position): Boolean{
         const realXY = start.getRealPosition()
         if (!realXY) {
             return false
         }
         const registerList = this.registerTouchMoveList
+        if (this.lastTouchId === touchId) {
+            const register = registerList.get(this.lastEventId);
+            if (register) {
+                register.callBack(start, now, this.table);
+                this.draw()
+                return true;
+            }
+        }
         for (const key of registerList.keys()) {
             const register = registerList.get(key);
             if (register && register.clickGraph.isInGraph(start)) {
+                this.lastEventId = key;
+                this.lastTouchId = touchId;
+                if (register.moveStart) {
+                    register.moveStart(now, now, this.table);   
+                }
                 register.callBack(start, now, this.table);
-                this.table.tableCanvasContext.control_canvas.draw()
+                this.draw()
                 return true;
             }
         }
@@ -35,7 +66,7 @@ export default class ControlEvent {
             const register = registerList.get(key);
             if (register && register.clickGraph.isInGraph(start)) {
                 register.callBack(start, now, this.table);
-                this.table.tableCanvasContext.control_canvas.draw()
+                this.draw()
                 return true;
             }
         }
@@ -47,10 +78,11 @@ export default class ControlEvent {
      * @param graph 点击区域的图形
      * @param callBack 点击回调
      */
-    registerClickList:Map<Symbol, Register> = new Map()
-    registerTouchMoveList:Map<Symbol, Register> = new Map()
+    registerClickList:Map<string, Register> = new Map()
+    registerTouchMoveList:Map<string, Register> = new Map()
     registerEvent(eventType: EventType, register: Register){
-        const symbol = Symbol("ControlEventId")
+        console.log("注册事件", eventType)
+        const symbol = UUID()
         if (eventType === 'touchmove') {
             this.registerTouchMoveList.set(symbol, register);
         }else{
@@ -58,9 +90,17 @@ export default class ControlEvent {
         }
         return symbol;
     }
-    recycle(Symbol: Symbol){
-        this.registerClickList.delete(Symbol)
-        this.registerTouchMoveList.delete(Symbol)
+    recycle(symbol: string){
+        this.registerClickList.delete(symbol)
+        this.registerTouchMoveList.delete(symbol)
+    }
+
+    // 这里绘制顶部控制层
+    contralGraph: ClickGraph[] =[];
+    draw(){
+        const ctx = this.table.tableCanvasContext.control_canvas
+        this.contralGraph.forEach(graph=>graph.draw(ctx))
+        ctx.draw()
     }
 }
 
@@ -97,5 +137,29 @@ export class ClickGraph {
             return tools.isPointInRectangle(position, this.start, this.end)
         }
         return false
+    }
+    setNewPosition(a: Position, b?: Position | number){
+        if (this.type === 'Circle') {
+            this.center = a;
+            if(typeof b === 'number'){
+                this.radius = b;
+            }
+        }else if (this.type === 'Rect') {
+            if (!b) {
+                console.error("矩形必须有end参数")
+                return
+            }
+            this.start = a;
+            this.end = b;
+        }
+    }
+    drawFn: Function = () => {};
+    registerDrawFn(fn: Function){
+        this.drawFn = fn
+    }
+    draw(ctx: UniApp.CanvasContext): void {
+        if (this.drawFn) {
+            this.drawFn(ctx)
+        }
     }
 }

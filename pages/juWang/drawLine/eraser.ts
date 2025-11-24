@@ -9,9 +9,6 @@ import DiyNumberRect from "./DiyNumberRect";
 
 /**
  * 橡皮擦
- * 目前想法是先把每个图形的像素都存起来，然后橡皮擦使用坐标去遍历每一个图形的像素，如果像素相同则删除
- * 如果是遇到圆形等的就
- * 删除还得记得把它堆到撤销中，
  * 
  */
 
@@ -39,14 +36,16 @@ export default class Eraser{
         f = Eraser.eraserNormalGraph(position, this.table.graphs, this.table)
         const eraserResForIconNum = this.table.iconNum.eraser(realPosition)
         if (eraserResForIconNum.isEraser) {
-            this.table.redoList.push(new EraseRedo(this.table.iconNum, Object.assign({},eraserResForIconNum)))
+            const eraserRedo = new EraseRedo(this.table.iconNum, Object.assign({},eraserResForIconNum))
+            this.table.redoList.push(eraserRedo)
+            this.table.graphs.push(eraserRedo)
             f = true
         }
         const oldEraserResForDiyNumberRect = tools.deepCloneJSON(this.table.DiyNumberRect.eraserRes)
         const eraserResForDiyNumberRect = this.table.DiyNumberRect.eraser(realPosition)
         if (eraserResForDiyNumberRect.isEraser) {
-            this.table.redoList.push(new EraseRedo(this.table.DiyNumberRect, Object.assign({},oldEraserResForDiyNumberRect)))
-            
+            const eraserRedo = new EraseRedo(this.table.DiyNumberRect, Object.assign({},oldEraserResForDiyNumberRect))
+            this.table.redoList.push(eraserRedo)
             this.table.DiyNumberRect.draw()
         }
         if (f) {
@@ -70,8 +69,9 @@ export default class Eraser{
             const eraserRes = graph.eraser(realPosition)
             if (eraserRes.isEraser && !tools.deepEqual(eraserRes, oldEraserRes)) {
                 // 被擦除了的话，得将该操作添加到撤销堆栈中
-                console.log(eraserRes, oldEraserRes, graph.eraserRes)
-                table.redoList.push(new EraseRedo(graph, Object.assign({},eraserRes)))
+                const eraserRedo = new EraseRedo(graph, Object.assign({},eraserRes))
+                table.redoList.push(eraserRedo)
+                table.graphs.push(eraserRedo)
                 f = true
             }
         })
