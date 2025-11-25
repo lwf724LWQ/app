@@ -51,7 +51,7 @@
               <!-- 1个输入框 -->
               <view class="grid-container flex-1">
                 <input class="item" v-for="(item, inputIndex) in option.inputCount" :key="inputIndex"
-                  v-model="option.inputs[0]" placeholder="" />
+                  v-model="option.inputs[inputIndex]" placeholder="" />
               </view>
               <!-- 5个输入框 -->
               <!-- <view v-else-if="option.inputCount === 5" class="mini-input-row flex-1">
@@ -100,6 +100,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { apiWordInsert, getCOSSecretKey } from '@/api/apis.js'
+import moment from "moment";
 
 // 表单数据
 const formData = ref({
@@ -189,7 +190,7 @@ onLoad((pageOptions) => {
   options.value = optionType[type]
 
 })
-const defFillValue = '1234'
+const defFillValue = ''
 const optionType = [
   [{ label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
   { label: '猪胆', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) },
@@ -201,13 +202,13 @@ const optionType = [
   { label: '个', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) }],
   [
     { label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
-    { label: '二字同上', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '三字同上', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '二定', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '三定', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '四字直码', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '小范围', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
-    { label: '大范围', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '二字同上', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '三字同上', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '二定', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '三定', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '四字直码', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '小范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    { label: '大范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
     // { label: '二定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
     // { label: '三定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
     // { label: '四定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) }
@@ -342,32 +343,44 @@ const generateFormImageH5 = () => {
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, width, height)
 
-      ctx.font = 'bold 32px Arial'
-      ctx.fillStyle = '#333333'
+      ctx.font = 'bold 50px 黑体'
+      ctx.fillStyle = '#000'
+      ctx.textBaseline = 'middle'
       ctx.textAlign = 'center'
       ctx.fillText('开奖号码记录', width / 2, 60)
 
-      ctx.font = '24px Arial'
-      ctx.textAlign = 'left'
-      ctx.fillStyle = '#666666'
-      let yPos = 120
+      ctx.font = 'bold 50px 黑体'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
 
-      ctx.fillText(`期号: ${formData.value.issueNo || ''}`, 40, yPos)
-      yPos += 40
-      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, 40, yPos)
-      yPos += 40
-      ctx.fillText(`日期: ${formData.value.date || ''}`, 40, yPos)
-      yPos += 80
+      ctx.fillStyle = '#000'
+      let yPos = 138
+      const date = moment(formData.value.date)
+      const weekday = ['日', '一', '二', '三', '四', '五', '六'][date.day()]
+
+      const dateStr = date.format("MM 月 DD 日") + ` [${weekday}] ${formData.value.issueNo}`
+
+      ctx.fillText(dateStr, width / 2, yPos)
+
+      yPos += 70
+      ctx.font = 'bold 40px 黑体'
+      ctx.textAlign = 'left'
+      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, 50, yPos)
+      yPos += 70
 
       options.value.forEach((option, index) => {
         if (option.hasInputs && option.inputs && option.inputs.some(input => input.trim())) {
-          ctx.fillStyle = '#333333'
-          ctx.font = 'bold 25px Arial'
+          ctx.fillStyle = '#f00'
+          ctx.font = 'bold 30px Arial'
+          ctx.textAlign = "right"
           const validInputs = option.inputs.filter(input => input.trim())
-          ctx.fillText(option.label, 25, yPos)
-          const fontsize = ((width - 25 - (option.label.length * 30)) / (validInputs.length * (4)) * 1.45)
-          ctx.font = `bold ${Math.min(fontsize, 60)}px Arial`
-          ctx.fillText(`${validInputs.join(', ')}`, 25 + (option.label.length * 30), yPos)
+          ctx.textBaseline = 'middle'
+          ctx.fillText(`${option.label}:`, (4 * 35), yPos)
+          const fontsize = ((width - 25 - (4 * 35)) / (validInputs.length * (4)) * 1.45)
+          ctx.fillStyle = '#111'
+          ctx.textAlign = "left"
+          ctx.font = `bold ${Math.min(fontsize, 80)}px Arial`
+          ctx.fillText(`${validInputs.join(', ')}`, 25 + (4 * 30), yPos)
           yPos += 80
         }
       })
@@ -969,7 +982,7 @@ const handleSubmit = async () => {
 
     height: 100%;
 
-    font-size: 40rpx;
+    font-size: 46rpx;
     text-align: center;
   }
 }
