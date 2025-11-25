@@ -1,6 +1,5 @@
 <template>
-  <view class="biaodan-container">
-    <!-- 导航栏 -->
+  <view class="biaodan-container" @touchmove.stop.prevent>
     <view class="navbar">
       <view class="nav-content">
         <view class="nav-left" @click="goBack">
@@ -14,9 +13,9 @@
     <!-- 主要内容区域 -->
     <view class="main-content">
       <!-- 标题 -->
-      <view class="title-section">
+      <!-- <view class="title-section">
         <text class="main-title">开奖号码记录</text>
-      </view>
+      </view> -->
 
       <!-- 头部输入区域 -->
       <view class="input-section">
@@ -39,8 +38,8 @@
       </view>
 
       <!-- 选项列表 -->
-      <view class="options-section">
-        <view class="option-item" v-for="(option, index) in options" :key="index">
+      <view class="options-section flex-1">
+        <view class="option-item flex-1" v-for="(option, index) in options" :key="index">
           <!-- 选项头部：标签和输入框 -->
           <view class="option-header-row inline-input">
             <view class="option-content">
@@ -48,26 +47,32 @@
               <text class="option-desc" v-if="option.desc">{{ option.desc }}</text>
             </view>
             <!-- 所有输入框都跟在文字后面 -->
-            <view v-if="option.hasInputs" class="inline-input-box">
+            <view v-if="option.hasInputs" class="inline-input-box flex-1">
               <!-- 1个输入框 -->
-              <view v-if="option.inputCount === 1" class="mini-input-row">
-                <input class="mini-input-box" v-model="option.inputs[0]" placeholder="输入" />
+              <view class="grid-container flex-1">
+                <input class="item" v-for="(item, inputIndex) in option.inputCount" :key="inputIndex"
+                  v-model="option.inputs[0]" placeholder="" />
               </view>
               <!-- 5个输入框 -->
-              <view v-else-if="option.inputCount === 5" class="mini-input-row">
+              <!-- <view v-else-if="option.inputCount === 5" class="mini-input-row flex-1">
                 <input class="mini-input-box" v-for="(item, inputIndex) in 5" :key="inputIndex"
-                  v-model="option.inputs[inputIndex]" placeholder="输入" />
-              </view>
+                  v-model="option.inputs[inputIndex]" placeholder="" />
+              </view> -->
               <!-- 4个输入框 -->
-              <view v-else-if="option.inputCount === 4" class="mini-input-row">
+              <!-- <view v-else-if="option.inputCount === 4" class="mini-input-row flex-1">
                 <input class="mini-input-box" v-for="(item, inputIndex) in 4" :key="inputIndex"
-                  v-model="option.inputs[inputIndex]" placeholder="输入" />
-              </view>
+                  v-model="option.inputs[inputIndex]" placeholder="" />
+              </view> -->
+              <!-- 4个输入框 -->
+              <!-- <view v-else-if="option.inputCount === 3" class="mini-input-row item3 flex-1">
+                <input class="mini-input-box" v-for="(item, inputIndex) in 3" :key="inputIndex"
+                  v-model="option.inputs[inputIndex]" placeholder="" />
+              </view> -->
               <!-- 6个输入框 -->
-              <view v-else-if="option.inputCount === 6" class="mini-input-row six-inputs">
+              <!-- <view v-else class="mini-input-row six-inputs flex-1">
                 <input class="mini-input-box" v-for="(item, inputIndex) in 6" :key="inputIndex"
-                  v-model="option.inputs[inputIndex]" placeholder="输入" />
-              </view>
+                  v-model="option.inputs[inputIndex]" placeholder="" />
+              </view> -->
             </view>
           </view>
         </view>
@@ -182,8 +187,9 @@ onLoad((pageOptions) => {
   }
   const type = (['福彩3D', '排列3', '排列三'].includes(routeParams.value.tname)) ? 0 : 1;
   options.value = optionType[type]
+
 })
-const defFillValue = ''
+const defFillValue = '1234'
 const optionType = [
   [{ label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
   { label: '猪胆', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) },
@@ -195,14 +201,16 @@ const optionType = [
   { label: '个', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) }],
   [
     { label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
-    { label: '二字同上', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
-    { label: '三字同上', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
-    { label: '二定', hasInputs: true, inputCount: 6, inputs: new Array(6).fill(defFillValue) },
-    { label: '三定', hasInputs: true, inputCount: 6, inputs: new Array(6).fill(defFillValue) },
-    { label: '四字直码', hasInputs: true, inputCount: 6, inputs: new Array(6).fill(defFillValue) },
-    { label: '二定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
-    { label: '三定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
-    { label: '四定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) }
+    { label: '二字同上', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '三字同上', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '二定', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '三定', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '四字直码', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '小范围', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    { label: '大范围', hasInputs: true, inputCount: 3, inputs: new Array(3).fill(defFillValue) },
+    // { label: '二定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    // { label: '三定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) },
+    // { label: '四定范围', hasInputs: true, inputCount: 4, inputs: new Array(4).fill(defFillValue) }
   ]
 ]
 
@@ -638,7 +646,7 @@ const handleSubmit = async () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .test-btn {
   position: absolute;
   top: 100rpx;
@@ -648,6 +656,8 @@ const handleSubmit = async () => {
 .biaodan-container {
   min-height: 100vh;
   background-color: #fff;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 导航栏 */
@@ -686,11 +696,21 @@ const handleSubmit = async () => {
 
 /* 主要内容区域 */
 .main-content {
-  padding: 100rpx 10rpx 120rpx;
+  padding: 100rpx 10rpx 30rpx;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .flex-1 {
+    flex: 1
+  }
 }
 
 /* 输入区域 */
 .input-section {
+  box-sizing: border-box;
   margin-bottom: 5rpx;
   background-color: #fff;
   padding: 6rpx;
@@ -712,12 +732,12 @@ const handleSubmit = async () => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  // gap: 12rpx;
 }
 
 .input-label {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 36rpx;
+  color: #f00;
   white-space: nowrap;
   min-width: 48rpx;
   font-weight: 500;
@@ -730,7 +750,7 @@ const handleSubmit = async () => {
   background-color: #fafafa;
   border: 1rpx solid #e8e8e8;
   border-radius: 4rpx;
-  font-size: 24rpx;
+  font-size: 34rpx;
   color: #333;
 }
 
@@ -755,6 +775,8 @@ const handleSubmit = async () => {
 /* 选项列表 */
 .options-section {
   /* margin-bottom: 10rpx; */
+  display: flex;
+  flex-direction: column;
 }
 
 .option-item {
@@ -765,6 +787,7 @@ const handleSubmit = async () => {
   box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
   overflow: hidden;
+  display: flex;
 }
 
 .option-item:active {
@@ -772,6 +795,8 @@ const handleSubmit = async () => {
 }
 
 .option-header-row {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0 12rpx;
   background-color: #fafafa;
   border-bottom: 1rpx solid #f0f0f0;
@@ -779,7 +804,7 @@ const handleSubmit = async () => {
 
 .option-header-row.inline-input {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10rpx;
   flex-wrap: wrap;
 }
@@ -790,11 +815,13 @@ const handleSubmit = async () => {
   gap: 12rpx;
   flex-shrink: 0;
   white-space: nowrap;
+  // flex: 30rpx;
 }
 
 .option-text {
-  font-size: 28rpx;
-  color: #333;
+  font-size: 35rpx;
+  width: 80rpx;
+  color: #ff0000;
   font-weight: 600;
 }
 
@@ -806,33 +833,6 @@ const handleSubmit = async () => {
   border-radius: 4rpx;
 }
 
-.inline-input-box {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-left: 20rpx;
-}
-
-.inline-input-box .mini-input-row {
-  gap: 10rpx;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.inline-input-box .mini-input-row .mini-input-box {
-  width: 110rpx;
-  height: 56rpx;
-  font-size: 46rpx;
-  padding: 0 10rpx;
-}
-
-/* 6个输入框：每行3个 */
-.inline-input-box .mini-input-row.six-inputs .mini-input-box {
-  width: calc(33.333% - 7rpx);
-  flex: 0 0 calc(33.333% - 7rpx);
-}
-
 .option-inputs {
   width: 100%;
   padding: 4rpx 8rpx 8rpx;
@@ -840,55 +840,6 @@ const handleSubmit = async () => {
   box-sizing: border-box;
 }
 
-.mini-input-row {
-  display: flex;
-  gap: 6rpx;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.mini-input-box {
-  min-width: 0;
-  height: 42rpx;
-  padding: 0 4rpx;
-  background-color: #f9f9f9;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 4rpx;
-  font-size: 20rpx;
-  color: #333;
-  text-align: center;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
-
-.mini-input-box:focus {
-  background-color: #fff;
-  border-color: #28B389;
-  box-shadow: 0 0 0 2rpx rgba(40, 179, 137, 0.1);
-}
-
-/* 4个输入框的布局 */
-.mini-input-row:not(.six-inputs) {
-  gap: 4rpx;
-}
-
-.mini-input-row:not(.six-inputs) .mini-input-box {
-  flex: 0 0 calc(25% - 3rpx);
-}
-
-/* 6个输入框的布局 - 一行6个 */
-.mini-input-row.six-inputs {
-  gap: 4rpx;
-}
-
-.mini-input-row.six-inputs .mini-input-box {
-  flex: 0 0 calc(16.666% - 3.33rpx);
-}
-
-.mini-input-box::placeholder {
-  color: #999;
-  text-align: center;
-}
 
 /* 备注栏 */
 .remark-section {
@@ -900,9 +851,11 @@ const handleSubmit = async () => {
 }
 
 .remark-label {
-  font-size: 28rpx;
-  color: #333;
+  font-size: 38rpx;
+  width: 135rpx;
+  color: #f00;
   font-weight: 600;
+  line-height: 80rpx;
   margin-bottom: 8rpx;
 }
 
@@ -924,10 +877,11 @@ const handleSubmit = async () => {
 
 /* 提交按钮 */
 .submit-section {
-  position: fixed;
-  bottom: 20rpx;
-  left: 0;
-  right: 0;
+  // position: fixed;
+  // bottom: 20rpx;
+  // left: 0;
+  // right: 0;
+  margin-top: 30rpx;
   padding: 0 20rpx;
   z-index: 100;
 }
@@ -984,5 +938,46 @@ const handleSubmit = async () => {
   left: -9999px;
   visibility: hidden;
   z-index: -1;
+}
+
+
+.grid-container {
+  display: grid;
+  height: 100%;
+}
+
+.inline-input-box {
+  height: 100%;
+}
+
+/* 默认情况：1-4个子项不换行，撑满宽度 */
+.grid-container {
+  grid-template-columns: repeat(auto-fit, minmax(10rpx, 1fr));
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #f9f9f9;
+    border: 1rpx solid #e0e0e0;
+    border-radius: 4rpx;
+
+    height: 100%;
+
+    font-size: 40rpx;
+    text-align: center;
+  }
+}
+
+/* 5个子项时：每4个换行 */
+.grid-container:has(.item:nth-child(5):last-child) {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* 6个子项时：每3个换行 */
+.grid-container:has(.item:nth-child(6):last-child) {
+  grid-template-columns: repeat(3, 1fr);
 }
 </style>
