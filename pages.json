@@ -7,9 +7,9 @@
       }
     },
     {
-      "path": "pages/juWang/drawLine/drawLine",
+      "path": "pages/juWang/peng-liao/drawLine/drawLine",
       "style": {
-        "navigationBarTitleText": "",
+        "navigationBarTitleText": "画规",
         "navigationStyle": "custom"
       }
     },
