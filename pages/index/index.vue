@@ -168,7 +168,7 @@ export default {
 		drawGui() {
 			const tname = this.currentTab === 'plw' ? '排列5' : '七星彩'
 			uni.navigateTo({
-				url: `/pages/juWang/drawLine/drawLine`
+				url: `/pages/juWang/peng-liao/drawLine/drawLine`
 			});
 		},
 		goToDreamInterpretation() {
