@@ -1,63 +1,68 @@
 <template>
-    <view class="auto-line-setting-menu" v-show="show">
-        <view class="auto-line-setting-menu-item">
-            <view class="flex" v-show="modelValue.panCount == 1">
-                <view>号码拖拽点</view>
+    <uni-popup ref="popup" type="bottom" borderRadius="10px 10px 0 0">
+        <view class="auto-line-setting-menu">
+            <view class="auto-line-setting-menu-item">
+                <view class="flex" v-show="modelValue.panCount == 1">
+                    <view>号码拖拽点</view>
+                    <view>
+                        <switch @change="controlSwitchChange" :checked="modelValue.controlSwitch" />
+                    </view>
+                </view>
                 <view>
-                    <switch @change="controlSwitchChange" :checked="modelValue.controlSwitch" />
+                    <view>颜色</view>
+                    <view>
+                        <radio-group @change="isMoreColorChange">
+                            <label class="radio">
+                                <radio value="true" :checked="!modelValue.isMoreColor" />单色
+                            </label>
+                            <label class="radio">
+                                <radio value="false" :checked="modelValue.isMoreColor"
+                                    :disabled="modelValue.panCount == 1" />多彩
+                            </label>
+                        </radio-group>
+                    </view>
+                </view>
+                <view>
+                    <view>线型</view>
+                    <view>
+                        <radio-group @change="lineTypeChange">
+                            <label class="radio">
+                                <radio value="topBezier" :checked="modelValue.lineType == 'topBezier'" />上曲线
+                            </label>
+                            <label class="radio">
+                                <radio value="bottomBezier" :checked="modelValue.lineType == 'bottomBezier'" />下曲线
+                            </label>
+                            <label class="radio">
+                                <radio value="line" :checked="modelValue.lineType == 'line'" />直线
+                            </label>
+                        </radio-group>
+                    </view>
+                </view>
+                <view>
+                    <view>笔数</view>
+                    <view>
+                        <radio-group @change="panCountChange">
+                            <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
+                                <radio :value="i" :checked="modelValue.panCount === i" />{{ i }}支
+                            </label>
+                        </radio-group>
+                    </view>
+                </view>
+                <view>
+                    <view>间隔</view>
+                    <view>
+                        <radio-group @change="intervalChange">
+                            <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
+                                <radio :value="i" :checked="modelValue.interval === i"
+                                    :disabled="modelValue.panCount == 1" />{{ i }}期
+                            </label>
+                        </radio-group>
+                    </view>
                 </view>
             </view>
-            <view>
-                <view>颜色</view>
-                <view>
-                    <radio-group @change="isMoreColorChange">
-                        <label class="radio">
-                            <radio value="true" :checked="!modelValue.isMoreColor" />单色
-                        </label>
-                        <label class="radio">
-                            <radio value="false" :checked="modelValue.isMoreColor" />多彩
-                        </label>
-                    </radio-group>
-                </view>
-            </view>
-            <view>
-                <view>线型</view>
-                <view>
-                    <radio-group @change="lineTypeChange">
-                        <label class="radio">
-                            <radio value="topBezier" :checked="modelValue.lineType == 'topBezier'" />上曲线
-                        </label>
-                        <label class="radio">
-                            <radio value="bottomBezier" :checked="modelValue.lineType == 'bottomBezier'" />下曲线
-                        </label>
-                        <label class="radio">
-                            <radio value="line" :checked="modelValue.lineType == 'line'" />直线
-                        </label>
-                    </radio-group>
-                </view>
-            </view>
-            <view>
-                <view>笔数</view>
-                <view>
-                    <radio-group @change="panCountChange">
-                        <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
-                            <radio :value="i" :checked="modelValue.panCount === i" />{{ i }}支
-                        </label>
-                    </radio-group>
-                </view>
-            </view>
-            <view v-show="modelValue.panCount == 1">
-                <view>间隔</view>
-                <view>
-                    <radio-group @change="intervalChange">
-                        <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
-                            <radio :value="i" :checked="modelValue.interval === i" />{{ i }}期
-                        </label>
-                    </radio-group>
-                </view>
-            </view>
+            <button class="autoLineSettingMenu-btn" type="default" @click="handleCancel">返回</button>
         </view>
-    </view>
+    </uni-popup>
 </template>
 
 <script>
@@ -71,10 +76,10 @@ export default {
             default: function () {
                 return {
                     controlSwitch: true,
-                    lineType: 'topBezier',
-                    isMoreColor: true,
+                    isMoreColor: false,
                     interval: 1,
-                    panCount: 1
+                    panCount: 1,
+                    lineType: 'topBezier'
                 }
             }
         },
@@ -103,12 +108,24 @@ export default {
             this.$emit('change')
         },
         panCountChange(e) {
-            this.$emit('update:modelValue', { ...this.modelValue, panCount: parseInt(e.detail.value) });
+            const data = {}
+            if (e.detail.value == 1) {
+                data.isMoreColor = false
+                data.interval = 1
+            }
+
+            this.$emit('update:modelValue', { ...this.modelValue, data, panCount: parseInt(e.detail.value) });
             this.$emit('change')
         },
         lineTypeChange(e) {
             this.$emit('update:modelValue', { ...this.modelValue, lineType: e.detail.value });
             this.$emit('change')
+        },
+        open() {
+            this.$refs.popup.open()
+        },
+        handleCancel() {
+            this.$refs.popup.close()
         }
     }
 }
@@ -120,13 +137,17 @@ export default {
 }
 
 .auto-line-setting-menu {
-    position: fixed;
-    bottom: 200rpx;
-    left: 0;
-    right: 0;
+    // position: fixed;
+    // bottom: 200rpx;
+    // left: 0;
+    // right: 0;
     background-color: #fff;
     border-radius: 15rpx;
-    margin: 0 12rpx;
+    // margin: 0 12rpx;
     padding: 20rpx;
+
+    .autoLineSettingMenu-btn {
+        margin-top: 20rpx;
+    }
 }
 </style>

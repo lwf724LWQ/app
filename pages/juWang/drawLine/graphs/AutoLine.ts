@@ -63,7 +63,7 @@ export default class AutoLines extends baseGraph {
         const controlSwitch = autolineSetting.controlSwitch;
         const { lineType } = autolineSetting;
 
-        if (controlSwitch && (lineType == 'bottomBezier' || lineType == 'topBezier')) {
+        if (this.autoLine.length === 1 && controlSwitch && (lineType == 'bottomBezier' || lineType == 'topBezier')) {
             // 初始化控制点
             const control = new BezierControl(this.autoLine[0].line as Bezier, panStyle, controlEvent, this, this.table)
             this.control = control

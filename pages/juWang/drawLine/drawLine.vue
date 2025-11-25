@@ -14,40 +14,22 @@
 		<!-- 控制菜单 -->
 		<view class="top-menu-wrapper">
 			<!-- 顶部 -->
+			<view class="menu-item" @click="backPage">返回</view>
 			<view class="menu-item" @click="undo">撤销</view>
 			<view class="menu-item" @click="redo">恢复</view>
 			<view class="menu-item" @click="clear">清除</view>
-			<view class="menu-item" @click="share">分享</view>
+			<!-- <view class="menu-item" @click="share">分享</view> -->
 			<view class="menu-item" @click="save">保存</view>
-			<view class="menu-item" @click="openSettings">设置</view>
-		</view>
-		<view class="control-wrapper" v-show="bottomIsShow">
-			<!-- 底部 -->
-			<view class="color-select">
-
-				<!-- 画笔粗细选择 -->
-				<pansize v-model="pansize" :color="color" @change="setPanStyle"></pansize>
-			</view>
-			<!-- 画笔颜色选择按钮 -->
-			<color-select-menu v-model="color" @change="setPanStyle"></color-select-menu>
-			<view class="lock-btn">
-				<!-- 锁定按钮 -->
-			</view>
-			<view class="type-select">
-				<!-- 画笔类型选择 -->
-				<lineTypeSelect v-model="pantype" @change="setPanStyle"></lineTypeSelect>
-			</view>
+			<!-- <view class="menu-item" @click="openSettings">设置</view> -->
 		</view>
 
-		<!-- 智能线配置模版 -->
-		<auto-line-setting-menu :show="autolineMenuIsShow" v-model="autolineSetting"
-			@change="setAutolineSetting"></auto-line-setting-menu>
+
 
 		<!-- 按钮 -->
-		<view class="control-wrapper-close-btn" @click="showBottom">{{ bottomIsShow ? "收起" : "打开" }}</view>
+		<!-- <view class="control-wrapper-close-btn" @click="showBottom">{{ bottomIsShow ? "收起" : "打开" }}</view>
 		<view v-show="pantype === 'autoLine'" class="autoline-menu-close-btn"
 			@click="autolineMenuIsShow = !autolineMenuIsShow">{{
-				autolineMenuIsShow ? "收起智能线配置" : "打开智能线配置" }}</view>
+				autolineMenuIsShow ? "收起智能线配置" : "打开智能线配置" }}</view> -->
 
 		<!-- #endif -->
 		<!-- #ifndef APP-PLUS || H5 -->
@@ -62,6 +44,29 @@
 		<!-- 数字选择器 -->
 		<number-select ref="numberSelect" @confirm="numberSelectConfirm"></number-select>
 
+		<!-- 打开颜色和大小选择菜单 -->
+		<view class="colorSelect" @click="colorAndSizeIsShow = !colorAndSizeIsShow">
+			<uni-icons type="color-filled" :style="`color:${color}`" size="40"></uni-icons>
+		</view>
+		<!-- 画笔颜色选择按钮 -->
+		<color-select-menu :open="colorAndSizeIsShow" v-model="color" @change="setPanStyle"></color-select-menu>
+		<!-- 画笔粗细选择 -->
+		<pansize :open="colorAndSizeIsShow" v-model="pansize" :color="color" @change="setPanStyle"></pansize>
+
+		<!-- 智能线配置模版 -->
+		<auto-line-setting-menu ref="autoLineSettingMenu" v-model="autolineSetting"
+			@change="setAutolineSetting"></auto-line-setting-menu>
+		<view class="openLineTypeChooseBtn">
+			<view style="padding-right:20rpx" v-show="pantype === 'autoLine'" @click="openAutoLineSettingMenu">设置
+			</view>
+			<view @click="showBottom">{{ panTypeToText(pantype) }}</view>
+		</view>
+
+
+
+		<!-- 画笔类型选择 -->
+		<lineTypeSelect :open="bottomIsShow" v-model="pantype" @change="setPanStyle"></lineTypeSelect>
+
 		<view class="canvas-text-box" v-if="isShowTextInputBox">
 			<input class="uni-input" focus placeholder="输入文本" v-model.trim="textValue" @confirm="textConfirm" />
 		</view>
@@ -69,12 +74,15 @@
 </template>
 
 <script>
-import Table from './table.ts'
+import Table, { tableStyle } from './table.ts'
 import colorSelectMenu from './components/color-select-menu.vue';
 import pansize from './components/pansize.vue';
 import lineTypeSelect from './components/line-type-select.vue';
 import autoLineSettingMenu from './components/auto-line-setting-menu.vue';
 import numberSelect from './components/number-select.vue';
+import panType from './panType';
+
+import { apiTicketQuery } from "@/api/apis.js"
 
 export default {
 	components: {
@@ -83,8 +91,10 @@ export default {
 
 	data() {
 		const width = uni.getSystemInfoSync().windowWidth
-
+		// alert(crypto.randomUUID())
 		return {
+			colorAndSizeIsShow: false,
+
 			style: `width: ${width}px; height: 2440rpx;`,
 			width: width,
 			height: uni.rpx2px(2440),
@@ -110,10 +120,18 @@ export default {
 
 			// 输入框
 			isShowTextInputBox: false,
-			textValue: ''
+			textValue: '',
+			textCallBack: null
+
 		}
 	},
 	methods: {
+		openAutoLineSettingMenu() {
+			this.$refs.autoLineSettingMenu.open()
+		},
+		panTypeToText(pantype) {
+			return panType[pantype]
+		},
 		// 处理数据
 		handleData(data) {
 			const lastData = data[data.length - 1]
@@ -140,9 +158,12 @@ export default {
 				return
 			}
 
-			if (e.touches.length >= 1 && e.touches[0].x > 100) {
-				e.preventDefault()
-			} else {
+			if (e.touches.length >= 1) {
+				if (e.touches[0].x > tableStyle.dateInfo.width) {
+					e.preventDefault()
+				} else if (e.type === 'touchstart') {
+					return
+				}
 			}
 			const toucheXY = e.touches.length ? e.touches[0] : false
 			const touche = {
@@ -177,6 +198,10 @@ export default {
 		createAutolineSettingObj: function () {
 			return Object.assign({}, this.autolineSetting)
 		},
+		// 返回上一页
+		backPage() {
+			uni.navigateBack()
+		},
 		// 撤销上一步操作
 		undo: function () {
 			this.table.undo()
@@ -203,31 +228,43 @@ export default {
 		},
 		textConfirm: function () {
 			const value = this.textValue
-			this.table.textInput(value)
+			if (this.textCallBack) {
+				this.textCallBack(value)
+			} else {
+				this.table.textInput(value)
+			}
 			this.isShowTextInputBox = false
 		},
 		numberSelectConfirm: function (res) {
 			this.table.numberSelect(res)
 		}
 	},
-	onReady: function () {
-		this.handleData([
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			}
-		])
-		let width = uni.getSystemInfoSync().windowWidth
+	onReady: async function () {
+		const res = await apiTicketQuery({
+			tname: "七星彩",
+			page: 1,
+			limit: 20
+		})
+		this.handleData(res.data.records)
+		uni.pageScrollTo({ scrollTop: this.height, duration: 0 })
+		// this.handleData([
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	}
+		// ])
 		this.$nextTick(() => {
 
 			const canvas_id = { bg_canvas: "bg_canvas", line_canvas: "line_canvas", topicon_canvas: "topicon_canvas", control_canvas: "control_canvas", diyNumber_canvas: "diyNumber_canvas" }
 
-			this.table = new Table(canvas_id, this.width, this.height, this.createPanStyleObj(), this.data, this.createAutolineSettingObj(), () => {
+			this.table = new Table(canvas_id, this.width, this.height, this.createPanStyleObj(), this.data, this.createAutolineSettingObj(), (value, callback) => {
+				this.textValue = value || ""
+				this.textCallBack = callback
 				this.isShowTextInputBox = true;
 			}, (placeValue, y) => {
 				this.$refs.numberSelect.open(placeValue, y)
@@ -257,27 +294,6 @@ export default {
 	z-index: -1;
 }
 
-.left-row {
-	width: 100px;
-	height: 2200px;
-	background-color: rgba(255, 255, 255, 0.5);
-	display: block;
-}
-
-.right-row {
-	position: fixed;
-	top: 0;
-	left: 100px;
-	width: 400px;
-	height: 2200px;
-	background-color: rgba(6, 255, 255, 0.5);
-	display: block;
-}
-
-.scroll-box {
-	height: 100%;
-}
-
 .canvas-wrapper {
 	margin-top: 90rpx;
 }
@@ -301,24 +317,40 @@ export default {
 
 }
 
-.control-wrapper {
+.colorSelect {
 	position: fixed;
+	left: 21rpx;
+	bottom: 30rpx;
 
-	bottom: 80rpx;
-	left: 20rpx;
-	right: 20rpx;
+	height: 90rpx;
+	width: 90rpx;
 
-	.color-select {
-		display: flex;
-	}
+	border-radius: 50%;
+	background: rgba(75, 75, 75, .8);
 
-	.lock-btn {}
+	display: flex;
+	justify-content: center;
+	align-items: center;
 
-	.type-select {
-		position: absolute;
-		right: 0;
-		bottom: 0;
-	}
+	.openColorAndSizeMenuBtn {}
+}
+
+.openLineTypeChooseBtn {
+	position: fixed;
+	bottom: 30rpx;
+	right: 0;
+	// width: 230rpx;
+	height: 90rpx;
+
+	padding: 0 40rpx;
+
+	border-radius: 45rpx 0 0 45rpx;
+	background-color: rgba(75, 75, 75, .8);
+	color: #fff;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .control-wrapper-close-btn {

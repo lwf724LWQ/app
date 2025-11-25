@@ -1,5 +1,5 @@
 <template>
-    <view class="pansize-select-menu">
+    <view @touchmove.stop.prevent class="pansize-select-menu" :class="{ open: open }">
         <view v-for="(item, index) in sizes" :key="index" @click="selectSize(item.size)">
             <view class="pansize-item" :class="{ selected: item.size == modelValue }">
                 <view class="pansize-item-text" :style="{ backgroundColor: item.size == modelValue ? color : '' }">{{
@@ -27,7 +27,11 @@ export default {
             type: String,
             default: 3
         },
-        color: { type: String }, default: "#ff0000"
+        color: { type: String }, default: "#ff0000",
+        open: {
+            type: Boolean,
+            default: false
+        }
     },
     emits: ['update:modelValue', 'change'],
     methods: {
@@ -41,11 +45,22 @@ export default {
 
 <style lang="scss" scoped>
 .pansize-select-menu {
+    position: fixed;
+    left: 130rpx;
+    bottom: 22rpx;
+
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    padding: 10rpx;
+
+    width: 0;
+    overflow: hidden;
+    transition: width .3s;
+
+    &.open {
+        width: 240rpx;
+    }
 
     .pansize-item {
         margin: 10rpx 0;

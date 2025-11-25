@@ -64,7 +64,7 @@ export default class Background extends baseGraph {
         const tableformat = this.tableformat;
         const data = this.data;
         
-        (new Array(20)).fill(1).map((_,i) => {
+        (new Array(28)).fill(1).map((_,i) => {
             // 画格子
             this.drawDateInfo(ctx, tableformat.dateInfo, i, data[i])
             this.drawNumber(ctx, tableformat.number1, i, data[i]?.number[0] || '')
@@ -77,17 +77,26 @@ export default class Background extends baseGraph {
             const borderColor = "#77a067";
             ctx.beginPath()
             ctx.setStrokeStyle(borderColor)
-            ctx.setLineWidth(3)
+            // 
+            if (i%4 !=0) {
+                ctx.setLineWidth(1)
+            }else{
+                ctx.setLineWidth(4)
+            }            
             ctx.moveTo(0,(i+1) * tableformat.lineHeight)
             ctx.lineTo(tableformat.width, (i+1) * tableformat.lineHeight)
             ctx.stroke()
         });
         [tableformat.dateInfo,...getTableNumberStyle()]
-            .map(style => {
+            .map((style, i) => {
                 const borderColor = "#77a067";
                 ctx.beginPath()
                 ctx.setStrokeStyle(borderColor)
-                ctx.setLineWidth(3)
+                if ([3,4,5].includes(i)) {
+                    ctx.setLineWidth(1)
+                }else{
+                    ctx.setLineWidth(3)   
+                }
                 ctx.moveTo(style.left,0)
                 ctx.lineTo(style.left,tableformat.height)
                 ctx.stroke()

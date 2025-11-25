@@ -406,6 +406,7 @@ export default class Table {
                     }
                 }
                 this.touchId = Symbol("touchId")
+                this.lastTouchPosition = null
                 break;
             case "touchcancel":
                 // 滑动被打断
@@ -421,9 +422,9 @@ export default class Table {
                 
             }else{
                 this.graphs.push(this.drawNowGraph)
+                this.overdrawForBg()
             }
         }
-        console.log(this.graphs)
         this.drawNowGraph = graph
     }
 
