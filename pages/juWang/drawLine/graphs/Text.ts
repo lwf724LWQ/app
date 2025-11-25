@@ -82,11 +82,11 @@ export default class Text extends baseGraph {
     }
     // 添加编辑按钮的监听
     editTextBtnEventId: string | null = null;
-    editTextBtnClickGraph: ClickGraph = new ClickGraph("Circle", new Position(0,0,PositionType.real), 0);
+    editTextBtnClickGraph: ClickGraph = new ClickGraph("Rect", new Position(0,0,PositionType.real), new Position(0,0,PositionType.real));
     changeFillModeBtnEventId: string | null = null;
-    changeFillModeBtnClickGraph: ClickGraph = new ClickGraph("Circle", new Position(0,0,PositionType.real), 0);
+    changeFillModeBtnClickGraph: ClickGraph = new ClickGraph("Rect", new Position(0,0,PositionType.real), new Position(0,0,PositionType.real));
     changeSizeBtnEventId: string | null = null;
-    changeSizeBtnClickGraph: ClickGraph = new ClickGraph("Circle", new Position(0,0,PositionType.real), 0);
+    changeSizeBtnClickGraph: ClickGraph = new ClickGraph("Rect", new Position(0,0,PositionType.real), new Position(0,0,PositionType.real));
     // 文本大小系数 
     // 该值代表1宽=多少字体大小
     textCoefficient = 0;
@@ -280,9 +280,10 @@ export default class Text extends baseGraph {
             // 这里做一个限位
             // end是矩形中心点， 这里的xy是移动后的中心点
         const x = Math.max(end.x,notOverLeft + (this.textWidth/2))
+        const h = Math.max(w, this.getFontSize()/2)
         return {
-            a1: new Position(x - w, end.y - w, PositionType.real),
-            a2: new Position(x + w, end.y + w, PositionType.real)
+            a1: new Position(x - w, end.y - h, PositionType.real),
+            a2: new Position(x + w, end.y + h, PositionType.real)
         }
     }
 
@@ -326,10 +327,13 @@ export default class Text extends baseGraph {
         if (!this.isEdit) {return}
         const panStyle = this.panStyle;
         const fontSize = this.table.width * 0.05
-        const r = this.table.width * 0.05
+        const w = this.table.width * 0.1
+        const h = this.table.width * 0.05
         function draw(position: Position, text: string){
             ctx.beginPath()
-            ctx.arc(position.x, position.y, r, 0, 2 * Math.PI)
+            // ctx.arc(position.x, position.y, r, 0, 2 * Math.PI)
+
+            ctx.rect(position.x - (w/2), position.y - (h/2), w, h)
             ctx.setFillStyle(panStyle.color)
             ctx.fill()
             ctx.beginPath()
@@ -338,6 +342,12 @@ export default class Text extends baseGraph {
             ctx.setTextAlign('center')
             ctx.setFillStyle("#fff")
             ctx.fillText(text, position.x, position.y)
+        }
+        function outA1A2(position: Position){
+            return {
+                a1: new Position(position.x - (w/2), position.y - (h/2), PositionType.real),
+                a2: new Position(position.x + (w/2), position.y + (h/2), PositionType.real)
+            }
         }
         // 要比本体大一点
         const moreSize = uni.upx2px(20)
@@ -351,15 +361,18 @@ export default class Text extends baseGraph {
         
         const topArcPosition = new Position(a1.x + (this.textWidth / 2) + (moreSize), a1.y, PositionType.real)
         draw(topArcPosition, '编辑')
-        this.editTextBtnClickGraph.setNewPosition(topArcPosition, r)
+        let ta1a2 = outA1A2(topArcPosition)
+        this.editTextBtnClickGraph.setNewPosition(ta1a2.a1, ta1a2.a2)
 
         const leftBottomArcPosition = new Position(a1.x, a2.y, PositionType.real)
         draw(leftBottomArcPosition, this.isFill ? '空心' : '实心')
-        this.changeFillModeBtnClickGraph.setNewPosition(leftBottomArcPosition, r)
+        let la1a2 = outA1A2(leftBottomArcPosition)
+        this.changeFillModeBtnClickGraph.setNewPosition(la1a2.a1, la1a2.a2)
 
         const rightBottomArcPosition = new Position(a2.x, a2.y, PositionType.real)
         draw(rightBottomArcPosition, '大小')
-        this.changeSizeBtnClickGraph.setNewPosition(rightBottomArcPosition, r)
+        let ra1a2 = outA1A2(rightBottomArcPosition)
+        this.changeSizeBtnClickGraph.setNewPosition(ra1a2.a1, ra1a2.a2)
     }
     getFontSize():number {
         // 第一次需要依赖默认文本大小去计算宽度和文本大小系数

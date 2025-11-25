@@ -14,17 +14,16 @@
 		<!-- 控制菜单 -->
 		<view class="top-menu-wrapper">
 			<!-- 顶部 -->
+			<view class="menu-item" @click="backPage">返回</view>
 			<view class="menu-item" @click="undo">撤销</view>
 			<view class="menu-item" @click="redo">恢复</view>
 			<view class="menu-item" @click="clear">清除</view>
-			<view class="menu-item" @click="share">分享</view>
+			<!-- <view class="menu-item" @click="share">分享</view> -->
 			<view class="menu-item" @click="save">保存</view>
-			<view class="menu-item" @click="openSettings">设置</view>
+			<!-- <view class="menu-item" @click="openSettings">设置</view> -->
 		</view>
 
-		<!-- 智能线配置模版 -->
-		<auto-line-setting-menu :show="autolineMenuIsShow" v-model="autolineSetting"
-			@change="setAutolineSetting"></auto-line-setting-menu>
+
 
 		<!-- 按钮 -->
 		<!-- <view class="control-wrapper-close-btn" @click="showBottom">{{ bottomIsShow ? "收起" : "打开" }}</view>
@@ -54,11 +53,17 @@
 		<!-- 画笔粗细选择 -->
 		<pansize :open="colorAndSizeIsShow" v-model="pansize" :color="color" @change="setPanStyle"></pansize>
 
+		<!-- 智能线配置模版 -->
+		<auto-line-setting-menu ref="autoLineSettingMenu" v-model="autolineSetting"
+			@change="setAutolineSetting"></auto-line-setting-menu>
 		<view class="openLineTypeChooseBtn">
-			<view style="padding-right:20rpx" v-show="pantype === 'autoLine'"
-				@click="autolineMenuIsShow = !autolineMenuIsShow">设置</view>
+			<view style="padding-right:20rpx" v-show="pantype === 'autoLine'" @click="openAutoLineSettingMenu">设置
+			</view>
 			<view @click="showBottom">{{ panTypeToText(pantype) }}</view>
 		</view>
+
+
+
 		<!-- 画笔类型选择 -->
 		<lineTypeSelect :open="bottomIsShow" v-model="pantype" @change="setPanStyle"></lineTypeSelect>
 
@@ -76,6 +81,8 @@ import lineTypeSelect from './components/line-type-select.vue';
 import autoLineSettingMenu from './components/auto-line-setting-menu.vue';
 import numberSelect from './components/number-select.vue';
 import panType from './panType';
+
+import { apiTicketQuery } from "@/api/apis.js"
 
 export default {
 	components: {
@@ -119,6 +126,9 @@ export default {
 		}
 	},
 	methods: {
+		openAutoLineSettingMenu() {
+			this.$refs.autoLineSettingMenu.open()
+		},
 		panTypeToText(pantype) {
 			return panType[pantype]
 		},
@@ -188,6 +198,10 @@ export default {
 		createAutolineSettingObj: function () {
 			return Object.assign({}, this.autolineSetting)
 		},
+		// 返回上一页
+		backPage() {
+			uni.navigateBack()
+		},
 		// 撤销上一步操作
 		undo: function () {
 			this.table.undo()
@@ -225,19 +239,25 @@ export default {
 			this.table.numberSelect(res)
 		}
 	},
-	onReady: function () {
-		this.handleData([
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			}
-		])
-		let width = uni.getSystemInfoSync().windowWidth
+	onReady: async function () {
+		const res = await apiTicketQuery({
+			tname: "七星彩",
+			page: 1,
+			limit: 20
+		})
+		this.handleData(res.data.records)
+		uni.pageScrollTo({ scrollTop: this.height, duration: 0 })
+		// this.handleData([
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	}
+		// ])
 		this.$nextTick(() => {
 
 			const canvas_id = { bg_canvas: "bg_canvas", line_canvas: "line_canvas", topicon_canvas: "topicon_canvas", control_canvas: "control_canvas", diyNumber_canvas: "diyNumber_canvas" }
@@ -272,6 +292,29 @@ export default {
 	top: 0;
 	left: 0;
 	z-index: -1;
+}
+
+.canvas-wrapper {
+	margin-top: 90rpx;
+}
+
+// 菜单
+.top-menu-wrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 90rpx;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
+	color: #fff;
+	background: #93c385;
+	box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.5);
+
 }
 
 .colorSelect {

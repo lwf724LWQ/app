@@ -5,8 +5,10 @@
                 <view class="title-box">
                     <view class="popup-title">数字选择器</view>
                     <view class="right-sw" v-if="!['小', '末'].includes(nowSelectPlaceValue)">
-                        <view class="" @click="swSelectType('advanced')">高级</view>
-                        <view class="" @click="swSelectType('simple')">简易</view>
+                        <!-- <view class="" @click="swSelectType('advanced')">高级</view>
+                        <view class="" @click="swSelectType('simple')">简易</view> -->
+                        简易
+                        <switch :checked="selectType == 'simple'" @change="swSelectType" />
                     </view>
                 </view>
 
@@ -188,7 +190,7 @@ export default {
             this.$refs.popup.open()
         },
         swSelectType: function (type) {
-            this.selectType = type
+            this.selectType = this.selectType === 'simple' ? 'advanced' : 'simple'
             this.numbers = []
             this.type = ""
         },
@@ -274,6 +276,9 @@ export default {
         outPreview(placeValue, position) {
             const type = this.type
             const numbers = this.numbers
+            if (position == 'bg' && placeValue == this.nowSelectPlaceValue) {
+                return true
+            }
             if (numbers.length === 0) {
                 return ''
             }
@@ -349,8 +354,6 @@ export default {
             align-items: center;
             justify-content: center;
 
-            background-color: #aaa;
-            color: #444;
 
 
         }

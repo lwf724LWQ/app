@@ -406,6 +406,7 @@ export default class Table {
                     }
                 }
                 this.touchId = Symbol("touchId")
+                this.lastTouchPosition = null
                 break;
             case "touchcancel":
                 // 滑动被打断
