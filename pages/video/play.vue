@@ -785,6 +785,7 @@ const toggleLike = async () => {
 	padding: 20rpx;
 	padding-bottom: 120rpx;
 	background-color: #f5f5f5;
+	font-weight: bold;
 }
 
 /* 视频容器样式 */

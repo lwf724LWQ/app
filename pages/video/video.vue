@@ -481,6 +481,8 @@ onMounted(async () => {
 <style scoped>
 .video-page-container {
 	min-height: 100vh;
+	font-weight: bold;
+
 }
 
 .current-lottery-type {
@@ -627,7 +629,6 @@ onMounted(async () => {
 	font-size: 40rpx;
 	color: #000000;
 	font-weight: bold;
-	font-weight: 500;
 }
 
 .tab-item.active .tab-text {

@@ -703,6 +703,9 @@ const handleSubmit = async () => {
   flex-direction: column;
   flex: 1;
 
+
+  font-weight: bold;
+
   .flex-1 {
     flex: 1
   }
