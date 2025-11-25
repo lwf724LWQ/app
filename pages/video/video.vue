@@ -122,6 +122,7 @@ const currentLotteryType = ref(lotteryTypes.value[0])
 const isLoadingLottery = ref(false)
 const currentIssueInfo = ref({ id: null, number: null, status: '待开奖', time: '今天 21:30' })
 
+<<<<<<< HEAD
 // 下拉刷新钩子
 onPullDownRefresh(async () => {
 	console.log('下拉刷新触发')
@@ -206,6 +207,111 @@ const loadLotteryDataByType = async (lotteryType) => {
 				issueNumber = response.data.issueno || response.data.number || response.data.id
 				issueStatus = response.data.status || '待开奖'
 				issueTime = response.data.time || '今天 21:30'
+=======
+	// 下拉刷新钩子
+	onPullDownRefresh(async () => {
+		console.log('下拉刷新触发')
+		// 执行刷新数据的函数
+		await fetchVideoList();
+		// 停止下拉刷新
+		uni.stopPullDownRefresh()
+	})
+
+	// 获取视频列表的函数(页面开始加载的数据)
+	const fetchVideoList = async () => {
+		try {
+			// 构建请求参数
+			const videoinfo = {
+				page: 1,
+				limit: 10,
+			};
+			
+			// 添加彩票类型参数
+			if (currentTab.value !== 'review' && currentLotteryType.value && currentLotteryType.value.name) {
+				videoinfo.tname = currentLotteryType.value.name;
+				
+			} else if (currentTab.value === 'review') {
+				console.log('精彩回顾模式，不限制彩票类型');
+			} else {
+				console.warn('无法获取彩票类型信息');
+			}
+			
+			const Videoinfo = await apiGetVideo(videoinfo);
+			
+			
+			if (Videoinfo.code === 200 && Videoinfo.data && Videoinfo.data.records && Array.isArray(Videoinfo.data.records)) {
+				videoList.value = Videoinfo.data.records.map(item => ({
+					title: item.title,
+					src: "http://video.caimizm.com/" + item.url,
+					id: item.id,
+					account: item.account,
+					likeCount: item.likeCount,
+					createTime: item.createTime,
+					flag: item.price > 0 ? item.flag : false,
+					price: item.price,
+					updateTime: item.updateTime,
+					imgurl: "http://video.caimizm.com/" + item.vimg
+				}));
+				
+				
+				uni.showToast({
+					title: `已加载 ${videoList.value.length} 个视频`,
+					icon: 'success',
+					duration: 1500
+				});
+			} else {
+				console.warn('API 返回数据格式不符合预期:', Videoinfo);
+				uni.showToast({
+					title: Videoinfo.msg || '数据格式错误',
+					icon: 'none'
+				});
+			}
+		} catch (error) {
+			console.error('获取视频失败:', error);
+			uni.showToast({
+				title: '获取视频失败，请检查网络',
+				icon: 'none'
+			});
+		}
+	}
+
+	const loadLotteryDataByType = async (lotteryType) => {
+		if (isLoadingLottery.value || !lotteryType || !lotteryType.name) return
+		try {
+			isLoadingLottery.value = true
+			uni.showLoading({ title: '加载中...' })
+			const response = await apiGetIssueNo({ tname: lotteryType.name })
+			uni.hideLoading()
+			if (response.code === 200 && response.data !== null && response.data !== undefined) {
+				let issueNumber = null
+				let issueStatus = '待开奖'
+				let issueTime = '今天 21:30'
+				if (typeof response.data === 'number' || typeof response.data === 'string') {
+					issueNumber = response.data.toString()
+				} else if (typeof response.data === 'object') {
+					issueNumber = response.data.issueno || response.data.number || response.data.id
+					issueStatus = response.data.status || '待开奖'
+					issueTime = response.data.time || '今天 21:30'
+				}
+				lotteryType.status = issueStatus
+				lotteryType.time = issueTime
+				const idx = lotteryTypes.value.findIndex(t => t.code === lotteryType.code)
+				if (idx !== -1) {
+					lotteryTypes.value[idx].status = issueStatus
+					lotteryTypes.value[idx].time = issueTime
+				}
+				currentIssueInfo.value = { id: issueNumber, number: issueNumber, status: issueStatus, time: issueTime }
+				
+				// 保存到本地存储，供 biaodan.vue 使用
+				try {
+					uni.setStorageSync('currentIssueInfo', currentIssueInfo.value)
+					uni.setStorageSync('currentLotteryType', lotteryType)
+				} catch (error) {
+					console.error('保存期号信息失败:', error)
+				}
+			} else {
+				uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
+>>>>>>> feature
 			}
 			lotteryType.status = issueStatus
 			lotteryType.time = issueTime
@@ -277,9 +383,16 @@ const switchTab = (tab) => {
 	currentTab.value = tab;
 };
 
+<<<<<<< HEAD
 const switchUpcomingTab = (tab) => {
 	upcomingTab.value = tab;
 };
+=======
+	const switchUpcomingAction = (action) => {
+		upcomingAction.value = action;
+		console.log('切换到:', action);
+	};
+>>>>>>> feature
 
 const switchUpcomingAction = (action) => {
 	upcomingAction.value = action;
@@ -295,6 +408,7 @@ const switchNav = (nav) => {
 };
 
 
+<<<<<<< HEAD
 // 播放视频方法 - 新增付费检查
 const playVideo = async (video) => {
 	// 检查是否登录
@@ -305,6 +419,31 @@ const playVideo = async (video) => {
 			icon: 'none'
 		});
 		setTimeout(() => {
+=======
+	// 播放视频方法 - 新增付费检查
+	const playVideo = async (video) => {
+		// 检查是否登录
+		const token = getToken();
+		if (!token) {
+			uni.showToast({
+				title: '请先登录',
+				icon: 'none'
+			});
+			setTimeout(() => {
+				uni.navigateTo({
+					url: '/pages/login/login'
+				});
+			}, 1500);
+			return;
+		}
+
+		// 将当前视频保存到 Pinia store
+		videoStore.setCurrentVideo(video)
+
+		// 如果视频是免费的（price为0或flag为false），直接播放
+		if (!video.flag || video.price === 0) {
+			// 免费视频直接播放
+>>>>>>> feature
 			uni.navigateTo({
 				url: '/pages/login/login'
 			});
@@ -353,10 +492,15 @@ const playVideo = async (video) => {
 					}
 				});
 			}
+<<<<<<< HEAD
 		} else {
 			uni.navigateTo({
 				url: `/pages/video/play?id=${video.id}`
 			});
+=======
+		} catch (error) {
+			console.error('检查视频付费状态失败:', error);
+>>>>>>> feature
 		}
 	} catch (error) {
 		uni.showToast({
@@ -366,6 +510,7 @@ const playVideo = async (video) => {
 	}
 };
 
+<<<<<<< HEAD
 // 支付视频方法
 const payForVideo = async (video) => {
 	try {
@@ -429,11 +574,22 @@ const toggleLike = async (video) => {
 		const originalIsLiked = video.isLiked;
 		const originalLikeCount = video.likeCount;
 		// console.log(originalLikeCount)
+=======
+	//是否点赞
+	// 点赞功能
+	const toggleLike = async (video) => {
+		try {
+			// 保存原始状态，以便在请求失败时恢复
+			const originalIsLiked = video.isLiked;
+			const originalLikeCount = video.likeCount;
+			// console.log(originalLikeCount)
+>>>>>>> feature
 
-		// 立即更新UI，提供更好的用户体验
-		video.isLiked = !video.isLiked;
-		video.likeCount = video.isLiked ? video.likeCount + 1 : video.likeCount - 1;
+			// 立即更新UI，提供更好的用户体验
+			video.isLiked = !video.isLiked;
+			video.likeCount = video.isLiked ? video.likeCount + 1 : video.likeCount - 1;
 
+<<<<<<< HEAD
 		// 调用点赞API
 		console.log(video, "====过来的数据=====")
 		const response = await apiGetIsLike(video);
@@ -444,6 +600,18 @@ const toggleLike = async (video) => {
 		console.log(a);
 	} catch (error) {
 		console.error('点赞操作失败:', error);
+=======
+			// 调用点赞API
+			console.log(video, "====过来的数据=====")
+			const response = await apiGetIsLike(video);
+			console.log('点赞操作成功');
+
+			const a = await apiGetLikelist(getAccount());
+
+			console.log(a);
+		} catch (error) {
+			console.error('点赞操作失败:', error);
+>>>>>>> feature
 
 		// 恢复原始状态
 		video.isLiked = originalIsLiked;

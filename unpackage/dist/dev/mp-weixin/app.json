@@ -1,0 +1,67 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/juWang/drawLine/drawLine",
+    "pages/index/index",
+    "pages/classify/classify",
+    "pages/user/user",
+    "pages/video/play",
+    "pages/video/reward",
+    "pages/video/payment",
+    "components/NumberSelector/NumberSelector",
+    "pages/classlist/classlist",
+    "pages/user/edit-profile",
+    "pages/video/oss",
+    "pages/video/biaodan",
+    "pages/notice/notice",
+    "pages/notice/detail",
+    "pages/search/search",
+    "pages/reg/reg",
+    "pages/code-login/code-login",
+    "pages/video/video",
+    "pages/forum/forum",
+    "pages/predict-scheme/predict-scheme",
+    "pages/predict-publish/predict-publish",
+    "pages/pattern-predict/pattern-predict",
+    "pages/dream-interpretation/dream-interpretation",
+    "pages/recharge/recharge",
+    "pages/transaction/transaction",
+    "pages/orders/orders"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "咸虾米壁纸",
+    "navigationBarBackgroundColor": "#fff",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#9799a5",
+    "selectedColor": "#28B389",
+    "list": [
+      {
+        "text": "推荐",
+        "pagePath": "pages/index/index",
+        "iconPath": "static/images/tabBar/home.png",
+        "selectedIconPath": "static/images/tabBar/user-h.png"
+      },
+      {
+        "text": "视频",
+        "pagePath": "pages/video/video",
+        "iconPath": "/static/video/tabar.png"
+      },
+      {
+        "text": "彩友圈",
+        "pagePath": "pages/forum/forum",
+        "iconPath": "static/images/tabBar/classify.png",
+        "selectedIconPath": "static/images/tabBar/classify-h.png"
+      },
+      {
+        "text": "我的",
+        "pagePath": "pages/user/user",
+        "iconPath": "static/images/tabBar/user.png",
+        "selectedIconPath": "static/images/tabBar/user-h.png"
+      }
+    ]
+  },
+  "usingComponents": {}
+}

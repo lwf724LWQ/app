@@ -1,282 +1,252 @@
 {
-	"pages": [ 
-		{
-			"path": "pages/login/login",
-			"style": {
-				"navigationBarTitleText": "登录页"
-			}
-		},
-		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "首页",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/juWang/drawLine/drawLineRead",
-			"style": {
-				"navigationBarTitleText": "画规只读",
-				"app-plus": {
-					"bounce": "vertical",
-					"titleNView": {
-						"buttons": [{
-							"text": "\ue534",
-							"fontSrc": "/static/uni.ttf",
-							"fontSize": "22px",
-							"color": "#FFFFFF"
-						}]
-					}
-				},
-				"enablePullDownRefresh": true,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/juWang/drawLine/drawLine",
-			"style": {
-				"navigationBarTitleText": "画规",
-				"navigationStyle": "custom",
-				"app-plus": {
-					"bounce": "vertical",
-					"titleNView": {
-						"buttons": [{
-							"text": "\ue534",
-							"fontSrc": "/static/uni.ttf",
-							"fontSize": "22px",
-							"color": "#FFFFFF"
-						}]
-					}
-				},
-				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/classify/classify",
-			"style": {
-				"navigationBarTitleText": "分类",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/user/user",
-			"style": {
-				"navigationBarTitleText": "我的",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/video/play",
-			"style": {
-				"navigationBarTitleText": "视频播放",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/video/reward",
-			"style": {
-				"navigationBarTitleText": "打赏博主",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/video/payment",
-			"style": {
-				"navigationBarTitleText": "视频支付",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "components/NumberSelector/NumberSelector",
-			"style": {
-				"navigationBarTitleText": "数字digit-display",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/classlist/classlist",
-			"style": {
-				"navigationBarTitleText": "分类列表",
-				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/user/edit-profile",
-			"style": {
-				"navigationBarTitleText": "编辑资料",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录页"
+      }
+    },
+    {
+      "path": "pages/juWang/peng-liao/drawLine/drawLine",
+      "style": {
+        "navigationBarTitleText": "画规",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/classify/classify",
+      "style": {
+        "navigationBarTitleText": "分类",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/user",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/video/play",
+      "style": {
+        "navigationBarTitleText": "视频播放",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/video/reward",
+      "style": {
+        "navigationBarTitleText": "打赏博主",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/video/payment",
+      "style": {
+        "navigationBarTitleText": "视频支付",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "components/NumberSelector/NumberSelector",
+      "style": {
+        "navigationBarTitleText": "数字digit-display",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/classlist/classlist",
+      "style": {
+        "navigationBarTitleText": "分类列表",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/user/edit-profile",
+      "style": {
+        "navigationBarTitleText": "编辑资料",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
 
-		{
-			"path": "pages/video/oss",
-			"style": {
-				"navigationBarTitleText": "上传视频",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/video/biaodan",
-			"style": {
-				"navigationBarTitleText": "表单",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		// {
-		// 	"path": "pages/preview/preview",
-		// 	"style": {
-		// 		"navigationBarTitleText": "预览",
-		// 		"enablePullDownRefresh": false,
-		// 		"navigationStyle": "custom"
-		// 	}
-		// },
-		{
-			"path": "pages/notice/notice",
-			"style": {
-				"navigationBarTitleText": "公告",
-				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/notice/detail",
-			"style": {
-				"navigationBarTitleText": "公告详情",
-				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/search/search",
-			"style": {
-				"navigationBarTitleText": "搜索",
-				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/reg/reg",
-			"style": {
-				"navigationBarTitleText": ""
-			}
-		},
-		{
-			"path": "pages/code-login/code-login",
-			"style": {
-				"navigationBarTitleText": ""
-			}
-		},
-		{
-			"path": "pages/video/video",
-			"style": {
-				"navigationBarTitleText": "视频",
-				"enablePullDownRefresh": true,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/forum/forum",
-			"style": {
-				"navigationBarTitleText": "彩友圈",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/predict-scheme/predict-scheme",
-			"style": {
-				"navigationBarTitleText": "设置方案",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/predict-publish/predict-publish",
-			"style": {
-				"navigationBarTitleText": "预测",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/pattern-predict/pattern-predict",
-			"style": {
-				"navigationBarTitleText": "规律预测",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/dream-interpretation/dream-interpretation",
-			"style": {
-				"navigationBarTitleText": "解梦",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/recharge/recharge",
-			"style": {
-				"navigationBarTitleText": "我的金币",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/transaction/transaction",
-			"style": {
-				"navigationBarTitleText": "金币交易记录",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/orders/orders",
-			"style": {
-				"navigationBarTitleText": "我的订单",
-				"enablePullDownRefresh": false,
-				"navigationStyle": "custom"
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "咸虾米壁纸",
-		"navigationBarBackgroundColor": "#fff",
-		"backgroundColor": "#F8F8F8"
-	},
-	"tabBar": {
-		"color": "#9799a5",
-		"selectedColor": "#28B389",
-		"list": [{
-				"text": "推荐",
-				"pagePath": "pages/index/index",
-				"iconPath": "static/images/tabBar/home.png",
-				"selectedIconPath": "static/images/tabBar/user-h.png"
-			}, {
-				"text": "视频",
-				"pagePath": "pages/video/video",
-				"iconPath": "/static/video/tabar.png"
-			},
-			{
-				"text": "彩友圈",
-				"pagePath": "pages/forum/forum",
-				"iconPath": "static/images/tabBar/classify.png",
-				"selectedIconPath": "static/images/tabBar/classify-h.png"
-			},
-			{
-				"text": "我的",
-				"pagePath": "pages/user/user",
-				"iconPath": "static/images/tabBar/user.png",
-				"selectedIconPath": "static/images/tabBar/user-h.png"
-			}
-
-		]
-	}
+    {
+      "path": "pages/video/oss",
+      "style": {
+        "navigationBarTitleText": "上传视频",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/video/biaodan",
+      "style": {
+        "navigationBarTitleText": "表单",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    // {
+    // 	"path": "pages/preview/preview",
+    // 	"style": {
+    // 		"navigationBarTitleText": "预览",
+    // 		"enablePullDownRefresh": false,
+    // 		"navigationStyle": "custom"
+    // 	}
+    // },
+    {
+      "path": "pages/notice/notice",
+      "style": {
+        "navigationBarTitleText": "公告",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/notice/detail",
+      "style": {
+        "navigationBarTitleText": "公告详情",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/search/search",
+      "style": {
+        "navigationBarTitleText": "搜索",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
+      "path": "pages/reg/reg",
+      "style": {
+        "navigationBarTitleText": ""
+      }
+    },
+    {
+      "path": "pages/code-login/code-login",
+      "style": {
+        "navigationBarTitleText": ""
+      }
+    },
+    {
+      "path": "pages/video/video",
+      "style": {
+        "navigationBarTitleText": "视频",
+        "enablePullDownRefresh": true,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/forum/forum",
+      "style": {
+        "navigationBarTitleText": "彩友圈",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/predict-scheme/predict-scheme",
+      "style": {
+        "navigationBarTitleText": "设置方案",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/predict-publish/predict-publish",
+      "style": {
+        "navigationBarTitleText": "预测",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/pattern-predict/pattern-predict",
+      "style": {
+        "navigationBarTitleText": "规律预测",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/dream-interpretation/dream-interpretation",
+      "style": {
+        "navigationBarTitleText": "解梦",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/recharge/recharge",
+      "style": {
+        "navigationBarTitleText": "我的金币",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/transaction/transaction",
+      "style": {
+        "navigationBarTitleText": "金币交易记录",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/orders/orders",
+      "style": {
+        "navigationBarTitleText": "我的订单",
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "咸虾米壁纸",
+    "navigationBarBackgroundColor": "#fff",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#9799a5",
+    "selectedColor": "#28B389",
+    "list": [
+      {
+        "text": "推荐",
+        "pagePath": "pages/index/index",
+        "iconPath": "static/images/tabBar/home.png",
+        "selectedIconPath": "static/images/tabBar/user-h.png"
+      },
+      {
+        "text": "视频",
+        "pagePath": "pages/video/video",
+        "iconPath": "/static/video/tabar.png"
+      },
+      {
+        "text": "彩友圈",
+        "pagePath": "pages/forum/forum",
+        "iconPath": "static/images/tabBar/classify.png",
+        "selectedIconPath": "static/images/tabBar/classify-h.png"
+      },
+      {
+        "text": "我的",
+        "pagePath": "pages/user/user",
+        "iconPath": "static/images/tabBar/user.png",
+        "selectedIconPath": "static/images/tabBar/user-h.png"
+      }
+    ]
+  }
 }
