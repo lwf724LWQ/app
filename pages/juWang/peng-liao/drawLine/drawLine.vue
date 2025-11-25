@@ -2,7 +2,7 @@
   <view class="draw-line">
     <Popup ref="popup" @sbumit="popupSbumit"></Popup>
     <view class="tools">
-      <view class="">
+      <view class="" @click="back">
         <uni-icons type="left" size="20" color="#fff"></uni-icons>
       </view>
       <view class="" @click="revoke">
@@ -17,17 +17,23 @@
         <uni-icons type="redo" size="20" color="#fff"></uni-icons>
         <view class="">分享</view>
       </view>
-      <view class="">
+      <view class="" @click="saveImage">
         <uni-icons type="download" size="20" color="#fff"></uni-icons>
         <view class="">保存</view>
       </view>
-      <view class="">
+      <!-- <view class="">
         <uni-icons type="settings" size="20" color="#fff"></uni-icons>
         <view class="">设置</view>
-      </view>
+      </view> -->
     </view>
 
-    <scroll-view class="container" id="container" @scroll="scroll" :scroll-y="isScroll">
+    <scroll-view
+      class="container"
+      id="container"
+      @scroll="scroll"
+      :scroll-y="isScroll"
+      :scroll-top="scrollInitTop"
+    >
       <view v-if="data" class="data">
         <!-- 绘制图形 -->
         <canvas
@@ -43,6 +49,7 @@
           class="row"
           v-for="item in data"
           :key="item.id"
+          @touchstart="touchstart"
           @touchmove="touchmove"
           @touchend="touchend"
         >
@@ -57,7 +64,6 @@
               :class="{ active: pointActives[item.id + 0] }"
               :style="{ backgroundColor: pointActives[item.id + 0]?.color || '' }"
               :id="item.id + 0"
-              @touchstart="touchstart($event, item.id + 0)"
               >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
             >
           </view>
@@ -69,7 +75,6 @@
                 :class="{ active: pointActives[item.id + (index + 1)] }"
                 :style="{ backgroundColor: pointActives[item.id + (index + 1)]?.color || '' }"
                 :id="item.id + (index + 1)"
-                @touchstart="touchstart($event, item.id + (index + 1))"
                 >{{ number }}</view
               >
             </view>
@@ -216,12 +221,13 @@
 import { ref, nextTick, computed, watch } from 'vue'
 import { onReady } from '@dcloudio/uni-app'
 import { getCurrentInstance } from 'vue'
-// import mock from './mock.json'
+import mock from './mock.json'
 import Popup from '@/components/juWang/Popup.vue'
 import ColorSelect from '@/components/juWang/ColorSelect.vue'
 import ModeSelect from '@/components/juWang/ModeSelect.vue'
 import { DrawShape } from './drawMethod'
 import dayjs from 'dayjs'
+import html2canvas from 'html2canvas'
 
 //解析日期
 const weekMap = {
@@ -242,15 +248,16 @@ const dateFromat = (dateStr) => {
 }
 
 const instance = getCurrentInstance()
-let ratio
 let lineCtx
-// let graphicsCtx
 const popup = ref(null)
 
-// const uni.getSystemInfo
-const systemInfo = ref(uni.getSystemInfoSync())
-// console.log(systemInfo.value)
+const systemInfo = uni.getSystemInfoSync()
+let ratio = systemInfo.screenWidth / 750
+// 安全距离
+const safeArea = ref(systemInfo.safeArea)
+console.log(systemInfo.screenHeight);
 
+const scrollInitTop = ref(0) // 滚动条初始位置
 // 页面数据
 const data = ref([])
 let positionList
@@ -260,7 +267,7 @@ const getData = async () => {
   })
   data.value = res.data.data.records.reverse()
   data.value.forEach((item) => {
-    item.number = item.number.split(' ').slice(0, 5)
+    item.number = item.number?.split(' ').slice(0, 5)
   })
   // data.value = mock.data.records
   // data.value.forEach((item) => {
@@ -272,10 +279,10 @@ const getData = async () => {
   query
     .selectAll('.item')
     .boundingClientRect((data) => {
-      // console.log("节点离页面顶部的距离为" ,data);
       positionList = data
     })
     .exec()
+  scrollInitTop.value = 9999
 }
 getData()
 
@@ -353,7 +360,7 @@ const getPosition = (x, y) => {
   return result
 }
 
-const touchstart = (event, id) => {
+const touchstart = (event) => {
   event.preventDefault()
   isScroll.value = false
 
@@ -426,6 +433,10 @@ const pointActives = computed(() => {
   })
   return result
 })
+
+const back = () => {
+  uni.navigateBack()
+}
 // 撤销
 const revoke = () => {
   iscurveHandleShow.value = false
@@ -439,6 +450,35 @@ const trash = () => {
   record.value = []
   drawnLineAll()
   lineCtx.draw()
+}
+// 保存页面截图
+const saveImage = async () => {
+  const canvas = await html2canvas(document.querySelector('.draw-line'))
+  const url = canvas.toDataURL('image/png')
+  // #ifdef H5
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'canvas.png'
+  a.click()
+  // #endif
+
+  // #ifdef MP-WEIXIN
+  uni.saveImageToPhotosAlbum({
+    filePath: url,
+    success: (res) => {
+      uni.showToast({
+        title: '保存成功',
+        icon: 'none'
+      })
+    },
+    fail: (err) => {
+      uni.showToast({
+        title: '保存失败',
+        icon: 'none'
+      })
+    }
+  })
+  // #endif
 }
 // 获取元素位置信息
 const getRect = (id) => {
@@ -454,7 +494,6 @@ const getRect = (id) => {
 }
 onReady(async () => {
   lineCtx = uni.createCanvasContext('lineCanvas')
-  ratio = (await getRect('.container')).width / 750
   ;({
     drawnStraightLine,
     drawnCurveLine,
@@ -906,21 +945,21 @@ const changeMode = () => {
 .draw-line {
   height: 100vh;
   position: relative;
-  margin-top: v-bind('systemInfo.safeArea.top');
+  // margin-top: v-bind('safeArea.top');
   .color-select {
-    position: absolute;
+    position: fixed;
     bottom: 30rpx;
     left: 30rpx;
     z-index: 999;
   }
   .mode-select {
-    position: absolute;
+    position: fixed;
     bottom: 30rpx;
     right: 0;
     z-index: 999;
   }
   .lock {
-    position: absolute;
+    position: fixed;
     bottom: 30rpx;
     z-index: 999;
     left: 50%;
@@ -933,7 +972,7 @@ const changeMode = () => {
 $tools-height: 100rpx;
 .container {
   position: relative;
-  max-height: calc(100vh - 100rpx);
+  height: calc(100vh - 100rpx);
   view {
     pointer-events: v-bind('containerPointerEvents');
   }
@@ -1110,7 +1149,6 @@ $tools-height: 100rpx;
     width: 70rpx;
     height: 70rpx;
     font-size: 30rpx;
-    // background-color: #f7212d;
     border-radius: 50%;
     color: #fff;
     text-align: center;
@@ -1129,7 +1167,7 @@ $tools-height: 100rpx;
 .item {
   position: relative;
   z-index: 3;
-  pointer-events: v-bind(pointerEvents);
+  pointer-events: v-bind('pointerEvents') !important;
 }
 
 .tools {
