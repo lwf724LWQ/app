@@ -1,66 +1,87 @@
 <template>
     <uni-popup ref="popup" type="bottom" borderRadius="10px 10px 0 0">
-        <view class="auto-line-setting-menu">
-            <view class="auto-line-setting-menu-item">
-                <view class="flex" v-show="modelValue.panCount == 1">
-                    <view>号码拖拽点</view>
-                    <view>
-                        <switch @change="controlSwitchChange" :checked="modelValue.controlSwitch" />
+        <view class="wrapper">
+            <view class="title">智能笔设置</view>
+            <view class="row flex justify-between" v-show="modelValue.panCount == 1">
+                <switch @change="controlSwitchChange" :checked="modelValue.controlSwitch" />
+                <span class="tipText flex flex1 justify-start">号码连接拖拽点</span>
+            </view>
+            <view class="row flex justify-start">
+                <view class="name">颜色</view>
+                <view class="btns flex">
+                    <view class="item flex" :class="{ 'on': modelValue.isMoreColor == 'false' }"
+                        @click="isMoreColorChange('false')">
+                        单色笔
                     </view>
-                </view>
-                <view>
-                    <view>颜色</view>
-                    <view>
-                        <radio-group @change="isMoreColorChange">
-                            <label class="radio">
-                                <radio value="true" :checked="!modelValue.isMoreColor" />单色
-                            </label>
-                            <label class="radio">
-                                <radio value="false" :checked="modelValue.isMoreColor"
-                                    :disabled="modelValue.panCount == 1" />多彩
-                            </label>
-                        </radio-group>
-                    </view>
-                </view>
-                <view>
-                    <view>线型</view>
-                    <view>
-                        <radio-group @change="lineTypeChange">
-                            <label class="radio">
-                                <radio value="topBezier" :checked="modelValue.lineType == 'topBezier'" />上曲线
-                            </label>
-                            <label class="radio">
-                                <radio value="bottomBezier" :checked="modelValue.lineType == 'bottomBezier'" />下曲线
-                            </label>
-                            <label class="radio">
-                                <radio value="line" :checked="modelValue.lineType == 'line'" />直线
-                            </label>
-                        </radio-group>
-                    </view>
-                </view>
-                <view>
-                    <view>笔数</view>
-                    <view>
-                        <radio-group @change="panCountChange">
-                            <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
-                                <radio :value="i" :checked="modelValue.panCount === i" />{{ i }}支
-                            </label>
-                        </radio-group>
-                    </view>
-                </view>
-                <view>
-                    <view>间隔</view>
-                    <view>
-                        <radio-group @change="intervalChange">
-                            <label class="radio" v-for="i in [1, 2, 3, 4, 5]" v-bind:key="i">
-                                <radio :value="i" :checked="modelValue.interval === i"
-                                    :disabled="modelValue.panCount == 1" />{{ i }}期
-                            </label>
-                        </radio-group>
+                    <view class="item flex" v-show="modelValue.panCount > 1"
+                        :class="{ 'on': modelValue.isMoreColor == 'true' }" @click="isMoreColorChange('true')">
+                        多色笔
                     </view>
                 </view>
             </view>
-            <button class="autoLineSettingMenu-btn" type="default" @click="handleCancel">返回</button>
+            <view class="row flex justify-start">
+                <view class="name">线形</view>
+                <view class="btns flex">
+                    <view class="item flex" :class="{ 'on': modelValue.lineType == 'topBezier' }"
+                        @click="lineTypeChange('topBezier')">
+                        上曲线
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.lineType == 'bottomBezier' }"
+                        @click="lineTypeChange('bottomBezier')">
+                        下曲线
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.lineType == 'line' }"
+                        @click="lineTypeChange('line')">
+                        直线
+                    </view>
+                </view>
+            </view>
+            <view class="row flex justify-start" :class="{ 'disable': modelValue.panCount == 1 }">
+                <view class="name">间隔</view>
+                <view class="btns flex btnsEq">
+                    <view class="item flex" :class="{ 'on': modelValue.interval == '0' }" @click="intervalChange('0')">
+                        0 期
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.interval == '1' }" @click="intervalChange('1')">
+                        1 期
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.interval == '2' }" @click="intervalChange('2')">
+                        2 期
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.interval == '3' }" @click="intervalChange('3')">
+                        3 期
+                    </view>
+                    <view class="item flex" :class="{ 'on': modelValue.interval == '4' }" @click="intervalChange('4')">
+                        4 期
+                    </view>
+                </view>
+            </view>
+            <view class="row flex justify-start">
+                <view class="name">笔数</view>
+                <view class="btns flex btnsEq">
+                    <view data-v="1" class="item flex" :class="{ 'on': modelValue.panCount == '1' }"
+                        @click="panCountChange('1')">
+                        1 支
+                    </view>
+                    <view data-v="2" class="item flex" :class="{ 'on': modelValue.panCount == '2' }"
+                        @click="panCountChange('2')">
+                        2 支
+                    </view>
+                    <view data-v="3" class="item flex" :class="{ 'on': modelValue.panCount == '3' }"
+                        @click="panCountChange('3')">
+                        3 支
+                    </view>
+                    <view data-v="4" class="item flex" :class="{ 'on': modelValue.panCount == '4' }"
+                        @click="panCountChange('4')">
+                        4 支
+                    </view>
+                    <view data-v="5" class="item flex" :class="{ 'on': modelValue.panCount == '5' }"
+                        @click="panCountChange('5')">
+                        5 支
+                    </view>
+                </view>
+            </view>
+            <view class="button flex">确定</view>
         </view>
     </uni-popup>
 </template>
@@ -76,9 +97,9 @@ export default {
             default: function () {
                 return {
                     controlSwitch: true,
-                    isMoreColor: false,
-                    interval: 1,
-                    panCount: 1,
+                    isMoreColor: 'false',
+                    interval: "1",
+                    panCount: "1",
                     lineType: 'topBezier'
                 }
             }
@@ -99,26 +120,26 @@ export default {
             this.$emit('update:modelValue', { ...this.modelValue, controlSwitch: e.detail.value });
             this.$emit('change')
         },
-        isMoreColorChange(e) {
-            this.$emit('update:modelValue', { ...this.modelValue, isMoreColor: e.detail.value === 'true' });
+        isMoreColorChange(value) {
+            this.$emit('update:modelValue', { ...this.modelValue, isMoreColor: value });
             this.$emit('change')
         },
-        intervalChange(e) {
-            this.$emit('update:modelValue', { ...this.modelValue, interval: parseInt(e.detail.value) });
+        intervalChange(value) {
+            this.$emit('update:modelValue', { ...this.modelValue, interval: value });
             this.$emit('change')
         },
-        panCountChange(e) {
+        panCountChange(value) {
             const data = {}
-            if (e.detail.value == 1) {
-                data.isMoreColor = false
-                data.interval = 1
+            if (value == "1") {
+                data.isMoreColor = 'false'
+                data.interval = "0"
             }
 
-            this.$emit('update:modelValue', { ...this.modelValue, data, panCount: parseInt(e.detail.value) });
+            this.$emit('update:modelValue', { ...this.modelValue, ...data, panCount: value });
             this.$emit('change')
         },
-        lineTypeChange(e) {
-            this.$emit('update:modelValue', { ...this.modelValue, lineType: e.detail.value });
+        lineTypeChange(value) {
+            this.$emit('update:modelValue', { ...this.modelValue, lineType: value });
             this.$emit('change')
         },
         open() {
@@ -136,18 +157,145 @@ export default {
     display: flex;
 }
 
-.auto-line-setting-menu {
-    // position: fixed;
-    // bottom: 200rpx;
-    // left: 0;
-    // right: 0;
-    background-color: #fff;
-    border-radius: 15rpx;
-    // margin: 0 12rpx;
-    padding: 20rpx;
+.wrapper {
+    position: relative;
+    width: 100%;
+    background: #fff;
+    padding: 18rpx 0 38rpx 0;
+}
 
-    .autoLineSettingMenu-btn {
-        margin-top: 20rpx;
-    }
+.wrapper .row {
+    margin: 28.8rpx 0 0 38.4rpx;
+    font-size: 30rpx;
+    color: #333;
+}
+
+.justify-start {
+    -webkit-box-pack: start;
+    -ms-flex-pack: start;
+    justify-content: start;
+    justify-content: flex-start;
+}
+
+.flex {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.wrapper .row .item {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.wrapper .row .item.on {
+    border-color: rgba(253, 61, 68, .2);
+    background: #fff5f5;
+    color: #fd3d44;
+}
+
+.wrapper .button {
+    height: .4rem;
+    margin: .2rem;
+    background-image: -webkit-gradient(linear, left top, right top, from(#fe7079), to(#fc3d44));
+    background-image: linear-gradient(90deg, #fe7079, #fc3d44);
+    -webkit-box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+    box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+    font-size: .18rem;
+    color: #fff;
+}
+
+.justify-start {
+    -webkit-box-pack: start;
+    -ms-flex-pack: start;
+    justify-content: start;
+    justify-content: flex-start;
+}
+
+.wrapper .row .item {
+    height: 51.7rpx;
+    margin-right: 19.2rpx;
+    padding: 0 21rpx;
+    border: 1px solid #f5f6f8;
+    position: relative;
+    line-height: normal;
+}
+
+.wrapper .row.disable .item {
+    border-color: #f5f6f8;
+    color: #bbb;
+}
+
+.wrapper .row .name {
+    margin-right: 38.4rpx;
+}
+
+.justify-between {
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+}
+
+.flex1 {
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.wrapper .row .tipText {
+    font-size: 26rpx;
+    color: #bbb;
+    margin-left: 28rpx;
+}
+
+.wrapper .button {
+    height: 76.8rpx;
+    margin: 38.4rpx 38.4rpx 0 38.4rpx;
+    background-image: -webkit-gradient(linear, left top, right top, from(#fe7079), to(#fc3d44));
+    background-image: linear-gradient(90deg, #fe7079, #fc3d44);
+    -webkit-box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+    box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+    font-size: 38rpx;
+    color: #fff;
+}
+
+.wrapper .title {
+    font-size: 38rpx;
+    font-weight: 700;
+    color: #333;
+    line-height: 1;
+    margin: 38.4rpx 0 38.4rpx 38.4rpx;
+    padding: 0 0 0 19.2rpx;
+    border-left: 5rpx solid #f81219;
+}
+
+.wrapper :deep .uni-switch-input {
+    background-image: -webkit-gradient(linear, left top, right top, from(#fe7079), to(#fc3d44));
+    background-image: linear-gradient(90deg, #fe7079, #fc3d44);
+    border-color: #f5f6f8;
 }
 </style>

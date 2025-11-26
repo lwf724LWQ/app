@@ -36,10 +36,11 @@ export default class IconNum {
             if (!(iconList[matrix.y] instanceof Array)) {
                 iconList[matrix.y] = []
             }
+            const oldNumber = iconList[matrix.y][matrix.x]
             iconList[matrix.y][matrix.x] = {
                 panStyle: PanStyle,
                 numStyle: getTableNumberStyle()[matrix.x],
-                number
+                number: number ? number : oldNumber?.number || '',
             }
         }
         this.table.setNowGraph(new MyUndoRedo(this, iconList, oldIconList))

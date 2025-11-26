@@ -50,16 +50,17 @@ export default {
     bottom: 22rpx;
 
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: flex-end;
     align-items: center;
 
-    width: 0;
+    width: 80rpx;
+    height: 0;
     overflow: hidden;
-    transition: width .3s;
+    transition: height .3s;
 
     &.open {
-        width: 240rpx;
+        height: 290rpx;
     }
 
     .pansize-item {

@@ -7,8 +7,12 @@
                     <view class="right-sw" v-if="!['小', '末'].includes(nowSelectPlaceValue)">
                         <!-- <view class="" @click="swSelectType('advanced')">高级</view>
                         <view class="" @click="swSelectType('simple')">简易</view> -->
-                        简易
-                        <switch :checked="selectType == 'simple'" @change="swSelectType" />
+                        <view class="sw-select">
+                            <view class="sw-item" :class="{ 'on': selectType != 'advanced' }" @click="swSelectType">高级
+                            </view>
+                            <view class="sw-item" :class="{ 'on': selectType != 'simple' }" @click="swSelectType">简易
+                            </view>
+                        </view>
                     </view>
                 </view>
 
@@ -148,8 +152,8 @@
                     </view>
                 </template>
                 <view class="btn-wrapper">
-                    <button type="primary" @click="handleConfirm">确定</button>
-                    <button type="default" @click="handleCancel">取消</button>
+                    <view class="confirm flex" @click="handleConfirm">确定</view>
+                    <view class="cancel flex" @click="handleCancel">取消</view>
                 </view>
             </view>
         </uni-popup>
@@ -196,6 +200,10 @@ export default {
         },
         handleConfirm: function () {
             let data = {}
+            if (this.numbers.length == 0) {
+                this.handleCancel()
+                return
+            }
             if (this.selectType == 'simple' || this.selectType == 'onlyNumber') {
                 data = {
                     string: this.numbers.join("")
@@ -276,12 +284,9 @@ export default {
         outPreview(placeValue, position) {
             const type = this.type
             const numbers = this.numbers
-            if (position == 'bg' && placeValue == this.nowSelectPlaceValue) {
-                return true
-            }
-            if (numbers.length === 0) {
-                return ''
-            }
+            // if (position == 'bg' && placeValue == this.nowSelectPlaceValue) {
+            //     return true
+            // }
             // 判断类型是否为 中肚合 千百合 百个合
             if (["中肚合", "千百合", "百个合", "稳码"].includes(type)) {
                 if (type == "中肚合") {
@@ -329,7 +334,7 @@ export default {
     background: #fff;
     border-radius: 20rpx 20rpx 0 0;
 
-    padding: 0 20rpx;
+    padding: 0 30rpx;
 
     .title-box {
         position: relative;
@@ -337,9 +342,13 @@ export default {
         padding: 20rpx 0;
 
         .popup-title {
-            font-size: 45rpx;
+            width: 100%;
+            font-size: 30rpx;
             font-weight: bold;
+            color: #333;
+            padding: .2rem;
             text-align: center;
+            position: relative;
 
         }
 
@@ -350,15 +359,31 @@ export default {
             right: 20rpx;
             top: 20rpx;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
 
 
+            .sw-select {
+                display: flex;
+                flex-direction: row;
+                font-size: 24rpx;
+                border-radius: 15rpx;
+                height: 48rpx;
+                padding: 2rpx;
+                background-color: #f0f0f0;
 
+                .sw-item {
+                    color: #333;
+                    border-radius: 15rpx;
+                    padding: 6rpx 20rpx;
+                    box-sizing: border-box;
+                    height: 46rpx;
+
+                    &.on {
+                        color: #f00;
+                        background-color: #fff;
+                    }
+                }
+            }
         }
-
-
     }
 
     .preview-wrapper {
@@ -372,7 +397,7 @@ export default {
         box-sizing: border-box;
         color: #fff;
 
-        height: 140rpx;
+        height: 120rpx;
         border-radius: 10rpx;
 
         .preview-item {
@@ -431,13 +456,17 @@ export default {
         align-items: center;
         justify-content: center;
 
+        font-size: 24rpx;
+        color: #7c7474;
+
         &.type-item {
-            background-color: #eee;
+            background-color: #f5f6f8;
             border-radius: 8rpx;
             text-align: center;
             padding: 10rpx;
-            font-size: 30rpx;
+            font-size: 26rpx;
             font-weight: bold;
+            color: #333;
 
             &.active {
                 background-color: #f3bbbba9;
@@ -447,15 +476,15 @@ export default {
         }
 
         .number-item {
-            font-size: 50rpx;
+            font-size: 30rpx;
             font-weight: bold;
-            width: 80rpx;
-            height: 80rpx;
-            background-color: #eee;
+            width: 60rpx;
+            height: 60rpx;
+            background-color: #f5f6f8;
             border-radius: 50%;
             text-align: center;
-            line-height: 80rpx;
-            color: #000;
+            line-height: 60rpx;
+            color: #333;
 
             &.active {
                 background-color: #FE0000;
@@ -469,6 +498,8 @@ export default {
 
         .popup-item-title {
             margin-bottom: 20rpx;
+            font-size: 28rpx;
+            font-weight: 700;
         }
     }
 
@@ -480,6 +511,49 @@ export default {
         button {
             width: 40%;
         }
+    }
+
+    .confirm {
+        width: 278.3rpx;
+        height: 76.8rpx;
+        background-image: -webkit-gradient(linear, left top, right top, from(#fe7079), to(#fc3d44));
+        background-image: linear-gradient(90deg, #fe7079, #fc3d44);
+        -webkit-box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+        box-shadow: 0 10px 20px 0 rgba(252, 61, 68, .7);
+        color: #fff;
+        font-size: 38rpx;
+        font-weight: bold;
+        margin: 0 15.3rpx;
+    }
+
+    .cancel {
+        width: 278.3rpx;
+        height: 76.8rpx;
+        background: #999;
+        -webkit-box-shadow: 0 10px 20px 0 hsla(0, 0%, 60%, .7);
+        box-shadow: 0 10px 20px 0 hsla(0, 0%, 60%, .7);
+        color: #fff;
+        font-size: 38rpx;
+        font-weight: bold;
+        margin: 0 15.3rpx;
+    }
+
+    .flex {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
     }
 }
 </style>

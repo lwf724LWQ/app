@@ -115,6 +115,7 @@ export default class DiyNumberRect {
         }else{
             // this.table.data[numberSelectData.XY.y].number[numberSelectData.XY.x] = numberSelectData.data.string
             this.table.iconNum.addIcon(new Position(numberSelectData.XY, PositionType.matrix), this.table.panStyle, true, numberSelectData.data.string)
+            
             this.table.drawTopCTX()
         }
     }
@@ -162,9 +163,6 @@ export default class DiyNumberRect {
         isDraw ? ctx.draw() : ""
     }
 }
-
-
-
 
 class MyRect extends Rect {
     data:numberSelectData;

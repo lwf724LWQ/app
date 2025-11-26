@@ -67,7 +67,7 @@ export interface PanStyle {
 export interface AutolineSetting {
     controlSwitch: Boolean; // 是否使用控制点
     lineType: 'topBezier' | 'bottomBezier' | 'line';
-    isMoreColor: Boolean; // 是否多彩
+    isMoreColor: "true" | 'false'; // 是否多彩
     interval: number; // 多笔下间隔
     panCount: number; // 多笔笔数
 }
@@ -150,7 +150,9 @@ export default class Table {
     openTextInput: Function; // 打开输入框的
     openNumberSelect: Function; // 打开数字选择框的
     controlEvent: ControlEvent; // 管理控制事件
-    constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function, openNumberSelect:Function){
+
+    saveImgFn: Function;
+    constructor(canvasId: {bg_canvas: string, line_canvas: string, topicon_canvas: string, control_canvas: string, diyNumber_canvas: string}, width: number, height: number, panStyle: PanStyle,data: Data, autolineSetting: AutolineSetting, openTextInput: Function, openNumberSelect:Function, saveImgFn: Function){
         this.canvasId = canvasId;
         this.width = width
         this.height = height
@@ -182,6 +184,8 @@ export default class Table {
         this.openNumberSelect = openNumberSelect
 
         this.controlEvent = new ControlEvent(this)
+
+        this.saveImgFn = saveImgFn
     }
     // 将被封存在graphs中的重新拿到nowDraw中
     upToNowDraw(graph: baseGraph){
@@ -195,14 +199,18 @@ export default class Table {
 
     // 输入文本
     isTextInputMode = false
+    tmpTextObj: Text | null = null
     textInput(value: string){
         value = value.trim()
         if (value === '') {
             return
         }
+        if (!this.tmpTextObj) {
+            return
+        }
         this.cleaDraw()
         this.overdrawForBg()
-        this.setNowGraph(new Text(this.panStyle, this.lastTouchPosition, this))
+        this.setNowGraph(this.tmpTextObj)
         if (value.length && this.drawNowGraph instanceof Text) {
             this.drawNowGraph.confirm(value)
         }
@@ -303,7 +311,7 @@ export default class Table {
     touchStartPosition: Position | null = null;
     lastTouchPosition: Position | null = null;
     isControlMode = false;
-    touchId: Symbol = Symbol("touchId");
+    touchId: string = tools.UUID();
     touchEvent(touche: TouchEvent) {
         const tableCanvasContext = this.tableCanvasContext;
         const panStyle = this.panStyle
@@ -317,7 +325,7 @@ export default class Table {
                 this.touchStartPosition = position
                 this.lastTouchPosition = position
                 this.isControlMode = false;
-                this.touchId = Symbol("touchId")
+                this.touchId = tools.UUID()
             case 'touchmove':
                 if(!touche) break;
                 if(touche.x && touche.x <= this.tableformat.dateInfo.width) break;
@@ -372,6 +380,7 @@ export default class Table {
                     if (this.controlEvent.tap(this.touchStartPosition, this.lastTouchPosition)) {
                         // 被控制类接手 交由控制类处理
                     }else if (this.panStyle.type == 'text') {
+                        this.tmpTextObj = new Text(this.panStyle, this.lastTouchPosition, this)
                         this.openTextInput()
                     }else{
                         // 这里判断是否为可填写行
@@ -405,7 +414,8 @@ export default class Table {
                         this.tableCanvasContext.control_canvas.draw()
                     }
                 }
-                this.touchId = Symbol("touchId")
+                this.touchId = tools.UUID()
+                this.touchStartPosition = null
                 this.lastTouchPosition = null
                 break;
             case "touchcancel":
@@ -530,13 +540,15 @@ export default class Table {
         const base64 = tempFilePath, fileName = "canvas.jpg";
         
         const blob = base64ToBlob(base64);
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        link.click();
+        const url = URL.createObjectURL(blob)
+        this.saveImgFn(url)
+        // const link = document.createElement('a');
+        // link.href = url;
+        // link.download = fileName;
+        // link.click();
         
         // 释放URL资源
-        URL.revokeObjectURL(link.href);
+        // URL.revokeObjectURL(link.href);
         uni.hideLoading()
         //#endif
         //#ifdef APP-PLUS

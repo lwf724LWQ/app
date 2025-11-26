@@ -226,6 +226,9 @@ export class BezierControl extends baseGraph {
             ctx.arc(real.x, real.y, this.r, 0, 2 * Math.PI)
             ctx.setFillStyle(this.panStyle.color)
             ctx.fill()
+            ctx.setFillStyle("#333")
+            ctx.setLineWidth(2)
+            ctx.stroke()
         }
     }
 

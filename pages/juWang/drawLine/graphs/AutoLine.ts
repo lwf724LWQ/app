@@ -37,16 +37,18 @@ export default class AutoLines extends baseGraph {
 
         this.autolineSetting = autolineSetting;
         this.data = data;
+        autolineSetting.interval ++
         const { panCount, isMoreColor, interval, controlSwitch, lineType } = autolineSetting;
         const { lineHeight } = tableStyle;
         let colorIndex = colors.findIndex(item => item.color === panStyle.color) || 0;
         const lineInterval = this.lineInterval = interval*lineHeight;
         const real_start = start.getRealPosition()
 
+        console.log(isMoreColor)
         if (real_start) {
             for (let index = 0; index < panCount; index++) {
                 const newStart = new Position(real_start.x, real_start.y + (lineInterval * index), PositionType.real)
-                const newPanStyle = Object.assign({}, panStyle, {color: isMoreColor ? panStyle.color : colors[colorIndex].color})
+                const newPanStyle = Object.assign({}, panStyle, {color: isMoreColor === 'false' ? panStyle.color : colors[colorIndex].color})
                 this.autoLine.push(new AutoLine(newPanStyle, newStart, autolineSetting, data, iconNum))
     
                 colorIndex++
