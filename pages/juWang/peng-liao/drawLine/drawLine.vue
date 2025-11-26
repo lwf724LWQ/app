@@ -212,7 +212,8 @@
       @click="changeMode"
     ></ModeSelect>
     <view class="lock" @click="lock" v-show="isLockShow">
-      <uni-icons type="locked-filled" size="30" color="#fff"></uni-icons>
+      <uni-icons type="locked-filled" size="30" color="#fff" v-if="isLock"></uni-icons>
+      <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
   </view>
 </template>
@@ -253,26 +254,26 @@ const popup = ref(null)
 
 const systemInfo = uni.getSystemInfoSync()
 let ratio = systemInfo.screenWidth / 750
-// 安全距离
-const safeArea = ref(systemInfo.safeArea)
-console.log(systemInfo.screenHeight);
+
+const safeArea = systemInfo.safeArea // 安全距离
+const windowHeight = systemInfo.windowHeight
 
 const scrollInitTop = ref(0) // 滚动条初始位置
 // 页面数据
 const data = ref([])
 let positionList
 const getData = async () => {
-  const res = await uni.request({
-    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=10'
-  })
-  data.value = res.data.data.records.reverse()
-  data.value.forEach((item) => {
-    item.number = item.number?.split(' ').slice(0, 5)
-  })
-  // data.value = mock.data.records
-  // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
+  // const res = await uni.request({
+  //   url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
   // })
+  // data.value = res.data.data.records.reverse()
+  // data.value.forEach((item) => {
+  //   item.number = item.number?.split(' ').slice(0, 5)
+  // })
+  data.value = mock.data.records
+  data.value.forEach((item) => {
+    item.number = item.number.split(' ').slice(0, 5)
+  })
 
   await nextTick()
   const query = uni.createSelectorQuery().in(instance.proxy)
@@ -606,11 +607,9 @@ const textStyle = (index) => {
 }
 
 const canvasTouchStart = (event) => {
-  // console.log('canvasTouchStart', isTextInputShow.value)
-
   let { x, y } = event.touches[0]
   // 控制页面滚动
-  if (x < 250 * ratio) {
+  if (x < 130 * ratio) {
     isScroll.value = true
     return
   } else {
@@ -701,7 +700,11 @@ const canvasTouchStart = (event) => {
 }
 
 const canvasTouchMove = (event) => {
-  if (isScroll.value) return
+  if (isScroll.value) {
+    return
+  } else {
+    event.preventDefault()
+  }
   const { x, y } = event.touches[0]
   drawnLineAll()
   switch (mode.value) {
@@ -742,6 +745,8 @@ const canvasTouchMove = (event) => {
 
 const canvasTouchEnd = (event) => {
   if (isScroll.value) return
+  else isScroll.value = true
+
   switch (mode.value) {
     case '自由线':
       record.value.push({
@@ -925,10 +930,13 @@ const isColorSelectShow = ref(true)
 const isLockShow = ref(true)
 const containerPointerEvents = ref('auto')
 
+const isLock = ref(false)
 const lock = () => {
-  isModeSelectShow.value = !isModeSelectShow.value
-  isColorSelectShow.value = !isColorSelectShow.value
-  containerPointerEvents.value = isLockShow.value ? 'none' : 'auto'
+  isLock.value = !isLock.value
+  isModeSelectShow.value = !isLock.value
+  isColorSelectShow.value = !isLock.value
+  containerPointerEvents.value = isLock.value ? 'none' : 'auto'
+  pointerEvents.value = isLock.value ? 'none' : mode.value === '智能曲线' ? 'auto' : 'none'
 }
 const changeColor = () => {
   isModeSelectShow.value = !isModeSelectShow.value
@@ -943,9 +951,8 @@ const changeMode = () => {
 <style lang="scss" scoped>
 @use 'sass:math';
 .draw-line {
-  height: 100vh;
+  height: v-bind('windowHeight + "px"');
   position: relative;
-  // margin-top: v-bind('safeArea.top');
   .color-select {
     position: fixed;
     bottom: 30rpx;
@@ -972,7 +979,7 @@ const changeMode = () => {
 $tools-height: 100rpx;
 .container {
   position: relative;
-  height: calc(100vh - 100rpx);
+  height: calc(v-bind('windowHeight + "px"') - 100rpx);
   view {
     pointer-events: v-bind('containerPointerEvents');
   }
@@ -1171,7 +1178,7 @@ $tools-height: 100rpx;
 }
 
 .tools {
-  position: sticky;
+  position: relative;
   top: 0;
   z-index: 6;
   height: $tools-height;
