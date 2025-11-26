@@ -1,5 +1,5 @@
 <template>
-	<view class="lottery-container">
+	<view class="lottery-container" :class="{ 'old-man-mode': useOldManModeStore.enabled }">
 		<!-- 顶部广告轮播图 -->
 		<swiper class="ad-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500" circular="true"
 			easing-function="default">
@@ -149,6 +149,7 @@
 import { apiFindResult } from '@/api/apis.js'
 
 export default {
+	inject: ['useOldManModeStore'],
 	data() {
 		return {
 			currentTab: 'plw',
@@ -326,283 +327,566 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.lottery-container {
+.lottery-container:not(.old-man-mode) {
 	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
 	background-color: #f5f5f5;
+
+	/* 轮播图样式 */
+	.ad-swiper {
+		width: 100%;
+		height: 320rpx;
+		padding: 20rpx;
+		margin-bottom: 20rpx;
+	}
+
+	.swiper-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		border-radius: 30rpx;
+		overflow: hidden;
+	}
+
+	.swiper-item image {
+		width: 100%;
+		height: 100%;
+	}
+
+	/* 福彩3D开奖结果 */
+	.lottery-results-fc3d {
+		margin: 0 20rpx 20rpx 20rpx;
+	}
+
+	.result-item-fc3d {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-fc3d {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-fc3d {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.winning-numbers-fc3d {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-item-fc3d {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	/* 排列五开奖结果 */
+	.lottery-results-plw {
+		margin: 0 20rpx 20rpx 20rpx;
+	}
+
+	.result-item-plw {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-plw {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-plw {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.lottery-date {
+		font-size: 24rpx;
+		color: #666;
+	}
+
+	.winning-numbers-plw {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.number-item-plw {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	.number-label {
+		font-size: 20rpx;
+		color: #999;
+	}
+
+	/* 七星彩开奖结果 */
+	.lottery-results-qxc {
+		margin: 0 20rpx 20rpx 20rpx;
+	}
+
+	.result-item-qxc {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-qxc {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+	}
+
+	.lottery-title-qxc {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.winning-numbers-qxc {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-item-qxc {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	/* 七星彩最后一个号码球显示为绿色 */
+	.number-item-qxc.qxc-special {
+		background-color: #28B389;
+	}
+
+	/* 通知横幅 */
+	.notice-banner {
+		display: flex;
+		align-items: center;
+		margin: 0 20rpx 20rpx 20rpx;
+		padding: 20rpx;
+		background-color: #fff;
+		border-radius: 10rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	/* 通知横幅图标样式 */
+	.notice-banner uni-icons[type="sound"] {
+		margin-right: 10rpx;
+	}
+
+	.notice-banner uni-icons[type="right"] {
+		margin-left: 0;
+	}
+
+	.notice-text {
+		font-size: 26rpx;
+		color: #333;
+		flex: 1;
+	}
+
+	.notice-new {
+		font-size: 20rpx;
+		color: #fff;
+		background-color: #e74c3c;
+		padding: 4rpx 10rpx;
+		border-radius: 4rpx;
+		margin-right: 10rpx;
+	}
+
+
+	/* 功能图标区 */
+	.function-area {
+		padding: 20rpx;
+		background-color: #f5f5f5;
+	}
+
+	.function-grid {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 20rpx 10rpx;
+		background-color: #fff;
+		padding: 30rpx;
+		border-radius: 10rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.icon-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+	}
+
+	.icon-item image {
+		width: 60rpx;
+		height: 60rpx;
+		margin-bottom: 8rpx;
+	}
+
+	/* uni-icons 图标样式 */
+	.icon-item uni-icons {
+		margin-bottom: 8rpx;
+	}
+
+	.icon-item text {
+		font-size: 20rpx;
+		color: #666;
+	}
+
+	.icon-item-message {
+		position: relative;
+	}
+
+	.message-badge {
+		position: absolute;
+		top: -4rpx;
+		right: -4rpx;
+		background-color: #e74c3c;
+		color: #fff;
+		font-size: 18rpx;
+		width: 32rpx;
+		height: 32rpx;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2rpx solid #fff;
+	}
 }
 
-/* 轮播图样式 */
-.ad-swiper {
-	width: 100%;
-	height: 180rpx;
-}
-
-.swiper-item {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	border-radius: 30rpx;
-	overflow: hidden;
-}
-
-.swiper-item image {
-	width: 100%;
-	height: 100%;
-}
-
-/* 福彩3D开奖结果 */
-.lottery-results-fc3d {}
-
-.result-item-fc3d {
-	background-color: #fff;
-	border-radius: 10rpx;
-	padding: 0 20rpx;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.result-header-fc3d {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.lottery-title-fc3d {
-	font-size: 40rpx;
-	font-weight: bold;
-	color: #000;
-}
-
-.winning-numbers-fc3d {
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 10rpx;
-}
-
-.number-item-fc3d {
-	width: 80rpx;
-	height: 80rpx;
-	font-size: 72rpx;
-	font-weight: bold;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: #e74c3c;
-	border-radius: 50%;
-	color: #fff;
-	margin-bottom: 8rpx;
-}
-
-/* 排列五开奖结果 */
-.lottery-results-plw {
-	margin: 0;
-}
-
-.result-item-plw {
-	background-color: #fff;
-	border-radius: 10rpx;
-	padding: 0 20rpx;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.result-header-plw {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.lottery-title-plw {
-	font-size: 38rpx;
-	font-weight: bold;
-	color: #000;
-}
-
-.lottery-date {
-	font-size: 44rpx;
-	color: #000;
-	font-weight: bold;
-}
-
-.winning-numbers-plw {
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 10rpx;
-}
-
-.number-wrapper {
+.lottery-container.old-man-mode {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-}
-
-.number-item-plw {
-	width: 80rpx;
-	height: 80rpx;
-	font-size: 72rpx;
-	font-weight: bold;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: #e74c3c;
-	border-radius: 50%;
-	color: #fff;
-	margin-bottom: 8rpx;
-}
-
-.number-label {
-	font-size: 35rpx;
-	font-weight: bold;
-	color: #000000;
-}
-
-/* 七星彩开奖结果 */
-.lottery-results-qxc {
-	margin: 0 0;
-}
-
-.result-item-qxc {
-	background-color: #fff;
-	border-radius: 10rpx;
-	padding: 0 20rpx;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.result-header-qxc {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 0;
-}
-
-.lottery-title-qxc {
-	font-size: 40rpx;
-	font-weight: bold;
-	color: #333;
-}
-
-.winning-numbers-qxc {
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 10rpx;
-}
-
-.number-item-qxc {
-	width: 80rpx;
-	height: 80rpx;
-	font-size: 72rpx;
-	font-weight: bold;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: #e74c3c;
-	border-radius: 50%;
-	color: #fff;
-}
-
-/* 七星彩最后一个号码球显示为绿色 */
-.number-item-qxc.qxc-special {
-	background-color: #28B389;
-}
-
-/* 通知横幅 */
-.notice-banner {
-	display: flex;
-	align-items: center;
-	padding: 0 20rpx;
-	background-color: #fff;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-/* 通知横幅图标样式 */
-.notice-banner uni-icons[type="sound"] {
-	margin-right: 10rpx;
-}
-
-.notice-banner uni-icons[type="right"] {
-	margin-left: 0;
-}
-
-.notice-text {
-	font-size: 40rpx;
-	font-weight: bold;
-	color: #000000;
-	flex: 1;
-}
-
-.notice-new {
-	font-size: 20rpx;
-	color: #fff;
-	background-color: #e74c3c;
-	padding: 4rpx 10rpx;
-	margin-right: 10rpx;
-}
-
-
-/* 功能图标区 */
-.function-area {
+	min-height: 100vh;
 	background-color: #f5f5f5;
-}
 
-.function-grid {
-	display: grid;
-	grid-template-columns: repeat(5, 1fr);
-	gap: 20rpx 10rpx;
-	background-color: #fff;
-	padding: 30rpx;
-	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
+	/* 轮播图样式 */
+	.ad-swiper {
+		width: 100%;
+		height: 180rpx;
+	}
 
-.icon-item {
-	display: flex;
-	flex-direction: column;
-	font-weight: bolder;
-	align-items: center;
-	justify-content: center;
-	position: relative;
+	.swiper-item {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		border-radius: 30rpx;
+		overflow: hidden;
+	}
 
-}
+	.swiper-item image {
+		width: 100%;
+		height: 100%;
+	}
 
-.icon-item image {
-	width: 50rpx;
-	height: 50rpx;
-}
+	/* 福彩3D开奖结果 */
+	.lottery-results-fc3d {}
 
-/* uni-icons 图标样式 */
-.icon-item uni-icons {
-	font-size: 30rpx;
-	margin-bottom: 8rpx;
-}
+	.result-item-fc3d {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 0 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
 
-.icon-item text {
-	font-size: 50rpx;
-	color: #353434;
+	.result-header-fc3d {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
 
-	// &.leng3 {
-	// 	font-size: 43rpx;
-	// }
-}
+	.lottery-title-fc3d {
+		font-size: 40rpx;
+		font-weight: bold;
+		color: #000;
+	}
 
-.icon-item-message {
-	position: relative;
-}
+	.winning-numbers-fc3d {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
 
-.message-badge {
-	position: absolute;
-	top: -4rpx;
-	right: -4rpx;
-	background-color: #e74c3c;
-	color: #fff;
-	font-size: 18rpx;
-	width: 32rpx;
-	height: 32rpx;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border: 2rpx solid #fff;
+	.number-item-fc3d {
+		width: 80rpx;
+		height: 80rpx;
+		font-size: 72rpx;
+		font-weight: bold;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	/* 排列五开奖结果 */
+	.lottery-results-plw {
+		margin: 0;
+	}
+
+	.result-item-plw {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 0 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-plw {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.lottery-title-plw {
+		font-size: 38rpx;
+		font-weight: bold;
+		color: #000;
+	}
+
+	.lottery-date {
+		font-size: 44rpx;
+		color: #000;
+		font-weight: bold;
+	}
+
+	.winning-numbers-plw {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.number-item-plw {
+		width: 80rpx;
+		height: 80rpx;
+		font-size: 72rpx;
+		font-weight: bold;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		color: #fff;
+		margin-bottom: 8rpx;
+	}
+
+	.number-label {
+		font-size: 35rpx;
+		font-weight: bold;
+		color: #000000;
+	}
+
+	/* 七星彩开奖结果 */
+	.lottery-results-qxc {
+		margin: 0 0;
+	}
+
+	.result-item-qxc {
+		background-color: #fff;
+		border-radius: 10rpx;
+		padding: 0 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.result-header-qxc {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0;
+	}
+
+	.lottery-title-qxc {
+		font-size: 40rpx;
+		font-weight: bold;
+		color: #333;
+	}
+
+	.winning-numbers-qxc {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.number-item-qxc {
+		width: 80rpx;
+		height: 80rpx;
+		font-size: 72rpx;
+		font-weight: bold;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #e74c3c;
+		border-radius: 50%;
+		color: #fff;
+	}
+
+	/* 七星彩最后一个号码球显示为绿色 */
+	.number-item-qxc.qxc-special {
+		background-color: #28B389;
+	}
+
+	/* 通知横幅 */
+	.notice-banner {
+		display: flex;
+		align-items: center;
+		padding: 0 20rpx;
+		background-color: #fff;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	/* 通知横幅图标样式 */
+	.notice-banner uni-icons[type="sound"] {
+		margin-right: 10rpx;
+	}
+
+	.notice-banner uni-icons[type="right"] {
+		margin-left: 0;
+	}
+
+	.notice-text {
+		font-size: 40rpx;
+		font-weight: bold;
+		color: #000000;
+		flex: 1;
+	}
+
+	.notice-new {
+		font-size: 20rpx;
+		color: #fff;
+		background-color: #e74c3c;
+		padding: 4rpx 10rpx;
+		margin-right: 10rpx;
+	}
+
+
+	/* 功能图标区 */
+	.function-area {
+		background-color: #f5f5f5;
+	}
+
+	.function-grid {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 20rpx 10rpx;
+		background-color: #fff;
+		padding: 30rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.icon-item {
+		display: flex;
+		flex-direction: column;
+		font-weight: bolder;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+
+	}
+
+	.icon-item image {
+		width: 50rpx;
+		height: 50rpx;
+	}
+
+	/* uni-icons 图标样式 */
+	.icon-item uni-icons {
+		font-size: 30rpx;
+		margin-bottom: 8rpx;
+	}
+
+	.icon-item text {
+		font-size: 50rpx;
+		color: #353434;
+
+		// &.leng3 {
+		// 	font-size: 43rpx;
+		// }
+	}
+
+	.icon-item-message {
+		position: relative;
+	}
+
+	.message-badge {
+		position: absolute;
+		top: -4rpx;
+		right: -4rpx;
+		background-color: #e74c3c;
+		color: #fff;
+		font-size: 18rpx;
+		width: 32rpx;
+		height: 32rpx;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2rpx solid #fff;
+	}
 }
 </style>

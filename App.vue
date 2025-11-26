@@ -1,8 +1,10 @@
 <script>
+import oldManMode from './components/oldManMode';
 export default {
-  onLaunch: function () {},
-  onShow: function () {},
-  onHide: function () {}
+  mixins: [oldManMode],
+  onLaunch: function () { },
+  onShow: function () { },
+  onHide: function () { }
 }
 </script>
 

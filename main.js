@@ -1,13 +1,9 @@
 import App from './App'
-import vuex from 'vuex'
 
 const platform = uni.getSystemInfoSync().platform;
 
 const isH5 = platform === 'web'|| platform === 'windows'||platform === 'mac';//判断是否是h5环境中
 const isApp = platform === 'android' || platform === 'ios'||platform ==='mp-weixin';//判断小程序是否是安卓或者苹果环境中
-
-
-
 
 //如果是vue3环境下（文件从这里进去的）
 // #ifdef VUE3
