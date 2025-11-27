@@ -421,7 +421,7 @@ const startUpload = async () => {
 						url += `?videoId=${videoId}&tname=${tname}`
 					}
 
-					uni.navigateTo({
+					uni.redirectTo({
 						url: url,
 						success: () => {
 							// 重置表单

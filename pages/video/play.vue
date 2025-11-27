@@ -12,25 +12,23 @@
 			<!-- 视频播放器容器 -->
 			<view class="video-container">
 				<!-- <video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" -->
-				<video v-if="videoData.src" :src="videoData.src" :show-play-btn="true" :controls="true"
-					:autoplay="false" :show-fullscreen-btn="true" object-fit="cover" class="video-player"
+				<video v-if="videoData.id" :src="videoData.src" :show-play-btn="true" :controls="true" :autoplay="false"
+					:show-fullscreen-btn="true" object-fit="cover" class="video-player"
 					:class="{ 'video-full-screen': isFullScreen }" id="videoPlayer" @play="onVideoPlay"
 					@pause="onVideoPause" @ended="onVideoEnded"></video>
 				<view v-else class="video-placeholder">
 					<text class="placeholder-text">视频加载中...</text>
 				</view>
 
-
-
 				<!-- 播放按钮遮罩层 -->
-				<view class="play-overlay" v-if="videoData.src && showPlayButton" @click="playVideo">
+				<view class="play-overlay" v-if="showPlayButton" @click="playVideo">
 					<view class="play-button">
 						<uni-icons type="play-filled" size="60" color="#fff"></uni-icons>
 					</view>
 				</view>
 
 				<!-- 购买按钮（如果有价格） -->
-				<view class="buy-overlay" v-if="!hasPaid && videoData.src && videoData.price && videoData.price > 0"
+				<view class="buy-overlay" v-if="!hasPaid && videoData.price && videoData.price > 0"
 					@click="handleBuyClick">
 					<view class="buy-button">
 						<text class="buy-text">¥{{ videoData.price }}购买</text>
@@ -184,54 +182,36 @@ const getAvatarUrl = (himg) => {
 
 // 加载视频数据的统一方法
 const loadVideoData = async (videoId) => {
-	if (!videoId) return
-
+	if (!videoId) {
+		uni.redirectTo({ url: '/pages/index/index' })
+	}
 	try {
-		// 优先从 store 获取
-		let currentVideo = videoStore.getCurrentVideo
-
-		// 如果 store 中没有数据，尝试从本地存储恢复
-		if (!currentVideo || currentVideo.id !== videoId) {
-			const storedVideo = uni.getStorageSync(`video_${videoId}`)
-			if (storedVideo && storedVideo.id === videoId) {
-				currentVideo = storedVideo
-				// 恢复到 store
-				videoStore.setCurrentVideo(currentVideo)
+		let currentVideo = {}
+		uni.showLoading({ title: '加载中...' })
+		// 加载视频数据
+		const response = await apiGetVideoDetail({ videoId: videoId })
+		if (response.code === 200 && response.data) {
+			const item = response.data
+			currentVideo = {
+				id: item.id,
+				title: item.title,
+				src: `http://video.caimizm.com/${item.url}`,
+				account: item.account,
+				likeCount: item.likeCount || 0,
+				isLiked: item.isLiked || false,
+				flag: item.price > 0 ? item.flag : false, // 是否为收费视频
+				price: item.price,
+				imgurl: `http://video.caimizm.com/${item.vimg}`
 			}
-		}
-
-		// 如果仍然没有数据，尝试通过 API 获取
-		if (!currentVideo || currentVideo.id !== videoId) {
-			uni.showLoading({ title: '加载中...' })
-			const response = await apiGetVideoDetail({ videoId: videoId })
-			uni.hideLoading()
-
-			if (response.code === 200 && response.data) {
-				const item = response.data
-				currentVideo = {
-					id: item.id,
-					title: item.title,
-					src: `http://video.caimizm.com/${item.url}`,
-					account: item.account,
-					likeCount: item.likeCount || 0,
-					isLiked: item.isLiked || false,
-					flag: item.price > 0 ? item.flag : false,
-					price: item.price,
-					imgurl: `http://video.caimizm.com/${item.vimg}`
-				}
-				// 保存到 store 和本地存储
-				videoStore.setCurrentVideo(currentVideo)
-				uni.setStorageSync(`video_${videoId}`, currentVideo)
-			} else {
-				uni.showToast({
-					title: '视频不存在',
-					icon: 'none'
-				})
-				setTimeout(() => {
-					uni.navigateBack()
-				}, 1500)
-				return
-			}
+		} else {
+			uni.showToast({
+				title: '视频不存在',
+				icon: 'none'
+			})
+			setTimeout(() => {
+				uni.redirectTo({ url: '/pages/video/video' })
+			}, 1500)
+			return
 		}
 
 		// 使用获取到的视频数据
@@ -239,7 +219,7 @@ const loadVideoData = async (videoId) => {
 			videoData.value = {
 				id: currentVideo.id,
 				title: currentVideo.title,
-				src: currentVideo.src,
+				src: "",
 				account: currentVideo.account,
 				likeCount: currentVideo.likeCount || 0,
 				isLiked: currentVideo.isLiked || false,
@@ -255,38 +235,70 @@ const loadVideoData = async (videoId) => {
 			if (videoData.value.src && !videoContext.value) {
 				videoContext.value = uni.createVideoContext('videoPlayer')
 			}
-
+			let isPay = true
 			// 检查付费状态（仅对付费视频）
 			if (!isFreeVideo.value) {
-				await checkPaymentStatus()
+				isPay = await checkPaymentStatus()
+			}
+
+			if (isPay) {
+				// 这里判断已经付费才加载视频
+				videoData.value.src = await toBlobUrlVideo(currentVideo.src)
 			}
 		}
 	} catch (error) {
-		uni.hideLoading()
+		console.error(error)
 		uni.showToast({
 			title: '加载视频失败',
 			icon: 'none'
 		})
+	} finally {
+		uni.hideLoading()
 	}
 }
+// 将视频转为blob
+/**
+ * @param {string} videoUrl 视频URL
+ * @returns {Promise<Blob>} 转换后的Blob对象
+ */
+const toBlobUrlVideo = (videoUrl) => {
+	return new Promise((resolve, reject) => {
+		console.log(videoUrl)
+		fetch(videoUrl)
+			.then((response) => response.blob())
+			.then((blob) => {
+				// 创建一个URL对象，将Blob对象转换为URL
+				const url = URL.createObjectURL(blob)
+				console.log(url)
+				resolve(url)
+			})
+			.catch((error) => {
+				reject(error)
+			})
+	})
+}
+
 // 跳转到首页
 const toIndex = () => {
 	uni.switchTab({ url: '/pages/index/index' })
 }
 
 // 检查付费状态
+/**
+ * @returns Boolean 是否已付费
+ */
 const checkPaymentStatus = async () => {
 	// 如果是免费视频，不需要检查
 	if (isFreeVideo.value) {
 		hasPaid.value = false
-		return
+		return true
 	}
 
 	// 检查是否登录
 	const token = getToken()
 	if (!token) {
 		hasPaid.value = false
-		return
+		return true
 	}
 
 	try {
@@ -300,41 +312,43 @@ const checkPaymentStatus = async () => {
 		} else {
 			hasPaid.value = false
 		}
+		return hasPaid.value
 	} catch (error) {
 		hasPaid.value = false
+		uni.showToast({
+			title: '检查付费状态失败',
+			icon: 'none'
+		})
 	}
+	return false
 }
-
+const pageOptions = {}
 // 获取路由参数
 onLoad(async (options) => {
-	if (options.id) {
-		await loadVideoData(options.id)
-	}
+	pageOptions.id = options.id
 })
 
 // 页面显示时重新加载数据（刷新时触发）
 onShow(async () => {
 	// 重置表单图片状态
-	showFormImage.value = false
-	formImageUrl.value = ''
+	// showFormImage.value = false
+	// formImageUrl.value = ''
 
 	// 如果 videoData 中没有 id，尝试从 store 或 URL 参数获取
-	if (!videoData.value.id) {
-		const pages = getCurrentPages()
-		const currentPage = pages[pages.length - 1]
-		const options = currentPage.options || {}
-		if (options.id) {
-			await loadVideoData(options.id)
-		}
-	} else {
-		// 重新加载当前视频数据
-		await loadVideoData(videoData.value.id)
-	}
+	// if (!videoData.value.id) {
+	// 	const pages = getCurrentPages()
+	// 	const currentPage = pages[pages.length - 1]
+	// 	const options = currentPage.options || {}
+	// 	if (options.id) {
+	// 		await loadVideoData(options.id)
+	// 	}
+	// } else {
+	// 	// 重新加载当前视频数据
+	// 	await loadVideoData(videoData.value.id)
+	// }
 
 	// 重新检查付费状态
-	if (videoData.value.id && !isFreeVideo.value) {
-		await checkPaymentStatus()
-	}
+	await loadVideoData(pageOptions.id)
 })
 
 // 在onMounted中初始化视频上下文

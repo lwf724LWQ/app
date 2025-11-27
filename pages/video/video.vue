@@ -64,12 +64,13 @@
 
 <script setup>
 import {
-	onPullDownRefresh
+	onPullDownRefresh,
+	onShow
 } from '@dcloudio/uni-app'
 import {
 	ref,
 	reactive,
-	onMounted
+	onMounted,
 } from 'vue';
 import {
 	apiGetVideo,
@@ -468,7 +469,9 @@ const gotoOss = () => {
 	});
 };
 
-
+onShow(async() => {
+	fetchVideoList();
+})
 
 // 生命周期钩子
 onMounted(async () => {
