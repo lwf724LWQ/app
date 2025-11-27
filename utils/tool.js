@@ -1,15 +1,17 @@
-import { client, initOSS } from "./alioss.js";
+import { client, initOSS, uploadForApp } from "./alioss.js";
 import { nanoid } from 'nanoid/non-secure';
 
 const tool = {
   oss: {
     async upload(file, options = {}) {
-      try {
+      // try {
         // 确保客户端已初始化
+        // #ifdef H5
         let ossClient = client
         if (!ossClient) {
           ossClient = await initOSS()
         }
+        // #endif
         
         // 从选项中获取文件夹路径和文件名前缀
         const folder = options.folder || 'uploads'
@@ -17,12 +19,15 @@ const tool = {
         
         // 安全地获取文件名
         let fileName = ''
+		console.log(file)
         if (file && file.name) {
           fileName = file.name
         } else if (file && file.path) {
           const pathParts = file.path.split('/')
           fileName = pathParts[pathParts.length - 1]
-        } else {
+        } else if (typeof file === 'string') {
+			fileName = file
+		} else {
           throw new Error('文件对象格式不正确，缺少 name 或 path 属性')
         }
         
@@ -41,9 +46,10 @@ const tool = {
           原始文件名: fileName,
           远程文件名: remoteFileName,
         })
-        
+        // return await uploadForApp(remoteFileName, file, options)
         // 使用 put 方法（兼容性更好）
-
+        // #ifdef H5
+		    console.log("h5 oss库上传")
         const result = await client.multipartUpload(remoteFileName, file, {
           timeout: 600000,
           parallel: 4,
@@ -58,6 +64,13 @@ const tool = {
           }
         });
         return result;
+        // #endif
+
+        // #ifdef APP-PLUS
+        console.log('app上传')
+        return await uploadForApp(remoteFileName, file, options)
+        // #endif
+        
 
         // return await ossClient.put(remoteFileName, file, {
         //   timeout: options.timeout || 600000,
@@ -68,10 +81,7 @@ const tool = {
         //     console.log('上传进度:', Math.round(p * 100) + '%')
         //   },
         // })
-      } catch (error) {
-        console.error('上传文件时发生错误:', error)
-        throw error
-      }
+      
     }
   },
 }

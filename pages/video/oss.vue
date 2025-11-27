@@ -271,7 +271,7 @@ const startUpload = async () => {
 			if (!ext || !['mp4', 'mov', 'avi', 'm4v', 'webm'].includes(ext)) {
 				fileName = fileName.split('.').slice(0, -1).join('.') + '.mp4'
 			}
-
+			console.log(fileItem)
 			if (fileItem.path && typeof window !== 'undefined') {
 				// H5环境：将临时路径转换为File对象
 				const response = await fetch(fileItem.path)
@@ -290,7 +290,7 @@ const startUpload = async () => {
 					statusMessage.value = `视频上传中: ${uploadProgress.value}%`
 				},
 			})
-
+			console.log('视频上传结果:', videoResult)
 			// 上传封面图片到 vimg 文件夹
 			let coverUrl = ""
 			if (coverFile.value) {
