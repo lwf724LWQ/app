@@ -22,6 +22,7 @@
               <view
                 class="item"
                 v-for="number in 10"
+                :key="number"
                 @click="addNumber(number - 1)"
                 :class="{ 'bg-active': numbers.includes(number - 1) }"
                 >{{ number - 1 }}</view
@@ -89,8 +90,9 @@
               <view
                 class="item"
                 v-for="number in 10"
-                @click="addNumber(number - 1)"
-                :class="{ 'bg-active': numbers.includes(number - 1) }"
+                :key="number"
+                @click="currentCondition = number - 1"
+                :class="{ 'bg-active': currentCondition === number - 1 }"
                 >{{ number - 1 }}</view
               >
             </view>
@@ -100,8 +102,9 @@
               <view
                 class="item"
                 v-for="number in 5"
-                @click="addNum(number - 1, number + 4)"
-                :class="{ 'text-active': currentCondition === `${number - 1}/${number + 4}` }"
+                :key="number"
+                @click="currentCondition = `${number - 1}/${number + 4}`"
+                :class="{ 'bg-active': currentCondition === `${number - 1}/${number + 4}` }"
               >
                 {{ `${number - 1}/${number + 4}` }}
               </view>
@@ -113,7 +116,7 @@
                 class="item"
                 v-for="condition in simpleConditions"
                 :key="condition"
-                @click="addNumberList(condition)"
+                @click="currentCondition = condition"
                 :class="{ 'text-active': currentCondition === condition }"
                 >{{ condition }}</view
               >
@@ -134,6 +137,7 @@
           <view
             class="item"
             v-for="number in 37"
+            :key="number"
             @click="currentCondition = number - 1"
             :class="{ 'text-active': currentCondition === number - 1 }"
             >{{ number - 1 }}</view
@@ -145,6 +149,7 @@
           <view
             class="item"
             v-for="condition in refernumberConditions"
+            :key="condition"
             @click="currentCondition = condition"
             :class="{ 'text-active': currentCondition === condition }"
             >{{ condition }}</view
@@ -283,22 +288,21 @@ const seniorSubmit = () => {
     condition: currentCondition.value,
     numbers: numbers.value,
     isSolid: isSolid.value,
-    indexs: effectList.value.map((item) => item + 1)
+    indexs: effectList.value.map((item) => item + 1),
+    senior: true
   })
+  clearForm()
   popup.value.close()
 }
 const simpleSubmit = () => {
-  if (numbers.value.length === 0) {
-    msg.value.send('至少选择一个号码')
-    return
-  }
-  console.log(effectList.value)
   sbumit('sbumit', {
     condition: currentCondition.value,
     numbers: [],
     isSolid: true,
-    indexs: effectList.value.map((item) => item + 1)
+    indexs: effectList.value.map((item) => item + 1),
+    senior: false
   })
+  clearForm()
   popup.value.close()
   isSwitchShow.value = true
 }
@@ -316,13 +320,11 @@ const refernumberPopup = ref(null)
 const openRefernumber = () => {
   refernumberPopup.value.open('center')
 }
-// onMounted(()=>{
-// 	refernumberPopup.value.open('center')
-// })
 
 const refernumberConditions = ['单', '双', '大', '小']
 const refernumberSubmit = () => {
   sbumit('sbumit', { condition: currentCondition.value, numbers: [], isSolid: true, indexs: [0] })
+  clearForm()
   refernumberPopup.value.close()
 }
 
@@ -330,6 +332,15 @@ const openSimple = () => {
   formMode.value = '简易'
   isSwitchShow.value = false
   open(4)
+}
+
+// 清空表单
+const clearForm = () => {
+  numbers.value = []
+  currentCondition.value = ''
+  effectList.value = [1]
+  isSwitchShow.value = true
+  formMode.value = '高级'
 }
 
 defineExpose({

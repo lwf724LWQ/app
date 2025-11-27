@@ -988,12 +988,12 @@ const handleSubmit = async () => {
 }
 
 /* 5个子项时：每4个换行 */
-.grid-container:has(.item:nth-child(5):last-child) {
+.grid-container.item:nth-child(5):last-child {
   grid-template-columns: repeat(4, 1fr);
 }
 
 /* 6个子项时：每3个换行 */
-.grid-container:has(.item:nth-child(6):last-child) {
+.grid-container.item:nth-child(6):last-child {
   grid-template-columns: repeat(3, 1fr);
 }
 </style>

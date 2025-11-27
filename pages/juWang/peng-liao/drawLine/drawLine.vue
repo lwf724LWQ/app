@@ -6,25 +6,25 @@
         <uni-icons type="left" size="20" color="#fff"></uni-icons>
       </view>
       <view class="" @click="revoke">
-        <uni-icons type="undo" size="20" color="#fff"></uni-icons>
+        <uni-icons custom-prefix="iconfont" type="icon-chexiao" size="20" color="#fff"></uni-icons>
         <view class="">撤销</view>
       </view>
       <view class="" @click="trash">
-        <uni-icons type="trash" size="20" color="#fff"></uni-icons>
+        <uni-icons type="trash" size="25" color="#fff"></uni-icons>
         <view class="">清除</view>
       </view>
       <view class="">
-        <uni-icons type="redo" size="20" color="#fff"></uni-icons>
+        <uni-icons custom-prefix="iconfont" type="icon-fenxiang" size="20" color="#fff"></uni-icons>
         <view class="">分享</view>
       </view>
       <view class="" @click="saveImage">
-        <uni-icons type="download" size="20" color="#fff"></uni-icons>
+        <uni-icons custom-prefix="iconfont" type="icon-baocun" size="20" color="#fff"></uni-icons>
         <view class="">保存</view>
       </view>
-      <!-- <view class="">
-        <uni-icons type="settings" size="20" color="#fff"></uni-icons>
+      <view class="">
+        <uni-icons type="settings" size="25" color="#fff"></uni-icons>
         <view class="">设置</view>
-      </view> -->
+      </view>
     </view>
 
     <scroll-view
@@ -40,19 +40,12 @@
           class="line-canvas"
           canvas-id="lineCanvas"
           id="lineCanvas"
-          @touchstart="canvasTouchStart"
-          @touchmove="canvasTouchMove"
-          @touchend="canvasTouchEnd"
-        ></canvas>
-        <!-- 数字区域 -->
-        <view
-          class="row"
-          v-for="item in data"
-          :key="item.id"
           @touchstart="touchstart"
           @touchmove="touchmove"
           @touchend="touchend"
-        >
+        ></canvas>
+        <!-- 数字区域 -->
+        <view class="row" v-for="item in data" :key="item.id">
           <view class="column-1">
             <view class="issueno">{{ item.issueno }}</view>
             <view class="date">{{ dateFromat(item.opendate) }}</view>
@@ -81,20 +74,16 @@
           </view>
         </view>
         <!-- 空白区域 -->
-        <view
-          class="row"
-          v-for="row in 6"
-          :key="row"
-          @touchmove="touchmove"
-          @touchend="spaceTouchend"
-        >
+        <view class="row" v-for="row in 6" :key="row">
           <view class="column-1"></view>
 
           <view class="column-2">
             <view
               class="marker"
               v-if="marks[`${row}-0`]"
-              :style="{ backgroundColor: marks[`${row}-0`].style.color || '' }"
+              :style="{
+                backgroundColor: marks[`${row}-0`].style.color || ''
+              }"
             >
               <view class="condition">{{ marks[`${row}-0`].marker.condition }}</view>
               <view class="number">{{ marks[`${row}-0`].marker.numbers.join('') }}</view>
@@ -112,7 +101,10 @@
             <view v-for="(val, index) in 5" :key="val">
               <view
                 v-if="marks[`${row}-${index + 1}`]"
-                :class="{ marker: index !== 4, 'marker-5': index === 4 }"
+                :class="{
+                  marker: index !== 4 && marks[`${row}-${index + 1}`].marker.senior,
+                  'marker-simple': index === 4 || !marks[`${row}-${index + 1}`].marker.senior
+                }"
                 :style="getColorStyle(`${row}-${index + 1}`)"
               >
                 <view class="condition">{{ marks[`${row}-${index + 1}`].marker.condition }}</view>
@@ -212,7 +204,15 @@
       @click="changeMode"
     ></ModeSelect>
     <view class="lock" @click="lock" v-show="isLockShow">
-      <uni-icons type="locked-filled" size="30" color="#fff"></uni-icons>
+      <uni-icons
+        custom-prefix="iconfont"
+        type="icon-shangxiajiantou"
+        size="30"
+        color="#fff"
+        v-if="isLock"
+      >
+      </uni-icons>
+      <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
   </view>
 </template>
@@ -253,9 +253,9 @@ const popup = ref(null)
 
 const systemInfo = uni.getSystemInfoSync()
 let ratio = systemInfo.screenWidth / 750
-// 安全距离
-const safeArea = ref(systemInfo.safeArea)
-console.log(systemInfo.screenHeight);
+
+const safeArea = systemInfo.safeArea // 安全距离
+const windowHeight = systemInfo.windowHeight
 
 const scrollInitTop = ref(0) // 滚动条初始位置
 // 页面数据
@@ -263,7 +263,7 @@ const data = ref([])
 let positionList
 const getData = async () => {
   const res = await uni.request({
-    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=10'
+    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
   })
   data.value = res.data.data.records.reverse()
   data.value.forEach((item) => {
@@ -286,9 +286,8 @@ const getData = async () => {
 }
 getData()
 
-// 绘制连接线
-const curveLineX = ref(0) // 曲线中间坐标
-const curveLineY = ref(0)
+const curveHandleX = ref(0)
+const curveHandleY = ref(0)
 
 const iscurveHandleShow = ref(false)
 
@@ -306,8 +305,8 @@ let drawnStraightLine,
 // 绘制曲线
 const curveLine = (startX, startY, endX, endY) => {
   drawnStraightLine(startX, startY, endX, endY)
-  curveLineX.value = (startX + endX) / 2
-  curveLineY.value = (startY + endY) / 2 - scrolltop
+  curveHandleX.value = (startX + endX) / 2
+  curveHandleY.value = (startY + endY) / 2 - scrolltop
 }
 // 绘制所有线
 const drawnLineAll = () => {
@@ -360,63 +359,309 @@ const getPosition = (x, y) => {
   return result
 }
 
+let isClick = true
+let tmpItemMeta = {}
+// 临时数据
+let track = [] // 轨迹
+let straightLine = {} // 直线
+let rect = {} // 方框
+let circle = {} // 圆
+let textPosition = {} // 文字位置
+
+const isTextInputShow = ref(false)
+const textareaPosition = ref({}) // textarea坐标
+const textareaValue = ref('')
 const touchstart = (event) => {
-  event.preventDefault()
-  isScroll.value = false
+  const { x, y } = event.touches[0]
+  startX = x
+  startY = y
 
-  iscurveHandleShow.value = false
-  const { clientX, clientY } = event.touches[0]
-  const position = getPosition(clientX, clientY + scrolltop)
-  startX = position.left + position.width / 2
-  startY = position.top + position.height / 2
-  record.value.push({ point: [position.id] })
-}
-
-const touchmove = (event) => {
-  event.preventDefault()
-  const { clientX, clientY } = event.touches[0]
-  drawnLineAll()
-  drawnStraightLine(startX, startY, clientX, clientY + scrolltop)
-  lineCtx.draw()
-}
-
-const touchend = (event) => {
-  isScroll.value = true
-
-  const { clientX, clientY } = event.changedTouches[0]
-  const position = getPosition(clientX, clientY + scrolltop)
-  endX = position.left + position.width / 2
-  endY = position.top + position.height / 2
-
-  drawnLineAll()
-
-  const lastRecord = record.value[record.value.length - 1]
-  lastRecord.style = { color: color.value, size: size.value }
-  if (lastRecord.point[0] !== position.id) {
-    lastRecord.point.push(position.id)
-    lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
-    iscurveHandleShow.value = true
-    curveLine(startX, startY, endX, endY)
+  if (x < 130 * ratio) {
+    isScroll.value = true
+    return
   } else {
-    iscurveHandleShow.value = false
+    isScroll.value = false
+  }
+
+  event.preventDefault()
+
+  tmpItemMeta = getPosition(x, y)
+  switch (mode.value) {
+    case '智能曲线':
+      break
+    case '自由线':
+      track = []
+      track.push({ x, y })
+      break
+    case '直线':
+      straightLine = {
+        startX: x,
+        startY: y
+      }
+      break
+    case '添加文字':
+      break
+    case '实心方框':
+    case '空心方框':
+      rect = {}
+      rect = {
+        x,
+        y
+      }
+      break
+    case '实心圆框':
+    case '空心圆框':
+      circle = {
+        startX: x,
+        startY: y
+      }
+      break
+  }
+  // startX = position.left + position.width / 2
+  // startY = position.top + position.height / 2
+  // record.value.push({ point: [position.id] })
+}
+
+let isFirst = true
+const touchmove = (event) => {
+  if (isScroll.value) {
+    return
+  } else {
+    event.preventDefault()
+  }
+
+  const { x, y } = event.touches[0]
+  // 判断是否是点击
+  isClick = false
+  if (Math.abs(startX - x) < 3 * ratio && Math.abs(startY - y) < 3 * ratio) {
+    isClick = true
+    return
+  }
+
+  drawnLineAll()
+  switch (mode.value) {
+    case '智能曲线':
+      if (isFirst)
+        record.value.push({
+          point: [tmpItemMeta.id],
+          style: { color: color.value, size: size.value }
+        })
+      // event.preventDefault()
+      isFirst = false
+      // drawnLineAll()
+      startX = tmpItemMeta.left + tmpItemMeta.width / 2
+      startY = tmpItemMeta.top + tmpItemMeta.height / 2
+      drawnStraightLine(startX, startY, x, y)
+      break
+    case '自由线':
+      track.push({ x, y })
+      drawnTrack(track)
+      break
+    case '直线':
+      drawnStraightLine(straightLine.startX, straightLine.startY, x, y)
+      straightLine.endX = x
+      straightLine.endY = y
+      break
+    case '添加文字':
+      break
+    case '实心方框':
+    case '空心方框':
+      rect.width = x - rect.x
+      rect.height = y - rect.y
+      if (mode.value === '实心方框') {
+        drawSolidRect(rect.x, rect.y, rect.width, rect.height)
+      } else {
+        drawHollowRect(rect.x, rect.y, rect.width, rect.height)
+      }
+      break
+    case '实心圆框':
+    case '空心圆框':
+      circle.endX = x
+      circle.endY = y
+      if (mode.value === '实心圆框') {
+        drawSolidCircle(circle.startX, circle.startY, circle.endX, circle.endY)
+      } else {
+        drawHollowCircle(circle.startX, circle.startY, circle.endX, circle.endY)
+      }
+      break
   }
   lineCtx.draw()
 }
 
+const touchend = (event) => {
+  if (isScroll.value) return
+  else isScroll.value = true
+
+  let { x, y } = event.changedTouches[0]
+  // 判断是否点击
+  if (isClick) {
+    // 添加文字
+    if (mode.value === '添加文字') {
+      if (!isTextInputShow.value) {
+        textPosition = { x, y }
+        textareaPosition.value = { x, y }
+        isTextInputShow.value = true
+      } else {
+        isTextInputShow.value = false
+        // 修改文字
+        if (textChangeIndex !== null) {
+          const meta = textList.value[textChangeIndex]
+          meta.text.content = textareaValue.value
+          // 重新计算文字框大小
+          meta.style.width = 'auto'
+          meta.style.height = 'auto'
+          nextTick(async () => {
+            const { width, height } = await getRect(`#text${textChangeIndex}`)
+            meta.style.width = width
+            meta.style.height = height
+            textChangeIndex = null
+            textareaValue.value = ''
+          })
+
+          return
+        }
+
+        if (!textareaValue.value) return
+        record.value.push({
+          text: {
+            content: textareaValue.value,
+            position: textPosition
+          },
+          style: {
+            color: color.value,
+            // width: 0,
+            // height: 0,
+            fontSize: 20
+          },
+          isSolid: true
+        })
+        textareaValue.value = ''
+        nextTick(async () => {
+          const query = uni.createSelectorQuery().in(instance.proxy)
+          const { width, height } = await getRect(`#text${record.value.length - 1}`)
+          const item = record.value[record.value.length - 1]
+          item.style.width = width
+          item.style.height = height
+        })
+      }
+    } else {
+      record.value.push({
+        point: [tmpItemMeta.id],
+        style: { color: color.value, size: size.value }
+      })
+    }
+  } else {
+    switch (mode.value) {
+      case '智能曲线':
+        const position = getPosition(x, y)
+        endX = position.left + position.width / 2
+        endY = position.top + position.height / 2
+
+        drawnLineAll()
+
+        const lastRecord = record.value[record.value.length - 1]
+        lastRecord.style = { color: color.value, size: size.value }
+        lastRecord.point.push(position.id)
+        lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
+        iscurveHandleShow.value = true
+        curveLine(startX, startY, endX, endY)
+        lineCtx.draw()
+        // 结束位置为空白区域
+        if (position.id.length < 10) {
+          const item = record.value[record.value.length - 1]
+          if (item.point[item.point.length - 1].endsWith('0')) {
+            popup.value.openRefernumber()
+          } else if (item.point[item.point.length - 1].endsWith('5')) {
+            popup.value.openSimple()
+          } else {
+            popup.value.open(item.point[item.point.length - 1][1] - 1)
+          }
+        }
+        break
+      case '自由线':
+        record.value.push({
+          line: {
+            type: 'track',
+            position: track
+          },
+          style: { color: color.value, size: size.value }
+        })
+        track = []
+        break
+      case '直线':
+        record.value.push({
+          line: {
+            type: 'straight',
+            position: straightLine
+          },
+          style: { color: color.value, size: size.value }
+        })
+
+        straightLine = {}
+        break
+      case '添加文字':
+        break
+      case '实心方框':
+        record.value.push({
+          line: {
+            type: 'solidRect',
+            position: rect
+          },
+          style: { color: color.value }
+        })
+        rect = {}
+        break
+      case '空心方框':
+        record.value.push({
+          line: {
+            type: 'hollowRect',
+            position: rect
+          },
+          style: { color: color.value, size: size.value }
+        })
+        break
+      case '实心圆框':
+        record.value.push({
+          line: {
+            type: 'solidCircle',
+            position: circle
+          },
+          style: { color: color.value, size: size.value }
+        })
+        break
+      case '空心圆框':
+        record.value.push({
+          line: {
+            type: 'hollowCircle',
+            position: circle
+          },
+          style: { color: color.value, size: size.value }
+        })
+        break
+    }
+  }
+
+  isScroll.value = true
+  isClick = true
+  isFirst = true
+}
+// 修改曲线
+let tmpCenterX
 const curveTouchstart = () => {
   const item = record.value[record.value.length - 1]
   item.line.type = 'curve'
   const { startX, startY, endX, endY } = item.line.position
   item.line.position.centerX = startX / 2 + endX / 2
   item.line.position.centerY = startY / 2 + endY / 2
+  tmpCenterX = item.line.position.centerX
 }
 const curveTouchmove = (event) => {
   event.preventDefault()
   const { pageX, pageY } = event.touches[0]
-  curveLineX.value = pageX
-  curveLineY.value = pageY
+  curveHandleX.value = pageX
+  curveHandleY.value = pageY
   const item = record.value[record.value.length - 1]
-  item.line.position.centerX = pageX
+  item.line.position.centerX = pageX * 2 - tmpCenterX
   item.line.position.centerY = pageY + scrolltop
   drawnLineAll()
   lineCtx.draw()
@@ -530,19 +775,7 @@ let scrolltop = 0
 const isScroll = ref(true)
 const scroll = (event) => {
   scrolltop = event.detail.scrollTop
-  curveLineY.value += event.detail.deltaY
-}
-
-const spaceTouchend = (event) => {
-  touchend(event)
-  const item = record.value[record.value.length - 1]
-  if (item.point[item.point.length - 1].endsWith('0')) {
-    popup.value.openRefernumber()
-  } else if (item.point[item.point.length - 1].endsWith('5')) {
-    popup.value.openSimple()
-  } else {
-    popup.value.open(item.point[item.point.length - 1][1] - 1)
-  }
+  curveHandleY.value += event.detail.deltaY
 }
 
 // 样式控制
@@ -555,35 +788,33 @@ const getColorStyle = (id) => {
     }
   }
 
-  return {
+  const result = {
     backgroundColor: meta.marker.isSolid ? meta.style.color : '#fff',
     border: meta.marker.isSolid ? undefined : `5rpx solid ${meta.style.color}`,
     color: meta.marker.isSolid ? '#fefdf8' : meta.style.color
   }
+
+  let fontSize = undefined
+  if (!meta.marker.condition) {
+    if (meta.marker.numbers.length === 1) {
+      fontSize = 60
+    } else if (meta.marker.numbers.length <= 2) {
+      fontSize = 50
+    } else {
+      fontSize = 39
+    }
+  }
+  if (fontSize) {
+    result.fontSize = fontSize * ratio + 'px'
+    result.lineHeight = fontSize * ratio + 'px'
+    result.padding = '0'
+  }
+
+  return result
 }
 
 // 绘制图形
 const mode = ref('智能曲线')
-const pointerEvents = ref('auto') // none | auto
-
-watch(mode, (val) => {
-  if (val === '智能曲线') {
-    pointerEvents.value = 'auto'
-  } else {
-    pointerEvents.value = 'none'
-  }
-})
-
-// 临时记录
-let track = [] // 轨迹
-let straightLine = {} // 直线
-let rect = {} // 方框
-let circle = {} // 圆
-
-const isTextInputShow = ref(false)
-const textareaPosition = ref({}) // textarea坐标
-let textPosition = {}
-const textareaValue = ref('')
 
 const textList = computed(() => {
   const result = []
@@ -602,214 +833,6 @@ const textStyle = (index) => {
   return {
     backgroundColor: meta.isSolid ? meta.style.color : 'transparent',
     color: meta.isSolid ? '#fff' : meta.style.color
-  }
-}
-
-const canvasTouchStart = (event) => {
-  // console.log('canvasTouchStart', isTextInputShow.value)
-
-  let { x, y } = event.touches[0]
-  // 控制页面滚动
-  if (x < 250 * ratio) {
-    isScroll.value = true
-    return
-  } else {
-    isScroll.value = false
-  }
-
-  switch (mode.value) {
-    case '自由线':
-      track = []
-      track.push({ x, y })
-      break
-    case '直线':
-      straightLine = {
-        startX: x,
-        startY: y
-      }
-      break
-    case '添加文字':
-      if (!isTextInputShow.value) {
-        textPosition = { x, y }
-
-        if (x > (750 - 300) * ratio) x = (750 - 300) * ratio
-        if (y < 200 * ratio) y = 200 * ratio
-        if (y > 1000 * ratio) y = 1000 * ratio
-        textareaPosition.value = { x, y }
-        isTextInputShow.value = true
-      } else {
-        isTextInputShow.value = false
-        // 修改文字
-        if (textChangeIndex !== null) {
-          const meta = textList.value[textChangeIndex]
-          meta.text.content = textareaValue.value
-          // 重新计算文字框大小
-          meta.style.width = 'auto'
-          meta.style.height = 'auto'
-          nextTick(async () => {
-            const { width, height } = await getRect(`#text${textChangeIndex}`)
-            meta.style.width = width
-            meta.style.height = height
-            textChangeIndex = null
-            textareaValue.value = ''
-          })
-
-          return
-        }
-
-        if (!textareaValue.value) return
-        record.value.push({
-          text: {
-            content: textareaValue.value,
-            position: textPosition
-          },
-          style: {
-            color: color.value,
-            // width: 0,
-            // height: 0,
-            fontSize: 20
-          },
-          isSolid: true
-        })
-        textareaValue.value = ''
-        nextTick(async () => {
-          const query = uni.createSelectorQuery().in(instance.proxy)
-          const { width, height } = await getRect(`#text${record.value.length - 1}`)
-          const item = record.value[record.value.length - 1]
-          item.style.width = width
-          item.style.height = height
-        })
-      }
-
-      break
-    case '实心方框':
-    case '空心方框':
-      rect = {}
-      rect = {
-        x,
-        y
-      }
-      break
-    case '实心圆框':
-    case '空心圆框':
-      circle = {
-        startX: x,
-        startY: y
-      }
-      break
-  }
-}
-
-const canvasTouchMove = (event) => {
-  if (isScroll.value) return
-  const { x, y } = event.touches[0]
-  drawnLineAll()
-  switch (mode.value) {
-    case '自由线':
-      track.push({ x, y })
-      drawnTrack(track)
-      break
-    case '直线':
-      drawnStraightLine(straightLine.startX, straightLine.startY, x, y)
-      straightLine.endX = x
-      straightLine.endY = y
-      break
-    case '添加文字':
-      break
-    case '实心方框':
-    case '空心方框':
-      rect.width = x - rect.x
-      rect.height = y - rect.y
-      if (mode.value === '实心方框') {
-        drawSolidRect(rect.x, rect.y, rect.width, rect.height)
-      } else {
-        drawHollowRect(rect.x, rect.y, rect.width, rect.height)
-      }
-      break
-    case '实心圆框':
-    case '空心圆框':
-      circle.endX = x
-      circle.endY = y
-      if (mode.value === '实心圆框') {
-        drawSolidCircle(circle.startX, circle.startY, circle.endX, circle.endY)
-      } else {
-        drawHollowCircle(circle.startX, circle.startY, circle.endX, circle.endY)
-      }
-      break
-  }
-  lineCtx.draw()
-}
-
-const canvasTouchEnd = (event) => {
-  if (isScroll.value) return
-  switch (mode.value) {
-    case '自由线':
-      record.value.push({
-        line: {
-          type: 'track',
-          position: track
-        },
-        style: { color: color.value, size: size.value }
-      })
-      track = []
-      break
-    case '直线':
-      record.value.push({
-        line: {
-          type: 'straight',
-          position: straightLine
-        },
-        style: { color: color.value, size: size.value }
-      })
-
-      straightLine = {}
-      break
-    case '添加文字':
-      // if (isTextInputShow.value) {
-      //   record.value.push({
-      //     text: { content: textareaValue.value, position: textPosition },
-      //     style: { color: color.value }
-      //   })
-      //   console.log(record.value)
-      // }
-      break
-    case '实心方框':
-      record.value.push({
-        line: {
-          type: 'solidRect',
-          position: rect
-        },
-        style: { color: color.value }
-      })
-      rect = {}
-      break
-    case '空心方框':
-      record.value.push({
-        line: {
-          type: 'hollowRect',
-          position: rect
-        },
-        style: { color: color.value, size: size.value }
-      })
-      break
-    case '实心圆框':
-      record.value.push({
-        line: {
-          type: 'solidCircle',
-          position: circle
-        },
-        style: { color: color.value, size: size.value }
-      })
-      break
-    case '空心圆框':
-      record.value.push({
-        line: {
-          type: 'hollowCircle',
-          position: circle
-        },
-        style: { color: color.value, size: size.value }
-      })
-      break
   }
 }
 
@@ -923,12 +946,14 @@ const textPositionEnd = (e, index) => {
 const isModeSelectShow = ref(true)
 const isColorSelectShow = ref(true)
 const isLockShow = ref(true)
-const containerPointerEvents = ref('auto')
+const pointerEvents = ref('auto')
 
+const isLock = ref(false)
 const lock = () => {
-  isModeSelectShow.value = !isModeSelectShow.value
-  isColorSelectShow.value = !isColorSelectShow.value
-  containerPointerEvents.value = isLockShow.value ? 'none' : 'auto'
+  isLock.value = !isLock.value
+  isModeSelectShow.value = !isLock.value
+  isColorSelectShow.value = !isLock.value
+  pointerEvents.value = isLock.value ? 'none' : 'auto'
 }
 const changeColor = () => {
   isModeSelectShow.value = !isModeSelectShow.value
@@ -942,26 +967,43 @@ const changeMode = () => {
 
 <style lang="scss" scoped>
 @use 'sass:math';
+/* #ifdef MP */
+page {
+  background-color: #90c380;
+}
 .draw-line {
-  height: 100vh;
+  padding-top: v-bind('safeArea.top + "px"');
+  background-color: #90c380;
+}
+.container {
+  background-color: #fff;
+}
+/* #endif */
+
+.draw-line {
+  view {
+    box-sizing: border-box;
+  }
+  height: v-bind('windowHeight + "px"');
   position: relative;
-  // margin-top: v-bind('safeArea.top');
-  .color-select {
+  %btn-base {
     position: fixed;
     bottom: 30rpx;
-    left: 30rpx;
     z-index: 999;
+    /* #ifdef MP */
+    // bottom: calc(30rpx + var(–window-bottom));
+    /* #endif */
+  }
+  .color-select {
+    @extend %btn-base;
+    left: 30rpx;
   }
   .mode-select {
-    position: fixed;
-    bottom: 30rpx;
+    @extend %btn-base;
     right: 0;
-    z-index: 999;
   }
   .lock {
-    position: fixed;
-    bottom: 30rpx;
-    z-index: 999;
+    @extend %btn-base;
     left: 50%;
     transform: translateX(-50%);
     padding: 10rpx;
@@ -972,10 +1014,7 @@ const changeMode = () => {
 $tools-height: 100rpx;
 .container {
   position: relative;
-  height: calc(100vh - 100rpx);
-  view {
-    pointer-events: v-bind('containerPointerEvents');
-  }
+  height: calc(v-bind('windowHeight + "px"') - 100rpx);
   .data {
     position: relative;
     .line-canvas {
@@ -984,6 +1023,7 @@ $tools-height: 100rpx;
       width: 100vw;
       height: calc(100% + $tools-height);
       z-index: 2;
+      pointer-events: v-bind('pointerEvents');
     }
     & > .row:nth-child(1) {
       border-top: 2px solid #8baf9b;
@@ -1051,7 +1091,7 @@ $tools-height: 100rpx;
 .row {
   display: flex;
   border-bottom: 2px solid #8baf9b;
-  height: 120rpx;
+  height: 110rpx;
   text-align: center;
   font-weight: 700;
   color: #91c182;
@@ -1084,21 +1124,21 @@ $tools-height: 100rpx;
   align-items: center;
   justify-content: center;
   .item {
-    width: 35rpx;
-    height: 35rpx;
+    width: 50rpx;
+    height: 50rpx;
     border-radius: 50%;
-    line-height: 35rpx;
+    line-height: 50rpx;
   }
   .marker {
-    width: 35rpx;
-    height: 35rpx;
+    width: 50rpx;
+    height: 50rpx;
     border-radius: 50%;
     color: #fefdf8;
     border: 5rpx solid #fefdf8;
     position: relative;
     z-index: 2;
     font-size: 25rpx;
-    line-height: 35rpx;
+    line-height: 50rpx - 5rpx;
     background-color: #f7212d;
   }
 }
@@ -1130,29 +1170,30 @@ $tools-height: 100rpx;
   }
   .marker {
     width: 90rpx;
-    height: 110rpx;
+    height: 100rpx;
     color: #f7212d;
-    font-size: 25rpx;
-    line-height: 25rpx;
+    font-size: 27rpx;
+    line-height: 30rpx;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     position: relative;
     z-index: 2;
+    padding: 0 13rpx;
     .number {
-      width: 50rpx;
+      width: 100%;
       overflow-wrap: break-word;
     }
   }
-  .marker-5 {
+  .marker-simple {
     width: 70rpx;
     height: 70rpx;
     font-size: 30rpx;
     border-radius: 50%;
     color: #fff;
     text-align: center;
-    line-height: 70rpx;
+    line-height: 70rpx - 5rpx * 2;
     border: 5rpx solid #f0eee7;
     position: relative;
     z-index: 2;
@@ -1163,15 +1204,16 @@ $tools-height: 100rpx;
   background-color: v-bind(color);
   color: #fff;
   border: 6rpx solid #f0eee7;
+  line-height: 72rpx - 6rpx * 2 !important;
 }
 .item {
   position: relative;
   z-index: 3;
-  pointer-events: v-bind('pointerEvents') !important;
+  pointer-events: none !important;
 }
 
 .tools {
-  position: sticky;
+  position: relative;
   top: 0;
   z-index: 6;
   height: $tools-height;
@@ -1193,8 +1235,8 @@ $tools-height: 100rpx;
   position: absolute;
   width: 50px;
   z-index: 4;
-  top: v-bind('curveLineY + "px"');
-  left: v-bind('curveLineX + "px"');
+  top: v-bind('curveHandleY + "px"');
+  left: v-bind('curveHandleX + "px"');
   text-align: center;
   transform: translate(-50%, -50%);
 }
