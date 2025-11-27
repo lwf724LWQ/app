@@ -181,8 +181,9 @@
     </scroll-view>
 
     <uni-icons
-      type="closeempty"
-      size="20"
+      custom-prefix="iconfont"
+      type="icon-shizi"
+      size="18"
       class="curve-handle"
       color="red"
       @touchstart="curveTouchstart"
@@ -262,17 +263,17 @@ const scrollInitTop = ref(0) // 滚动条初始位置
 const data = ref([])
 let positionList
 const getData = async () => {
-  const res = await uni.request({
-    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
-  })
-  data.value = res.data.data.records.reverse()
-  data.value.forEach((item) => {
-    item.number = item.number?.split(' ').slice(0, 5)
-  })
-  // data.value = mock.data.records
-  // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
+  // const res = await uni.request({
+  //   url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
   // })
+  // data.value = res.data.data.records.reverse()
+  // data.value.forEach((item) => {
+  //   item.number = item.number?.split(' ').slice(0, 5)
+  // })
+  data.value = mock.data.records
+  data.value.forEach((item) => {
+    item.number = item.number.split(' ').slice(0, 5)
+  })
 
   await nextTick()
   const query = uni.createSelectorQuery().in(instance.proxy)
@@ -431,8 +432,8 @@ const touchmove = (event) => {
   }
 
   const { x, y } = event.touches[0]
-  // 判断是否是点击
   isClick = false
+  // 判断是否是点击
   if (Math.abs(startX - x) < 3 * ratio && Math.abs(startY - y) < 3 * ratio) {
     isClick = true
     return
@@ -549,6 +550,7 @@ const touchend = (event) => {
         point: [tmpItemMeta.id],
         style: { color: color.value, size: size.value }
       })
+      if (tmpItemMeta.id.length < 10) openPopup()
     }
   } else {
     switch (mode.value) {
@@ -560,22 +562,17 @@ const touchend = (event) => {
         drawnLineAll()
 
         const lastRecord = record.value[record.value.length - 1]
-        lastRecord.style = { color: color.value, size: size.value }
-        lastRecord.point.push(position.id)
-        lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
-        iscurveHandleShow.value = true
-        curveLine(startX, startY, endX, endY)
-        lineCtx.draw()
+        // 如果最后位置不是开始位置，则添加当前点
+        if (lastRecord.point[0] !== position.id) {
+          lastRecord.point.push(position.id)
+          lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
+          curveLine(startX, startY, endX, endY)
+          lineCtx.draw()
+        }
+
         // 结束位置为空白区域
         if (position.id.length < 10) {
-          const item = record.value[record.value.length - 1]
-          if (item.point[item.point.length - 1].endsWith('0')) {
-            popup.value.openRefernumber()
-          } else if (item.point[item.point.length - 1].endsWith('5')) {
-            popup.value.openSimple()
-          } else {
-            popup.value.open(item.point[item.point.length - 1][1] - 1)
-          }
+          openPopup()
         }
         break
       case '自由线':
@@ -639,12 +636,30 @@ const touchend = (event) => {
         })
         break
     }
+    // 是否显示曲线控制按钮
+    if (mode.value === '智能曲线') {
+      iscurveHandleShow.value = true
+    } else {
+      iscurveHandleShow.value = false
+    }
   }
 
   isScroll.value = true
   isClick = true
   isFirst = true
 }
+const openPopup = () => {
+  // if (id.length < 10) {
+  const item = record.value[record.value.length - 1]
+  if (item.point[item.point.length - 1].endsWith('0')) {
+    popup.value.openRefernumber()
+  } else if (item.point[item.point.length - 1].endsWith('5')) {
+    popup.value.openSimple()
+  } else {
+    popup.value.open(item.point[item.point.length - 1][1] - 1)
+  }
+}
+// }
 // 修改曲线
 let tmpCenterX
 const curveTouchstart = () => {
@@ -1124,10 +1139,10 @@ $tools-height: 100rpx;
   align-items: center;
   justify-content: center;
   .item {
-    width: 50rpx;
-    height: 50rpx;
+    width: 60rpx;
+    height: 60rpx;
     border-radius: 50%;
-    line-height: 50rpx;
+    line-height: 60rpx;
   }
   .marker {
     width: 50rpx;
@@ -1154,10 +1169,10 @@ $tools-height: 100rpx;
     align-items: center;
     justify-content: center;
     .item {
-      width: 72rpx;
-      height: 72rpx;
+      width: 80rpx;
+      height: 80rpx;
       border-radius: 50%;
-      line-height: 72rpx;
+      line-height: 80rpx;
     }
   }
   & :nth-child(4) {
@@ -1181,6 +1196,9 @@ $tools-height: 100rpx;
     position: relative;
     z-index: 2;
     padding: 0 13rpx;
+    .condition {
+      width: 140%;
+    }
     .number {
       width: 100%;
       overflow-wrap: break-word;
@@ -1199,12 +1217,17 @@ $tools-height: 100rpx;
     z-index: 2;
   }
 }
-
+%border {
+  background: radial-gradient(circle at center, red 60%, white 65%, white 100%);
+  border: 5rpx solid #f1f3f0;
+}
 .active {
   background-color: v-bind(color);
   color: #fff;
-  border: 6rpx solid #f0eee7;
-  line-height: 72rpx - 6rpx * 2 !important;
+  @extend %border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .item {
   position: relative;
