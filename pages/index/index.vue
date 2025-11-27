@@ -171,6 +171,9 @@ export default {
 			uni.navigateTo({
 				url: `/pages/juWang/peng-liao/drawLine/drawLine`
 			});
+			// uni.navigateTo({
+			// 	url: `/pages/juWang/drawLine/drawLine`
+			// });
 		},
 		goToDreamInterpretation() {
 			uni.navigateTo({

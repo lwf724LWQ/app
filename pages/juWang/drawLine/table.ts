@@ -317,7 +317,7 @@ export default class Table {
         const panStyle = this.panStyle
         
         const position = new Position(touche.x || 0, touche.y || 0, PositionType.real)
-        
+		console.log(touche)
         switch (touche.type) {
             case 'touchstart':
                 if(!touche) break;

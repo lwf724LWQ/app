@@ -1,6 +1,6 @@
 <template>
     <uni-popup ref="popup" type="bottom" borderRadius="10px 10px 0 0">
-        <view class="wrapper">
+        <view class="wrapper" @touchmove.stop.prevent>
             <view class="title">智能笔设置</view>
             <view class="row flex justify-between" v-show="modelValue.panCount == 1">
                 <switch @change="controlSwitchChange" :checked="modelValue.controlSwitch" />

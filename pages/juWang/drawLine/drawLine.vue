@@ -121,7 +121,7 @@ export default {
 
 			style: `width: ${width}px; height: 2440rpx;`,
 			width: width,
-			height: uni.rpx2px(2440),
+			height: uni.upx2px(2440),
 			data: [
 				{ date: '2021-01-01', line: [1, 2, 3, 4, 5, 6] }
 			],
@@ -196,6 +196,25 @@ export default {
 		},
 		// 阻止滚动
 		touchevent: function (e) {
+			let isScroll = true
+			// app 的事件名称不一样
+			if (e.type === "onTouchmove"){
+				e.type = "touchmove"
+			} else if(e.type === "onTouchstart"){
+				e.type = "touchstart"
+			} else if(e.type === "onTouchend"){
+				e.type = "touchend"
+			} else if(e.type === "onTouchcancel"){
+				e.type = "touchcancel"
+			}
+			let toucheXY = {}
+			if (e.touches instanceof Array) {
+				toucheXY = e.touches.length ? e.touches[0] : false
+			}else if(e.touches && e.touches[0] && ['number', 'string'].includes(typeof e.touches[0].x)){
+				toucheXY.x = e.touches[0].x
+				toucheXY.y = e.touches[0].y
+			}
+			
 			if (this.isLock) {
 				return
 			}
@@ -204,20 +223,25 @@ export default {
 				return
 			}
 
-			if (e.touches.length >= 1) {
-				if (e.touches[0].x > tableStyle.dateInfo.width) {
+			if (toucheXY.x) {
+				console.log("1")
+				if (toucheXY.x > tableStyle.dateInfo.width) {
+					console.log("2")
+					e.stopPropagation()
 					e.preventDefault()
-				} else if (e.type === 'touchstart') {
+					isScroll = false
+				} else if (toucheXY.type === 'touchstart') {
 					return
 				}
 			}
-			const toucheXY = e.touches.length ? e.touches[0] : false
+			
 			const touche = {
 				type: e.type,
 				x: toucheXY.x,
 				y: toucheXY.y
 			}
 			this.table.touchEvent(touche)
+			return isScroll
 		},
 		showBottom: function () {
 			console.log(this.bottomIsShow)
@@ -287,78 +311,78 @@ export default {
 		}
 	},
 	onReady: async function () {
-		// const res = await apiTicketQuery({
-		// 	tname: "七星彩",
-		// 	page: 1,
-		// 	limit: 20
-		// })
-		// this.handleData(res.data.records)
+		const res = await apiTicketQuery({
+			tname: "七星彩",
+			page: 1,
+			limit: 20
+		})
+		this.handleData(res.data.records)
 
-		this.handleData([
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-			{
-				"id": "1989326513835646979",
-				"tname": "七星彩",
-				"issueno": "25131",
-				"number": "3 5 0 2 1 1",
-				"refernumber": "0",
-				"opendate": "2025-11-14",
-				"createTime": "2025-11-14 21:36:15"
-			},
-		])
+		// this.handleData([
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// 	{
+		// 		"id": "1989326513835646979",
+		// 		"tname": "七星彩",
+		// 		"issueno": "25131",
+		// 		"number": "3 5 0 2 1 1",
+		// 		"refernumber": "0",
+		// 		"opendate": "2025-11-14",
+		// 		"createTime": "2025-11-14 21:36:15"
+		// 	},
+		// ])
 
 		uni.pageScrollTo({ scrollTop: (this.data.length - 5) * (this.width * 0.1162), duration: 0 })
 		this.$nextTick(() => {
