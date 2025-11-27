@@ -187,6 +187,7 @@ const open = (column) => {
   popup.value.open('center')
   index.value = column
   effectList.value = [column]
+  effectMap.杀 = [column]
 }
 
 const radioChange = (val) => {
@@ -200,7 +201,6 @@ const addNumber = (number) => {
   if (numbers.value.includes(number)) {
     numbers.value.splice(numbers.value.indexOf(number), 1)
   } else {
-    // console.log(numbers.value);
     if (numbers.value.length >= 6) {
       msg.value.send('最多选择6个')
       return
@@ -229,7 +229,6 @@ const addNumberList = (val) => {
   } else {
     // 选择效果
     effectList.value = effectMap[val]
-    // currentCondition.value = val
   }
 }
 
@@ -260,7 +259,7 @@ const effectMap = {
   千十合: [0, 2],
   十个合: [2, 3],
   百个合: [1, 3],
-  杀: [1],
+  杀: [undefined],
   稳码: [0, 1, 2, 3]
 }
 const indexMap = {
@@ -271,11 +270,11 @@ const indexMap = {
   4: []
 }
 
-const addNum = (num1, num2) => {
-  numbers.value = []
-  numbers.value.push(num1, num2)
-  currentCondition.value = `${num1}/${num2}`
-}
+// const addNum = (num1, num2) => {
+//   numbers.value = []
+//   numbers.value.push(num1, num2)
+//   currentCondition.value = `${num1}/${num2}`
+// }
 
 // 提交
 const sbumit = defineEmits(['sbumit'])
