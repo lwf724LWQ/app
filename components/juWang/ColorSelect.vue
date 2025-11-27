@@ -9,6 +9,7 @@
       >
       </uni-icons>
     </view>
+
     <scroll-view scroll-y :show-scrollbar="false" class="list-top">
       <view
         class="item"
@@ -32,11 +33,21 @@
         </view>
       </view>
     </scroll-view>
+
+    <view class="reset" v-if="previousColor" @click.stop="resetColor">
+      <uni-icons custom-prefix="iconfont" type="icon-reset" size="15" color="#FEFDF8"> </uni-icons>
+    </view>
+
+    <view class="animation" :class="{ 'animation-active': animation }"></view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+
+// 上一个颜色
+const previousColor = ref('')
+const animation = ref(false)
 
 const color = defineModel('color', {
   type: String,
@@ -71,6 +82,7 @@ const sizes = [7, 5, 3]
 const isClose = ref(true)
 
 const changeColor = (c) => {
+  previousColor.value = color.value
   color.value = c
   isClose.value = true
 }
@@ -78,9 +90,20 @@ const changeSize = (s) => {
   size.value = s
   isClose.value = true
 }
+
+const resetColor = () => {
+  const tmpColor = color.value
+  color.value = previousColor.value
+  previousColor.value = tmpColor
+  animation.value = true
+  setTimeout(() => {
+    animation.value = false
+  }, 250)
+}
 </script>
 
 <style lang="scss" scoped>
+@use 'sass:math';
 .size-active {
   background-color: red;
 }
@@ -159,9 +182,43 @@ const changeSize = (s) => {
       .item {
         width: 60rpx;
         height: 60rpx;
-        // background-color: red;
         border-radius: 50%;
       }
+    }
+  }
+  .reset {
+    position: absolute;
+    width: 65rpx;
+    height: 65rpx;
+    bottom: 100rpx;
+    background-color: v-bind('previousColor');
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    left: math.div((80rpx - 65rpx), 2);
+  }
+  .animation {
+    position: absolute;
+    opacity: 0;
+    width: 100rpx;
+    height: 100rpx;
+    border-radius: 50%;
+    background-color: v-bind('previousColor');
+  }
+  .animation-active {
+    animation: colorChange 0.25s ease-in;
+  }
+  @keyframes colorChange {
+    0% {
+      bottom: 300rpx;
+      left: 0rpx;
+      opacity: 0;
+    }
+    100% {
+      bottom: 600rpx;
+      left: 300rpx;
+      opacity: 1;
     }
   }
 }

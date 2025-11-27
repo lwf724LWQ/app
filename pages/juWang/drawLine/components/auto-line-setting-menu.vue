@@ -293,7 +293,7 @@ export default {
     border-left: 5rpx solid #f81219;
 }
 
-.wrapper :deep .uni-switch-input {
+.wrapper :deep(.uni-switch-input)  {
     background-image: -webkit-gradient(linear, left top, right top, from(#fe7079), to(#fc3d44));
     background-image: linear-gradient(90deg, #fe7079, #fc3d44);
     border-color: #f5f6f8;

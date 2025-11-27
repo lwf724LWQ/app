@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'iconfont'; /* Project id 4959056 */
-  src: url('iconfont-draw-line.ttf?t=1764208027749') format('truetype');
+  src: url('iconfont-draw-line.ttf?t=1764232415655') format('truetype');
 }
 
 .iconfont {
@@ -9,6 +9,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-reset:before {
+  content: '\e63a';
 }
 
 .icon-shizi:before {
