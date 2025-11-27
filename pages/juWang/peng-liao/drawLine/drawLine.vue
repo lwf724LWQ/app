@@ -100,16 +100,16 @@
           <view class="column-3">
             <view v-for="(val, index) in 5" :key="val">
               <view
-                v-if="marks[`${row}-${index + 1}`]"
+                v-if="marks[`${row}${index + 1}`]"
                 :class="{
-                  marker: index !== 4 && marks[`${row}-${index + 1}`].marker.senior,
-                  'marker-simple': index === 4 || !marks[`${row}-${index + 1}`].marker.senior
+                  marker: index !== 4 && marks[`${row}${index + 1}`].marker.senior,
+                  'marker-simple': index === 4 || !marks[`${row}${index + 1}`].marker.senior
                 }"
-                :style="getColorStyle(`${row}-${index + 1}`)"
+                :style="getColorStyle(`${row}${index + 1}`)"
               >
-                <view class="condition">{{ marks[`${row}-${index + 1}`].marker.condition }}</view>
+                <view class="condition">{{ marks[`${row}${index + 1}`].marker.condition }}</view>
                 <view class="number">{{
-                  marks[`${row}-${index + 1}`].marker.numbers.join('')
+                  marks[`${row}${index + 1}`].marker.numbers.join('')
                 }}</view>
               </view>
               <view
@@ -215,6 +215,8 @@
       </uni-icons>
       <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
+    <!-- 设置 -->
+    <Setting class="setting"></Setting>
   </view>
 </template>
 
@@ -229,6 +231,7 @@ import ModeSelect from '@/components/juWang/ModeSelect.vue'
 import { DrawShape } from './drawMethod'
 import dayjs from 'dayjs'
 import html2canvas from 'html2canvas'
+import Setting from '@/components/juWang/Setting.vue'
 
 //解析日期
 const weekMap = {
@@ -241,7 +244,7 @@ const weekMap = {
   6: '六'
 }
 const dateFromat = (dateStr) => {
-  const dateArr = dateStr.split('-')
+  // const dateArr = dateStr.split('-')
   const date = dayjs(dateStr).format('M/D')
   const dateArr2 = date.split('/')
   const dateStr2 = `${dateArr2[0]}/${dateArr2[1]} ${weekMap[dayjs(dateStr).format('d')]}`
@@ -539,7 +542,7 @@ const touchend = (event) => {
         textareaValue.value = ''
         nextTick(async () => {
           const query = uni.createSelectorQuery().in(instance.proxy)
-          const { width, height } = await getRect(`#text${record.value.length - 1}`)
+          const { width, height } = await getRect(`#text${textList.value.length - 1}`)
           const item = record.value[record.value.length - 1]
           item.style.width = width
           item.style.height = height
@@ -570,8 +573,8 @@ const touchend = (event) => {
           lineCtx.draw()
         }
 
-        // 结束位置为空白区域
-        if (position.id.length < 10) {
+        // 结束位置为空白区域，同时结束位置没有标记
+        if (position.id.length < 10 && !marks.value[position.id]) {
           openPopup()
         }
         break
@@ -773,7 +776,7 @@ const marks = computed(() => {
     const indexs = item.marker?.indexs
     if (row && indexs) {
       indexs.forEach((index) => {
-        result[`${row}-${index}`] = { marker: item.marker, style: item.style }
+        result[`${row}${index}`] = { marker: item.marker, style: item.style }
       })
     }
   })
@@ -927,7 +930,7 @@ const textPositionStart = (e, index) => {
   textStartX = pageX
   textStartY = pageY
 
-  const { x, y } = record.value[index].text.position
+  const { x, y } = textList.value[index].text.position
   tmpTextX = x
   tmpTextY = y
 }
@@ -936,7 +939,7 @@ const textPositionMove = (e, index) => {
 
   const { pageX, pageY } = e.touches[0]
 
-  const item = record.value[index]
+  const item = textList.value[index]
   item.text.position.x = pageX - textStartX + tmpTextX
   item.text.position.y = pageY - textStartY + tmpTextY
 }
@@ -1004,7 +1007,7 @@ page {
   %btn-base {
     position: fixed;
     bottom: 30rpx;
-    z-index: 999;
+    z-index: 10;
     /* #ifdef MP */
     // bottom: calc(30rpx + var(–window-bottom));
     /* #endif */
@@ -1024,6 +1027,11 @@ page {
     padding: 10rpx;
     background-color: rgba($color: #000000, $alpha: 0.6);
     border-radius: 50%;
+  }
+  .setting {
+    position: fixed;
+    bottom: 0;
+    z-index: 99;
   }
 }
 $tools-height: 100rpx;
