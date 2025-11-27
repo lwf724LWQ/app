@@ -1,15 +1,15 @@
 <template>
 	<view>
 		<!-- #ifdef APP-PLUS || H5 -->
-		<view class="canvas-wrapper">
-			<canvas canvas-id="bg_canvas" id="bg_canvas" class="canvas" :style="style"></canvas>
+		<scroll-view class="canvas-wrapper" id="container" :scroll-y="isScroll">
+			<canvas canvas-id="bg_canvas" id="bg_canvas" class="canvas bg" :style="style"></canvas>
 			<canvas canvas-id="line_canvas" id="line_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="topicon_canvas" id="topicon_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="diyNumber_canvas" id="diyNumber_canvas" class="canvas" :style="style"></canvas>
 			<canvas canvas-id="control_canvas" id="control_canvas" class="canvas" :style="style"
 				@touchstart="touchevent" @touchmove="touchevent" @touchend="touchevent"
 				@touchcancel="touchevent"></canvas>
-		</view>
+		</scroll-view>
 
 		<!-- 控制菜单 -->
 		<view class="top-menu-wrapper">
@@ -76,8 +76,6 @@
 			<!-- 画笔类型选择 -->
 			<lineTypeSelect :open="bottomIsShow" v-model="pantype" @change="setPanStyle"></lineTypeSelect>
 		</view>
-
-		<view></view>
 
 		<view class="lockBtn flex" @click.stop.prevent="lock">
 			<icons :icon="isLock ? 'scroll' : 'lock'" />
@@ -150,7 +148,8 @@ export default {
 
 			isLock: false,
 
-			saveImage: ""
+			saveImage: "",
+			isScroll: true
 		}
 	},
 	methods: {
@@ -196,25 +195,24 @@ export default {
 		},
 		// 阻止滚动
 		touchevent: function (e) {
-			let isScroll = true
 			// app 的事件名称不一样
-			if (e.type === "onTouchmove"){
+			if (e.type === "onTouchmove") {
 				e.type = "touchmove"
-			} else if(e.type === "onTouchstart"){
+			} else if (e.type === "onTouchstart") {
 				e.type = "touchstart"
-			} else if(e.type === "onTouchend"){
+			} else if (e.type === "onTouchend") {
 				e.type = "touchend"
-			} else if(e.type === "onTouchcancel"){
+			} else if (e.type === "onTouchcancel") {
 				e.type = "touchcancel"
 			}
-			let toucheXY = {}
+			let toucheXY = { type: e.type }
 			if (e.touches instanceof Array) {
 				toucheXY = e.touches.length ? e.touches[0] : false
-			}else if(e.touches && e.touches[0] && ['number', 'string'].includes(typeof e.touches[0].x)){
+			} else if (e.touches && e.touches[0] && ['number', 'string'].includes(typeof e.touches[0].x)) {
 				toucheXY.x = e.touches[0].x
 				toucheXY.y = e.touches[0].y
 			}
-			
+
 			if (this.isLock) {
 				return
 			}
@@ -224,24 +222,17 @@ export default {
 			}
 
 			if (toucheXY.x) {
-				console.log("1")
 				if (toucheXY.x > tableStyle.dateInfo.width) {
-					console.log("2")
 					e.stopPropagation()
 					e.preventDefault()
-					isScroll = false
+					this.isScroll = false
 				} else if (toucheXY.type === 'touchstart') {
+					this.isScroll = true
 					return
 				}
 			}
-			
-			const touche = {
-				type: e.type,
-				x: toucheXY.x,
-				y: toucheXY.y
-			}
-			this.table.touchEvent(touche)
-			return isScroll
+
+			this.table.touchEvent(toucheXY)
 		},
 		showBottom: function () {
 			console.log(this.bottomIsShow)
@@ -410,10 +401,15 @@ export default {
 
 .canvas {
 	position: absolute;
+	top: 0;
+	left: 0;
 	width: 100%;
 	margin: 0;
 	padding: 0;
 
+	&.bg {
+		position: relative;
+	}
 }
 
 .canvas_forMP {
@@ -424,7 +420,10 @@ export default {
 }
 
 .canvas-wrapper {
-	margin-top: 90rpx;
+	top: 90rpx;
+	left: 0;
+	position: fixed;
+	height: calc(100vh - 90rpx);
 }
 
 // 菜单
