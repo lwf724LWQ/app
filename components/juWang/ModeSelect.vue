@@ -1,5 +1,6 @@
 <template>
   <view class="mode-select">
+    <view class="setting">设置</view>
     <view class="icon" @click="hide = !hide">
       <uni-icons
         custom-prefix="iconfont"
@@ -60,7 +61,7 @@ watch(currentIndex, (newVal) => {
     box-sizing: border-box;
   }
   height: 80rpx;
-  width: 150rpx;
+  width: 260rpx;
   border-radius: 50rpx 0 0 50rpx;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -68,6 +69,13 @@ watch(currentIndex, (newVal) => {
   justify-content: end;
   color: #fff;
   position: relative;
+  .setting {
+    font-size: 30rpx;
+    line-height: 32rpx;
+    border-right: 3rpx solid #fff;
+    text-align: center;
+    width: 140rpx;
+  }
   .icon {
     background-color: rgba(0, 0, 0, 0.4);
     border-radius: 50%;
