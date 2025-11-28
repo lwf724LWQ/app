@@ -21,7 +21,7 @@
         <uni-icons custom-prefix="iconfont" type="icon-baocun" size="20" color="#fff"></uni-icons>
         <view class="">保存</view>
       </view>
-      <view class="">
+      <view class="" @click="isSettingOpen = !isSettingOpen">
         <uni-icons type="settings" size="25" color="#fff"></uni-icons>
         <view class="">设置</view>
       </view>
@@ -55,7 +55,13 @@
             <view
               class="item"
               :class="{ active: pointActives[item.id + 0] }"
-              :style="{ backgroundColor: pointActives[item.id + 0]?.color || '' }"
+              :style="{
+                background: pointActives[item.id + 0]?.color
+                  ? `radial-gradient(circle at center, ${
+                      pointActives[item.id + 0]?.color
+                    } 60%, white 65%, white 100%)`
+                  : ''
+              }"
               :id="item.id + 0"
               >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
             >
@@ -66,7 +72,13 @@
               <view
                 class="item"
                 :class="{ active: pointActives[item.id + (index + 1)] }"
-                :style="{ backgroundColor: pointActives[item.id + (index + 1)]?.color || '' }"
+                :style="{
+                  background: pointActives[item.id + (index + 1)]?.color
+                    ? `radial-gradient(circle at center, ${
+                        pointActives[item.id + (index + 1)]?.color
+                      } 60%, white 65%, white 100%)`
+                    : ''
+                }"
                 :id="item.id + (index + 1)"
                 >{{ number }}</view
               >
@@ -116,7 +128,13 @@
                 class="item"
                 v-else
                 :class="{ active: pointActives[`${row}${index + 1}`] }"
-                :style="{ backgroundColor: pointActives[`${row}${index + 1}`]?.color || '' }"
+                :style="{
+                  background: pointActives[`${row}${index + 1}`]?.color
+                    ? `radial-gradient(circle at center, ${
+                        pointActives[`${row}${index + 1}`]?.color
+                      } 60%, white 65%, white 100%)`
+                    : ''
+                }"
                 :id="`${row}${index + 1}`"
                 @touchstart="touchstart($event, `${row}${index + 1}`)"
               ></view>
@@ -203,6 +221,7 @@
       v-model="mode"
       v-show="isModeSelectShow"
       @click="changeMode"
+      v-model:openSetting="isSettingOpen"
     ></ModeSelect>
     <view class="lock" @click="lock" v-show="isLockShow">
       <uni-icons
@@ -216,7 +235,7 @@
       <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
     <!-- 设置 -->
-    <Setting class="setting"></Setting>
+    <Setting class="setting" @update="updateSetting" v-model="isSettingOpen"></Setting>
   </view>
 </template>
 
@@ -266,17 +285,17 @@ const scrollInitTop = ref(0) // 滚动条初始位置
 const data = ref([])
 let positionList
 const getData = async () => {
-  // const res = await uni.request({
-  //   url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
-  // })
-  // data.value = res.data.data.records.reverse()
-  // data.value.forEach((item) => {
-  //   item.number = item.number?.split(' ').slice(0, 5)
-  // })
-  data.value = mock.data.records
-  data.value.forEach((item) => {
-    item.number = item.number.split(' ').slice(0, 5)
+  const res = await uni.request({
+    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
   })
+  data.value = res.data.data.records.reverse()
+  data.value.forEach((item) => {
+    item.number = item.number?.split(' ').slice(0, 5)
+  })
+  // data.value = mock.data.records
+  // data.value.forEach((item) => {
+  //   item.number = item.number.split(' ').slice(0, 5)
+  // })
 
   await nextTick()
   const query = uni.createSelectorQuery().in(instance.proxy)
@@ -289,6 +308,14 @@ const getData = async () => {
   scrollInitTop.value = 9999
 }
 getData()
+
+// 设置
+const options = ref({})
+const isSettingOpen = ref(false)
+const updateSetting = (option) => {
+  console.log(option)
+  options.value = option
+}
 
 const curveHandleX = ref(0)
 const curveHandleY = ref(0)
@@ -985,7 +1012,7 @@ const changeMode = () => {
 
 <style lang="scss" scoped>
 @use 'sass:math';
-/* #ifdef MP */
+/* #ifdef MP || APP*/
 page {
   background-color: #90c380;
 }
@@ -1003,6 +1030,9 @@ page {
     box-sizing: border-box;
   }
   height: v-bind('windowHeight + "px"');
+  /* #ifdef APP */
+  height: v-bind('windowHeight - safeArea.top + "px"');
+  /* #endif */
   position: relative;
   %btn-base {
     position: fixed;
@@ -1037,7 +1067,10 @@ page {
 $tools-height: 100rpx;
 .container {
   position: relative;
-  height: calc(v-bind('windowHeight + "px"') - 100rpx);
+  height: calc(v-bind('windowHeight + "px"') - $tools-height);
+  // /* #ifdef APP */
+  height: calc(v-bind('windowHeight - safeArea.top + "px"') - $tools-height);
+  // /* #endif */
   .data {
     position: relative;
     .line-canvas {
@@ -1045,6 +1078,10 @@ $tools-height: 100rpx;
       top: -$tools-height;
       width: 100vw;
       height: calc(100% + $tools-height);
+      /* #ifdef APP */
+      top: calc(-100rpx - v-bind('safeArea.top + "px"'));
+      height: calc(100% + $tools-height - v-bind('safeArea.top + "px"'));
+      /* #endif */
       z-index: 2;
       pointer-events: v-bind('pointerEvents');
     }
@@ -1169,7 +1206,7 @@ $tools-height: 100rpx;
   width: 530rpx;
   display: flex;
   border-right: 2px solid #8baf9b;
-  font-size: 60rpx;
+  font-size: v-bind('options.fontSize + "rpx"');
   & > view {
     border-right: 2px solid #8baf9b;
     width: 106rpx;
@@ -1225,14 +1262,9 @@ $tools-height: 100rpx;
     z-index: 2;
   }
 }
-%border {
-  background: radial-gradient(circle at center, red 60%, white 65%, white 100%);
-  border: 5rpx solid #f1f3f0;
-}
 .active {
-  background-color: v-bind(color);
   color: #fff;
-  @extend %border;
+  border: 5rpx solid #f1f3f0;
   display: flex;
   align-items: center;
   justify-content: center;

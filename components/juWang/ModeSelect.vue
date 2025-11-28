@@ -1,6 +1,6 @@
 <template>
   <view class="mode-select">
-    <view class="setting">设置</view>
+    <view class="setting" @click="openSetting = true">设置</view>
     <view class="icon" @click="hide = !hide">
       <uni-icons
         custom-prefix="iconfont"
@@ -21,11 +21,16 @@
         ></uni-icons>
       </view>
     </view>
+
+    <!-- 全屏遮罩 -->
+    <view class="mask" v-if="!hide" @click="hide = true"></view>
   </view>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
+
+const openSetting = defineModel('openSetting')
 
 const mode = defineModel({
   type: String,
@@ -126,6 +131,13 @@ watch(currentIndex, (newVal) => {
   .hide {
     height: 0;
     opacity: 0;
+  }
+  .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
   }
 }
 </style>
