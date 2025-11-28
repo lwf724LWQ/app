@@ -364,3 +364,20 @@ export function apiWordQuery(data = {}) {
         data
     })
 }
+
+// 查询当前app版本
+export function apiAppversionQuery(data = {}) {
+    return request({
+        url: "/web/version/query",
+        method: "GET",
+        data
+    })
+}
+
+export function getWXSDKAccessToken(data = {}) {
+    return request({
+        url: "/web/getWXSDKAccessToken",
+        method: "GET",
+        data
+    })
+}

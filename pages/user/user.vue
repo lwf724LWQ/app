@@ -130,10 +130,12 @@
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
           <text class="service-text">设置</text>
         </view>
-        <view class="service-item">
-          <uni-icons type="locked" size="24" color="#222"></uni-icons>
-          <text class="service-text">隐私政策</text>
+        <!-- #ifdef APP-PLUS -->
+        <view class="service-item" @click="checkUpdate">
+          <uni-icons type="cloud-upload" size="24" color="#222"></uni-icons>
+          <text class="service-text">检查更新</text>
         </view>
+        <!-- #endif -->
         <view class="service-item">
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
@@ -162,6 +164,7 @@ import { onShow } from "@dcloudio/uni-app";
 import { getNavBarHeight } from "@/utils/system.js"
 import { getToken, removeToken, getAccount } from "@/utils/request.js";
 import { apiGetUserBalance } from "@/api/apis.js";
+import tool from "../../utils/tool";
 
 const memberStore = reactive({
   profile: null
@@ -427,9 +430,13 @@ onShow(() => {
   checkLoginStatus();
 });
 
-const useOldManModeStore = inject('useOldManModeStore')
+const useOldManModeStore = inject('useOldManModeStore', 'statusBarHeight')
 function toggleoldManMode() {
   useOldManModeStore.toggleMode()
+}
+
+function checkUpdate() {
+  tool.checkAppUpdate()
 }
 </script>
 

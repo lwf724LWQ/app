@@ -260,6 +260,11 @@ core-util-is@^1.0.2, core-util-is@~1.0.0:
   resolved "https://registry.npmmirror.com/core-util-is/-/core-util-is-1.0.3.tgz"
   integrity sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==
 
+crypto-js@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.npmmirror.com/crypto-js/-/crypto-js-4.2.0.tgz#4d931639ecdfd12ff80e8186dba6af2c2e856631"
+  integrity sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==
+
 css-line-break@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmmirror.com/css-line-break/-/css-line-break-2.1.0.tgz"
@@ -960,6 +965,11 @@ vite-plugin-top-level-await@^1.6.0:
     "@swc/core" "^1.12.14"
     "@swc/wasm" "^1.12.14"
     uuid "10.0.0"
+
+weixin-js-sdk@^1.6.5:
+  version "1.6.5"
+  resolved "https://registry.npmmirror.com/weixin-js-sdk/-/weixin-js-sdk-1.6.5.tgz#01fe5220b91dbfe089fc0730d061be0e68271e6a"
+  integrity sha512-Gph1WAWB2YN/lMOFB/ymb+hbU/wYazzJgu6PMMktCy9cSCeW5wA6Zwt0dpahJbJ+RJEwtTv2x9iIu0U4enuVSQ==
 
 which-module@^2.0.0:
   version "2.0.1"

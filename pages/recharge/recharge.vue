@@ -12,19 +12,11 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 主要内容区域 -->
-    <scroll-view 
-      class="main-content" 
-      scroll-y="true"
-      refresher-enabled="true"
-      :refresher-triggered="isRefreshing"
-      @refresherrefresh="onRefresh"
-      :refresher-threshold="100"
-      refresher-default-style="black"
-      refresher-background="#f5f5f5"
-      :enable-passive="true"
-    >
+    <scroll-view class="main-content" scroll-y="true" refresher-enabled="true" :refresher-triggered="isRefreshing"
+      @refresherrefresh="onRefresh" :refresher-threshold="100" refresher-default-style="black"
+      refresher-background="#f5f5f5" :enable-passive="true">
       <!-- 用户信息区域 -->
       <view class="user-info-section">
         <text class="user-text">当前用户: {{ currentUser }}</text>
@@ -34,56 +26,39 @@
           <button class="record-btn" @click.stop="viewTransactionRecord">金币交易记录</button>
         </view>
       </view>
-      
+
       <!-- 充值选项区域 -->
       <view class="recharge-section">
         <text class="section-title">充值金币</text>
-        
+
         <!-- 预设金额选项 -->
         <view class="amount-options">
-          <view 
-            class="amount-option" 
-            :class="{ active: selectedAmount === 10 }"
-            @click.stop="selectAmount(10)"
-          >
+          <view class="amount-option" :class="{ active: selectedAmount === 10 }" @click.stop="selectAmount(10)">
             <text class="amount-text">10个金币</text>
             <text class="price-text">10元</text>
             <view class="check-icon" v-if="selectedAmount === 10">✓</view>
           </view>
-          
-          <view 
-            class="amount-option" 
-            :class="{ active: selectedAmount === 50 }"
-            @click.stop="selectAmount(50)"
-          >
+
+          <view class="amount-option" :class="{ active: selectedAmount === 50 }" @click.stop="selectAmount(50)">
             <text class="amount-text">50个金币</text>
             <text class="price-text">50元</text>
             <view class="check-icon" v-if="selectedAmount === 50">✓</view>
           </view>
-          
-          <view 
-            class="amount-option" 
-            :class="{ active: selectedAmount === 100 }"
-            @click.stop="selectAmount(100)"
-          >
+
+          <view class="amount-option" :class="{ active: selectedAmount === 100 }" @click.stop="selectAmount(100)">
             <text class="amount-text">100个金币</text>
             <text class="price-text">100元</text>
             <view class="check-icon" v-if="selectedAmount === 100">✓</view>
           </view>
         </view>
-        
+
         <!-- 自定义金额 -->
         <view class="custom-amount-section">
-          <input 
-            type="number" 
-            placeholder="自定义金额" 
-            class="custom-input"
-            v-model="customAmount"
-            @input="updateCustomAmount"
-          />
+          <input type="number" placeholder="自定义金额" class="custom-input" v-model="customAmount"
+            @input="updateCustomAmount" />
           <text class="conversion-text">元={{ customAmount || 0 }}金币</text>
         </view>
-        
+
         <!-- 服务协议 -->
         <view class="agreement-section">
           <view class="agreement-checkbox" @click.stop="toggleAgreement">
@@ -97,28 +72,23 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 规则说明 -->
       <view class="rules-section">
         <text class="rule-item">1、1元=1金币</text>
         <text class="rule-item">2、金币仅限于平台内部使用,充值后不可退还,不可兑换,不可提现</text>
         <text class="rule-item">3、若有疑问、请联系管理员</text>
       </view>
-      
+
       <!-- 支付按钮 -->
       <view class="payment-section">
-        <button 
-          class="payment-btn" 
-          :class="{ disabled: !canPay }"
-          @click.stop="handlePayment"
-          :disabled="!canPay"
-        >
+        <button class="payment-btn" :class="{ disabled: !canPay }" @click.stop="handlePayment" :disabled="!canPay">
           支付 ¥{{ paymentAmount }}元
         </button>
-        
+
       </view>
     </scroll-view>
-    
+
     <!-- 二维码支付弹出层 -->
     <view class="qr-modal" v-if="showQRModal" @click="closeQRModal">
       <view class="qr-content" @click.stop>
@@ -128,13 +98,8 @@
         </view>
         <view class="qr-body">
           <view class="qr-code-container">
-            <image 
-              v-if="qrCodeUrl"
-              :src="qrCodeUrl" 
-              class="qr-image"
-              :style="{ width: qrSize + 'px', height: qrSize + 'px' }"
-              mode="aspectFit"
-            ></image>
+            <image v-if="qrCodeUrl" :src="qrCodeUrl" class="qr-image"
+              :style="{ width: qrSize + 'px', height: qrSize + 'px' }" mode="aspectFit"></image>
             <view v-else class="qr-loading">
               <text class="loading-text">生成二维码中...</text>
             </view>
@@ -227,7 +192,7 @@ const viewTransactionRecord = () => {
 
 const handlePayment = () => {
   if (!canPay.value) return
-  
+
   uni.showModal({
     title: '确认支付',
     content: `确认支付 ¥${paymentAmount.value}元 购买 ${paymentAmount.value}个金币？`,
@@ -244,7 +209,7 @@ const processPayment = async () => {
   uni.showLoading({
     title: '处理中...'
   })
-  
+
   try {
     // 准备充值数据（根据API文档调整）
     const rechargeData = {
@@ -255,38 +220,43 @@ const processPayment = async () => {
       payType: 0, // 支付方式：0微信（可选）
       channel: 0 // 下单渠道：0电脑端（可选）
     }
-    
+
     // 调用充值接口
     const response = await apiUserRecharge(rechargeData)
-    
+
     uni.hideLoading()
-    
+
     if (response.code === 200) {
       // 充值成功，处理微信支付
       if (response.data && response.data.coreUrl && response.data.coreUrl.includes('weixin://wxpay')) {
+        // #ifdef H5
         // 保存订单号（从响应中提取）
         currentOrderNo.value = response.data.orderNo || `ORDER_${Date.now()}`
-        
+
         // 显示二维码支付
         currentPaymentUrl.value = response.data.coreUrl
         showQRModal.value = true
-        
+
         // 生成二维码
         setTimeout(() => {
           generateQRCode(response.data.coreUrl)
           // 开始检查支付状态
           startPaymentCheck()
         }, 100)
+        // #endif
+        // #ifdef APP-PLUS
+        // uni.requestPayment({})
+        // #endif
       } else {
         // 其他支付方式
         uni.showToast({
           title: response.msg || '充值成功',
           icon: 'success'
         })
-        
+
         // 重新获取用户余额
         await getUserInfo()
-        
+
         // 显示支付成功提示
         uni.showModal({
           title: '支付成功',
@@ -295,16 +265,16 @@ const processPayment = async () => {
           success: () => {
             // 刷新当前页面
             refreshPage()
-            
+
             // 延迟跳转到订单页面查看订单信息
             setTimeout(() => {
-              uni.navigateTo({ 
-                url: '/pages/orders/orders' 
+              uni.navigateTo({
+                url: '/pages/orders/orders'
               })
             }, 500)
           }
         })
-        
+
         // 重置选择
         selectedAmount.value = 10
         customAmount.value = ''
@@ -333,13 +303,13 @@ const getUserInfo = async () => {
     console.log('正在加载用户信息，跳过重复请求')
     return
   }
-  
+
   try {
     isLoadingUserInfo.value = true
     const account = getAccount()
     if (account) {
       currentUser.value = account
-      
+
       // 获取用户余额
       const balanceResponse = await apiGetUserBalance({ account })
       if (balanceResponse.code === 200) {
@@ -405,7 +375,7 @@ const generateQRCodeOnline = (url) => {
 const closeQRModal = () => {
   // 停止检查支付状态
   stopPaymentCheck()
-  
+
   showQRModal.value = false
   currentPaymentUrl.value = ''
   qrCodeUrl.value = ''
@@ -416,20 +386,20 @@ const closeQRModal = () => {
 const onRefresh = async () => {
   try {
     isRefreshing.value = true
-    
+
     // 重新获取用户信息
     await getUserInfo()
-    
+
     // 重置表单状态
     selectedAmount.value = 10
     customAmount.value = ''
     agreedToTerms.value = false
-    
+
     // 延迟结束刷新状态
     setTimeout(() => {
       isRefreshing.value = false
     }, 1000)
-    
+
   } catch (error) {
     isRefreshing.value = false
     uni.showToast({
@@ -445,12 +415,12 @@ const refreshPage = async () => {
   try {
     // 重新获取用户信息
     await getUserInfo()
-    
+
     // 重置表单状态
     selectedAmount.value = 10
     customAmount.value = ''
     agreedToTerms.value = false
-    
+
   } catch (error) {
     // 页面刷新失败，静默处理
   }
@@ -461,10 +431,10 @@ const handlePaymentSuccess = async () => {
   try {
     // 停止检查支付状态
     stopPaymentCheck()
-    
+
     // 重新获取用户余额
     await getUserInfo()
-    
+
     // 显示支付成功提示
     uni.showModal({
       title: '支付成功',
@@ -473,19 +443,19 @@ const handlePaymentSuccess = async () => {
       success: () => {
         // 刷新当前页面
         refreshPage()
-        
+
         // 延迟跳转到订单页面查看订单信息
         setTimeout(() => {
-          uni.navigateTo({ 
-            url: '/pages/orders/orders' 
+          uni.navigateTo({
+            url: '/pages/orders/orders'
           })
         }, 500)
       }
     })
-    
+
     // 关闭二维码弹窗
     closeQRModal()
-    
+
     // 重置选择
     selectedAmount.value = 10
     customAmount.value = ''
@@ -502,26 +472,26 @@ const startPaymentCheck = () => {
   if (paymentCheckTimer.value) {
     clearInterval(paymentCheckTimer.value)
   }
-  
+
   isCheckingPayment.value = true
   let checkCount = 0
   const maxChecks = 20 // 最多检查20次（60秒）
   const startTime = Date.now()
-  
+
   // 每10秒检查一次支付状态（给客户更多支付时间）
   paymentCheckTimer.value = setInterval(async () => {
     try {
       checkCount++
-      
+
       // 调用API检查支付状态
       const paymentStatusResponse = await apiGetOrderPayStatus({
         orderNo: currentOrderNo.value
       })
-      
+
       if (paymentStatusResponse.code === 200) {
         // 检查支付状态
         const paymentStatus = paymentStatusResponse.data
-        
+
         if (paymentStatus === 'success' || paymentStatus === 'paid' || paymentStatus === 1) {
           // 支付成功
           stopPaymentCheck()
@@ -543,18 +513,18 @@ const startPaymentCheck = () => {
         }
         // 如果状态是 'pending' 或其他状态，继续检查
       }
-      
+
       // 检查是否超过1分钟
       const elapsedTime = Date.now() - startTime
       if (elapsedTime >= 60000) { // 60秒 = 1分钟
         stopPaymentCheck()
-        
+
         // 最后一次检查支付状态
         try {
           const finalCheckResponse = await apiGetOrderPayStatus({
             orderNo: currentOrderNo.value
           })
-          
+
           if (finalCheckResponse.code === 200) {
             const finalStatus = finalCheckResponse.data
             if (finalStatus === 'success' || finalStatus === 'paid' || finalStatus === 1) {
@@ -589,7 +559,7 @@ const startPaymentCheck = () => {
         }
         return
       }
-      
+
     } catch (error) {
       // 如果检查次数达到上限，停止检查
       if (checkCount >= maxChecks) {
@@ -663,7 +633,8 @@ onUnmounted(() => {
   padding: 0 30rpx;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 80rpx;
   display: flex;
   align-items: center;
@@ -1037,9 +1008,16 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
+  0% {
+    opacity: 1;
+  }
 
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
 </style>

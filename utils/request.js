@@ -66,11 +66,17 @@ export function request(config={}){
 			header,
 			success:res=>{
 				if (res.statusCode === 200) {
-					if(res.data && res.data.code === 200){
+					if (handleServerError(res.data)) {
 						resolve(res.data)
-					} else {
+					}else{
 						reject(res.data)
 					}
+
+					// if(res.data && res.data.code === 200){
+					// 	resolve(res.data)
+					// } else {
+					// 	reject(res.data)
+					// }
 				} else {
 					reject({
 						code: res.statusCode,
@@ -84,4 +90,29 @@ export function request(config={}){
 			}
 		})
 	})
+}
+
+/**
+ * 
+ * @param {} res 
+ * @returns boolean 输出true代表没有错误 false代表有错误
+ */
+const notLoginPages = ['pages/login/login']
+function handleServerError(res){
+	if (res.msg) {
+		if (["Token验证失败"].includes(res.msg)) {
+			const pages = getCurrentPages()
+
+			if (notLoginPages.includes(pages[pages.length - 1].route)) {
+				return false
+			}else{
+				uni.reLaunch({url:'/pages/login/login'})
+			}
+			return false	
+		}
+	}
+	// if (res.code !== 200) {
+		
+	// }
+	return true
 }

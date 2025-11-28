@@ -106,6 +106,7 @@ import { ref, reactive, watch } from 'vue'
 import { apilogin } from '../../api/apis.js'
 import { apigetsts, apiUserimg } from '../../api/apis.js';
 import { setToken, getToken, setAccount, getAccount } from '../../utils/request.js'; // 导入setToken和setAccount方法
+import tool from '../../utils/tool.js';
 
 // 声明uni类型
 declare const uni: any;
@@ -136,6 +137,7 @@ watch([type, account, password, code], ([newtype, newaccount, newpassword]) => {
 const loginShow = ref(false);
 
 onLoad(() => {
+  tool.checkAppUpdate()
   apiUserimg({})
     .then((res) => {
       login()
@@ -338,7 +340,7 @@ const goForgetPwdPage1 = () => {
 
 // 跳转到首页
 const login = () => {
-  uni.switchTab({ url: '/pages/index/index' })
+  uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
 }
 
 // 返回上一页
