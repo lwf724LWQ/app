@@ -335,6 +335,7 @@ export default {
 	flex-direction: column;
 	min-height: 100vh;
 	background-color: #f5f5f5;
+	padding-top: var(--status-bar-height);
 
 	/* 轮播图样式 */
 	.ad-swiper {
@@ -618,6 +619,7 @@ export default {
 	flex-direction: column;
 	min-height: 100vh;
 	background-color: #f5f5f5;
+	padding-top: var(--status-bar-height);
 
 	/* 轮播图样式 */
 	.ad-swiper {

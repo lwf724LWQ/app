@@ -12,7 +12,7 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 主要内容区域 -->
     <view class="main-content">
       <!-- 筛选区域 -->
@@ -22,13 +22,13 @@
             <text class="filter-text">全部账单</text>
             <text class="dropdown-arrow">▼</text>
           </view>
-      
+
           <view class="statistics-link" @click="goToStatistics">
             <text class="statistics-text">收支统计</text>
             <text class="chevron">></text>
           </view>
         </view>
-        
+
         <!-- 月度统计 -->
         <view class="monthly-summary">
           <view class="month-selector" @click="showMonthPicker">
@@ -39,34 +39,31 @@
             <text class="expense-amount">支出¥{{ monthlyExpense }}</text>
             <text class="income-amount">收入¥{{ monthlyIncome }}</text>
           </view>
-          <view class="summary-amounts" v-else-if="startDate && endDate && formatDate(startDate) === formatDate(endDate)">
+          <view class="summary-amounts"
+            v-else-if="startDate && endDate && formatDate(startDate) === formatDate(endDate)">
             <text class="expense-amount">支出¥{{ monthlyExpense }}</text>
             <text class="income-amount">收入¥{{ monthlyIncome }}</text>
           </view>
         </view>
       </view>
-      
+
       <!-- 交易记录列表 -->
       <view class="transaction-list">
-        <view 
-          class="transaction-item" 
-          v-for="(item, index) in filteredTransactions" 
-          :key="item.id || index"
-        >
+        <view class="transaction-item" v-for="(item, index) in filteredTransactions" :key="item.id || index">
           <!-- 左侧图标 -->
           <view class="transaction-icon">
             <view class="icon-wrapper" :class="getTypeClass(item.type)">
               <text class="icon-text">{{ getTypeIcon(item.type) }}</text>
             </view>
           </view>
-          
+
           <!-- 中间内容 -->
           <view class="transaction-content">
             <text class="transaction-title">{{ item.remark || '账单记录' }}</text>
             <text class="transaction-desc">{{ item.account || '账单详情' }}</text>
             <text class="transaction-time">{{ formatTime(item.createTime) }}</text>
           </view>
-          
+
           <!-- 右侧金额 -->
           <view class="transaction-amount" :class="getTypeClass(item.type)">
             <text class="amount-text">{{ item.type === 0 ? '+' : '-' }}{{ item.amount || 0 }}</text>
@@ -74,21 +71,21 @@
           </view>
         </view>
       </view>
-     
-      
+
+
       <!-- 加载更多 -->
       <view class="load-more" v-if="filteredTransactions.length > 0">
         <text class="load-more-text" v-if="loading">加载中...</text>
         <text class="load-more-text" v-else-if="!hasMore">已显示全部记录</text>
         <text class="load-more-text" v-else @click="loadMore">点击加载更多</text>
       </view>
-      
+
       <!-- 加载状态 -->
       <view class="loading-state" v-if="loading && transactions.length === 0">
         <text class="loading-text">加载中...</text>
       </view>
     </view>
-    
+
     <!-- 筛选弹出层 -->
     <view class="filter-modal" v-if="showFilterModal" @click="closeFilterModal">
       <view class="filter-content" @click.stop>
@@ -96,44 +93,35 @@
         <view class="filter-header">
           <text class="filter-title">选择筛选项</text>
         </view>
-        
+
         <!-- 筛选内容 -->
         <view class="filter-body">
           <!-- 收支类型 -->
           <view class="filter-group">
             <text class="filter-group-title">收支类型</text>
             <view class="filter-options">
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedIncomeType === 'all' }"
-                @click="selectIncomeType('all')"
-              >
+              <view class="filter-option" :class="{ active: selectedIncomeType === 'all' }"
+                @click="selectIncomeType('all')">
                 <text class="option-text">全部</text>
               </view>
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedIncomeType === 'expense' }"
-                @click="selectIncomeType('expense')"
-              >
+              <view class="filter-option" :class="{ active: selectedIncomeType === 'expense' }"
+                @click="selectIncomeType('expense')">
                 <text class="option-text">支出</text>
               </view>
-              <view 
-                class="filter-option" 
-                :class="{ active: selectedIncomeType === 'income' }"
-                @click="selectIncomeType('income')"
-              >
+              <view class="filter-option" :class="{ active: selectedIncomeType === 'income' }"
+                @click="selectIncomeType('income')">
                 <text class="option-text">收入</text>
               </view>
             </view>
           </view>
-          
+
           <!-- 交易类型 -->
           <view class="filter-group">
-          
-           
+
+
           </view>
         </view>
-        
+
         <!-- 底部按钮 -->
         <view class="filter-footer">
           <view class="btn cancel-btn" @click="closeFilterModal">
@@ -145,7 +133,7 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 日历弹出层 -->
     <view class="calendar-modal" v-if="showCalendar" @click="closeCalendar">
       <view class="calendar-content" @click.stop>
@@ -156,7 +144,7 @@
             <text class="calendar-title">选择日期</text>
             <view class="nav-spacer"></view>
           </view>
-          
+
           <!-- 选择模式标签 -->
           <view class="selection-tabs">
             <view class="tab-item" :class="{ active: selectionMode === 'month' }" @click="setSelectionMode('month')">
@@ -166,7 +154,7 @@
               <text class="tab-text">选择时间段</text>
             </view>
           </view>
-          
+
           <!-- 当前选择显示 -->
           <view class="current-selection" v-if="selectionMode === 'range'">
             <view class="date-range-display">
@@ -182,7 +170,7 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 日历主体 -->
         <view class="calendar-body">
           <!-- 月份选择模式 -->
@@ -191,35 +179,25 @@
               <!-- 年份选择 -->
               <view class="year-picker">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="yearScrollTop">
-                  <view 
-                    class="picker-item" 
-                    v-for="year in yearList" 
-                    :key="year"
-                    :class="{ active: selectedYear === year }"
-                    @click="selectYear(year)"
-                  >
+                  <view class="picker-item" v-for="year in yearList" :key="year"
+                    :class="{ active: selectedYear === year }" @click="selectYear(year)">
                     <text class="picker-text">{{ year }}年</text>
                   </view>
                 </scroll-view>
               </view>
-              
+
               <!-- 月份选择 -->
               <view class="month-picker-list">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="monthScrollTop">
-                  <view 
-                    class="picker-item" 
-                    v-for="month in monthList" 
-                    :key="month"
-                    :class="{ active: selectedMonth === month }"
-                    @click="selectMonth(month)"
-                  >
+                  <view class="picker-item" v-for="month in monthList" :key="month"
+                    :class="{ active: selectedMonth === month }" @click="selectMonth(month)">
                     <text class="picker-text">{{ month }}月</text>
                   </view>
                 </scroll-view>
               </view>
             </view>
           </view>
-          
+
           <!-- 时间段选择模式 -->
           <view v-else class="date-range-picker">
             <!-- 月份导航 -->
@@ -235,23 +213,19 @@
                 <text class="arrow-icon">›</text>
               </view>
             </view>
-            
+
             <!-- 日历网格 -->
-            <view class="calendar-grid" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+            <view class="calendar-grid" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd">
               <!-- 星期标题 -->
               <view class="weekdays">
                 <text class="weekday" v-for="day in weekdays" :key="day">{{ day }}</text>
               </view>
-              
+
               <!-- 日期网格 -->
               <view class="days-grid">
-                <view 
-                  class="day-item" 
-                  v-for="(day, index) in calendarDays" 
-                  :key="index"
-                  :class="getDayClass(day)"
-                  @click="selectDate(day)"
-                >
+                <view class="day-item" v-for="(day, index) in calendarDays" :key="index" :class="getDayClass(day)"
+                  @click="selectDate(day)">
                   <text class="day-number">{{ day.date }}</text>
                   <text v-if="day.isStart" class="day-label">开始</text>
                   <text v-if="day.isToday" class="day-label">今天</text>
@@ -260,7 +234,7 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 底部按钮 -->
         <view class="calendar-footer">
           <view class="btn cancel-btn" @click="closeCalendar">
@@ -325,37 +299,37 @@ const transactions = ref([])
 // 计算属性 - 根据选中的标签、搜索关键词和日期范围过滤交易记录
 const filteredTransactions = computed(() => {
   let result = transactions.value
-  
+
   // 先按日期范围过滤
   if (startDate.value && endDate.value) {
     // 日期范围模式 - 只比较日期部分，忽略时间
     result = result.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       // 解析交易时间，只取日期部分
       const itemDate = new Date(itemTimeStr)
       const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
-      
+
       // 解析选择日期，只取日期部分
       const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
       const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
-      
-      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
-             itemDateOnly.getTime() <= endDateOnly.getTime()
+
+      return itemDateOnly.getTime() >= startDateOnly.getTime() &&
+        itemDateOnly.getTime() <= endDateOnly.getTime()
     })
   } else {
     // 月份模式
     result = result.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       const itemDate = new Date(itemTimeStr)
-      return itemDate.getFullYear() === currentYear.value && 
-             itemDate.getMonth() + 1 === currentMonth.value
+      return itemDate.getFullYear() === currentYear.value &&
+        itemDate.getMonth() + 1 === currentMonth.value
     })
   }
-  
+
   // 再按标签过滤
   if (activeTab.value !== 'all') {
     const typeMap = {
@@ -364,16 +338,16 @@ const filteredTransactions = computed(() => {
     }
     result = result.filter(item => item.type === typeMap[activeTab.value])
   }
-  
+
   // 最后按搜索关键词过滤
   if (searchKeyword.value.trim()) {
     const keyword = searchKeyword.value.trim().toLowerCase()
-    result = result.filter(item => 
+    result = result.filter(item =>
       (item.remark && item.remark.toLowerCase().includes(keyword)) ||
       (item.account && item.account.toLowerCase().includes(keyword))
     )
   }
-  
+
   return result
 })
 
@@ -385,27 +359,27 @@ const calendarDays = computed(() => {
   const lastDay = new Date(year, month, 0)
   const firstDayOfWeek = firstDay.getDay()
   const daysInMonth = lastDay.getDate()
-  
+
   const days = []
-  
+
   // 添加上个月的空白日期
   for (let i = 0; i < firstDayOfWeek; i++) {
     days.push({ date: '', isEmpty: true })
   }
-  
+
   // 添加当前月的日期
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month - 1, day)
     const today = new Date()
     const isToday = date.getFullYear() === today.getFullYear() &&
-                   date.getMonth() === today.getMonth() &&
-                   date.getDate() === today.getDate()
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     const isStart = startDate.value && date.getTime() === startDate.value.getTime()
     const isEnd = endDate.value && date.getTime() === endDate.value.getTime()
-    const isInRange = startDate.value && endDate.value && 
-                     date.getTime() >= startDate.value.getTime() && 
-                     date.getTime() <= endDate.value.getTime()
-    
+    const isInRange = startDate.value && endDate.value &&
+      date.getTime() >= startDate.value.getTime() &&
+      date.getTime() <= endDate.value.getTime()
+
     days.push({
       date: day,
       fullDate: date,
@@ -416,7 +390,7 @@ const calendarDays = computed(() => {
       isEmpty: false
     })
   }
-  
+
   return days
 })
 
@@ -440,7 +414,7 @@ const displayedDateText = computed(() => {
     // 选择了具体日期范围
     const startDateStr = formatDate(startDate.value)
     const endDateStr = formatDate(endDate.value)
-    
+
     // 如果是同一天，只显示一个日期
     if (startDateStr === endDateStr) {
       return startDateStr
@@ -464,76 +438,76 @@ const isDateRangeSelected = computed(() => {
 // 月度收支统计
 const monthlyExpense = computed(() => {
   let currentTransactions = []
-  
+
   if (startDate.value && endDate.value) {
     // 日期范围模式（包括单日期选择）- 使用精确的日期比较
     currentTransactions = transactions.value.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       // 解析交易时间，只取日期部分
       const itemDate = new Date(itemTimeStr)
       const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
-      
+
       // 解析选择日期，只取日期部分
       const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
       const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
-      
-      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
-             itemDateOnly.getTime() <= endDateOnly.getTime() &&
-             item.type === 1  // 支出
+
+      return itemDateOnly.getTime() >= startDateOnly.getTime() &&
+        itemDateOnly.getTime() <= endDateOnly.getTime() &&
+        item.type === 1  // 支出
     })
   } else {
     // 月份模式
     currentTransactions = transactions.value.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       const itemDate = new Date(itemTimeStr)
-      return itemDate.getFullYear() === currentYear.value && 
-             itemDate.getMonth() + 1 === currentMonth.value &&
-             item.type === 1  // 支出
+      return itemDate.getFullYear() === currentYear.value &&
+        itemDate.getMonth() + 1 === currentMonth.value &&
+        item.type === 1  // 支出
     })
   }
-  
+
   const total = currentTransactions.reduce((sum, item) => sum + (item.amount || 0), 0)
   return total.toFixed(2)
 })
 
 const monthlyIncome = computed(() => {
   let currentTransactions = []
-  
+
   if (startDate.value && endDate.value) {
     // 日期范围模式（包括单日期选择）- 使用精确的日期比较
     currentTransactions = transactions.value.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       // 解析交易时间，只取日期部分
       const itemDate = new Date(itemTimeStr)
       const itemDateOnly = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate())
-      
+
       // 解析选择日期，只取日期部分
       const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
       const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
-      
-      return itemDateOnly.getTime() >= startDateOnly.getTime() && 
-             itemDateOnly.getTime() <= endDateOnly.getTime() &&
-             item.type === 0  // 收入
+
+      return itemDateOnly.getTime() >= startDateOnly.getTime() &&
+        itemDateOnly.getTime() <= endDateOnly.getTime() &&
+        item.type === 0  // 收入
     })
   } else {
     // 月份模式
     currentTransactions = transactions.value.filter(item => {
       const itemTimeStr = item.createTime
       if (!itemTimeStr) return false
-      
+
       const itemDate = new Date(itemTimeStr)
-      return itemDate.getFullYear() === currentYear.value && 
-             itemDate.getMonth() + 1 === currentMonth.value &&
-             item.type === 0  // 收入
+      return itemDate.getFullYear() === currentYear.value &&
+        itemDate.getMonth() + 1 === currentMonth.value &&
+        item.type === 0  // 收入
     })
   }
-  
+
   const total = currentTransactions.reduce((sum, item) => sum + (item.amount || 0), 0)
   return total.toFixed(2)
 })
@@ -614,7 +588,7 @@ const confirmFilter = () => {
   // 应用筛选条件
   activeTab.value = selectedIncomeType.value
   closeFilterModal()
-  
+
   // 重新获取数据
   currentPage.value = 1
   getBillData(true)
@@ -631,7 +605,7 @@ const setSelectionMode = (mode) => {
 
 const selectDate = (day) => {
   if (day.isEmpty) return
-  
+
   if (selectionMode.value === 'range') {
     if (!startDate.value || (startDate.value && endDate.value)) {
       // 选择开始日期
@@ -685,16 +659,16 @@ const confirmSelection = async () => {
       // 如果只选择了开始日期，将结束日期设置为同一天（单日期选择）
       endDate.value = new Date(startDate.value)
     }
-    
+
     // 更新为开始日期所在的月份
     if (startDate.value) {
       currentYear.value = startDate.value.getFullYear()
       currentMonth.value = startDate.value.getMonth() + 1
     }
   }
-  
+
   closeCalendar()
-  
+
   // 重新获取数据
   currentPage.value = 1
   await getBillData(true)
@@ -760,7 +734,7 @@ const handleTouchEnd = (e) => {
   const touch = e.changedTouches[0]
   const deltaY = touch.clientY - touchStartY.value
   const deltaX = touch.clientX - touchStartX.value
-  
+
   // 判断是否为垂直滑动（上下滑动）
   if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
     if (deltaY > 0) {
@@ -809,22 +783,22 @@ const formatDateForAPI = (date) => {
 const validateToken = () => {
   const token = getToken()
   const account = getAccount()
-  
+
   // 检查token是否存在且有效
   if (!token || token.trim() === '') {
     return { isValid: false, reason: 'token_missing' }
   }
-  
+
   // 检查token格式（JWT通常包含点号）
   if (!token.includes('.')) {
     return { isValid: false, reason: 'token_format_invalid' }
   }
-  
+
   // 检查token长度（JWT通常比较长）
   if (token.length < 50) {
     return { isValid: false, reason: 'token_too_short' }
   }
-  
+
   return { isValid: true, token, account }
 }
 
@@ -835,11 +809,11 @@ const getBillData = async (isRefresh = false) => {
     console.log('正在加载账单数据，跳过重复请求')
     return
   }
-  
+
   try {
     isLoadingBill.value = true
     loading.value = true
-    
+
     // 验证token
     const tokenValidation = validateToken()
     if (!tokenValidation.isValid) {
@@ -849,7 +823,7 @@ const getBillData = async (isRefresh = false) => {
       } else if (tokenValidation.reason === 'token_too_short') {
         errorMessage = '登录信息不完整，请重新登录'
       }
-      
+
       uni.showToast({
         title: errorMessage,
         icon: 'none'
@@ -859,22 +833,22 @@ const getBillData = async (isRefresh = false) => {
       }, 1500)
       return
     }
-    
+
     const { token, account } = tokenValidation
-    
+
     // 构建查询参数 - 完全按照订单查询的成功模式
     const queryParams = {
       account: account || token, // 使用account，如果为空则使用token
       page: currentPage.value.toString(),
       limit: pageSize.value.toString()
     }
-    
+
     // 获取所有数据后在前端过滤，确保数据完整性
     const response = await apiBillQuery(queryParams)
-    
+
     if (response.code === 200) {
       const newBills = response.data?.records || []
-      
+
       if (isRefresh) {
         transactions.value = newBills
         currentPage.value = 1
@@ -885,11 +859,11 @@ const getBillData = async (isRefresh = false) => {
           transactions.value = [...transactions.value, ...newBills]
         }
       }
-      
+
       const totalPages = response.data?.pages || 1
       hasMore.value = currentPage.value < totalPages
       totalRecords.value = response.data?.total || 0
-      
+
       if (newBills.length === 0 && currentPage.value === 1) {
         uni.showToast({
           title: '暂无账单数据',
@@ -916,7 +890,7 @@ const getBillData = async (isRefresh = false) => {
 
 // 加载模拟数据
 const loadMockData = () => {
-  
+
   // 模拟账单数据 - 根据API文档结构
   const mockBills = [
     {
@@ -956,12 +930,12 @@ const loadMockData = () => {
       createTime: "2025-10-16 09:20:45"
     }
   ]
-  
+
   // 设置模拟数据
   transactions.value = mockBills
   hasMore.value = false
   totalRecords.value = mockBills.length
-  
+
   uni.showToast({
     title: '已加载模拟数据',
     icon: 'success',
@@ -1032,6 +1006,7 @@ onShow(async () => {
   background-color: #fff;
   z-index: 999;
   border-bottom: 1rpx solid #e8e8e8;
+  padding-top: var(--status-bar-height);
 }
 
 .nav-content {
@@ -1042,7 +1017,8 @@ onShow(async () => {
   padding: 0 30rpx;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 80rpx;
   display: flex;
   align-items: center;
@@ -1071,6 +1047,7 @@ onShow(async () => {
 .main-content {
   padding-top: 88rpx;
   padding: 88rpx 30rpx 30rpx;
+  margin-top: calc(40rpx + var(--status-bar-height));
 }
 
 /* 筛选区域 */
@@ -1651,7 +1628,8 @@ onShow(async () => {
   gap: 20rpx;
 }
 
-.year-picker, .month-picker-list {
+.year-picker,
+.month-picker-list {
   flex: 1;
   border: 1rpx solid #f0f0f0;
   border-radius: 10rpx;

@@ -12,48 +12,36 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 主要内容区域 -->
     <view class="main-content">
       <!-- 搜索框 -->
       <view class="search-section">
         <view class="search-bar" @click="focusSearch">
           <text class="search-icon">🔍</text>
-          <input 
-            v-if="isSearching"
-            v-model="searchKeyword"
-            class="search-input"
-            placeholder="输入订单号搜索"
-            @blur="handleSearchBlur"
-            @input="handleSearchInput"
-            @confirm="performSearch"
-            :focus="isSearching"
-          />
+          <input v-if="isSearching" v-model="searchKeyword" class="search-input" placeholder="输入订单号搜索"
+            @blur="handleSearchBlur" @input="handleSearchInput" @confirm="performSearch" :focus="isSearching" />
           <text v-else class="search-text">输入订单号搜索</text>
           <text v-if="isSearching && searchKeyword" class="clear-icon" @click.stop="clearSearch">×</text>
           <button v-if="isSearching" class="search-btn" @click.stop="performSearch">搜索</button>
         </view>
-        
+
         <!-- 搜索建议 -->
         <view class="search-suggestions" v-if="isSearching && searchHistory.length > 0 && !searchKeyword">
           <view class="suggestions-title">最近搜索</view>
-          <view 
-            class="suggestion-item" 
-            v-for="(item, index) in searchHistory" 
-            :key="index"
-            @click="selectSuggestion(item)"
-          >
+          <view class="suggestion-item" v-for="(item, index) in searchHistory" :key="index"
+            @click="selectSuggestion(item)">
             <text class="suggestion-text">{{ item }}</text>
           </view>
         </view>
-        
+
         <!-- 月份选择器 -->
         <view class="month-selector" @click="showMonthPicker">
           <text class="month-text">{{ displayedDateText }}</text>
           <text class="dropdown-arrow">▼</text>
         </view>
       </view>
-      
+
       <!-- 订单统计 -->
       <view class="orders-stats" v-if="orders.length > 0">
         <text class="stats-text">
@@ -69,15 +57,10 @@
           <text v-else>{{ currentYear }}年{{ currentMonth }}月：{{ filteredOrders.length }} 个订单</text>
         </text>
       </view>
-      
+
       <!-- 订单列表 -->
       <view class="orders-list" v-if="orders.length > 0">
-        <view 
-          class="order-card" 
-          v-for="order in filteredOrders" 
-          :key="order.orderNo"
-          @click="viewOrderDetail(order)"
-        >
+        <view class="order-card" v-for="order in filteredOrders" :key="order.orderNo" @click="viewOrderDetail(order)">
           <view class="order-header">
             <view class="order-info">
               <text class="order-no">订单号：{{ order.orderNo }}</text>
@@ -87,7 +70,7 @@
               {{ getStatusText(order.status) }}
             </view>
           </view>
-          
+
           <view class="order-content">
             <view class="order-desc">
               <text class="order-title">{{ order.info || '订单详情' }}</text>
@@ -96,7 +79,7 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 空状态 -->
       <view class="empty-state" v-else-if="!loading">
         <text class="empty-icon">📋</text>
@@ -113,20 +96,20 @@
         </text>
         <text class="empty-desc" v-else>请尝试选择其他月份</text>
       </view>
-      
+
       <!-- 加载更多按钮 -->
       <view class="load-more-section" v-if="orders.length > 0 && hasMore">
         <button class="load-more-btn" @click="loadMoreOrders" :disabled="loading">
           {{ loading ? '加载中...' : '加载更多' }}
         </button>
       </view>
-      
+
       <!-- 加载状态 -->
       <view class="loading-state" v-if="loading && orders.length === 0">
         <text class="loading-text">加载中...</text>
       </view>
     </view>
-    
+
     <!-- 日历弹出层 -->
     <view class="calendar-modal" v-if="showCalendar" @click="closeCalendar">
       <view class="calendar-content" @click.stop>
@@ -137,7 +120,7 @@
             <text class="calendar-title">选择日期</text>
             <view class="nav-spacer"></view>
           </view>
-          
+
           <!-- 选择模式标签 -->
           <view class="selection-tabs">
             <view class="tab-item" :class="{ active: selectionMode === 'month' }" @click="setSelectionMode('month')">
@@ -147,7 +130,7 @@
               <text class="tab-text">选择时间段</text>
             </view>
           </view>
-          
+
           <!-- 当前选择显示 -->
           <view class="current-selection" v-if="selectionMode === 'range'">
             <view class="date-range-display">
@@ -163,7 +146,7 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 日历主体 -->
         <view class="calendar-body">
           <!-- 月份选择模式 -->
@@ -172,35 +155,25 @@
               <!-- 年份选择 -->
               <view class="year-picker">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="yearScrollTop">
-                  <view 
-                    class="picker-item" 
-                    v-for="year in yearList" 
-                    :key="year"
-                    :class="{ active: selectedYear === year }"
-                    @click="selectYear(year)"
-                  >
+                  <view class="picker-item" v-for="year in yearList" :key="year"
+                    :class="{ active: selectedYear === year }" @click="selectYear(year)">
                     <text class="picker-text">{{ year }}年</text>
                   </view>
                 </scroll-view>
               </view>
-              
+
               <!-- 月份选择 -->
               <view class="month-picker-list">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="monthScrollTop">
-                  <view 
-                    class="picker-item" 
-                    v-for="month in monthList" 
-                    :key="month"
-                    :class="{ active: selectedMonth === month }"
-                    @click="selectMonth(month)"
-                  >
+                  <view class="picker-item" v-for="month in monthList" :key="month"
+                    :class="{ active: selectedMonth === month }" @click="selectMonth(month)">
                     <text class="picker-text">{{ month }}月</text>
                   </view>
                 </scroll-view>
               </view>
             </view>
           </view>
-          
+
           <!-- 时间段选择模式 -->
           <view v-else class="date-range-picker">
             <!-- 月份导航 -->
@@ -216,23 +189,19 @@
                 <text class="arrow-icon">›</text>
               </view>
             </view>
-            
+
             <!-- 日历网格 -->
-            <view class="calendar-grid" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+            <view class="calendar-grid" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd">
               <!-- 星期标题 -->
               <view class="weekdays">
                 <text class="weekday" v-for="day in weekdays" :key="day">{{ day }}</text>
               </view>
-              
+
               <!-- 日期网格 -->
               <view class="days-grid">
-                <view 
-                  class="day-item" 
-                  v-for="(day, index) in calendarDays" 
-                  :key="index"
-                  :class="getDayClass(day)"
-                  @click="selectDate(day)"
-                >
+                <view class="day-item" v-for="(day, index) in calendarDays" :key="index" :class="getDayClass(day)"
+                  @click="selectDate(day)">
                   <text class="day-number">{{ day.date }}</text>
                   <text v-if="day.isStart" class="day-label">开始</text>
                   <text v-if="day.isToday" class="day-label">今天</text>
@@ -241,7 +210,7 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 底部按钮 -->
         <view class="calendar-footer">
           <view class="btn cancel-btn" @click="closeCalendar">
@@ -295,45 +264,45 @@ const isSwipeEnabled = ref(true)
 // 计算属性
 const filteredOrders = computed(() => {
   let result = orders.value
-  
+
   // 先按日期范围过滤
   if (startDate.value && endDate.value) {
     // 日期范围模式 - 只比较日期部分，忽略时间
     result = result.filter(order => {
       const orderTimeStr = order.updateTime || order.createTime
       if (!orderTimeStr) return false
-      
+
       // 解析订单时间，只取日期部分
       const orderDate = new Date(orderTimeStr)
       const orderDateOnly = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate())
-      
+
       // 解析选择日期，只取日期部分
       const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
       const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
-      
-      return orderDateOnly.getTime() >= startDateOnly.getTime() && 
-             orderDateOnly.getTime() <= endDateOnly.getTime()
+
+      return orderDateOnly.getTime() >= startDateOnly.getTime() &&
+        orderDateOnly.getTime() <= endDateOnly.getTime()
     })
   } else {
     // 月份模式
     result = result.filter(order => {
       const orderTimeStr = order.updateTime || order.createTime
       if (!orderTimeStr) return false
-      
+
       const orderDate = new Date(orderTimeStr)
-      return orderDate.getFullYear() === currentYear.value && 
-             orderDate.getMonth() + 1 === currentMonth.value
+      return orderDate.getFullYear() === currentYear.value &&
+        orderDate.getMonth() + 1 === currentMonth.value
     })
   }
-  
+
   // 再按搜索关键词过滤
   if (searchKeyword.value.trim()) {
-    result = result.filter(order => 
+    result = result.filter(order =>
       order.orderNo.includes(searchKeyword.value) ||
       (order.info && order.info.includes(searchKeyword.value))
     )
   }
-  
+
   return result
 })
 
@@ -345,27 +314,27 @@ const calendarDays = computed(() => {
   const lastDay = new Date(year, month, 0)
   const firstDayOfWeek = firstDay.getDay()
   const daysInMonth = lastDay.getDate()
-  
+
   const days = []
-  
+
   // 添加上个月的空白日期
   for (let i = 0; i < firstDayOfWeek; i++) {
     days.push({ date: '', isEmpty: true })
   }
-  
+
   // 添加当前月的日期
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month - 1, day)
     const today = new Date()
     const isToday = date.getFullYear() === today.getFullYear() &&
-                   date.getMonth() === today.getMonth() &&
-                   date.getDate() === today.getDate()
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     const isStart = startDate.value && date.getTime() === startDate.value.getTime()
     const isEnd = endDate.value && date.getTime() === endDate.value.getTime()
-    const isInRange = startDate.value && endDate.value && 
-                     date.getTime() >= startDate.value.getTime() && 
-                     date.getTime() <= endDate.value.getTime()
-    
+    const isInRange = startDate.value && endDate.value &&
+      date.getTime() >= startDate.value.getTime() &&
+      date.getTime() <= endDate.value.getTime()
+
     days.push({
       date: day,
       fullDate: date,
@@ -376,7 +345,7 @@ const calendarDays = computed(() => {
       isEmpty: false
     })
   }
-  
+
   return days
 })
 
@@ -400,7 +369,7 @@ const displayedDateText = computed(() => {
     // 选择了具体日期范围
     const startDateStr = formatDate(startDate.value)
     const endDateStr = formatDate(endDate.value)
-    
+
     // 如果是同一天，只显示一个日期
     if (startDateStr === endDateStr) {
       return startDateStr
@@ -454,7 +423,7 @@ const setSelectionMode = (mode) => {
 
 const selectDate = (day) => {
   if (day.isEmpty) return
-  
+
   if (selectionMode.value === 'range') {
     if (!startDate.value || (startDate.value && endDate.value)) {
       // 选择开始日期
@@ -509,16 +478,16 @@ const confirmSelection = async () => {
       // 如果只选择了开始日期，将结束日期设置为同一天（单日期选择）
       endDate.value = new Date(startDate.value)
     }
-    
+
     // 更新为开始日期所在的月份
     if (startDate.value) {
       currentYear.value = startDate.value.getFullYear()
       currentMonth.value = startDate.value.getMonth() + 1
     }
   }
-  
+
   closeCalendar()
-  
+
   // 重新获取数据
   currentPage.value = 1
   await getOrders(true)
@@ -584,7 +553,7 @@ const handleTouchEnd = (e) => {
   const touch = e.changedTouches[0]
   const deltaY = touch.clientY - touchStartY.value
   const deltaX = touch.clientX - touchStartX.value
-  
+
   // 判断是否为垂直滑动（上下滑动）
   if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
     if (deltaY > 0) {
@@ -603,7 +572,7 @@ const getOrders = async (isRefresh = false) => {
     loading.value = true
     const token = getToken()
     const account = getAccount()
-    
+
     if (!token) {
       uni.showToast({
         title: '请先登录',
@@ -614,23 +583,23 @@ const getOrders = async (isRefresh = false) => {
       }, 1500)
       return
     }
-    
+
     if (!account) {
       // 如果account为空，尝试使用token作为account（临时解决方案）
       const tokenAccount = token || 'default_user'
-      
+
       // 构建查询参数
       const queryParams = {
         account: tokenAccount,
         page: currentPage.value.toString(),
         limit: pageSize.value.toString()
       }
-      
+
       // 如果有搜索关键词，添加订单号查询
       if (searchKeyword.value.trim()) {
         queryParams.orderNo = searchKeyword.value.trim()
       }
-      
+
       // 添加日期范围查询参数
       if (startDate.value && endDate.value) {
         // 日期范围模式
@@ -641,13 +610,13 @@ const getOrders = async (isRefresh = false) => {
         queryParams.year = currentYear.value.toString()
         queryParams.month = currentMonth.value.toString()
       }
-      
+
       const response = await apiOrderQuery(queryParams)
-      
+
       if (response.code === 200) {
         // 修复数据结构：从 response.data.records 获取订单列表
         const newOrders = response.data?.records || []
-        
+
         if (isRefresh) {
           // 刷新时替换数据
           orders.value = newOrders
@@ -660,11 +629,11 @@ const getOrders = async (isRefresh = false) => {
             orders.value = [...orders.value, ...newOrders]
           }
         }
-        
+
         // 判断是否还有更多数据 - 使用接口返回的分页信息
         const totalPages = response.data?.pages || 1
         hasMore.value = currentPage.value < totalPages
-        
+
         // 保存总订单数
         totalOrders.value = response.data?.total || 0
       } else {
@@ -673,30 +642,30 @@ const getOrders = async (isRefresh = false) => {
           icon: 'none'
         })
       }
-      
+
       loading.value = false
       return
     }
-    
+
     // 构建查询参数
     const queryParams = {
       account: account,
       page: currentPage.value.toString(),
       limit: pageSize.value.toString()
     }
-    
+
     // 如果有搜索关键词，添加订单号查询
     if (searchKeyword.value.trim()) {
       queryParams.orderNo = searchKeyword.value.trim()
     }
-    
+
     // 获取所有数据后在前端过滤，确保数据完整性
     const response = await apiOrderQuery(queryParams)
-    
+
     if (response.code === 200) {
       // 修复数据结构：从 response.data.records 获取订单列表
       const newOrders = response.data?.records || []
-      
+
       if (isRefresh) {
         // 刷新时替换数据
         orders.value = newOrders
@@ -709,13 +678,13 @@ const getOrders = async (isRefresh = false) => {
           orders.value = [...orders.value, ...newOrders]
         }
       }
-      
+
       // 判断是否还有更多数据 - 使用接口返回的分页信息
       const totalPages = response.data?.pages || 1
       hasMore.value = currentPage.value < totalPages
-      
-        // 保存总订单数
-        totalOrders.value = response.data?.total || 0
+
+      // 保存总订单数
+      totalOrders.value = response.data?.total || 0
     } else {
       uni.showToast({
         title: response.msg || '获取订单失败',
@@ -788,7 +757,7 @@ const handleSearchBlur = () => {
 const handleSearchInput = () => {
   // 搜索输入时的处理
   console.log('搜索关键词:', searchKeyword.value)
-  
+
   // 如果输入框为空，自动获取所有订单
   if (!searchKeyword.value.trim()) {
     currentPage.value = 1
@@ -814,10 +783,10 @@ const performSearch = async () => {
     })
     return
   }
-  
+
   // 添加到搜索历史
   addToSearchHistory(searchKeyword.value.trim())
-  
+
   // 执行搜索
   console.log('执行订单搜索:', searchKeyword.value.trim())
   currentPage.value = 1
@@ -827,21 +796,21 @@ const performSearch = async () => {
 // 添加到搜索历史
 const addToSearchHistory = (keyword) => {
   if (!keyword || keyword.length < 3) return
-  
+
   // 移除重复项
   const index = searchHistory.value.indexOf(keyword)
   if (index > -1) {
     searchHistory.value.splice(index, 1)
   }
-  
+
   // 添加到开头
   searchHistory.value.unshift(keyword)
-  
+
   // 限制历史记录数量
   if (searchHistory.value.length > 5) {
     searchHistory.value = searchHistory.value.slice(0, 5)
   }
-  
+
   // 保存到本地存储
   uni.setStorageSync('orderSearchHistory', searchHistory.value)
 }
@@ -867,7 +836,7 @@ const selectSuggestion = (keyword) => {
 // 加载更多订单
 const loadMoreOrders = async () => {
   if (!hasMore.value || loading.value) return
-  
+
   currentPage.value++
   await getOrders(false)
 }
@@ -876,7 +845,7 @@ const loadMoreOrders = async () => {
 onMounted(async () => {
   const token = getToken()
   const account = getAccount()
-  
+
   if (!token) {
     uni.showToast({
       title: '请先登录',
@@ -918,6 +887,7 @@ onMounted(async () => {
   background-color: #fff;
   z-index: 999;
   border-bottom: 1rpx solid #e8e8e8;
+  padding-top: var(--status-bar-height);
 }
 
 .nav-content {
@@ -928,7 +898,8 @@ onMounted(async () => {
   padding: 0 30rpx;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 80rpx;
   display: flex;
   align-items: center;
@@ -957,6 +928,7 @@ onMounted(async () => {
 .main-content {
   padding-top: 88rpx;
   padding: 88rpx 30rpx 30rpx;
+  margin-top: calc(40rpx + var(--status-bar-height));
 }
 
 /* 搜索区域 */
@@ -1422,7 +1394,8 @@ onMounted(async () => {
   gap: 20rpx;
 }
 
-.year-picker, .month-picker-list {
+.year-picker,
+.month-picker-list {
   flex: 1;
   border: 1rpx solid #f0f0f0;
   border-radius: 10rpx;

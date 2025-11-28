@@ -1566,6 +1566,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   padding: 0 30rpx;
+  padding-top: var(--status-bar-height);
   /* 优化触摸性能 */
   touch-action: manipulation;
 }
@@ -1728,7 +1729,7 @@ textarea {
 /* 切换标签栏 */
 .switch-tabs {
   position: fixed;
-  top: 88rpx;
+  top: calc(88rpx + var(--status-bar-height));
   left: 0;
   right: 0;
   height: 88rpx;
@@ -1769,7 +1770,7 @@ textarea {
 /* 搜索栏 */
 .search-header {
   position: fixed;
-  top: 176rpx;
+  top: calc(176rpx + var(--status-bar-height));
   left: 0;
   right: 0;
   height: 80rpx;
@@ -1894,7 +1895,7 @@ textarea {
 /* 分类标签栏 */
 .category-tags {
   position: fixed;
-  top: 256rpx;
+  top: calc(256rpx + var(--status-bar-height));
   left: 0;
   right: 0;
   height: 80rpx;
@@ -1944,7 +1945,7 @@ textarea {
 
 .forum-content {
   padding: 20rpx;
-  padding-top: 356rpx;
+  padding-top: calc(396rpx + var(--status-bar-height));
   /* 为四个固定区域留出空间 */
   /* 优化滚动性能 */
   -webkit-overflow-scrolling: touch;

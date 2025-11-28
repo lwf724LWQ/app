@@ -623,6 +623,7 @@ onUnmounted(() => {
   background-color: #fff;
   z-index: 999;
   border-bottom: 1rpx solid #e8e8e8;
+  padding-top: var(--status-bar-height);
 }
 
 .nav-content {
@@ -664,6 +665,7 @@ onUnmounted(() => {
   padding-top: 88rpx;
   padding: 88rpx 30rpx 30rpx;
   box-sizing: border-box;
+  margin-top: calc(40rpx + var(--status-bar-height));
 }
 
 /* 用户信息区域 */

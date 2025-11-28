@@ -138,6 +138,10 @@ const loginShow = ref(false);
 
 onLoad(() => {
   tool.checkAppUpdate()
+  if (!getToken()) {
+    loginShow.value = true;
+    return
+  }
   apiUserimg({})
     .then((res) => {
       login()
@@ -146,7 +150,7 @@ onLoad(() => {
       loginShow.value = true;
     })
     .finally(() => {
-      loginShow.value = true;
+      // loginShow.value = true;
     });
 })
 

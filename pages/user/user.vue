@@ -445,7 +445,7 @@ function checkUpdate() {
   background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
-
+	padding-top: var(--status-bar-height);
   .userInfo {
     background: transparent;
     padding: 60rpx 32rpx 40rpx;
