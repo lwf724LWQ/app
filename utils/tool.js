@@ -1,7 +1,7 @@
 import { client, initOSS, uploadForApp } from "./alioss.js";
 import { nanoid } from 'nanoid/non-secure';
 import { apiAppversionQuery } from "../api/apis.js"
-import h5wxsdk from "./h5wxsdk.js"
+import h5wxsdk from "./uniwxsdk/h5.js"
 
 const tool = {
   oss: {
@@ -131,11 +131,11 @@ const tool = {
   pay(){
     return new Promise((resolve, reject) => { 
       // #ifdef H5
-      resolve(true)
+      h5wxsdk.wxPay
       // #endif
 
       // #ifdef APP-PLUS
-
+      uni
       // #endif
     })
   },

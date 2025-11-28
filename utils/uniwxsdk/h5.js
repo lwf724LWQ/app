@@ -7,7 +7,10 @@
 
     注意wx要全部替换成jWeixin
  */
-import {getWXSDKAccessToken} from "../api/apis.js"
+import {getWXSDKAccessToken} from "../../api/apis.js"
+import config from "./config.js"
+import tool from "./tool.js"
+
 async function getAccessToken(){
     return "123123"
     // 这里对获取access_token进行一个解耦
@@ -22,58 +25,26 @@ async function getAccessToken(){
     }
 }
 
-// 生成随机字符串
-function generateRandomString(length = 16) {
-    const array = new Uint8Array(length);
-    if (typeof crypto !== 'undefined') {
-        crypto.getRandomValues(array);
-    } else {
-        // 降级处理
-        for (let i = 0; i < length; i++) {
-            array[i] = Math.floor(Math.random() * 256);
-        }
-    }
-    
-    // 转换为十六进制字符串
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
-// 使用crypto 生成sha1加密
-function sha1(str) {
-    const buffer = new TextEncoder().encode(str);
-    return crypto.subtle.digest('SHA-1', buffer).then(function(hash) {
-        // 将hash值转换为十六进制字符串
-        return Array.from(new Uint8Array(hash))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
-    });
-}
-const appid = "wxd145b4a6dc948d7f"
-
 // 改方法存储未init前执行的init方法
 const waitDoList = []
 const isDebug = true
-const isReady = false
-function log(...arg){
-    if(isDebug){
-        console.log(...arg)
-    }
-}
+
 
 export default {
     isWx(){
         return !!WeixinJSBridge
     },
-    async wxInit(){
+    async init(){
+        const appId = config.appid
         const timestamp = Math.floor(Date.now() / 1000)
-        const nonceStr = generateRandomString()
+        const nonceStr = tool.generateRandomString()
         const access_token = await getAccessToken()
         const url = window.location.origin + window.location.pathname
-        const signature = await sha1(`jsapi_ticket=${access_token}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`)
+        const signature = await tool.sha1(`jsapi_ticket=${access_token}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`)
         
         const wxConfigObj = {
             debug: isDebug,
-            appId: appid,
+            appId: appId,
             timestamp: timestamp,
             nonceStr: nonceStr,
             signature: signature,
@@ -81,7 +52,7 @@ export default {
             access_token: access_token,
             url:url
         }
-        log(wxConfigObj)
+        tool.log(wxConfigObj)
         jWeixin.config(wxConfigObj);
 
         jWeixin.ready(function(){
@@ -104,7 +75,7 @@ export default {
         }
     },
 
-    async wxPay(){
+    async pay(){
         
     }
 
