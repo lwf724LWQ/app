@@ -53,70 +53,101 @@
 
           <view class="column-2">
             <view
-              class="item"
-              :class="{ active: pointActives[item.id + 0] }"
-              :style="{
-                background: pointActives[item.id + 0]?.color
-                  ? `radial-gradient(circle at center, ${
-                      pointActives[item.id + 0]?.color
-                    } 60%, white 65%, white 100%)`
-                  : ''
+              class="border"
+              :class="{
+                active: pointActives[item.id + 0],
+                'border-radius': pointActives[item.id + 0]?.isRound
               }"
-              :id="item.id + 0"
-              >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
+              :style="{
+                borderColor:
+                  pointActives[item.id + 0]?.isSolid === false && pointActives[item.id + 0].color,
+                width: pointActives[item.id + 0]?.isSolid && 70 + 'rpx',
+                height: pointActives[item.id + 0]?.isSolid && 70 + 'rpx'
+              }"
             >
+              <view
+                class="item"
+                :style="{
+                  backgroundColor:
+                    pointActives[item.id + 0]?.isSolid && pointActives[item.id + 0].color,
+                  color:
+                    pointActives[item.id + 0]?.isSolid === false && pointActives[item.id + 0].color
+                }"
+                :id="item.id + 0"
+                >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
+              >
+            </view>
           </view>
 
           <view class="column-3">
             <view v-for="(number, index) in item.number" :key="index">
               <view
-                class="item"
-                :class="{ active: pointActives[item.id + (index + 1)] }"
-                :style="{
-                  background: pointActives[item.id + (index + 1)]?.color
-                    ? `radial-gradient(circle at center, ${
-                        pointActives[item.id + (index + 1)]?.color
-                      } 60%, white 65%, white 100%)`
-                    : ''
+                class="border"
+                :class="{
+                  active: pointActives[item.id + (index + 1)],
+                  'border-radius': pointActives[item.id + (index + 1)]?.isRound
                 }"
-                :id="item.id + (index + 1)"
-                >{{ number }}</view
+                :style="{
+                  borderColor:
+                    pointActives[item.id + (index + 1)]?.isSolid === false &&
+                    pointActives[item.id + (index + 1)].color,
+                  width: pointActives[item.id + (index + 1)]?.isSolid && 85 + 'rpx',
+                  height: pointActives[item.id + (index + 1)]?.isSolid && 85 + 'rpx'
+                }"
               >
+                <view
+                  class="item"
+                  :style="{
+                    backgroundColor:
+                      pointActives[item.id + (index + 1)]?.isSolid &&
+                      pointActives[item.id + (index + 1)].color,
+                    color:
+                      pointActives[item.id + (index + 1)]?.isSolid === false &&
+                      pointActives[item.id + (index + 1)].color
+                  }"
+                  :id="item.id + (index + 1)"
+                  >{{ number }}</view
+                >
+              </view>
             </view>
           </view>
         </view>
         <!-- 空白区域 -->
-        <view class="row" v-for="row in 6" :key="row">
+        <view class="row" v-for="row in options.bottomRow" :key="row">
           <view class="column-1"></view>
 
           <view class="column-2">
             <view
-              class="marker"
-              v-if="marks[`${row}-0`]"
+              class="border"
+              :class="{
+                active: pointActives[`${row}0`],
+                'border-radius': pointActives[`${row}0`]?.isRound
+              }"
               :style="{
-                backgroundColor: marks[`${row}-0`].style.color || ''
+                borderColor:
+                  pointActives[`${row}0`]?.isSolid === false && pointActives[`${row}0`].color,
+                width: pointActives[`${row}0`]?.isSolid && 70 + 'rpx',
+                height: pointActives[`${row}0`]?.isSolid && 70 + 'rpx'
               }"
             >
-              <view class="condition">{{ marks[`${row}-0`].marker.condition }}</view>
-              <view class="number">{{ marks[`${row}-0`].marker.numbers.join('') }}</view>
+              <view
+                class="item"
+                :id="`${row}0`"
+                :style="{
+                  backgroundColor:
+                    pointActives[`${row}0`]?.isSolid && pointActives[`${row}0`].color,
+                  color: pointActives[`${row}0`]?.isSolid === false && pointActives[`${row}0`].color
+                }"
+                >{{ marks[`${row}0`]?.marker.condition }}</view
+              >
             </view>
-            <view
-              class="item"
-              v-else
-              :class="{ active: pointActives[`${row}0`] }"
-              :id="`${row}0`"
-              @touchstart="touchstart($event, `${row}0`)"
-            ></view>
           </view>
 
           <view class="column-3">
             <view v-for="(val, index) in 5" :key="val">
               <view
-                v-if="marks[`${row}${index + 1}`]"
-                :class="{
-                  marker: index !== 4 && marks[`${row}${index + 1}`].marker.senior,
-                  'marker-simple': index === 4 || !marks[`${row}${index + 1}`].marker.senior
-                }"
+                v-if="index !== 4 && marks[`${row}${index + 1}`]?.marker.senior"
+                class="senior"
                 :style="getColorStyle(`${row}${index + 1}`)"
               >
                 <view class="condition">{{ marks[`${row}${index + 1}`].marker.condition }}</view>
@@ -125,25 +156,41 @@
                 }}</view>
               </view>
               <view
-                class="item"
+                class="border blank"
                 v-else
-                :class="{ active: pointActives[`${row}${index + 1}`] }"
-                :style="{
-                  background: pointActives[`${row}${index + 1}`]?.color
-                    ? `radial-gradient(circle at center, ${
-                        pointActives[`${row}${index + 1}`]?.color
-                      } 60%, white 65%, white 100%)`
-                    : ''
+                :class="{
+                  active: pointActives[`${row}${index + 1}`],
+                  'border-radius': pointActives[`${row}${index + 1}`]?.isRound
                 }"
-                :id="`${row}${index + 1}`"
-                @touchstart="touchstart($event, `${row}${index + 1}`)"
-              ></view>
+                :style="{
+                  borderColor:
+                    pointActives[`${row}${index + 1}`]?.isSolid === false &&
+                    pointActives[`${row}${index + 1}`].color,
+                  width: pointActives[`${row}${index + 1}`]?.isSolid && 85 + 'rpx',
+                  height: pointActives[`${row}${index + 1}`]?.isSolid && 85 + 'rpx'
+                }"
+              >
+                <view
+                  class="item"
+                  :style="{
+                    backgroundColor:
+                      pointActives[`${row}${index + 1}`]?.isSolid &&
+                      pointActives[`${row}${index + 1}`].color,
+                    color:
+                      pointActives[`${row}${index + 1}`]?.isSolid === false &&
+                      pointActives[`${row}${index + 1}`].color
+                  }"
+                  :id="`${row}${index + 1}`"
+                  >{{ marks[`${row}${index + 1}`]?.marker.condition }}</view
+                >
+              </view>
             </view>
           </view>
         </view>
         <!-- 悬浮文字 -->
         <view
           class="text"
+          :class="{ 'text-handle-hide': textHandleHide }"
           v-for="(item, index) in textList"
           :key="index"
           :style="{
@@ -235,7 +282,7 @@
       <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
     <!-- 设置 -->
-    <Setting class="setting" @update="updateSetting" v-model="isSettingOpen"></Setting>
+    <Setting class="setting" v-model="isSettingOpen"></Setting>
   </view>
 </template>
 
@@ -251,6 +298,8 @@ import { DrawShape } from './drawMethod'
 import dayjs from 'dayjs'
 import html2canvas from 'html2canvas'
 import Setting from '@/components/juWang/Setting.vue'
+import { useDrawLineSettingStore } from '@/stores/drawLine.js'
+import { getCurvePoint } from './utils'
 
 //解析日期
 const weekMap = {
@@ -281,21 +330,52 @@ const safeArea = systemInfo.safeArea // 安全距离
 const windowHeight = systemInfo.windowHeight
 
 const scrollInitTop = ref(0) // 滚动条初始位置
+
+// 设置
+const drawLineSettingStore = useDrawLineSettingStore()
+const options = drawLineSettingStore.options
+const isSettingOpen = ref(false)
+
+watch(
+  () => options.showPeriod,
+  () => {
+    getData()
+  }
+)
+// 设置屏幕常亮
+// #ifdef APP || MP
+watch(
+  () => options.keepScreenOn,
+  () => {
+    if (options.keepScreenOn) {
+      uni.setKeepScreenOn({
+        keepScreenOn: true
+      })
+    } else {
+      uni.setKeepScreenOn({
+        keepScreenOn: false
+      })
+    }
+  }
+)
+// #endif
+
 // 页面数据
 const data = ref([])
 let positionList
+let showPeriod = options.showPeriod || 40
 const getData = async () => {
-  const res = await uni.request({
-    url: 'http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=30'
-  })
-  data.value = res.data.data.records.reverse()
-  data.value.forEach((item) => {
-    item.number = item.number?.split(' ').slice(0, 5)
-  })
-  // data.value = mock.data.records
-  // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
+  // const res = await uni.request({
+  //   url: `http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=${showPeriod}`
   // })
+  // data.value = res.data.data.records.reverse()
+  // data.value.forEach((item) => {
+  //   item.number = item.number?.split(' ').slice(0, 5)
+  // })
+  data.value = mock.data.records
+  data.value.forEach((item) => {
+    item.number = item.number.split(' ').slice(0, 5)
+  })
 
   await nextTick()
   const query = uni.createSelectorQuery().in(instance.proxy)
@@ -308,14 +388,6 @@ const getData = async () => {
   scrollInitTop.value = 9999
 }
 getData()
-
-// 设置
-const options = ref({})
-const isSettingOpen = ref(false)
-const updateSetting = (option) => {
-  console.log(option)
-  options.value = option
-}
 
 const curveHandleX = ref(0)
 const curveHandleY = ref(0)
@@ -341,7 +413,7 @@ const curveLine = (startX, startY, endX, endY) => {
 }
 // 绘制所有线
 const drawnLineAll = () => {
-  record.value.forEach((item) => {
+  const draw = (item) => {
     if (!item?.line) return
     const type = item.line.type
     const color = item.style.color
@@ -377,6 +449,15 @@ const drawnLineAll = () => {
       const { startX, startY, endX, endY } = item.line.position
       drawHollowCircle(startX, startY, endX, endY, color, size)
     }
+  }
+  record.value.forEach((item) => {
+    if (Array.isArray(item)) {
+      item.forEach((recordItem) => {
+        draw(recordItem)
+      })
+    } else {
+      draw(item)
+    }
   })
 }
 // 监听触摸事件
@@ -403,6 +484,7 @@ const isTextInputShow = ref(false)
 const textareaPosition = ref({}) // textarea坐标
 const textareaValue = ref('')
 const touchstart = (event) => {
+  textHandleHide.value = true // 关闭悬浮文字边框
   const { x, y } = event.touches[0]
   startX = x
   startY = y
@@ -452,8 +534,26 @@ const touchstart = (event) => {
   // startY = position.top + position.height / 2
   // record.value.push({ point: [position.id] })
 }
-
+const colors = [
+  '#f2232b',
+  '#2f54eb',
+  '#fa531c',
+  '#13c2c2',
+  '#fa8b15',
+  '#1791ff',
+  '#faad17',
+  '#53c41a',
+  '#fbdb16',
+  '#722ed1',
+  '#a0d911',
+  '#ec2f96',
+  '#bfbfbf',
+  '#252628',
+  '#795547',
+  '#607d8b'
+]
 let isFirst = true
+let tmpPositions = []
 const touchmove = (event) => {
   if (isScroll.value) {
     return
@@ -472,17 +572,51 @@ const touchmove = (event) => {
   drawnLineAll()
   switch (mode.value) {
     case '智能曲线':
-      if (isFirst)
-        record.value.push({
-          point: [tmpItemMeta.id],
-          style: { color: color.value, size: size.value }
-        })
-      // event.preventDefault()
+      if (isFirst) {
+        if (options.count === 1) {
+          record.value.push({
+            point: [tmpItemMeta.id],
+            style: { color: color.value, size: size.value, ...options.numberStyle }
+          })
+          startX = tmpItemMeta.left + tmpItemMeta.width / 2
+          startY = tmpItemMeta.top + tmpItemMeta.height / 2
+        } else {
+          const firstX = tmpItemMeta.left + tmpItemMeta.width / 2
+          const firstY = tmpItemMeta.top + tmpItemMeta.height / 2
+
+          for (let index = 0; index < options.count; index++) {
+            tmpPositions.push({
+              startX: firstX,
+              startY: firstY - 110 * ratio * index * (options.distance + 1)
+            })
+          }
+
+          const recordList = []
+          const colorStartIndex = colors.indexOf(color.value) + 1
+          for (let index = 0; index < options.count; index++) {
+            recordList.push({
+              point: [getPosition(tmpPositions[index].startX, tmpPositions[index].startY).id],
+              style: {
+                color:
+                  options.colorType === 'single' ? color.value : colors[colorStartIndex + index],
+                size: size.value,
+                ...options.numberStyle
+              }
+            })
+          }
+          record.value.push(recordList)
+        }
+      }
       isFirst = false
-      // drawnLineAll()
-      startX = tmpItemMeta.left + tmpItemMeta.width / 2
-      startY = tmpItemMeta.top + tmpItemMeta.height / 2
-      drawnStraightLine(startX, startY, x, y)
+      if (options.count === 1) {
+        drawnStraightLine(startX, startY, x, y)
+      } else {
+        tmpPositions.forEach((item, index) => {
+          tmpPositions[index].endX = x
+          tmpPositions[index].endY = y - 110 * ratio * index * (options.distance + 1)
+          drawnStraightLine(item.startX, item.startY, item.endX, item.endY)
+        })
+      }
       break
     case '自由线':
       track.push({ x, y })
@@ -519,6 +653,7 @@ const touchmove = (event) => {
   lineCtx.draw()
 }
 
+const textHandleHide = ref(true)
 const touchend = (event) => {
   if (isScroll.value) return
   else isScroll.value = true
@@ -529,6 +664,7 @@ const touchend = (event) => {
     // 添加文字
     if (mode.value === '添加文字') {
       if (!isTextInputShow.value) {
+        // 弹出输入框
         textPosition = { x, y }
         textareaPosition.value = { x, y }
         isTextInputShow.value = true
@@ -536,7 +672,8 @@ const touchend = (event) => {
         isTextInputShow.value = false
         // 修改文字
         if (textChangeIndex !== null) {
-          const meta = textList.value[textChangeIndex]
+          const meta = record.value[textChangeIndex]
+
           meta.text.content = textareaValue.value
           // 重新计算文字框大小
           meta.style.width = 'auto'
@@ -553,6 +690,7 @@ const touchend = (event) => {
         }
 
         if (!textareaValue.value) return
+        // 添加文字
         record.value.push({
           text: {
             content: textareaValue.value,
@@ -578,32 +716,94 @@ const touchend = (event) => {
     } else {
       record.value.push({
         point: [tmpItemMeta.id],
-        style: { color: color.value, size: size.value }
+        style: { color: color.value, ...options.numberStyle }
       })
       if (tmpItemMeta.id.length < 10) openPopup()
     }
   } else {
     switch (mode.value) {
       case '智能曲线':
-        const position = getPosition(x, y)
-        endX = position.left + position.width / 2
-        endY = position.top + position.height / 2
-
-        drawnLineAll()
-
         const lastRecord = record.value[record.value.length - 1]
-        // 如果最后位置不是开始位置，则添加当前点
-        if (lastRecord.point[0] !== position.id) {
-          lastRecord.point.push(position.id)
-          lastRecord.line = { type: 'straight', position: { startX, startY, endX, endY } }
-          curveLine(startX, startY, endX, endY)
-          lineCtx.draw()
-        }
 
-        // 结束位置为空白区域，同时结束位置没有标记
-        if (position.id.length < 10 && !marks.value[position.id]) {
-          openPopup()
+        const addRecord = (record, startPosition, endPosition) => {
+          endX = endPosition.left + endPosition.width / 2
+          endY = endPosition.top + endPosition.height / 2
+          // 如果最后位置不是开始位置，则添加当前点
+          if (record.point[0] !== endPosition.id) {
+            record.point.push(endPosition.id)
+            if (options.lineType === 'straight') {
+              record.line = {
+                type: 'straight',
+                position: { startX: startPosition.startX, startY: startPosition.startY, endX, endY }
+              }
+            } else {
+              const [upPoint, downPoint, upOffset, downOffset] = getCurvePoint(
+                startPosition.startX,
+                startPosition.startY,
+                endX,
+                endY,
+                50 * ratio
+              )
+
+              if (options.lineType === 'curveUp') {
+                nextTick(() => {
+                  curveHandleX.value = upPoint.x
+                  curveHandleY.value = upPoint.y - scrolltop
+                })
+
+                record.line = {
+                  type: 'curve',
+                  position: {
+                    startX: startPosition.startX,
+                    startY: startPosition.startY,
+                    centerX: upOffset,
+                    centerY: upPoint.y,
+                    endX,
+                    endY
+                  }
+                }
+              } else if (options.lineType === 'curveDown') {
+                nextTick(() => {
+                  curveHandleX.value = downPoint.x
+                  curveHandleY.value = downPoint.y - scrolltop
+                })
+                record.line = {
+                  type: 'curve',
+                  position: {
+                    startX: startPosition.startX,
+                    startY: startPosition.startY,
+                    centerX: downOffset,
+                    centerY: downPoint.y,
+                    endX,
+                    endY
+                  }
+                }
+              }
+            }
+
+            curveLine(startX, startY, endX, endY)
+            lineCtx.draw()
+          }
+
+          // 结束位置为空白区域，同时结束位置没有标记，同时允许数字选择器
+          if (endPosition.id.length < 10 && !marks.value[endPosition.id] && options.numberPicker) {
+            openPopup()
+          }
         }
+        if (options.count === 1) {
+          const position = getPosition(x, y)
+          addRecord(lastRecord, { startX, startY }, position)
+          drawnLineAll()
+        } else {
+          for (let index = 0; index < lastRecord.length; index++) {
+            const record = lastRecord[index]
+            const position = getPosition(tmpPositions[index].endX, tmpPositions[index].endY)
+            addRecord(record, tmpPositions[index], position)
+          }
+          drawnLineAll()
+        }
+        tmpPositions = []
+        lineCtx.draw()
         break
       case '自由线':
         record.value.push({
@@ -667,7 +867,7 @@ const touchend = (event) => {
         break
     }
     // 是否显示曲线控制按钮
-    if (mode.value === '智能曲线') {
+    if (mode.value === '智能曲线' && options.dragPoint && options.count === 1) {
       iscurveHandleShow.value = true
     } else {
       iscurveHandleShow.value = false
@@ -679,8 +879,8 @@ const touchend = (event) => {
   isFirst = true
 }
 const openPopup = () => {
-  // if (id.length < 10) {
-  const item = record.value[record.value.length - 1]
+  let item = record.value[record.value.length - 1]
+  if (Array.isArray(item)) item = item[0]
   if (item.point[item.point.length - 1].endsWith('0')) {
     popup.value.openRefernumber()
   } else if (item.point[item.point.length - 1].endsWith('5')) {
@@ -689,7 +889,7 @@ const openPopup = () => {
     popup.value.open(item.point[item.point.length - 1][1] - 1)
   }
 }
-// }
+
 // 修改曲线
 let tmpCenterX
 const curveTouchstart = () => {
@@ -716,10 +916,19 @@ const curveTouchmove = (event) => {
 const pointActives = computed(() => {
   const result = {}
   record.value.forEach((item) => {
-    if (!item?.point) return
-    item.point.forEach((id) => {
-      result[id] = { color: item.style?.color, isSolid: item.marker?.isSolid }
-    })
+    if (Array.isArray(item) && item.length > 0) {
+      item.forEach((item) => {
+        if (!item?.point) return
+        item.point.forEach((id) => {
+          result[id] = item.style
+        })
+      })
+    } else {
+      if (!item?.point) return
+      item.point.forEach((id) => {
+        result[id] = item.style
+      })
+    }
   })
   return result
 })
@@ -752,7 +961,7 @@ const saveImage = async () => {
   a.click()
   // #endif
 
-  // #ifdef MP-WEIXIN
+  // #ifdef APP
   uni.saveImageToPhotosAlbum({
     filePath: url,
     success: (res) => {
@@ -798,7 +1007,9 @@ onReady(async () => {
 // 标记列表
 const marks = computed(() => {
   const result = {}
-  record.value.forEach((item) => {
+
+  const getMarks = (item) => {
+    if (Array.isArray(item)) return
     const row = item.marker?.row
     const indexs = item.marker?.indexs
     if (row && indexs) {
@@ -806,11 +1017,19 @@ const marks = computed(() => {
         result[`${row}${index}`] = { marker: item.marker, style: item.style }
       })
     }
+  }
+  record.value.forEach((item) => {
+    if (Array.isArray(item)) {
+      item.forEach(getMarks)
+    } else {
+      getMarks(item)
+    }
   })
   return result
 })
 const popupSbumit = (val) => {
-  const item = record.value[record.value.length - 1]
+  let item = record.value[record.value.length - 1]
+  if (Array.isArray(item)) item = item[0]
   item.marker = val
   item.marker.row = +item.point[item.point.length - 1][0]
 }
@@ -865,6 +1084,7 @@ const textList = computed(() => {
   const result = []
   for (let i = 0; i < record.value.length; i++) {
     const item = record.value[i]
+    if (Array.isArray(item)) continue
     if (item.text) {
       result.push({ text: item.text, style: item.style, isSolid: item.isSolid, index: i })
     }
@@ -975,11 +1195,16 @@ let textChangeIndex = null
 const cursor = ref(0)
 const textPositionEnd = (e, index) => {
   if (isTextClick) {
+    // 显示边框
+    if (textHandleHide.value) {
+      textHandleHide.value = false
+      return
+    }
     isTextInputShow.value = true
     textChangeIndex = index
     textareaValue.value = record.value[index].text.content
     const { pageX: x, pageY: y } = e.changedTouches[0]
-    textareaPosition.value = { x, y }
+    textareaPosition.value = { x, y: y + scrolltop }
     cursor.value = record.value[index].text.content.length
     return
   }
@@ -1014,11 +1239,11 @@ const changeMode = () => {
 @use 'sass:math';
 /* #ifdef MP || APP*/
 page {
-  background-color: #90c380;
+  background-color: v-bind('options.theme.topBar.backgroundColor');
 }
 .draw-line {
   padding-top: v-bind('safeArea.top + "px"');
-  background-color: #90c380;
+  background-color: v-bind('options.theme.topBar.backgroundColor');
 }
 .container {
   background-color: #fff;
@@ -1086,10 +1311,10 @@ $tools-height: 100rpx;
       pointer-events: v-bind('pointerEvents');
     }
     & > .row:nth-child(1) {
-      border-top: 2px solid #8baf9b;
+      border-top: 2px solid v-bind('options.theme.borderColor');
     }
     & > .row:nth-child(4n) {
-      border-bottom: 4px solid #8baf9b;
+      border-bottom: 4px solid v-bind('options.theme.borderColor');
     }
     & > .row:last-child {
       border-bottom: 0;
@@ -1145,22 +1370,28 @@ $tools-height: 100rpx;
       background-color: rgba($color: #fff, $alpha: 0.8);
       transform: translate(-10%, -10%);
     }
+    .text-handle-hide {
+      border-color: transparent !important;
+      .text-btn-left,
+      .text-btn-right {
+        display: none;
+      }
+    }
   }
 }
 
 .row {
   display: flex;
-  border-bottom: 2px solid #8baf9b;
+  border-bottom: 2px solid v-bind('options.theme.borderColor');
   height: 110rpx;
   text-align: center;
   font-weight: 700;
-  color: #91c182;
 }
 .column-1 {
   width: 160rpx;
-  border-right: 4px solid #8baf9b;
-  background-color: #90c380;
-  color: #e0f0bb;
+  border-right: 4px solid v-bind('options.theme.borderColor');
+  background-color: v-bind('options.theme.column1.backgroundColor');
+  color: v-bind('options.theme.column1.color');
   display: flex;
   justify-content: space-between;
   flex-direction: column;
@@ -1176,59 +1407,95 @@ $tools-height: 100rpx;
     line-height: 24rpx;
   }
 }
+%active {
+  background-color: #fcffff;
+  .item {
+    color: #fff;
+  }
+}
+// 圆角
+.border-radius {
+  border-radius: 50%;
+  .item {
+    border-radius: 50%;
+  }
+}
 .column-2 {
   width: 90rpx;
-  border-right: 4px solid #8baf9b;
-  background-color: #e0ecbc;
+  border-right: 4px solid v-bind('options.theme.borderColor');
+  background-color: v-bind('options.theme.column2.backgroundColor');
+  color: v-bind('options.theme.column2.color');
   display: flex;
   align-items: center;
   justify-content: center;
-  .item {
+  .border {
     width: 60rpx;
     height: 60rpx;
-    border-radius: 50%;
-    line-height: 60rpx;
-  }
-  .marker {
-    width: 50rpx;
-    height: 50rpx;
-    border-radius: 50%;
-    color: #fefdf8;
-    border: 5rpx solid #fefdf8;
-    position: relative;
-    z-index: 2;
-    font-size: 25rpx;
-    line-height: 50rpx - 5rpx;
-    background-color: #f7212d;
-  }
-}
-.column-3 {
-  width: 530rpx;
-  display: flex;
-  border-right: 2px solid #8baf9b;
-  font-size: v-bind('options.fontSize + "rpx"');
-  & > view {
-    border-right: 2px solid #8baf9b;
-    width: 106rpx;
+    border: 4rpx solid transparent;
+    padding: 3rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     .item {
-      width: 80rpx;
-      height: 80rpx;
-      border-radius: 50%;
-      line-height: 80rpx;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  .active {
+    @extend %active;
+    border-color: rgba($color: #000000, $alpha: 0.1);
+  }
+}
+.column-3 {
+  .blank {
+    font-size: 30rpx;
+  }
+  background-color: v-bind('options.theme.column3.backgroundColor');
+  color: v-bind('options.theme.column3.color');
+  width: 530rpx;
+  display: flex;
+  border-right: 2px solid v-bind('options.theme.borderColor');
+  font-size: v-bind('options.fontSize + "rpx"');
+  & > view {
+    border-right: 2px solid v-bind('options.theme.borderColor');
+    width: 106rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .border {
+      width: 76rpx;
+      height: 76rpx;
+      padding: 4rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 5rpx solid transparent;
+      .item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    .active {
+      @extend %active;
+      border-color: rgba($color: #000000, $alpha: 0.1);
     }
   }
   & :nth-child(4) {
     border-right: 0;
   }
   & :nth-child(5) {
-    background-color: #e0ecbc;
-    border-left: 4px solid #8baf9b;
+    background-color: v-bind('options.theme.column4.backgroundColor');
+    color: v-bind('options.theme.column4.color');
+    border-left: 4px solid v-bind('options.theme.borderColor');
     border-right: 0;
   }
-  .marker {
+  .senior {
     width: 90rpx;
     height: 100rpx;
     color: #f7212d;
@@ -1262,14 +1529,14 @@ $tools-height: 100rpx;
     z-index: 2;
   }
 }
-.active {
-  color: #fff;
-  border: 5rpx solid #f1f3f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.item {
+// .active {
+//   color: #fff;
+//   border: 5rpx solid #f1f3f0;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// }
+.border {
   position: relative;
   z-index: 3;
   pointer-events: none !important;
@@ -1280,12 +1547,12 @@ $tools-height: 100rpx;
   top: 0;
   z-index: 6;
   height: $tools-height;
-  background-color: #90c380;
+  background-color: v-bind('options.theme.topBar.backgroundColor');
   width: 100vw;
   display: flex;
   justify-content: space-around;
   font-size: 20rpx;
-  color: #fff;
+  color: v-bind('options.theme.topBar.color');
   > view {
     width: 150rpx;
     display: flex;

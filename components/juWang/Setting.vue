@@ -88,8 +88,8 @@
             <text>底部增加两行</text>
             <switch
               color="#fc3d44"
-              :checked="options.addBottom"
-              @change="options.addBottom = $event.detail.value"
+              :checked="options.bottomRow === 6"
+              @change="options.bottomRow = options.bottomRow === 6 ? 4 : 6"
             />
           </view>
           <!-- <view class="switch">
@@ -254,7 +254,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch } from 'vue'
+import { useDrawLineSettingStore } from '@/stores/drawLine.js'
+
 const settingPopup = ref(null)
 
 const crurentPage = ref('通用设置')
@@ -288,6 +290,10 @@ const themeList = [
         backgroundColor: '#f1f1ef',
         color: '#bfbdbe'
       },
+      topBar: {
+        backgroundColor: '#898989',
+        color: '#ffffff'
+      },
       borderColor: '#dddddd'
     }
   },
@@ -310,6 +316,10 @@ const themeList = [
       column4: {
         backgroundColor: '#dfedbc',
         color: '#90c281'
+      },
+      topBar: {
+        backgroundColor: '#90c281',
+        color: '#ffffff'
       },
       borderColor: '#88ae96'
     }
@@ -334,6 +344,10 @@ const themeList = [
         backgroundColor: '#2a2a2a',
         color: '#898989'
       },
+      topBar: {
+        backgroundColor: '#2a2a2a',
+        color: '#ffffff'
+      },
       borderColor: '#4e4e4e'
     }
   },
@@ -356,6 +370,10 @@ const themeList = [
       column4: {
         backgroundColor: '#f0eff5',
         color: '#000000'
+      },
+      topBar: {
+        backgroundColor: '#39383e',
+        color: '#ffffff'
       },
       borderColor: '#39383e'
     }
@@ -380,6 +398,10 @@ const themeList = [
         backgroundColor: '#fff5f4',
         color: '#000000'
       },
+      topBar: {
+        backgroundColor: '#fc3d44',
+        color: '#fffcfc'
+      },
       borderColor: '#fc3d43'
     }
   },
@@ -402,6 +424,10 @@ const themeList = [
       column4: {
         backgroundColor: '#fefaf1',
         color: '#ff9f00'
+      },
+      topBar: {
+        backgroundColor: '#ff9f00',
+        color: '#ffffff'
       },
       borderColor: '#e08d00'
     }
@@ -426,6 +452,10 @@ const themeList = [
         backgroundColor: '#fef9f5',
         color: '#a29795'
       },
+      topBar: {
+        backgroundColor: '#d3c7b7',
+        color: '#3d3b39'
+      },
       borderColor: '#d3c7b7'
     }
   },
@@ -449,7 +479,11 @@ const themeList = [
         backgroundColor: '#f7f5df',
         color: '#d1aa81'
       },
-      borderColor: '#8b6a3f'
+      topBar: {
+        backgroundColor: '#8b6a3f',
+        color: '#bfbdbe'
+      },
+      borderColor: '#e2d8cb'
     }
   },
   {
@@ -472,64 +506,22 @@ const themeList = [
         backgroundColor: '#f2f6ff',
         color: '#929fb1'
       },
+      topBar: {
+        backgroundColor: '#cedef5',
+        color: '#3a3d3f'
+      },
       borderColor: '#b0bfd3'
     }
   }
 ]
 
-const options = ref({
-  // 字号
-  fontSize: 60,
-  // 号码样式
-  numberStyle: {
-    isSolid: true,
-    isRound: true
-  },
-  // 数字选择器
-  numberPicker: true,
-  // 底部增加两行
-  addBottom: true,
-  // 屏幕常亮
-  keepScreenOn: false,
-  // 主题
-  theme: themeList[1].style,
-  // 显示期数
-  showPeriod: 60,
-  // 显示设置
-  showSetting: true,
-  // 拖拽点
-  dragPoint: true,
-  // 笔数
-  count: 1,
-  // 间隔
-  distance: 0,
-  // 单色/多色 single/multi
-  colorType: 'single',
-  // 线型：直线/上曲线/下曲线 straight/curveUp/curveDown
-  lineType: 'straight'
-})
-
-const emit = defineEmits(['update'])
+const drawLineSettingStore = useDrawLineSettingStore()
+const options = drawLineSettingStore.options
 
 const open = defineModel()
 
 watch(open, (newVal) => {
   if (newVal) settingPopup.value.open()
-})
-
-watch(
-  options,
-  (newVal) => {
-    emit('update', newVal)
-  },
-  {
-    deep: true,
-    immediate: true
-  }
-)
-
-onMounted(() => {
-  settingPopup.value.open()
 })
 </script>
 

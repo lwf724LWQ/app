@@ -1,5 +1,5 @@
 <template>
-  <view class="mode-select">
+  <view class="mode-select" :class="{ 'mode-select-close-setting': !options.showSetting }">
     <view class="setting" @click="openSetting = true">设置</view>
     <view class="icon" @click="hide = !hide">
       <uni-icons
@@ -29,6 +29,10 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useDrawLineSettingStore } from '@/stores/drawLine.js'
+
+const drawLineSettingStore = useDrawLineSettingStore()
+const options = drawLineSettingStore.options
 
 const openSetting = defineModel('openSetting')
 
@@ -66,7 +70,7 @@ watch(currentIndex, (newVal) => {
     box-sizing: border-box;
   }
   height: 80rpx;
-  width: 260rpx;
+  // width: 260rpx;
   border-radius: 50rpx 0 0 50rpx;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -138,6 +142,16 @@ watch(currentIndex, (newVal) => {
     left: 0;
     width: 100vw;
     height: 100vh;
+    z-index: -1;
   }
+}
+.mode-select-close-setting {
+  .setting {
+    display: none;
+  }
+  .icon {
+    background-color: rgba($color: #000000, $alpha: 0.6);
+  }
+  background-color: transparent;
 }
 </style>
