@@ -1,36 +1,21 @@
 import config from "./config"
+import cryptoJs from "crypto-js"
 // 生成随机字符串
 function generateRandomString(length = 16) {
-    const array = new Uint8Array(length);
-    if (typeof crypto !== 'undefined') {
-        crypto.getRandomValues(array);
-    } else {
-        // 降级处理
-        for (let i = 0; i < length; i++) {
-            array[i] = Math.floor(Math.random() * 256);
-        }
-    }
-    
-    // 转换为十六进制字符串
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    // 使用 crypto-js 的 lib.WordArray 生成随机字符串
+    const wordArray = cryptoJs.lib.WordArray.random(length);
+    return cryptoJs.enc.Hex.stringify(wordArray);
 }
 
 // 使用crypto 生成sha1加密
 function sha1(str) {
-    const buffer = new TextEncoder().encode(str);
-    return crypto.subtle.digest('SHA-1', buffer).then(function(hash) {
-        // 将hash值转换为十六进制字符串
-        return Array.from(new Uint8Array(hash))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
-    });
+    const hash = cryptoJs.SHA1(str);
+    return Promise.resolve(hash.toString(cryptoJs.enc.Hex));
 }
 
 // Base64编码函数
 function base64Encode(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-        return String.fromCharCode('0x' + p1);
-    }));
+    return cryptoJs.enc.Base64.stringify(cryptoJs.enc.Utf8.parse(str));
 }
 
 // 添加以下方法到 tool.js 文件中

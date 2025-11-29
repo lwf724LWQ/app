@@ -101,6 +101,7 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { apiWordInsert, getCOSSecretKey } from '@/api/apis.js'
 import moment from "moment";
+import tool from '../../utils/tool';
 
 // 表单数据
 const formData = ref({
@@ -574,24 +575,12 @@ const handleSubmit = async () => {
 
     uni.showLoading({ title: '正在上传图片...' })
 
-    // 处理不同环境返回的结果
-    let uploadFile = imageResult
+    console.log('图片', imageResult)
 
-    // #ifdef H5
-    if (typeof imageResult === 'string') {
-      // H5 环境：将路径转换为 File 对象
-      const response = await fetch(imageResult)
-      const blob = await response.blob()
-      uploadFile = new File([blob], `form-${Date.now()}.png`, { type: 'image/png' })
-    }
-    // #endif
-
-    // 上传到 OSS
-    wimgUrl = await new Promise((resolve, reject) => {
-      uploadObject(uploadFile, (url) => {
-        resolve(url)
-      })
-    })
+    const uploadRes = await tool.oss.upload(imageResult, { folder: "wimg" })
+    wimgUrl = uploadRes.name
+    uni.hideLoading()
+    console.log('上传结束', wimgUrl)
   } catch (error) {
     uni.showToast({
       title: '生成图片失败，将继续提交表单',

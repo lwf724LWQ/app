@@ -135,8 +135,9 @@ watch([type, account, password, code], ([newtype, newaccount, newpassword]) => {
 }, { immediate: true });
 
 const loginShow = ref(false);
-
-onLoad(() => {
+let pageOptions = {}
+onLoad((options) => {
+  pageOptions = options
   tool.checkAppUpdate()
   if (!getToken()) {
     loginShow.value = true;
@@ -291,9 +292,11 @@ const gologin = async () => {
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
         // 跳转到用户页面
-        uni.switchTab({
-          url: '/pages/index/index',
-        })
+        if (pageOptions.redirect) {
+          uni.navigateBack({ url: pageOptions.redirect, animationType: "none" })
+        } else {
+          uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
+        }
       }, 1500)
 
     } else {
@@ -344,7 +347,11 @@ const goForgetPwdPage1 = () => {
 
 // 跳转到首页
 const login = () => {
-  uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
+  if (pageOptions.redirect) {
+    uni.navigateBack({ url: pageOptions.redirect, animationType: "none" })
+  } else {
+    uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
+  }
 }
 
 // 返回上一页
@@ -415,6 +422,7 @@ const wechatLogin = () => {
   min-height: 100vh;
   background: linear-gradient(180deg, #f8fffe 0%, #ffffff 100%);
   position: relative;
+  padding-top: var(--status-bar-height);
 }
 
 /* 状态栏 */

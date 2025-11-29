@@ -6,7 +6,8 @@
 </template>
 
 <script>
-import appPay from "../../utils/uniwxsdk/app.ts";
+// import appPay from "../../utils/uniwxsdk/app.ts";
+import h5 from '../../utils/uniwxsdk/h5';
 export default {
 	data() {
 		return {
@@ -15,7 +16,8 @@ export default {
 	},
 	methods: {
 		initwx() {
-			appPay.pay()
+			// appPay.pay()
+			h5.init()
 			return
 			uni.requestPayment({
 				provider: 'wxpay',

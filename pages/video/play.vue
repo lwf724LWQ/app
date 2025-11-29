@@ -12,10 +12,11 @@
 			<!-- 视频播放器容器 -->
 			<view class="video-container">
 				<!-- <video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" -->
-				<video v-if="videoData.id" :src="videoData.src" :show-play-btn="true" :controls="true" :autoplay="false"
-					:show-fullscreen-btn="true" object-fit="cover" class="video-player"
+				<video v-if="videoData.id && hasPaid" :src="videoData.src" :show-play-btn="true" :controls="true"
+					:autoplay="false" :show-fullscreen-btn="true" object-fit="cover" class="video-player"
 					:class="{ 'video-full-screen': isFullScreen }" id="videoPlayer" @play="onVideoPlay"
 					@pause="onVideoPause" @ended="onVideoEnded"></video>
+				<view v-else-if="videoData.id"></view>
 				<view v-else class="video-placeholder">
 					<text class="placeholder-text">视频加载中...</text>
 				</view>
@@ -31,27 +32,28 @@
 				<view class="buy-overlay" v-if="!hasPaid && videoData.price && videoData.price > 0"
 					@click="handleBuyClick">
 					<view class="buy-button">
-						<text class="buy-text">¥{{ videoData.price }}购买</text>
+						<view class="buy-text">¥{{ videoData.price }}购买</view>
 					</view>
 				</view>
 			</view>
 
 			<!-- 表单图片显示遮罩层（独立层级） -->
-			<view class="form-image-overlay" v-if="showFormImage" @click="closeFormImage">
-				<view class="form-image-container" @click.stop>
-					<view class="form-image-header">
-						<text class="form-image-title">开奖号码记录</text>
-						<view class="form-image-close" @click="closeFormImage">
-							<uni-icons type="close" size="24" color="#666"></uni-icons>
-						</view>
-					</view>
-					<image v-if="formImageUrl" :src="formImageUrl" class="form-image" mode="aspectFit"
-						@error="handleFormImageError" @load="handleFormImageLoad"></image>
-					<view v-if="showFormImage && !formImageUrl" class="form-image-loading">
-						<text>图片加载中...</text>
-					</view>
-				</view>
-			</view>
+			<cover-view class="form-image-overlay" v-if="showFormImage" @click="closeFormImage">
+				<cover-view class="form-image-container" @click.stop>
+					<cover-view class="form-image-header">
+						<cover-view class="form-image-title">开奖号码记录</cover-view>
+						<cover-view class="form-image-close" @click="closeFormImage">
+							X
+							<!-- <uni-icons type="close" size="24" color="#666"></uni-icons> -->
+						</cover-view>
+					</cover-view>
+					<cover-image v-if="formImageUrl" :src="formImageUrl" class="form-image" mode="aspectFit"
+						@error="handleFormImageError" @load="handleFormImageLoad"></cover-image>
+					<cover-view v-if="showFormImage && !formImageUrl" class="form-image-loading">
+						<cover-view>图片加载中...</cover-view>
+					</cover-view>
+				</cover-view>
+			</cover-view>
 
 			<!-- 打赏和点赞区域 -->
 			<view class="interaction-bar">
@@ -239,6 +241,8 @@ const loadVideoData = async (videoId) => {
 			// 检查付费状态（仅对付费视频）
 			if (!isFreeVideo.value) {
 				isPay = await checkPaymentStatus()
+			} else {
+				hasPaid.value = true
 			}
 
 			if (isPay) {
@@ -263,13 +267,15 @@ const loadVideoData = async (videoId) => {
  */
 const toBlobUrlVideo = (videoUrl) => {
 	return new Promise((resolve, reject) => {
-		console.log(videoUrl)
+		// #ifndef H5
+		resolve(videoUrl)
+		return
+		// #endif
 		fetch(videoUrl)
 			.then((response) => response.blob())
 			.then((blob) => {
 				// 创建一个URL对象，将Blob对象转换为URL
 				const url = URL.createObjectURL(blob)
-				console.log(url)
 				resolve(url)
 			})
 			.catch((error) => {
@@ -277,6 +283,27 @@ const toBlobUrlVideo = (videoUrl) => {
 			})
 	})
 }
+
+// function toBlobUrlVideo(url) {
+// 	return new Promise(resolve => {
+// 		// #ifndef H5
+// 		resolve(url)
+// 		return
+// 		// #endif
+// 		var xhr = new XMLHttpRequest();
+// 		xhr.open("get", url, true);
+// 		xhr.responseType = "blob";
+// 		xhr.onload = function () {
+// 			if (this.status == 200) {
+// 				let blob = this.response;
+// 				const url = URL.createObjectURL(blob)
+// 				// console.log(url)
+// 				resolve(url)
+// 			}
+// 		};
+// 		xhr.send();
+// 	});
+// };
 
 // 跳转到首页
 const toIndex = () => {
@@ -290,7 +317,7 @@ const toIndex = () => {
 const checkPaymentStatus = async () => {
 	// 如果是免费视频，不需要检查
 	if (isFreeVideo.value) {
-		hasPaid.value = false
+		hasPaid.value = true
 		return true
 	}
 
@@ -512,11 +539,9 @@ const onVideoEnded = async () => {
 	isPlaying.value = false
 	showPlayButton.value = false
 
+
 	// 获取表单图片
 	await fetchFormImage()
-
-	// 检查最终状态
-	console.log('获取表单图片完成，showFormImage:', showFormImage.value, 'formImageUrl:', formImageUrl.value)
 }
 
 // 获取表单图片
@@ -525,87 +550,37 @@ const fetchFormImage = async () => {
 		console.log('获取表单图片失败：视频ID为空')
 		return
 	}
+	// 判断是否为收费视频
+	if (videoData.value.flag === false) {
+		return
+	}
 
 	const videoId = videoData.value.id
 
-	// 首先尝试从本地存储获取
-	let hasLocalImage = false
+
 	try {
-		const storageKey = `formImage_${videoId}`
-		console.log('检查本地存储，key:', storageKey)
-		const storedFormImage = uni.getStorageSync(storageKey)
-		console.log('本地存储数据:', storedFormImage)
+		console.log('开始获取表单图片，视频ID:', videoId)
+		const response = await apiWordQuery({ videoId: videoId })
+		console.log('表单图片API响应:', response)
 
-		if (storedFormImage && storedFormImage.wimgUrl) {
-			console.log('从本地存储获取表单图片:', storedFormImage.wimgUrl)
-			formImageUrl.value = storedFormImage.wimgUrl
-			showFormImage.value = true
-			hasLocalImage = true
-			console.log('表单图片已从本地存储设置, formImageUrl:', formImageUrl.value, 'showFormImage:', showFormImage.value)
-		} else {
-			console.log('本地存储中没有表单图片数据')
-			// 尝试检查所有相关的本地存储
-			try {
-				const allKeys = uni.getStorageInfoSync().keys
-				console.log('所有本地存储keys:', allKeys)
-				const relatedKeys = allKeys.filter(key => key.includes('formImage') || key.includes('wimg'))
-				console.log('相关的本地存储keys:', relatedKeys)
-			} catch (e) {
-				console.log('无法获取本地存储keys:', e)
-			}
-		}
-	} catch (e) {
-		console.error('本地存储获取失败:', e)
-	}
+		if (response && response.code === 200 && response.data) {
+			// 尝试多种可能的数据结构
+			let imageUrl = response.data.wimg || response.data.url || response.data.image || response.data.img || ''
+			console.log('解析到的图片URL:', imageUrl)
 
-	// 尝试从 API 获取最新数据（后台更新）
-	// 如果在 H5 环境且本地存储已有数据，跳过 API 调用以避免 CORS 错误
-	let shouldSkipApi = false
-	// #ifdef H5
-	if (hasLocalImage) {
-		console.log('H5环境且有本地图片，跳过API调用以避免CORS错误')
-		shouldSkipApi = true
-	}
-	// #endif
-
-	if (!shouldSkipApi) {
-		try {
-			console.log('开始获取表单图片，视频ID:', videoId)
-			const response = await apiWordQuery({ videoId: videoId })
-			console.log('表单图片API响应:', response)
-
-			if (response && response.code === 200 && response.data) {
-				// 尝试多种可能的数据结构
-				let imageUrl = response.data.wimg || response.data.url || response.data.image || response.data.img || ''
-				console.log('解析到的图片URL:', imageUrl)
-
-				if (imageUrl) {
-					// 处理图片 URL：如果是完整 URL 直接使用，否则拼接完整路径
-					if (!imageUrl.startsWith('http')) {
-						// 如果不是完整 URL，拼接为完整路径（wimg 文件夹）
-						imageUrl = `http://video.caimizm.com/wimg/${imageUrl}`
-					}
-					console.log('处理后的图片URL:', imageUrl)
-					formImageUrl.value = imageUrl
-					showFormImage.value = true
-					console.log('表单图片已从API设置，showFormImage:', showFormImage.value)
-				} else {
-					console.log('未找到图片URL，响应数据:', response.data)
-					// 如果API没有图片，但本地存储有，继续显示本地的
-					if (!hasLocalImage) {
-						uni.showToast({
-							title: '暂无表单记录',
-							icon: 'none',
-							duration: 2000
-						})
-					}
+			if (imageUrl) {
+				// 处理图片 URL：如果是完整 URL 直接使用，否则拼接完整路径
+				if (!imageUrl.startsWith('http')) {
+					// 如果不是完整 URL，拼接为完整路径（wimg 文件夹）
+					imageUrl = `http://video.caimizm.com/wimg/${imageUrl}`
 				}
+				console.log('处理后的图片URL:', imageUrl)
+				formImageUrl.value = imageUrl
+				showFormImage.value = true
+				console.log('表单图片已从API设置，showFormImage:', showFormImage.value)
 			} else {
-				console.log('API响应异常:', response)
-				if (response && response.code !== 200) {
-					console.log('API返回错误码:', response.code, '错误信息:', response.message || response.msg)
-				}
-				// API 返回异常，但本地存储有数据，继续显示本地的
+				console.log('未找到图片URL，响应数据:', response.data)
+				// 如果API没有图片，但本地存储有，继续显示本地的
 				if (!hasLocalImage) {
 					uni.showToast({
 						title: '暂无表单记录',
@@ -614,43 +589,57 @@ const fetchFormImage = async () => {
 					})
 				}
 			}
-		} catch (error) {
-			console.error('获取表单图片异常:', error)
-			// 检测是否为 CORS 错误（H5 环境）
-			const errorMessage = error.message || error.errMsg || ''
-			const isCorsError = errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('ERR_FAILED') || errorMessage.includes('net::ERR_FAILED')
-
-			// 如果本地存储有数据，不需要显示错误提示
-			if (hasLocalImage) {
-				console.log('API调用失败，但本地存储有数据，继续显示本地图片')
-				return
+		} else {
+			console.log('API响应异常:', response)
+			if (response && response.code !== 200) {
+				console.log('API返回错误码:', response.code, '错误信息:', response.message || response.msg)
 			}
-
-			// 如果本地存储也没有数据，显示错误提示
-			if (isCorsError) {
-				// #ifdef H5
+			// API 返回异常，但本地存储有数据，继续显示本地的
+			if (!hasLocalImage) {
 				uni.showToast({
-					title: 'H5环境请在小程序中查看',
-					icon: 'none',
-					duration: 2000
-				})
-				// #endif
-				// #ifndef H5
-				uni.showToast({
-					title: '获取表单图片失败',
-					icon: 'none',
-					duration: 2000
-				})
-				// #endif
-			} else {
-				// 其他错误显示提示
-				uni.showToast({
-					title: '获取表单图片失败',
+					title: '暂无表单记录',
 					icon: 'none',
 					duration: 2000
 				})
 			}
 		}
+	} catch (error) {
+		console.error('获取表单图片异常:', error)
+		// 检测是否为 CORS 错误（H5 环境）
+		const errorMessage = error.message || error.errMsg || ''
+		const isCorsError = errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('ERR_FAILED') || errorMessage.includes('net::ERR_FAILED')
+
+		// 如果本地存储有数据，不需要显示错误提示
+		if (hasLocalImage) {
+			console.log('API调用失败，但本地存储有数据，继续显示本地图片')
+			return
+		}
+
+		// 如果本地存储也没有数据，显示错误提示
+		if (isCorsError) {
+			// #ifdef H5
+			uni.showToast({
+				title: 'H5环境请在小程序中查看',
+				icon: 'none',
+				duration: 2000
+			})
+			// #endif
+			// #ifndef H5
+			uni.showToast({
+				title: '获取表单图片失败',
+				icon: 'none',
+				duration: 2000
+			})
+			// #endif
+		} else {
+			// 其他错误显示提示
+			uni.showToast({
+				title: '获取表单图片失败',
+				icon: 'none',
+				duration: 2000
+			})
+		}
+
 	}
 }
 
@@ -800,6 +789,7 @@ const toggleLike = async () => {
 	padding-bottom: 120rpx;
 	background-color: #f5f5f5;
 	font-weight: bold;
+	padding-top: var(--status-bar-height);
 }
 
 /* 视频容器样式 */
@@ -1089,7 +1079,7 @@ const toggleLike = async () => {
 
 .form-image {
 	width: 100%;
-	max-height: 70vh;
+	height: 70vh;
 }
 
 .form-image-loading {

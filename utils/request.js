@@ -93,26 +93,47 @@ export function request(config={}){
 }
 
 /**
- * 
+ * 请求守卫
  * @param {} res 
  * @returns boolean 输出true代表没有错误 false代表有错误
  */
-const notLoginPages = ['pages/login/login']
-function handleServerError(res){
-	if (res.msg) {
-		if (["Token验证失败"].includes(res.msg)) {
-			const pages = getCurrentPages()
 
-			if (notLoginPages.includes(pages[pages.length - 1].route)) {
-				return false
-			}else{
-				uni.reLaunch({url:'/pages/login/login'})
-			}
-			return false	
+const guardList = [loginGuard, checkCode]
+function handleServerError(res){
+	return guardList.every(guard => guard(res))
+}
+
+
+// 判断是否未登录
+const notLoginPages = ['pages/login/login'] // 白名单
+function loginGuard(res){
+	if (res.msg && ["Token验证失败","Token已过期"].includes(res.msg)) {
+		const pages = getCurrentPages()
+
+		if (notLoginPages.includes(pages[pages.length - 1].route)) {
+			return false
+		}else{
+			uni.showModal({
+				title: '提示',
+				content: '该操作需要登录，是否前往',
+				success: async (res) => {
+					if (res.confirm) {
+						uni.navigateTo({url:'/pages/login/login'})
+					}
+				},
+				showCancel: true,
+			})
 		}
+		return false	
 	}
-	// if (res.code !== 200) {
-		
-	// }
 	return true
+}
+
+// 检查code
+function checkCode(res){
+	if (res && res.code === 200){
+		return true
+	} else {
+		return false
+	}
 }

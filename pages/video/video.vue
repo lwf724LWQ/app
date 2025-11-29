@@ -1,9 +1,9 @@
 <template>
-	<view class="video-page-container">
+	<view class="video-page-container" :class="{ 'old-man-mode': useOldManModeStore.enabled }">
 		<!-- 为了适配小程序顶部高度的盒子-->
 		<StatusBarPlaceholder></StatusBarPlaceholder>
 		<!-- 图片 -->
-		<image class='photo' src="@/static/video/swiper.png" mode=""></image>
+		<image class='photo' src="@/static/video/swiper.png" mode="aspectFill"></image>
 
 		<!-- 切换标签栏（参考 forum.vue 风格） -->
 		<view class="switch-tabs">
@@ -25,11 +25,12 @@
 		<!-- 功能图标区 -->
 		<view class="area" v-if="currentTab !== 'review'">
 			<view class="title" v-for="(video, index) in videoList" :key="index">
-				<view class="video-title">{{ video.title }}</view>
-				<!-- 将 video 标签改为 img 标签 -->
-				<img :src="video.imgurl" class="video-image" @click="playVideo(video)"
-					:class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }" />
 
+				<view class="video-title" v-if="useOldManModeStore.enabled">{{ video.title }}</view>
+				<!-- 将 video 标签改为 img 标签 -->
+				<image mode="aspectFill" :src="video.imgurl" class="video-image" @click="playVideo(video)"
+					:class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }" />
+				<view class="video-title" v-if="!useOldManModeStore.enabled">{{ video.title }}</view>
 				<view class="video-info">
 					<text class="video-price" v-if="video.flag && video.price > 0">
 						{{ video.hasPaid ? '已付费' : `付费视频 ${video.price}金币` }}
@@ -71,6 +72,7 @@ import {
 	ref,
 	reactive,
 	onMounted,
+	inject
 } from 'vue';
 import {
 	apiGetVideo,
@@ -89,6 +91,7 @@ import {
 import {
 	useVideoStore
 } from '@/stores/video.js'
+const useOldManModeStore = inject('useOldManModeStore')
 
 // 初始化 store
 const videoStore = useVideoStore()
@@ -301,15 +304,16 @@ const playVideo = async (video) => {
 	// 检查是否登录
 	const token = getToken();
 	if (!token) {
-		uni.showToast({
-			title: '请先登录',
-			icon: 'none'
-		});
-		setTimeout(() => {
-			uni.navigateTo({
-				url: '/pages/login/login'
-			});
-		}, 1500);
+		uni.showModal({
+			title: '提示',
+			content: '该操作需要登录，是否前往',
+			success: async (res) => {
+				if (res.confirm) {
+					uni.navigateTo({ url: '/pages/login/login' + '?redirect=/pages/video/video' })
+				}
+			},
+			showCancel: true,
+		})
 		return;
 	}
 
@@ -459,17 +463,31 @@ const toggleLike = async (video) => {
 
 
 const gotoOss = () => {
-	// 传递当前彩票类型名称（tname）到 oss.vue
-	let url = `/pages/video/oss`
-	if (currentLotteryType.value && currentLotteryType.value.name) {
-		url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`
+	// 判断当前有没有登录
+	if (getToken()) {
+		// 传递当前彩票类型名称（tname）到 oss.vue
+		let url = `/pages/video/oss`
+		if (currentLotteryType.value && currentLotteryType.value.name) {
+			url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`
+		}
+		uni.navigateTo({
+			url: url
+		});
+	} else {
+		uni.showModal({
+			title: '提示',
+			content: '该操作需要登录，是否前往',
+			success: async (res) => {
+				if (res.confirm) {
+					uni.navigateTo({ url: '/pages/login/login' + '?redirect=/pages/video/video' })
+				}
+			},
+			showCancel: true,
+		})
 	}
-	uni.navigateTo({
-		url: url
-	});
 };
 
-onShow(async() => {
+onShow(async () => {
 	fetchVideoList();
 })
 
@@ -481,7 +499,124 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.old-man-mode {
+	.video-title {
+		font-size: 30rpx;
+		font-weight: 600;
+		color: #333;
+		line-height: 1.3;
+		text-align: center;
+		margin: 12rpx 0 8rpx;
+		padding: 0 15rpx;
+
+		background-image: linear-gradient(180deg, #58db8e, #1abc9c);
+	}
+
+	.video-free {
+		font-size: 40rpx;
+		color: #27ae60;
+		font-weight: bold;
+		padding: 4rpx 12rpx;
+		background-color: #e8f6ef;
+		border-radius: 12rpx;
+	}
+
+	.video-info {
+		margin: 10rpx 0;
+		text-align: center;
+	}
+
+	.video-price {
+		font-size: 40rpx;
+		color: #e74c3c;
+		font-weight: bold;
+		padding: 4rpx 12rpx;
+		background-color: #ffeaea;
+		border-radius: 12rpx;
+	}
+
+
+	.tab-text {
+		font-size: 40rpx;
+		font-weight: bold;
+	}
+
+
+
+	.title {
+		display: block;
+		flex: 0 0 calc(50% - 30px);
+		width: 100%;
+		text-align: center;
+		background: rgba(255, 255, 255, 0.95);
+		border: 4rpx solid rgba(85, 255, 255, 0.9);
+	}
+
+	.video-image {
+		flex: 1 1 calc(50% - 30px);
+		width: 100%;
+		height: 80px;
+		/* 设置固定高度 */
+		background: rgba(255, 255, 255, 0.95);
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		object-fit: cover;
+		/* 确保图片填充整个容器 */
+		cursor: pointer;
+		/* 添加指针样式，表示可点击 */
+	}
+}
+
+.area {
+	padding: 10rpx;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	/* 两列等宽 */
+	gap: 30rpx;
+	/* 间距 */
+
+}
+
+.video-page-container:not(.old-man-mode) {
+	.title {
+		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+		font-size: 26rpx;
+		padding-bottom: 20rpx;
+
+		.video-image {
+			width: 100%;
+			height: 200rpx;
+		}
+
+		.video-title {
+			padding: 10rpx 20rpx 5rpx 20rpx;
+		}
+
+		.video-info {
+			padding: 5rpx 20rpx;
+
+			>text {
+				padding: 5rpx;
+				border-radius: 6rpx;
+				color: #fff;
+				font-size: 22rpx;
+			}
+
+			.video-price {
+				background-color: #e74c3c;
+
+			}
+
+			.video-free {
+				background-color: #2ecc71;
+			}
+		}
+	}
+}
+
 .video-page-container {
 	min-height: 100vh;
 	font-weight: bold;
@@ -502,45 +637,12 @@ onMounted(async () => {
 	margin: 5rpx 0;
 }
 
-.video-title {
-	font-size: 30rpx;
-	font-weight: 600;
-	color: #333;
-	line-height: 1.3;
-	text-align: center;
-	margin: 12rpx 0 8rpx;
-	padding: 0 15rpx;
-	background-color: #27ae60;
-}
-
-.video-free {
-	font-size: 40rpx;
-	color: #27ae60;
-	font-weight: bold;
-	padding: 4rpx 12rpx;
-	background-color: #e8f6ef;
-	border-radius: 12rpx;
-}
-
-.video-info {
-	margin: 10rpx 0;
-	text-align: center;
-}
-
-.video-price {
-	font-size: 40rpx;
-	color: #e74c3c;
-	font-weight: bold;
-	padding: 4rpx 12rpx;
-	background-color: #ffeaea;
-	border-radius: 12rpx;
-}
 
 
 
 .photo {
 	width: 100%;
-	height: 80px;
+	height: 90px;
 }
 
 /* 头部容器 - 水平排列 */
@@ -594,13 +696,7 @@ onMounted(async () => {
 	transform: rotate(180deg);
 }
 
-.area {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	/* 两列等宽 */
-	gap: 30rpx;
-	/* 间距 */
-}
+
 
 /* 标签切换栏（参照 forum.vue） */
 .switch-tabs {
@@ -629,40 +725,22 @@ onMounted(async () => {
 }
 
 .tab-text {
-	font-size: 40rpx;
 	color: #000000;
-	font-weight: bold;
+
+	font-weight: lighter;
+	font-size: 32rpx;
 }
 
 .tab-item.active .tab-text {
 	color: #ff4757;
 }
 
-.title {
-	display: block;
-	flex: 0 0 calc(50% - 30px);
-	width: 100%;
-	text-align: center;
-	background: rgba(255, 255, 255, 0.95);
-	border: 4rpx solid rgba(85, 255, 255, 0.9);
-}
 
 
-.video-image {
-	flex: 1 1 calc(50% - 30px);
-	width: 100%;
-	height: 80px;
-	/* 设置固定高度 */
-	background: rgba(255, 255, 255, 0.95);
-	border-radius: 16px;
-	overflow: hidden;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-	transition: transform 0.3s ease, box-shadow 0.3s ease;
-	object-fit: cover;
-	/* 确保图片填充整个容器 */
-	cursor: pointer;
-	/* 添加指针样式，表示可点击 */
-}
+
+
+
+
 
 /* 鼠标悬停效果 */
 .video-image:hover {

@@ -93,7 +93,7 @@
 
     <!-- 我的充值区域 -->
     <view class="recharge-section">
-      <text class="section-title"></text>
+      <view class="section-title"></view>
       <view class="recharge-items">
         <view class="recharge-item" @click="goToRecharge">
           <view class="recharge-icon purple">💳</view>
@@ -116,7 +116,7 @@
 
     <!-- 其他服务区域 -->
     <view class="services-section">
-      <text class="section-title">其它服务</text>
+      <view class="section-title">其它服务</view>
       <view class="services-grid">
         <view class="service-item">
           <uni-icons type="headphones" size="24" color="#222"></uni-icons>
@@ -430,7 +430,7 @@ onShow(() => {
   checkLoginStatus();
 });
 
-const useOldManModeStore = inject('useOldManModeStore', 'statusBarHeight')
+const useOldManModeStore = inject('useOldManModeStore')
 function toggleoldManMode() {
   useOldManModeStore.toggleMode()
 }
@@ -445,7 +445,8 @@ function checkUpdate() {
   background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
-	padding-top: var(--status-bar-height);
+  padding-top: var(--status-bar-height);
+
   .userInfo {
     background: transparent;
     padding: 60rpx 32rpx 40rpx;
@@ -745,7 +746,7 @@ function checkUpdate() {
       font-size: 32rpx;
       font-weight: 600;
       color: #333;
-      margin-bottom: 20rpx;
+      margin-bottom: 40rpx;
     }
 
     .recharge-items {
@@ -836,6 +837,7 @@ function checkUpdate() {
   background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
+  padding-top: var(--status-bar-height);
 
   .userInfo {
     background: transparent;
@@ -1135,7 +1137,8 @@ function checkUpdate() {
       font-size: 32rpx;
       font-weight: 600;
       color: #333;
-      margin-bottom: 20rpx;
+      margin-bottom: 40rpx;
+      display: block;
     }
 
     .recharge-items {

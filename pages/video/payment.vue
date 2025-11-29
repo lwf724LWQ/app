@@ -11,7 +11,7 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 订单信息 -->
     <view class="order-info">
       <view class="info-item">
@@ -31,65 +31,58 @@
         <text class="info-value">{{ getChannelText(orderData.channel) }}</text>
       </view>
     </view>
-    
+
     <!-- 支付方式选择 -->
     <view class="payment-methods">
       <text class="section-title">支付方式</text>
       <radio-group @change="selectPaymentMethod">
         <label class="payment-method">
-          <radio value="0" :checked="orderData.payType === 0" /> 
+          <radio value="0" :checked="orderData.payType === 0" />
           <text class="method-text">微信支付</text>
         </label>
         <label class="payment-method">
-          <radio value="1" :checked="orderData.payType === 1" /> 
+          <radio value="1" :checked="orderData.payType === 1" />
           <text class="method-text">账户余额</text>
         </label>
       </radio-group>
     </view>
-    
+
     <!-- 支付按钮 -->
     <view class="payment-btn-container">
-      <button class="payment-btn"  
-	  @click="handlePayment"
-    >确认支付</button>
+      <button class="payment-btn" @click="handlePayment">确认支付</button>
     </view>
-    
-	<!-- 二维码支付弹出层 -->
-	<view class="qr-modal" v-if="showQRModal" @click="closeQRModal">
-	  <view class="qr-content" @click.stop>
-	    <view class="qr-header">
-	      <text class="qr-title">扫码支付</text>
-	      <text class="close-btn" @click="closeQRModal">×</text>
-	    </view>
-	    <view class="qr-body">
-	      <view class="qr-code-container">
-	        <image 
-	          v-if="qrCodeUrl"
-	          :src="qrCodeUrl" 
-	          class="qr-image"
-	          :style="{ width: qrSize + 'px', height: qrSize + 'px' }"
-	          mode="aspectFit"
-	        ></image>
-	        <view v-else class="qr-loading">
-	          <text class="loading-text">生成二维码中...</text>
-	        </view>
-	      </view>
-	      <text class="qr-tip">请使用微信扫描二维码完成支付</text>
-	      <text class="qr-amount">支付金额：¥{{ orderData.amount }}元</text>
-	      <text class="qr-status" v-if="isCheckingPayment">正在检查支付状态...</text>
-	      <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
-	    </view>
-	   <!-- <view class="qr-footer">
+
+    <!-- 二维码支付弹出层 -->
+    <view class="qr-modal" v-if="showQRModal" @click="closeQRModal">
+      <view class="qr-content" @click.stop>
+        <view class="qr-header">
+          <text class="qr-title">扫码支付</text>
+          <text class="close-btn" @click="closeQRModal">×</text>
+        </view>
+        <view class="qr-body">
+          <view class="qr-code-container">
+            <image v-if="qrCodeUrl" :src="qrCodeUrl" class="qr-image"
+              :style="{ width: qrSize + 'px', height: qrSize + 'px' }" mode="aspectFit"></image>
+            <view v-else class="qr-loading">
+              <text class="loading-text">生成二维码中...</text>
+            </view>
+          </view>
+          <text class="qr-tip">请使用微信扫描二维码完成支付</text>
+          <text class="qr-amount">支付金额：¥{{ orderData.amount }}元</text>
+          <text class="qr-status" v-if="isCheckingPayment">正在检查支付状态...</text>
+          <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
+        </view>
+        <!-- <view class="qr-footer">
 	      <button class="cancel-qr-btn" @click="closeQRModal">取消支付</button>
 	      <button class="refresh-qr-btn" @click="refreshQRCode">刷新二维码</button>
 	      <button class="success-qr-btn" @click="handlePaymentSuccess">支付完成</button>
 	    </view> -->
-	  </view>
-	</view>
-	
-	
+      </view>
+    </view>
+
+
     <!-- 支付结果提示 -->
-  <!--  <view class="payment-result" v-if="paymentResult">
+    <!--  <view class="payment-result" v-if="paymentResult">
       <uni-icons 
         :type="paymentResult.success ? 'checkmarkempty' : 'closeempty'" 
         size="60" 
@@ -106,7 +99,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { apiRewardVideo,apiWxpay,apiCheckVideoPayment,apiGetUserBalance,apigoldpay, } from '@/api/apis';
+import { apiRewardVideo, apiWxpay, apiCheckVideoPayment, apiGetUserBalance, apigoldpay, } from '@/api/apis';
 import { getToken, getAccount } from '@/utils/request.js';
 
 
@@ -142,7 +135,7 @@ onLoad((options) => {
   if (options.payType) orderData.value.payType = parseInt(options.payType);
   if (options.channel) orderData.value.channel = parseInt(options.channel);
   if (options.videoId) orderData.value.videoId = options.videoId; // 获取视频ID
-  
+
   // 如果没有账号信息，使用当前登录账号
   if (!orderData.value.account) {
     orderData.value.account = getAccount();
@@ -199,7 +192,7 @@ const processPayment = async () => {
   uni.showLoading({
     title: '处理中...'
   })
-  
+
   try {
     // 准备充值数据
     const rechargeData = {
@@ -207,125 +200,125 @@ const processPayment = async () => {
       amount: orderData.value.amount.toString(),
       type: orderData.value.type, // 0表示充值
       account: getAccount() || currentUser.value,
-      payType:orderData.value.payType// 0表示微信支付
+      payType: orderData.value.payType// 0表示微信支付
     }
-	
-	
-	// 如果是余额支付
-	    if (orderData.value.payType === 1) {
-	      // 1. 查询用户余额
-	      const balanceResponse = await apiGetUserBalance({
-	        account: getAccount()
-	      })
-	      if (balanceResponse.code !== 200) {
-	        uni.hideLoading()
-	        uni.showToast({
-	          title: balanceResponse.msg || '查询余额失败',
-	          icon: 'none'
-	        })
-	        return
-	      }
-	      
-	      const userBalance = parseFloat(balanceResponse.data || 0)
-	      const paymentAmount = parseFloat(orderData.value.amount)
-	      
-	      // 2. 检查余额是否足够
-	      if (userBalance < paymentAmount) {
-			  console.log(userBalance,paymentAmount)
-	        uni.hideLoading()
-	        uni.showToast({
-	          title: '余额不足，请充值',
-	          icon: 'none'
-	        })
-	        
-	        // 跳转到充值页面
-	        setTimeout(() => {
-	          uni.navigateTo({
-	            url: '/pages/recharge/recharge'
-	          })
-	        }, 1500)
-	        return
-	      }
-		  //  创建订单
-		   const orderResponse = await apiRewardVideo(rechargeData)
-	       if (orderResponse.code !== 200) {
-	              uni.hideLoading()
-	              uni.showToast({
-	                title: orderResponse.msg || '创建订单失败',
-	                icon: 'none'
-	              })
-	              return
-	            }
-	        // 获取订单号
-	        const orderNo = orderResponse.data
-	      // 3. 调用余额支付接口
-	      const goldPayResponse = await apigoldpay({
-	        account: getAccount(),
-	        orderNo: orderNo,
-	        remark: orderData.value.videoId 
-	      })
-	      
-	      uni.hideLoading()
-	      
-	      if (goldPayResponse.code === 200) {
-	        // 余额支付成功
-	        uni.showModal({
-	          title: '支付成功',
-	          content: `成功支付${orderData.value.amount}金币`,
-	          showCancel: false,
-	          success: () => {
-	            // 返回上一页
-	            goBack()
-	          }
-	        })
-	      } else {
-	        uni.showToast({
-	          title: goldPayResponse.msg || '余额支付失败',
-	          icon: 'none'
-	        })
-	      }
-	      return
-	    }
-    
-    
+
+
+    // 如果是余额支付
+    if (orderData.value.payType === 1) {
+      // 1. 查询用户余额
+      const balanceResponse = await apiGetUserBalance({
+        account: getAccount()
+      })
+      if (balanceResponse.code !== 200) {
+        uni.hideLoading()
+        uni.showToast({
+          title: balanceResponse.msg || '查询余额失败',
+          icon: 'none'
+        })
+        return
+      }
+
+      const userBalance = parseFloat(balanceResponse.data || 0)
+      const paymentAmount = parseFloat(orderData.value.amount)
+
+      // 2. 检查余额是否足够
+      if (userBalance < paymentAmount) {
+        console.log(userBalance, paymentAmount)
+        uni.hideLoading()
+        uni.showToast({
+          title: '余额不足，请充值',
+          icon: 'none'
+        })
+
+        // 跳转到充值页面
+        setTimeout(() => {
+          uni.navigateTo({
+            url: '/pages/recharge/recharge'
+          })
+        }, 1500)
+        return
+      }
+      //  创建订单
+      const orderResponse = await apiRewardVideo(rechargeData)
+      if (orderResponse.code !== 200) {
+        uni.hideLoading()
+        uni.showToast({
+          title: orderResponse.msg || '创建订单失败',
+          icon: 'none'
+        })
+        return
+      }
+      // 获取订单号
+      const orderNo = orderResponse.data
+      // 3. 调用余额支付接口
+      const goldPayResponse = await apigoldpay({
+        account: getAccount(),
+        orderNo: orderNo,
+        remark: orderData.value.videoId
+      })
+
+      uni.hideLoading()
+
+      if (goldPayResponse.code === 200) {
+        // 余额支付成功
+        uni.showModal({
+          title: '支付成功',
+          content: `成功支付${orderData.value.amount}金币`,
+          showCancel: false,
+          success: () => {
+            // 返回上一页
+            goBack()
+          }
+        })
+      } else {
+        uni.showToast({
+          title: goldPayResponse.msg || '余额支付失败',
+          icon: 'none'
+        })
+      }
+      return
+    }
+
+
     // 调用充值接口
     const response = await apiRewardVideo(rechargeData)
-	 // 如果充值接口返回订单号，调用微信支付接口
-	    if (response.code === 200 && response.data) {
-	      // 调用微信支付接口
-	      const wxPayResponse = await callWxPayApi(response.data)
-	      
-	      if (wxPayResponse.code === 200) {
-	        // 处理微信支付返回的数据
-	        handleWxPayResponse(wxPayResponse.data)
-	      } else {
-	        uni.showToast({
-	          title: wxPayResponse.msg || '微信支付请求失败',
-	          icon: 'none'
-	        })
-	      }
-	    } else {
-	      uni.showToast({
-	        title: response.msg || '充值失败',
-	        icon: 'none'
-	      })
-	    }
+    // 如果充值接口返回订单号，调用微信支付接口
+    if (response.code === 200 && response.data) {
+      // 调用微信支付接口
+      const wxPayResponse = await callWxPayApi(response.data)
+
+      if (wxPayResponse.code === 200) {
+        // 处理微信支付返回的数据
+        handleWxPayResponse(wxPayResponse.data)
+      } else {
+        uni.showToast({
+          title: wxPayResponse.msg || '微信支付请求失败',
+          icon: 'none'
+        })
+      }
+    } else {
+      uni.showToast({
+        title: response.msg || '充值失败',
+        icon: 'none'
+      })
+    }
     uni.hideLoading()
-    
+
     if (response.code === 200) {
       // 充值成功，处理微信支付
       if (response.data && response.data.includes('weixin://wxpay')) {
         // 显示二维码支付
         currentPaymentUrl.value = response.data
         showQRModal.value = true
-        
+
         // 生成二维码
         setTimeout(() => {
           generateQRCode(response.data)
           // 开始检查支付状态
           startPaymentCheck()
         }, 100)
-      } 
+      }
     } else {
       // 充值失败
       uni.showToast({
@@ -345,13 +338,13 @@ const processPayment = async () => {
 
 // 调用微信支付API
 const callWxPayApi = async (orderNo) => {
-	
+
   try {
     // 准备微信支付数据
     const wxPayData = {
       account: getAccount(),
       orderNo: orderNo,
-      remark: orderData.value.videoId 
+      remark: orderData.value.videoId
     }
     // 调用微信支付API
     return await apiWxpay(wxPayData)
@@ -370,14 +363,14 @@ const handleWxPayResponse = (wxPayData) => {
     // 显示二维码支付
     currentPaymentUrl.value = wxPayData
     showQRModal.value = true
-    
+
     // 生成二维码
     setTimeout(() => {
       generateQRCode(wxPayData)
       // 开始检查支付状态
       startPaymentCheck()
     }, 100)
-  } 
+  }
 }
 // 二维码相关方法
 const generateQRCode = (url) => {
@@ -439,28 +432,28 @@ const startPaymentCheck = () => {
   if (paymentCheckTimer.value) {
     clearInterval(paymentCheckTimer.value)
   }
-  
+
   isCheckingPayment.value = true
   let checkCount = 0
   const maxChecks = 20 // 最多检查20次（100秒）
- 
-  
-  
+
+
+
   // 每3秒检查一次支付状态
   paymentCheckTimer.value = setInterval(async () => {
     try {
       checkCount++
-       // 调用真实API检查支付状态
-            const paymentStatus = await checkRealPaymentStatus()
-            
-            if (paymentStatus === true) {
-              // 支付成功
-              await handlePaymentSuccess()
-              return
-            } else if (paymentStatus === false) {
-              // 支付失败或仍在处理中，继续检查
-              console.log('支付状态检查中...')
-            }
+      // 调用真实API检查支付状态
+      const paymentStatus = await checkRealPaymentStatus()
+
+      if (paymentStatus === true) {
+        // 支付成功
+        await handlePaymentSuccess()
+        return
+      } else if (paymentStatus === false) {
+        // 支付失败或仍在处理中，继续检查
+        console.log('支付状态检查中...')
+      }
       // 如果检查次数达到上限，停止检查
       if (checkCount >= maxChecks) {
         console.log('支付检查超时，停止检查')
@@ -471,7 +464,7 @@ const startPaymentCheck = () => {
           duration: 3000
         })
       }
-      
+
       // 实际项目中，这里应该调用后端接口检查支付状态
       // const paymentStatus = await checkPaymentStatus(currentPaymentUrl.value)
       // if (paymentStatus === 'success') {
@@ -490,12 +483,12 @@ const checkRealPaymentStatus = async () => {
       videoId: orderData.value.videoId,
       account: getAccount()
     })
-    
+
     if (response.code === 200) {
       // 根据API返回的data字段判断支付状态
       return response.data // true表示已支付，false表示未支付
     }
-    
+
     return false
   } catch (error) {
     console.error('支付状态检查API调用失败:', error)
@@ -538,10 +531,10 @@ const confirmPayment = async () => {
       }, 1500);
       return;
     }
-    
+
     // 调用支付API
     const response = await apiRewardVideo(orderData);
-    
+
     if (response.success) {
       // 支付成功
       paymentResult.value = {
@@ -567,8 +560,8 @@ const confirmPayment = async () => {
 // 处理支付成功
 const handlePaymentSuccess = async () => {
   try {
-	  // 关闭二维码弹窗
-	  closeQRModal()
+    // 关闭二维码弹窗
+    closeQRModal()
     // 停止检查支付状态
     stopPaymentCheck()
     // 显示支付成功提示
@@ -579,7 +572,7 @@ const handlePaymentSuccess = async () => {
       success: () => {
       }
     })
-    
+
   } catch (error) {
     console.error('处理支付成功失败:', error)
   }
@@ -636,6 +629,7 @@ const stopPaymentCheck = () => {
   background-color: #fff;
   z-index: 999;
   border-bottom: 1rpx solid #e8e8e8;
+  padding-top: var(--status-bar-height);
 }
 
 .nav-content {
@@ -646,7 +640,8 @@ const stopPaymentCheck = () => {
   padding: 0 30rpx;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 80rpx;
   display: flex;
   align-items: center;
@@ -660,10 +655,10 @@ const stopPaymentCheck = () => {
 }
 
 .nav-center {
-  flex: 1; 
+  flex: 1;
   display: flex;
-  justify-content: center; 
-  align-items: center; 
+  justify-content: center;
+  align-items: center;
 }
 
 .nav-title {
@@ -675,7 +670,7 @@ const stopPaymentCheck = () => {
 
 /* 订单信息 */
 .order-info {
-  margin-top: 100rpx;
+  margin-top: calc(100rpx + var(--status-bar-height));
   padding: 30rpx;
   background-color: #fff;
   border-radius: 16rpx;
@@ -898,9 +893,17 @@ const stopPaymentCheck = () => {
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .qr-footer {
@@ -910,7 +913,9 @@ const stopPaymentCheck = () => {
   border-top: 1rpx solid #f0f0f0;
 }
 
-.cancel-qr-btn, .refresh-qr-btn, .success-qr-btn {
+.cancel-qr-btn,
+.refresh-qr-btn,
+.success-qr-btn {
   flex: 1;
   height: 80rpx;
   border: none;

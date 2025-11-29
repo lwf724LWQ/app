@@ -1,19 +1,8 @@
 <template>
   <view class="code-container">
-    <input 
-      type="number"
-      :placeholder="placeholder" 
-      placeholder-class="holder-class" 
-      class="code-input"
-      v-model="codeValue"  
-      @input="handleInput"  
-    />
-    <button 
-	type="default"
-      class="code-btn" 
-      :disabled="isCounting || disabled"
-      @click="handleGetCode"
-    >
+    <input type="number" :placeholder="placeholder" placeholder-class="holder-class" class="code-input"
+      v-model="codeValue" @input="handleInput" />
+    <button type="default" class="code-btn" :disabled="isCounting || disabled" @click="handleGetCode">
       {{ isCounting ? `${countdown}s后重新获取` : buttonText }}
     </button>
   </view>
@@ -67,10 +56,10 @@ const handleGetCode = () => {
 // 开始倒计时（由父组件调用，通常在验证码发送成功后）
 const startCountdown = () => {
   if (isCounting.value) return;
-  
+
   isCounting.value = true;
   countdown.value = props.countdownTime;
-  
+
   clearInterval(timer);
   timer = setInterval(() => {
     countdown.value--;
@@ -108,7 +97,7 @@ defineExpose({
 
 .code-input {
   flex: 1;
-  height: 80rpx;
+  height: 42rpx;
   font-size: 28rpx;
 }
 
@@ -119,8 +108,8 @@ defineExpose({
 
 .code-btn {
   width: 220rpx;
-  height: 80rpx;
-  line-height: 80rpx;
+  height: 40rpx;
+  line-height: 40rpx;
   text-align: center;
   background-color: transparent;
   color: #000;
@@ -128,12 +117,15 @@ defineExpose({
   font-size: 28rpx;
   border-radius: 8rpx;
   padding: 0;
-  &:after{
-	  border: none;
+
+  &:after {
+    border: none;
   }
 }
-uni-button[disabled][type='default'], uni-button[disabled]:not([type]) {
-    color: rgba(0, 0, 0, 0.3);
-    background-color: transparent;
+
+uni-button[disabled][type='default'],
+uni-button[disabled]:not([type]) {
+  color: rgba(0, 0, 0, 0.3);
+  background-color: transparent;
 }
 </style>

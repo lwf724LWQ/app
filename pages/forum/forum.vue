@@ -361,6 +361,7 @@
 import { ref, onMounted } from 'vue'
 import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
 import { getAccount } from '@/utils/request.js'
+import { getToken } from '../../utils/request'
 
 // 工具与常量：安全本地存取、函数防抖、文本规范化
 const safeGet = (key, fallback) => {
@@ -729,7 +730,21 @@ const previewImage = (current, urls) => {
 
 // 显示发布弹出层
 const showPublishModal = () => {
-  publishPopup.value.open()
+  if (getToken()) {
+    publishPopup.value.open()
+  } else {
+    uni.showModal({
+      title: '提示',
+      content: '该操作需要登录，是否前往',
+      success: async (res) => {
+        if (res.confirm) {
+          uni.navigateTo({ url: '/pages/login/login' + '?redirect=/pages/video/video' })
+        }
+      },
+      showCancel: true,
+    })
+  }
+
 }
 
 // 隐藏发布弹出层

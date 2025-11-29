@@ -322,9 +322,12 @@ export default {
 			}
 		}
 	},
-	onLoad() {
+	onShow(){
 		// 加载开奖结果
 		this.loadLotteryResults()
+	},
+	onLoad() {
+		
 	}
 };
 </script>
@@ -343,6 +346,7 @@ export default {
 		height: 320rpx;
 		padding: 20rpx;
 		margin-bottom: 20rpx;
+		box-sizing: border-box;
 	}
 
 	.swiper-item {

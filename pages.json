@@ -1,9 +1,17 @@
 {
   "pages": [
     {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/login/login",
       "style": {
-        "navigationBarTitleText": "登录页"
+        "navigationBarTitleText": "登录页",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -23,13 +31,6 @@
       "path": "pages/juWang/drawLine/drawLine",
       "style": {
         "navigationBarTitleText": "画规",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "首页",
         "navigationStyle": "custom"
       }
     },
@@ -145,7 +146,8 @@
     {
       "path": "pages/reg/reg",
       "style": {
-        "navigationBarTitleText": ""
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
       }
     },
     {
@@ -247,7 +249,8 @@
       {
         "text": "视频",
         "pagePath": "pages/video/video",
-        "iconPath": "/static/video/tabar.png"
+        "iconPath": "static/images/tabBar/video.png",
+        "selectedIconPath": "static/images/tabBar/video-h.png"
       },
       {
         "text": "彩友圈",
