@@ -75,13 +75,13 @@
 			<view class="video-info-card">
 				<view class="info-header">
 					<image v-if="userInfo.himg || userInfo.uname" :src="getAvatarUrl(userInfo.himg)"
-						class="author-avatar"></image>
+						@click="toUserSpace" class="author-avatar"></image>
 					<view class="author-info">
 						<text class="author-name">{{ userInfo.uname }}出品</text>
 						<text class="video-count">视频</text>
 					</view>
 					<view class="header-actions">
-						<button class="teacher-btn">讲师主页</button>
+						<button class="teacher-btn" @click="toUserSpace">讲师主页</button>
 						<button class="follow-btn">+ 关注</button>
 					</view>
 				</view>
@@ -115,7 +115,8 @@
 import {
 	ref,
 	computed,
-	onMounted
+	onMounted,
+	inject
 } from 'vue';
 import {
 	onLoad,
@@ -137,6 +138,8 @@ import {
 import {
 	useVideoStore
 } from '@/stores/video.js'
+
+const useOldManModeStore = inject("useOldManModeStore")
 
 // 初始化仓库
 const videoStore = useVideoStore()
@@ -677,6 +680,12 @@ const toggleLike = async () => {
 		});
 	}
 };
+
+function toUserSpace() {
+	// uni.navigateTo({
+	// 	url: '/pages/user/space?id='
+	// });
+}
 </script>
 
 <style scoped>
