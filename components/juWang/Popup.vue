@@ -228,6 +228,7 @@ const addNumberList = (val) => {
     numbers.value.push(...numberMap[val])
   } else {
     // 选择效果
+    if (val === '杀' && numbers.value.length > 2) numbers.value = []
     effectList.value = effectMap[val]
   }
 }
