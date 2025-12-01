@@ -39,6 +39,9 @@
     </view>
 
     <view class="animation" :class="{ 'animation-active': animation }"></view>
+
+    <!-- 全屏遮罩 -->
+    <view class="mask" v-if="!isClose" @click="isClose = true"></view>
   </view>
 </template>
 
@@ -220,6 +223,14 @@ const resetColor = () => {
       left: 300rpx;
       opacity: 1;
     }
+  }
+  .mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
   }
 }
 </style>
