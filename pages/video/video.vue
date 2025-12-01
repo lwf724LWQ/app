@@ -1,5 +1,5 @@
 <template>
-	<view class="video-page-container" :class="{ 'old-man-mode': useOldManModeStore.enabled }">
+	<view class="video-page-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
 		<!-- 为了适配小程序顶部高度的盒子-->
 		<StatusBarPlaceholder></StatusBarPlaceholder>
 		<!-- 图片 -->
@@ -79,7 +79,7 @@ import {
 	apiGetLikelist,
 	apiGetIsLike,
 	apiCheckVideoPayment,
-	apiGetIssueNo
+	apiGetIssueNo,
 } from '../../api/apis';
 import {
 	setToken,
@@ -240,7 +240,9 @@ const loadLotteryDataByType = async (lotteryType) => {
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index) => {
-
+	// 切换标签时重新获取对应类型的视频列表
+	await fetchVideoList();
+	return
 
 	pickerIndex.value = index
 	switch (index) {
@@ -265,15 +267,10 @@ const switchTabByIndex = async (index) => {
 			break
 	}
 
-
-
 	// 与论坛相同：切换时请求期号信息
 	if (currentTab.value !== 'review') {
 		await loadLotteryDataByType(currentLotteryType.value)
 	}
-
-	// 切换标签时重新获取对应类型的视频列表
-	await fetchVideoList();
 }
 
 // 方法
@@ -575,7 +572,7 @@ onMounted(async () => {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	/* 两列等宽 */
-	gap: 30rpx;
+	gap: 10rpx;
 	/* 间距 */
 
 }

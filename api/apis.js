@@ -359,8 +359,8 @@ export function apiWordInsert(data = {}) {
 // 参数：videoId
 export function apiWordQuery(data = {}) {
     return request({
-        url: "/web/vword/query",
-        method: "POST",
+        url: "/web/vword/find_wimg",
+        method: "GET",
         data
     })
 }

@@ -99,7 +99,7 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { apiWordInsert, getCOSSecretKey } from '@/api/apis.js'
+import { apiWordInsert } from '@/api/apis.js'
 import moment from "moment";
 import tool from '../../utils/tool';
 
@@ -191,7 +191,7 @@ onLoad((pageOptions) => {
   options.value = optionType[type]
 
 })
-const defFillValue = ''
+const defFillValue = '1xx1'
 const optionType = [
   [{ label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
   { label: '猪胆', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) },
@@ -234,114 +234,45 @@ const goBack = () => {
 // test
 function test() {
   generateFormImageH5().then(blob => {
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = "123";
-    link.click();
+    console.log(blob)
+    uni.saveImageToPhotosAlbum({
+      filePath: blob,
+      success: function (res) {
+        console.log(res.savedFilePath)
+        uni.showToast({
+          title: '保存成功',
+          icon: 'success',
+          duration: 2000
+        })
+      },
+      fail: function (err) {
+        console.log(err)
+        uni.showToast({
+          title: '保存失败',
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    })
+    // const link = document.createElement('a');
+    // link.href = blob;
+    // link.download = "123";
+    // link.click();
   })
 
 }
 
-// OSS上传函数（参考 pattern-predict.vue）
-const uploadObject = async (file, callback) => {
-  try {
-    // 处理不同环境：file 可能是 File 对象或路径字符串
-    let fileName = ''
-    let fileToUpload = file
-
-    if (typeof file === 'string') {
-      // 小程序环境：file 是路径字符串
-      fileName = file.split('/').pop() || `form-${Date.now()}.png`
-      fileToUpload = file
-    } else {
-      // H5 环境：file 是 File 对象
-      fileName = file.name || `form-${Date.now()}.png`
-      fileToUpload = file
-    }
-
-    const origin_file_name = fileName.split(".").slice(0, fileName.split(".").length - 1).join('.')
-
-    // 获取当前时间戳
-    const upload_file_name = new Date().getTime() + '.' + fileName.split(".")[fileName.split(".").length - 1]
-
-    // 请求接口得到token
-    let res = await getCOSSecretKey({})
-
-    if (res.code !== 200) {
-      throw new Error('获取上传凭证失败')
-    }
-
-    // 动态导入ali-oss
-    const OSS = await import('ali-oss')
-
-    // 根据STS接口实际返回的数据结构创建OSS客户端
-    const ossConfig = {
-      region: res.data.region || 'cn-guangzhou',
-      accessKeyId: res.data.STSaccessKeyId,
-      accessKeySecret: res.data.STSsecretAccessKey,
-      stsToken: res.data.security_token,
-      bucket: res.data.bucket || 'cjvd',
-      endpoint: 'https://oss-cn-guangzhou.aliyuncs.com',
-      refreshSTSToken: async () => {
-        const newRes = await getCOSSecretKey({})
-        return {
-          accessKeyId: newRes.data.STSaccessKeyId,
-          accessKeySecret: newRes.data.STSsecretAccessKey,
-          stsToken: newRes.data.security_token
-        }
-      },
-      refreshSTSTokenInterval: 300000 // 5分钟刷新一次
-    }
-
-    const client = new OSS.default(ossConfig)
-
-    // 处理上传文件：小程序环境可能需要读取文件
-    // #ifdef MP
-    // 小程序环境：如果 file 是路径字符串，需要读取文件
-    if (typeof fileToUpload === 'string') {
-      const fs = uni.getFileSystemManager()
-      try {
-        const fileData = fs.readFileSync(fileToUpload)
-        // 转换为 Blob/File 对象
-        const blob = new Blob([fileData], { type: 'image/png' })
-        fileToUpload = new File([blob], upload_file_name, { type: 'image/png' })
-      } catch (error) {
-        throw new Error('读取文件失败')
-      }
-    }
-    // #endif
-
-    // 上传文件
-    const result = await client.put(`wimg/${upload_file_name}`, fileToUpload)
-
-    if (result && result.url) {
-      // 直接使用固定的自定义域名前缀 + 唯一文件名
-      const customUrl = `http://video.caimizm.com/wimg/${upload_file_name}`
-
-      callback(customUrl)
-    } else {
-      throw new Error('上传失败')
-    }
-
-  } catch (error) {
-    throw error
-  }
-}
 
 // 生成表单图片 - H5环境
-// #ifdef H5
-const generateFormImageH5 = () => {
+const generateFormImage = () => {
   return new Promise((resolve, reject) => {
     try {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      const ctx = uni.createCanvasContext('formCanvas')
 
       const width = 750
       const height = 1200
-      canvas.width = width
-      canvas.height = height
 
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = '#fff'
       ctx.fillRect(0, 0, width, height)
 
       ctx.font = 'bold 50px 黑体'
@@ -392,96 +323,56 @@ const generateFormImageH5 = () => {
         ctx.font = '60px Arial'
         ctx.fillText(`备注: ${remark.value}`, 40, yPos)
       }
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], `form-${Date.now()}.png`, { type: 'image/png' })
-          resolve(file)
-        } else {
-          reject(new Error('生成图片失败'))
-        }
-      }, 'image/png')
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-// #endif
-
-// 生成表单图片 - 小程序/App环境
-// #ifndef H5
-const generateFormImageMP = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const ctx = uni.createCanvasContext('formCanvas')
-      const width = canvasWidth.value
-      const height = canvasHeight.value
-
-      ctx.setFillStyle('#ffffff')
-      ctx.fillRect(0, 0, width, height)
-
-      ctx.setFillStyle('#333333')
-      ctx.setFontSize(32)
-      ctx.setTextAlign('center')
-      ctx.fillText('开奖号码记录', width / 2, 60)
-
-      ctx.setFontSize(24)
-      ctx.setTextAlign('left')
-      ctx.setFillStyle('#666666')
-      let yPos = 120
-
-      ctx.fillText(`期号: ${formData.value.issueNo || ''}`, 40, yPos)
-      yPos += 40
-      ctx.fillText(`姓名: ${formData.value.name1 || ''}`, 40, yPos)
-      yPos += 40
-      ctx.fillText(`日期: ${formData.value.date || ''}`, 40, yPos)
-      yPos += 60
-
-      options.value.forEach((option) => {
-        if (option.hasInputs && option.inputs && option.inputs.some(input => input.trim())) {
-          ctx.setFillStyle('#333333')
-          ctx.setFontSize(26)
-          const validInputs = option.inputs.filter(input => input.trim())
-          ctx.fillText(`${option.label}: ${validInputs.join(', ')}`, 40, yPos)
-          yPos += 35
-        }
-      })
-
-      if (remark.value.trim()) {
-        yPos += 20
-        ctx.setFillStyle('#666666')
-        ctx.setFontSize(24)
-        ctx.fillText(`备注: ${remark.value}`, 40, yPos)
-      }
-
       ctx.draw(false, () => {
-        setTimeout(() => {
-          uni.canvasToTempFilePath({
-            canvasId: 'formCanvas',
-            success: (res) => {
-              resolve(res.tempFilePath)
-            },
-            fail: () => {
-              reject(new Error('生成图片失败'))
-            }
-          })
-        }, 300)
+        uni.canvasToTempFilePath({
+          canvasId: 'formCanvas',
+          success: (res) => {
+            // #ifdef H5
+            const url = base64ToBlob(res.tempFilePath)
+            // #endif
+            // #ifndef H5
+            const url = res.tempFilePath
+            // #endif
+            resolve(url)
+          },
+          fail: () => {
+            console.log('生成图片失败')
+            reject(new Error('生成图片失败'))
+          }
+        })
       })
+
+
+      // canvas.toBlob((blob) => {
+      //   if (blob) {
+      //     const file = new File([blob], `form-${Date.now()}.png`, { type: 'image/png' })
+      //     resolve(file)
+      //   } else {
+      //     reject(new Error('生成图片失败'))
+      //   }
+      // }, 'image/png')
     } catch (error) {
+      console.log('生成图片失败', error)
       reject(error)
     }
   })
 }
-// #endif
 
-// 生成表单图片（统一入口）
-const generateFormImage = async () => {
-  // #ifdef H5
-  return await generateFormImageH5()
-  // #endif
-  // #ifndef H5
-  return await generateFormImageMP()
-  // #endif
+function base64ToBlob(base64String, mimeType = 'image/png') {
+  // 移除数据头
+  const data = base64String.split(',')[1];
+
+  // 解码base64
+  const decodedData = atob(data);
+
+  // 创建字节数组
+  const array = new Uint8Array(decodedData.length);
+  for (let i = 0; i < decodedData.length; i++) {
+    array[i] = decodedData.charCodeAt(i);
+  }
+  const date = moment(formData.value.date)
+  // 返回Blob对象
+  return new File([new Blob([array], { type: mimeType })], `form-${new Date().getTime()}.png`, { type: mimeType });
 }
 
 // 提交表单
@@ -609,19 +500,6 @@ const handleSubmit = async () => {
     uni.hideLoading()
 
     if (response.code === 200) {
-      // 保存表单图片 URL 到本地存储（以便视频播放后可以显示）
-      if (wimgUrl && videoId) {
-        try {
-          const formImageData = {
-            videoId: videoId,
-            wimgUrl: wimgUrl,
-            timestamp: Date.now()
-          }
-          uni.setStorageSync(`formImage_${videoId}`, formImageData)
-        } catch (e) {
-          // 静默处理存储错误
-        }
-      }
 
       uni.showToast({
         title: '提交成功',
@@ -650,7 +528,7 @@ const handleSubmit = async () => {
 
 <style lang="scss" scoped>
 .test-btn {
-  position: absolute;
+  position: fixed;
   top: 100rpx;
 
 }

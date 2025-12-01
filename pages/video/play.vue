@@ -12,10 +12,10 @@
 			<!-- 视频播放器容器 -->
 			<view class="video-container">
 				<!-- <video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" -->
-				<video v-if="videoData.id && hasPaid" :src="videoData.src" :show-play-btn="true" :controls="true"
-					:autoplay="false" :show-fullscreen-btn="true" object-fit="cover" class="video-player"
-					:class="{ 'video-full-screen': isFullScreen }" id="videoPlayer" @play="onVideoPlay"
-					@pause="onVideoPause" @ended="onVideoEnded"></video>
+				<video v-if="videoData.id && hasPaid" v-show="!showFormImage" :src="videoData.src" :show-play-btn="true"
+					:controls="true" :autoplay="false" :show-fullscreen-btn="true" object-fit="cover"
+					class="video-player" :class="{ 'video-full-screen': isFullScreen }" id="videoPlayer"
+					@play="onVideoPlay" @pause="onVideoPause" @ended="onVideoEnded"></video>
 				<view v-else-if="videoData.id"></view>
 				<view v-else class="video-placeholder">
 					<text class="placeholder-text">视频加载中...</text>
@@ -38,7 +38,7 @@
 			</view>
 
 			<!-- 表单图片显示遮罩层（独立层级） -->
-			<cover-view class="form-image-overlay" v-if="showFormImage" @click="closeFormImage">
+			<cover-view class="form-image-overlay" v-show="showFormImage" @click="closeFormImage">
 				<cover-view class="form-image-container" @click.stop>
 					<cover-view class="form-image-header">
 						<cover-view class="form-image-title">开奖号码记录</cover-view>
@@ -47,11 +47,14 @@
 							<!-- <uni-icons type="close" size="24" color="#666"></uni-icons> -->
 						</cover-view>
 					</cover-view>
-					<cover-image v-if="formImageUrl" :src="formImageUrl" class="form-image" mode="aspectFit"
-						@error="handleFormImageError" @load="handleFormImageLoad"></cover-image>
-					<cover-view v-if="showFormImage && !formImageUrl" class="form-image-loading">
-						<cover-view>图片加载中...</cover-view>
-					</cover-view>
+					<cover-image :src="formImageUrl" class="form-image" mode="aspectFit" @error="handleFormImageError"
+						@load="handleFormImageLoad"></cover-image>
+					<!-- #ifdef H5 -->
+					<cover-view class="save-image-button" @click="saveImg">长按图片保存</cover-view>
+					<!-- #endif -->
+					<!-- #ifdef APP-PLUS -->
+					<cover-view class="save-image-button" @click="saveImg">保存到相册</cover-view>
+					<!-- #endif-->
 				</cover-view>
 			</cover-view>
 
@@ -61,7 +64,7 @@
 					<uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
 					<text class="interaction-text">打赏 0</text>
 				</view>
-				<view class="like-interaction" :class="{ 'liked': videoData.isLiked }" @click="toggleLike">
+				<view class="like-interaction" :class="videoData.isLiked ? 'liked' : ''" @click="toggleLike">
 					<uni-icons :type="videoData.isLiked ? 'heart-filled' : 'heart'" size="20"
 						:color="videoData.isLiked ? '#ff4757' : '#FF9500'"></uni-icons>
 					<text class="interaction-text">点赞 {{ videoData.likeCount }}</text>
@@ -283,27 +286,6 @@ const toBlobUrlVideo = (videoUrl) => {
 			})
 	})
 }
-
-// function toBlobUrlVideo(url) {
-// 	return new Promise(resolve => {
-// 		// #ifndef H5
-// 		resolve(url)
-// 		return
-// 		// #endif
-// 		var xhr = new XMLHttpRequest();
-// 		xhr.open("get", url, true);
-// 		xhr.responseType = "blob";
-// 		xhr.onload = function () {
-// 			if (this.status == 200) {
-// 				let blob = this.response;
-// 				const url = URL.createObjectURL(blob)
-// 				// console.log(url)
-// 				resolve(url)
-// 			}
-// 		};
-// 		xhr.send();
-// 	});
-// };
 
 // 跳转到首页
 const toIndex = () => {
@@ -555,92 +537,48 @@ const fetchFormImage = async () => {
 		return
 	}
 
+	uni.showLoading({
+		title: '正在获取表单图片...',
+		mask: true
+	})
 	const videoId = videoData.value.id
-
-
 	try {
 		console.log('开始获取表单图片，视频ID:', videoId)
 		const response = await apiWordQuery({ videoId: videoId })
 		console.log('表单图片API响应:', response)
 
-		if (response && response.code === 200 && response.data) {
-			// 尝试多种可能的数据结构
-			let imageUrl = response.data.wimg || response.data.url || response.data.image || response.data.img || ''
-			console.log('解析到的图片URL:', imageUrl)
-
-			if (imageUrl) {
-				// 处理图片 URL：如果是完整 URL 直接使用，否则拼接完整路径
-				if (!imageUrl.startsWith('http')) {
-					// 如果不是完整 URL，拼接为完整路径（wimg 文件夹）
-					imageUrl = `http://video.caimizm.com/wimg/${imageUrl}`
-				}
-				console.log('处理后的图片URL:', imageUrl)
-				formImageUrl.value = imageUrl
-				showFormImage.value = true
-				console.log('表单图片已从API设置，showFormImage:', showFormImage.value)
-			} else {
-				console.log('未找到图片URL，响应数据:', response.data)
-				// 如果API没有图片，但本地存储有，继续显示本地的
-				if (!hasLocalImage) {
-					uni.showToast({
-						title: '暂无表单记录',
-						icon: 'none',
-						duration: 2000
-					})
-				}
-			}
-		} else {
-			console.log('API响应异常:', response)
-			if (response && response.code !== 200) {
-				console.log('API返回错误码:', response.code, '错误信息:', response.message || response.msg)
-			}
-			// API 返回异常，但本地存储有数据，继续显示本地的
-			if (!hasLocalImage) {
-				uni.showToast({
-					title: '暂无表单记录',
-					icon: 'none',
-					duration: 2000
-				})
-			}
-		}
+		formImageUrl.value = `http://video.caimizm.com/${response.msg}`
+		showFormImage.value = true
 	} catch (error) {
 		console.error('获取表单图片异常:', error)
-		// 检测是否为 CORS 错误（H5 环境）
-		const errorMessage = error.message || error.errMsg || ''
-		const isCorsError = errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('ERR_FAILED') || errorMessage.includes('net::ERR_FAILED')
-
-		// 如果本地存储有数据，不需要显示错误提示
-		if (hasLocalImage) {
-			console.log('API调用失败，但本地存储有数据，继续显示本地图片')
-			return
-		}
-
-		// 如果本地存储也没有数据，显示错误提示
-		if (isCorsError) {
-			// #ifdef H5
-			uni.showToast({
-				title: 'H5环境请在小程序中查看',
-				icon: 'none',
-				duration: 2000
-			})
-			// #endif
-			// #ifndef H5
-			uni.showToast({
-				title: '获取表单图片失败',
-				icon: 'none',
-				duration: 2000
-			})
-			// #endif
-		} else {
-			// 其他错误显示提示
-			uni.showToast({
-				title: '获取表单图片失败',
-				icon: 'none',
-				duration: 2000
-			})
-		}
-
+		// uni.showToast({
+		// 	title: '获取预测图片失败',
+		// 	icon: 'none',
+		// 	duration: 2000
+		// })
 	}
+	uni.hideLoading()
+}
+
+function saveImg() {
+	uni.saveImageToPhotosAlbum({
+		filePath: formImageUrl.value,
+		success: function (res) {
+			uni.showToast({
+				title: '保存成功',
+				icon: 'success',
+				duration: 2000
+			})
+		},
+		fail: function (err) {
+			console.log(err.errMsg)
+			uni.showToast({
+				title: '保存失败',
+				icon: 'none',
+				duration: 2000
+			})
+		}
+	})
 }
 
 // 关闭表单图片
@@ -1067,6 +1005,17 @@ const toggleLike = async () => {
 	font-size: 32rpx;
 	font-weight: 600;
 	color: #333;
+}
+
+.save-image-button {
+	width: 100%;
+	height: 48rpx;
+	line-height: 48rpx;
+	padding: 20rpx;
+	border-radius: 10rpx;
+	font-size: 38rpx;
+	text-align: center;
+	background-color: #ff623a;
 }
 
 .form-image-close {
