@@ -123,6 +123,9 @@
 
           <!-- 选择模式标签 -->
           <view class="selection-tabs">
+            <view class="tab-item" :class="{ active: selectionMode === 'all' }" @click="setSelectionMode('all')">
+              <text class="tab-text">全部</text>
+            </view>
             <view class="tab-item" :class="{ active: selectionMode === 'month' }" @click="setSelectionMode('month')">
               <text class="tab-text">选择月份</text>
             </view>
@@ -175,7 +178,7 @@
           </view>
 
           <!-- 时间段选择模式 -->
-          <view v-else class="date-range-picker">
+          <view v-else-if="selectionMode === 'range'" class="date-range-picker">
             <!-- 月份导航 -->
             <view class="month-navigation">
               <view class="nav-arrow" @click="previousMonth">
@@ -242,10 +245,12 @@ const totalOrders = ref(0)
 const searchHistory = ref([])
 
 // 日历相关数据
+const date = new Date()
+
 const showCalendar = ref(false)
-const selectionMode = ref('month') // 'month' 或 'range'
-const currentYear = ref(2025)
-const currentMonth = ref(9)
+const selectionMode = ref('all') // 'month' 或 'range' 或 all
+const currentYear = ref(date.getFullYear())
+const currentMonth = ref(date.getMonth() + 1)
 const startDate = ref(null)
 const endDate = ref(null)
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
@@ -264,7 +269,6 @@ const isSwipeEnabled = ref(true)
 // 计算属性
 const filteredOrders = computed(() => {
   let result = orders.value
-
   // 先按日期范围过滤
   if (startDate.value && endDate.value) {
     // 日期范围模式 - 只比较日期部分，忽略时间
@@ -283,7 +287,7 @@ const filteredOrders = computed(() => {
       return orderDateOnly.getTime() >= startDateOnly.getTime() &&
         orderDateOnly.getTime() <= endDateOnly.getTime()
     })
-  } else {
+  } else if (selectionMode.value === 'month') {
     // 月份模式
     result = result.filter(order => {
       const orderTimeStr = order.updateTime || order.createTime
@@ -293,6 +297,8 @@ const filteredOrders = computed(() => {
       return orderDate.getFullYear() === currentYear.value &&
         orderDate.getMonth() + 1 === currentMonth.value
     })
+  } else if (selectionMode.value === 'all') {
+
   }
 
   // 再按搜索关键词过滤
@@ -365,7 +371,10 @@ const monthList = computed(() => {
 
 // 动态显示日期文本
 const displayedDateText = computed(() => {
-  if (selectionMode.value === 'range' && startDate.value && endDate.value) {
+  if (selectionMode.value === 'all') {
+    return '全部'
+  }
+  else if (selectionMode.value === 'range' && startDate.value && endDate.value) {
     // 选择了具体日期范围
     const startDateStr = formatDate(startDate.value)
     const endDateStr = formatDate(endDate.value)
