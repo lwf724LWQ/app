@@ -1,5 +1,5 @@
 <template>
-  <view class="userLayout" :class="{ 'old-man-mode': useOldManModeStore.enabled }">
+  <view class="userLayout" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <view class="userInfo" v-if="memberStore.profile">
       <view class="user-header">
         <view class="avatar-section">
@@ -163,8 +163,11 @@ import { ref, reactive, onMounted, inject } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { getNavBarHeight } from "@/utils/system.js"
 import { getToken, removeToken, getAccount } from "@/utils/request.js";
-import { apiGetUserBalance } from "@/api/apis.js";
+import { apiGetUserBalance, apiUserimg } from "@/api/apis.js";
 import tool from "../../utils/tool";
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
 
 const memberStore = reactive({
   profile: null
@@ -218,6 +221,25 @@ const getUserBalance = async () => {
   }
 }
 
+async function getUserInfo() {
+  try {
+    const savedUserInfo = userStore.getUserInfo
+    memberStore.profile = {
+      avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
+      nickname: savedUserInfo.nickname || '欢迎您'
+    };
+
+    const data = await apiUserimg({ account: savedUserInfo.account })
+
+
+  } catch (error) {
+    uni.showToast({
+      title: "获取用户数据失败"
+    })
+  }
+
+}
+
 // 检查登录状态
 const checkLoginStatus = async () => {
   // 防止重复请求
@@ -230,36 +252,11 @@ const checkLoginStatus = async () => {
     isLoadingLogin.value = true
     const token = getToken();
     if (token) {
-      try {
-        // 从本地存储获取登录时保存的用户信息
-        const savedUserInfo = uni.getStorageSync('userInfo') || {}
-        const loginData = uni.getStorageSync('loginData') || {}
-
-        // 优先使用登录时保存的完整数据
-        if (loginData.uname || loginData.account) {
-          memberStore.profile = {
-            avatar: loginData.himg || savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png', // 优先使用himg，然后是本地保存的头像
-            nickname: loginData.uname || savedUserInfo.nickname || '欢迎您' // uname 是昵称
-          };
-        } else {
-          // 如果没有登录数据，使用本地存储的用户信息
-          memberStore.profile = {
-            avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
-            nickname: savedUserInfo.nickname || '欢迎您'
-          };
-        }
-
-      } catch (error) {
-        // 从本地存储获取用户信息作为后备
-        const savedUserInfo = uni.getStorageSync('userInfo') || {}
-        memberStore.profile = {
-          avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
-          nickname: savedUserInfo.nickname || '欢迎您'
-        };
-      }
-
       // 获取用户余额
       getUserBalance()
+
+      // 获取用户数据
+      getUserInfo()
     } else {
       // 没有token表示未登录
       memberStore.profile = null;
@@ -277,8 +274,7 @@ const logout = () => {
     content: '确定要退出登录吗？',
     success: (res) => {
       if (res.confirm) {
-        // 清除token
-        removeToken();
+        userStore.clearUserInfo()
         // 更新登录状态
         checkLoginStatus();
         // 显示退出成功提示
@@ -290,46 +286,9 @@ const logout = () => {
     }
   });
 }
-//-------------------------------------------------------------------------
-const menuList = ref([
-  {
-    icon: 'contact',     // uni-icons 内置图标名（联系客服）
-    title: '联系客服',
-    subTitle: '',
-    hasArrow: true
-  },
-  {
-    icon: 'paperplane-filled',       // uni-icons 内置图标名（软件分享）
-    title: '软件分享',
-    subTitle: '分享给朋友',
-    hasArrow: true
-  },
-  {
-    icon: 'email-filled',    // uni-icons 内置图标名（建议反馈）
-    title: '建议反馈',
-    subTitle: '',
-    hasArrow: true
-  },
-  {
-    icon: 'upload-filled',    // uni-icons 内置图标名（版本箭头示意）
-    title: '版本',
-    subTitle: '已是最新版V3.4.0.2',
-    hasArrow: true
-  },
-  {
-    icon: 'settings',    // uni-icons 内置图标名（设置）
-    title: '设置',
-    subTitle: '',
-    hasArrow: true
-  },
-]);
 
 // 跳转到充值页面
 const goToRecharge = () => {
-  // 先刷新余额，然后跳转
-  if (memberStore.profile) {
-    getUserBalance();
-  }
   uni.navigateTo({ url: '/pages/recharge/recharge' });
 };
 
@@ -404,25 +363,6 @@ const handleMenuClick = (item) => {
   //   uni.navigateTo({ url: '/pages/customer-service/index' });
   // }
 };
-
-// 页面加载时检查登录状态
-onMounted(() => {
-  checkLoginStatus();
-
-  // 监听用户信息更新事件
-  uni.$on('userProfileUpdated', (data) => {
-    if (memberStore.profile) {
-      // 更新用户信息
-      memberStore.profile.nickname = data.nickname;
-      memberStore.profile.avatar = data.avatar;
-
-      uni.showToast({
-        title: '用户信息已更新',
-        icon: 'success'
-      });
-    }
-  });
-});
 
 // 页面显示时也检查登录状态（确保从登录页面返回时能更新状态）
 onShow(() => {

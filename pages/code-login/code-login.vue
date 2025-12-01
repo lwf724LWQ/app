@@ -2,7 +2,7 @@
   <view class="code-login-container">
     <!-- 状态栏 -->
     <view class="status-bar"></view>
-    
+
     <!-- 头部 -->
     <view class="header">
       <view class="back-btn" @click="goBack">
@@ -15,13 +15,13 @@
         </view>
       </view>
     </view>
-    
+
     <!-- 主标题 -->
     <view class="title-section">
       <text class="main-title" v-if="!isForgetPwd">验证码登录</text>
       <text class="main-title" v-if="isForgetPwd">重置密码</text>
     </view>
-    
+
     <!-- 登录表单 -->
     <view class="code-login-form">
       <!-- 手机号输入框 -->
@@ -32,16 +32,11 @@
           </view>
           <text class="country-code">+86</text>
           <view class="separator"></view>
-          <input 
-            type="text" 
-            placeholder="请输入手机号" 
-            placeholder-class="input-placeholder" 
-            v-model="phone"
-            class="phone-input"
-          />
+          <input type="text" placeholder="请输入手机号" placeholder-class="input-placeholder" v-model="phone"
+            class="phone-input" />
         </view>
       </view>
-      
+
       <!-- 验证码输入框 -->
       <view class="input-group">
         <view class="input-container">
@@ -49,22 +44,17 @@
             <view class="code-icon-svg"></view>
           </view>
           <view class="code-container">
-            <VerificationCode
-              ref="codeRef"  
-              placeholder="请输入验证码"
-              @getCode="sendLoginCode"  
-              @input="handleCodeInput" 
-            />
+            <VerificationCode ref="codeRef" placeholder="请输入验证码" @getCode="sendLoginCode" @input="handleCodeInput" />
           </view>
         </view>
       </view>
-      
+
       <!-- 链接区域 -->
       <view class="links-section" v-if="!isForgetPwd">
         <text class="user-login" @click="userLogin">账号登录</text>
         <text class="register-link" @click="goToReg">注册</text>
       </view>
-      
+
       <!-- 登录按钮 -->
       <view class="login-btn-container">
         <button class="login-btn" @click="login">
@@ -132,9 +122,9 @@ const sendLoginCode = async () => {
     uni.showToast({ title: '请输入手机号', icon: 'none' })
     return
   }
-  
+
   try {
-    const response = await apiSendCode({phone: phone.value})
+    const response = await apiSendCode({ phone: phone.value })
     if (response.code === 200) {
       codeRef.value.startCountdown()
       uni.showToast({ title: '验证码已发送', icon: 'success' })
@@ -152,43 +142,43 @@ const login = async () => {
     uni.showToast({ title: '请输入手机号', icon: 'none' })
     return
   }
-  
+
   if (!code.value) {
     uni.showToast({ title: '请输入验证码', icon: 'none' })
     return
   }
-  
+
   uni.showLoading({ title: '登录中...' })
-  
+
   try {
     const loginData = {
       type: '1', // 验证码登录
       account: phone.value,
       code: code.value
     }
-    
+
     const success = await apilogin(loginData)
     uni.hideLoading()
-    
+
     if (success) {
       // 打印登录返回的完整数据，用于调试
       console.log('验证码登录API返回的完整数据:', success);
-      
+
       // 设置全局token
       if (success.data?.token) {
         setToken(success.data.token)
       }
-      
+
       // 设置全局account
       if (phone.value) {
         setAccount(phone.value)
       }
-      
+
       // 直接使用登录返回的用户信息
       try {
         // 从登录返回的数据中提取用户信息
         const loginData = success.data || {};
-        
+
         // 处理头像URL - 如果是相对路径，拼接完整URL
         let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
         if (loginData.himg) {
@@ -200,47 +190,44 @@ const login = async () => {
             avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
           }
         }
-        
+
+        userStore.updateUserInfo(userInfo, success.data.token);
+
         // 保存用户信息到本地存储
-        const userInfo = {
-          nickname: loginData.uname || '用户',
-          avatar: avatarUrl,
-          phone: phone.value
-        };
-        
+        // const userInfo = {
+        //   nickname: loginData.uname || '用户',
+        //   avatar: avatarUrl,
+        //   phone: phone.value
+        // };
+
         // 保存到本地存储，供用户页面使用
-        uni.setStorageSync('userInfo', userInfo);
-        uni.setStorageSync('loginData', {
-          uname: loginData.uname,
-          himg: loginData.himg,
-          account: phone.value
-        });
-        
-        console.log('验证码登录成功，用户信息已保存:', userInfo);
-        console.log('登录数据已保存:', {
-          uname: loginData.uname,
-          himg: loginData.himg,
-          account: phone.value
-        });
-        
+        // uni.setStorageSync('userInfo', userInfo);
+        // uni.setStorageSync('loginData', {
+        //   uname: loginData.uname,
+        //   himg: loginData.himg,
+        //   account: phone.value
+        // });
+
+        // console.log('验证码登录成功，用户信息已保存:', userInfo);
+
       } catch (error) {
-        console.error('保存用户信息失败:', error);
-        // 使用默认用户信息
-        const defaultUserInfo = {
-          nickname: '用户',
-          avatar: 'http://video.caimizm.com/himg/user.png',
-          phone: phone.value
-        };
-        uni.setStorageSync('userInfo', defaultUserInfo);
-        uni.setStorageSync('loginData', {
-          uname: '用户',
-          himg: 'http://video.caimizm.com/himg/user.png',
-          account: phone.value
-        });
+        // console.error('保存用户信息失败:', error);
+        // // 使用默认用户信息
+        // const defaultUserInfo = {
+        //   nickname: '用户',
+        //   avatar: 'http://video.caimizm.com/himg/user.png',
+        //   phone: phone.value
+        // };
+        // uni.setStorageSync('userInfo', defaultUserInfo);
+        // uni.setStorageSync('loginData', {
+        //   uname: '用户',
+        //   himg: 'http://video.caimizm.com/himg/user.png',
+        //   account: phone.value
+        // });
       }
-      
+
       uni.showToast({ title: '登录成功', icon: 'success' })
-      
+
       setTimeout(() => {
         uni.switchTab({ url: '/pages/user/user' })
       }, 1500)
@@ -280,7 +267,7 @@ const login = async () => {
   align-items: center;
   padding: 20rpx 40rpx;
   margin-bottom: 40rpx;
-  
+
   .back-btn {
     width: 60rpx;
     height: 60rpx;
@@ -289,12 +276,12 @@ const login = async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .back-icon {
       position: relative;
       width: 40rpx;
       height: 40rpx;
-      
+
       .back-arrow {
         position: absolute;
         top: 50%;
@@ -305,19 +292,19 @@ const login = async () => {
         font-weight: bold;
         z-index: 2;
       }
-      
+
       .logo-lines {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        
+
         .line {
           position: absolute;
           background: #28B389;
           border-radius: 2rpx;
           opacity: 0.3;
-          
+
           &.line-1 {
             width: 20rpx;
             height: 2rpx;
@@ -325,7 +312,7 @@ const login = async () => {
             left: -10rpx;
             transform: rotate(-15deg);
           }
-          
+
           &.line-2 {
             width: 16rpx;
             height: 2rpx;
@@ -343,7 +330,7 @@ const login = async () => {
 .title-section {
   text-align: center;
   margin-bottom: 80rpx;
-  
+
   .main-title {
     font-size: 56rpx;
     font-weight: 700;
@@ -355,10 +342,10 @@ const login = async () => {
 /* 登录表单 */
 .code-login-form {
   padding: 0 60rpx;
-  
+
   .input-group {
     margin-bottom: 40rpx;
-    
+
     .input-container {
       background: #fff;
       border-radius: 20rpx;
@@ -366,7 +353,7 @@ const login = async () => {
       display: flex;
       align-items: center;
       box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-      
+
       .input-icon {
         width: 40rpx;
         height: 40rpx;
@@ -374,14 +361,14 @@ const login = async () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        
+
         .phone-icon-svg {
           width: 32rpx;
           height: 48rpx;
           border: 3rpx solid #28B389;
           border-radius: 8rpx;
           position: relative;
-          
+
           &::before {
             content: '';
             position: absolute;
@@ -392,7 +379,7 @@ const login = async () => {
             border: 2rpx solid #28B389;
             border-radius: 4rpx;
           }
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -405,14 +392,14 @@ const login = async () => {
             border-radius: 50%;
           }
         }
-        
+
         .code-icon-svg {
           width: 32rpx;
           height: 32rpx;
           border: 3rpx solid #28B389;
           border-radius: 6rpx;
           position: relative;
-          
+
           &::before {
             content: '';
             position: absolute;
@@ -423,7 +410,7 @@ const login = async () => {
             background: #28B389;
             border-radius: 50%;
           }
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -436,27 +423,27 @@ const login = async () => {
           }
         }
       }
-      
+
       .country-code {
         font-size: 32rpx;
         color: #000;
         font-weight: 500;
         margin-right: 20rpx;
       }
-      
+
       .separator {
         width: 2rpx;
         height: 40rpx;
         background: #ddd;
         margin-right: 20rpx;
       }
-      
+
       .code-container {
         flex: 1;
         display: flex;
         align-items: center;
       }
-      
+
       .phone-input {
         flex: 1;
         font-size: 32rpx;
@@ -467,28 +454,28 @@ const login = async () => {
       }
     }
   }
-  
+
   /* 链接区域 */
   .links-section {
     display: flex;
     justify-content: space-between;
     margin-bottom: 60rpx;
-    
+
     .user-login {
       font-size: 28rpx;
       color: #28B389;
     }
-    
+
     .register-link {
       font-size: 28rpx;
       color: #28B389;
     }
   }
-  
+
   /* 登录按钮 */
   .login-btn-container {
     margin-bottom: 40rpx;
-    
+
     .login-btn {
       width: 100%;
       height: 100rpx;

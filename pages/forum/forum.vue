@@ -362,6 +362,10 @@ import { ref, onMounted } from 'vue'
 import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
 import { getAccount } from '@/utils/request.js'
 import { getToken } from '../../utils/request'
+import { useUserStore } from '../../stores/userStore'
+
+// 用户数据存储
+const userStore = useUserStore()
 
 // 工具与常量：安全本地存取、函数防抖、文本规范化
 const safeGet = (key, fallback) => {
@@ -565,7 +569,6 @@ onMounted(() => {
     currentLotteryType.value = savedLotteryType
   }
 
-  autoSaveCurrentUserAvatar()
   optimizeTouchEvents()
   loadLotteryData(currentLotteryType.value.code)
   isPageInitialized.value = true
@@ -1257,13 +1260,8 @@ const saveLikedCount = (postId, count) => {
 // 获取用户头像
 const getUserAvatar = (account) => {
   try {
-    const currentAccount = getAccount()
-    if (account === currentAccount) {
-      const loginData = safeGet('loginData', {})
-      if (loginData.himg) return loginData.himg
-    }
-    const userAvatars = safeGet('userAvatars', {})
-    return userAvatars[account] || 'http://video.caimizm.com/himg/user.png'
+    const userInfo = userStore.getUserInfo()
+    return userInfo.avatar || 'http://video.caimizm.com/himg/user.png'
   } catch (error) {
     return 'http://video.caimizm.com/himg/user.png'
   }
@@ -1271,9 +1269,7 @@ const getUserAvatar = (account) => {
 
 // 保存用户头像信息
 const saveUserAvatar = (account, avatarUrl) => {
-  const userAvatars = safeGet('userAvatars', {})
-  userAvatars[account] = avatarUrl
-  safeSet('userAvatars', userAvatars)
+  userStore.updateAvatar(avatarUrl)
 }
 
 // 格式化时间
@@ -1390,23 +1386,6 @@ const updatePostInList = (updatedPost) => {
   const filteredIndex = filteredPredictList.value.findIndex(p => p.id === updatedPost.id)
   if (filteredIndex !== -1) {
     filteredPredictList.value[filteredIndex] = { ...updatedPost }
-  }
-}
-
-// 自动保存当前用户头像到本地存储
-const autoSaveCurrentUserAvatar = () => {
-  try {
-    const loginData = safeGet('loginData', {})
-    const currentAccount = getAccount()
-    if (loginData.himg && currentAccount) {
-      const userAvatars = safeGet('userAvatars', {})
-      if (!userAvatars[currentAccount]) {
-        userAvatars[currentAccount] = loginData.himg
-        safeSet('userAvatars', userAvatars)
-      }
-    }
-  } catch (error) {
-    // ignore
   }
 }
 

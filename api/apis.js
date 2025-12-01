@@ -3,9 +3,7 @@ import {
 	request
 } from "@/utils/request.js"
 import {
-  setToken,
   getToken, 
-  setAccount, 
 } from '@/utils/request.js';
 
 

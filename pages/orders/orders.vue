@@ -8,7 +8,7 @@
         </view>
         <text class="nav-title">我的订单</text>
         <view class="nav-right">
-          <text class="more-icon">⋯</text>
+          <!-- <text class="more-icon">⋯</text> -->
         </view>
       </view>
     </view>

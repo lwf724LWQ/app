@@ -1,21 +1,20 @@
 const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
 
-// 全局token变量
-let globalToken = '';
+import { useUserStore } from '../stores/userStore'
+const userStore = useUserStore()
+
 // 设置token的方法
 export function setToken(token) {
-  globalToken = token;
-  uni.setStorageSync('token', token);//保存到本地
+	userStore.setToken(token);
+  //保存到本地
 }
 // 获取Token的方法
 export function getToken() {
-    const localToken = uni.getStorageSync('token');
-    return globalToken || localToken;
+    return userStore.getToken
 }
 // 移除Token的方法
 export function removeToken() {
-    globalToken = '';
-    uni.removeStorageSync('token');
+    userStore.clearUserInfo()
 }
 
 export function apiGetBanner(){
@@ -24,17 +23,9 @@ export function apiGetBanner(){
 	})	
 }
 
-//设置账号
-let globalAccount = '';
-// 设置账号的方法
-export function setAccount(account) {
-  globalAccount = account;
-  uni.setStorageSync('account', account);//保存到本地
-}
 // 获取账号的方法
 export function getAccount() {
-    const localAccount = uni.getStorageSync('account');
-    return globalAccount || localAccount;
+    return userStore.getUserInfo?.account || false
 }
 
 export function request(config={}){	

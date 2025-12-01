@@ -34,7 +34,7 @@
       </view>
 
       <!-- 密码输入框 -->
-      <view class="input-group">
+      <view class="input-group" v-show="loginMode == 'password'">
         <view class="input-container">
           <view class="input-icon lock-icon">
             <view class="lock-icon-svg"></view>
@@ -42,9 +42,21 @@
           <input :type="showPassword ? 'text' : 'password'" placeholder="请输入密码" placeholder-class="input-placeholder"
             v-model="password" class="password-input" />
           <view class="eye-icon" @click="togglePasswordVisibility">
-            <view class="eye-icon-svg" :class="{ 'eye-open': showPassword }">
+            <view class="eye-icon-svg" :class="showPassword ? 'eye-open' : ''">
               <view class="eye-ball"></view>
             </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 验证码输入框 -->
+      <view class="input-group" v-show="loginMode == 'sms-code'">
+        <view class="input-container">
+          <view class="input-icon code-icon">
+            <view class="code-icon-svg"></view>
+          </view>
+          <view class="code-container">
+            <VerificationCode ref="codeRef" placeholder="请输入验证码" @getCode="sendLoginCode" @input="handleCodeInput" />
           </view>
         </view>
       </view>
@@ -52,6 +64,7 @@
       <!-- 链接区域 -->
       <view class="links-section">
         <text class="register-link" @click="goToReg">还没账户?去注册</text>
+        <text class="forgot-link" @click="swLoginMode">{{ loginMode === 'sms-code' ? '使用密码登录' : '使用验证码登录' }}</text>
         <text class="forgot-link" @click="goForgetPwdPage1">忘记密码</text>
       </view>
 
@@ -104,35 +117,56 @@
 import { onLoad } from '@dcloudio/uni-app'
 import { ref, reactive, watch } from 'vue'
 import { apilogin } from '../../api/apis.js'
-import { apigetsts, apiUserimg } from '../../api/apis.js';
-import { setToken, getToken, setAccount, getAccount } from '../../utils/request.js'; // 导入setToken和setAccount方法
+import { apigetsts, apiUserimg, apiSendCode } from '../../api/apis.js';
+import { getToken } from '../../utils/request.js'; // 导入setToken和setAccount方法
 import tool from '../../utils/tool.js';
+import { useUserStore } from '../../stores/userStore'
+import VerificationCode from '../../components/VerificationCode.vue'
 
 // 声明uni类型
 declare const uni: any;
 
+const userStore = useUserStore()
+
 
 //----------------------------------
 
-
-const type = ref('0');//0代表用户密码登录
 const account = ref('');
 const password = ref('');
 const code = ref('');
-const tocken = ref('');
 const isAgreed = ref(true);
 const showPassword = ref(false);
-const Userinfo = reactive({
-  type: '',
-  account: '',
-  password: '',
-});
-//同步输入的参数
-watch([type, account, password, code], ([newtype, newaccount, newpassword]) => {
-  Userinfo.type = newtype;
-  Userinfo.account = newaccount;
-  Userinfo.password = newpassword;
-}, { immediate: true });
+
+// 切换登录方式
+const loginMode = ref('password');
+function swLoginMode() {
+  loginMode.value = loginMode.value === 'password' ? 'sms-code' : 'password';
+}
+// 输入验证码时更新值
+const handleCodeInput = (value) => {
+  code.value = value;
+};
+
+const codeRef = ref(null);  // 验证码组件实例
+// 发送验证码
+const sendLoginCode = async () => {
+  if (!account.value) {
+    uni.showToast({ title: '请输入手机号', icon: 'none' })
+    return
+  }
+
+  try {
+    const response = await apiSendCode({ phone: account.value })
+    if (response.code === 200) {
+      codeRef.value.startCountdown()
+      uni.showToast({ title: '验证码已发送', icon: 'success' })
+    } else {
+      uni.showToast({ title: response.errMsg || '发送失败', icon: 'none' })
+    }
+  } catch (error) {
+    uni.showToast({ title: '发送验证码失败', icon: 'none' })
+  }
+}
 
 const loginShow = ref(false);
 let pageOptions = {}
@@ -168,13 +202,32 @@ const gologin = async () => {
   }
 
   // 检查输入是否完整
-  if (!account.value || !password.value) {
+  if (account.value.trim() == '') {
     uni.showToast({
-      title: '请输入手机号和密码',
+      title: '请输入手机号',
       icon: 'none',
       duration: 2000
     })
     return
+  }
+
+  if (loginMode.value === 'password') {
+    if (password.value.trim() == '') {
+      uni.showToast({
+        title: '请输入手机号',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+  } else {
+    if (code.value.trim() == '') {
+      uni.showToast({
+        title: '请输入验证码',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   }
 
   // 显示加载提示
@@ -183,7 +236,13 @@ const gologin = async () => {
   })
 
   try {
-    const success = await apilogin(Userinfo);
+    const loginData = {
+      type: loginMode.value === 'password' ? '0' : '1',
+      account: account.value,
+      password: password.value,
+      code: code.value
+    }
+    const success = await apilogin(loginData);
 
     // 隐藏加载提示
     uni.hideLoading()
@@ -192,10 +251,8 @@ const gologin = async () => {
       // 打印登录返回的完整数据，用于调试
       console.log('登录API返回的完整数据:', success);
 
-      // 设置全局token
-      if (success.data?.token) {
-        setToken(success.data.token);
-      } else {
+      // 判断tonkn 是否为空
+      if (!success.data?.token) {
         uni.showModal({
           title: '登录失败',
           content: '未获取到token，请重试',
@@ -204,83 +261,29 @@ const gologin = async () => {
         return;
       }
 
-      // 设置全局account
-      if (account.value) {
-        setAccount(account.value);
-      } else {
-        uni.showModal({
-          title: '登录失败',
-          content: '账号信息异常，请重试',
-          showCancel: false
-        })
-        return;
+      // 从登录返回的数据中提取用户信息
+      const loginData = success.data || {};
+
+      // 处理头像URL
+      let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
+      if (loginData.himg) {
+        if (loginData.himg.startsWith('http')) {
+          // 已经是完整URL
+          avatarUrl = loginData.himg;
+        } else {
+          // 相对路径，拼接完整URL
+          avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
+        }
       }
 
-      // 直接使用登录返回的用户信息
-      try {
-        // 从登录返回的数据中提取用户信息
-        const loginData = success.data || {};
-
-        // 处理头像URL
-        let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
-        if (loginData.himg) {
-          if (loginData.himg.startsWith('http')) {
-            // 已经是完整URL
-            avatarUrl = loginData.himg;
-          } else {
-            // 相对路径，拼接完整URL
-            avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
-          }
-        }
-
-        // 保存用户信息到本地存储
-        const userInfo = {
-          nickname: loginData.uname || '用户',
-          avatar: avatarUrl,
-          phone: account.value
-        };
-
-        // 保存到本地存储，供用户页面使用
-        uni.setStorageSync('userInfo', userInfo);
-        uni.setStorageSync('loginData', {
-          uname: loginData.uname,
-          himg: avatarUrl, // 保存完整的头像URL
-          account: account.value
-        });
-
-        console.log('登录成功，用户信息已保存:', userInfo);
-        console.log('登录数据已保存:', {
-          uname: loginData.uname,
-          himg: avatarUrl, // 显示完整的头像URL
-          account: account.value
-        });
-
-        // 自动保存当前用户头像到userAvatars本地存储
-        try {
-          const userAvatars = uni.getStorageSync('userAvatars') || {}
-          userAvatars[account.value] = avatarUrl
-          uni.setStorageSync('userAvatars', userAvatars)
-          console.log('登录时自动保存用户头像:', account.value, avatarUrl)
-        } catch (error) {
-          console.error('保存用户头像到userAvatars失败:', error)
-        }
-
-      } catch (error) {
-        console.error('保存用户信息失败:', error);
-        // 使用默认用户信息
-        const defaultAvatarUrl = 'http://video.caimizm.com/himg/user.png';
-        const defaultUserInfo = {
-          nickname: '用户',
-          avatar: defaultAvatarUrl,
-          phone: account.value
-        };
-        uni.setStorageSync('userInfo', defaultUserInfo);
-        uni.setStorageSync('loginData', {
-          uname: '用户',
-          himg: defaultAvatarUrl, // 保存完整的默认头像URL
-          account: account.value
-        });
-      }
+      // 保存用户信息到本地存储
+      const userInfo = {
+        nickname: loginData.uname || '用户',
+        avatar: avatarUrl,
+        account: account.value
+      };
+      userStore.updateUserInfo(userInfo, success.data.token);
+      console.log('登录成功，用户信息已保存:', userInfo);
 
       // 显示登录成功提示
       uni.showToast({
@@ -312,7 +315,7 @@ const gologin = async () => {
 
     uni.showModal({
       title: '登录失败',
-      content: '网络错误，请检查网络连接后重试',
+      content: error?.msg || '网络错误，请检查网络连接后重试',
       showCancel: false
     })
   }
@@ -578,6 +581,36 @@ const wechatLogin = () => {
             height: 20rpx;
             border: 3rpx solid #28B389;
             border-radius: 4rpx;
+          }
+        }
+
+        .code-icon-svg {
+          width: 32rpx;
+          height: 32rpx;
+          border: 3rpx solid #28B389;
+          border-radius: 6rpx;
+          position: relative;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: 4rpx;
+            left: 4rpx;
+            width: 6rpx;
+            height: 6rpx;
+            background: #28B389;
+            border-radius: 50%;
+          }
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 4rpx;
+            right: 4rpx;
+            width: 8rpx;
+            height: 8rpx;
+            background: #28B389;
+            border-radius: 50%;
           }
         }
       }

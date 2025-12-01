@@ -8,7 +8,7 @@
       <view class="nav-title">规律预测</view>
       <view class="nav-right"></view>
     </view>
-    
+
     <!-- 主要内容 -->
     <view class="main-content">
       <!-- 我的方案区域 -->
@@ -23,20 +23,13 @@
             <view class="scheme-content">
               <!-- 期号显示 -->
               <text class="issue-number">第{{ issueNumber }}期</text>
-              
+
               <!-- 方案详情 -->
-              <view 
-                v-for="(scheme, index) in schemes" 
-                :key="index" 
-                class="scheme-item"
-              >
+              <view v-for="(scheme, index) in schemes" :key="index" class="scheme-item">
                 <text class="scheme-name">[{{ scheme.id }}]</text>
                 <view class="scheme-details">
-                  <text 
-                    v-for="(detail, detailIndex) in getSchemeDisplayData(scheme)" 
-                    :key="detailIndex" 
-                    class="scheme-detail"
-                  >
+                  <text v-for="(detail, detailIndex) in getSchemeDisplayData(scheme)" :key="detailIndex"
+                    class="scheme-detail">
                     {{ detail }}
                   </text>
                 </view>
@@ -49,43 +42,35 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 添加规律图片区域 -->
       <view class="image-section">
         <view class="section-title">添加规律图片 (必选，最多6张)</view>
         <view class="image-upload-container">
           <!-- 已选择的图片 -->
           <view v-if="selectedImages.length > 0" class="selected-images">
-            <view 
-              v-for="(image, index) in selectedImages" 
-              :key="index" 
-              class="image-item"
-            >
+            <view v-for="(image, index) in selectedImages" :key="index" class="image-item">
               <image :src="image" class="uploaded-image" mode="aspectFit"></image>
               <view class="image-delete" @click="removeImage(index)">
                 <uni-icons type="close" size="16" color="#fff"></uni-icons>
               </view>
             </view>
           </view>
-          
+
           <!-- 添加图片按钮 -->
-          <view 
-            v-if="selectedImages.length < 6" 
-            class="add-image-btn" 
-            @click="selectImage"
-          >
+          <view v-if="selectedImages.length < 6" class="add-image-btn" @click="selectImage">
             <uni-icons type="camera" size="40" color="#ccc"></uni-icons>
             <text class="add-text">添加图片</text>
             <text class="count-text">{{ selectedImages.length }}/6</text>
           </view>
         </view>
       </view>
-      
+
       <!-- 免责声明 -->
       <view class="disclaimer">
         <text class="disclaimer-text">注: 帖子一旦发布, 将不能进行修改或删除操作</text>
       </view>
-      
+
       <!-- 底部按钮区域 -->
       <view class="bottom-buttons">
         <button class="modify-btn" @click="goToSchemePage">修改</button>
@@ -93,8 +78,8 @@
           发布
         </button>
       </view>
-      
-      
+
+
     </view>
   </view>
 </template>
@@ -136,20 +121,20 @@ const uploadObject = async (file, callback) => {
   try {
     let fileName = file.name || ''
     const origin_file_name = fileName.split(".").slice(0, fileName.split(".").length - 1).join('.') // 获取文件名
-    
+
     // 获取当前时间戳
     const upload_file_name = new Date().getTime() + '.' + fileName.split(".")[fileName.split(".").length - 1]
-    
+
     // 请求接口得到token
     let res = await getCOSSecretKey({})
-    
+
     if (res.code !== 200) {
       throw new Error('获取上传凭证失败')
     }
-    
+
     // 动态导入ali-oss
     const OSS = await import('ali-oss')
-    
+
     // 根据STS接口实际返回的数据结构创建OSS客户端
     const ossConfig = {
       region: res.data.region || 'cn-guangzhou',
@@ -170,21 +155,21 @@ const uploadObject = async (file, callback) => {
       },
       refreshSTSTokenInterval: 300000 // 5分钟刷新一次
     }
-    
+
     const client = new OSS.default(ossConfig)
-    
+
     // 上传文件
     const result = await client.put(`pimg/${upload_file_name}`, file)
-    
+
     if (result && result.url) {
       // 直接使用固定的自定义域名前缀 + 唯一文件名（改用 pimg）
       const customUrl = `http://video.caimizm.com/pimg/${upload_file_name}`
-      
+
       callback(customUrl)
     } else {
       throw new Error('上传失败')
     }
-    
+
   } catch (error) {
     throw error
   }
@@ -194,7 +179,7 @@ const uploadObject = async (file, callback) => {
 const getSchemeDisplayData = (scheme) => {
   const data = scheme.data
   const result = []
-  
+
   if (scheme.id === '二字现' || scheme.id === '三字现') {
     // 组合类方案
     if (data.combinations && data.combinations.length > 0) {
@@ -214,7 +199,7 @@ const getSchemeDisplayData = (scheme) => {
       }
       result.push(thousandsInfo)
     }
-    
+
     if (data.hundreds && data.hundreds.length > 0) {
       let hundredsInfo = `百位: ${data.hundreds.join('')}`
       if (data.hundredsMainAttack && data.hundredsMainAttack.length > 0) {
@@ -225,7 +210,7 @@ const getSchemeDisplayData = (scheme) => {
       }
       result.push(hundredsInfo)
     }
-    
+
     if (data.tens && data.tens.length > 0) {
       let tensInfo = `十位: ${data.tens.join('')}`
       if (data.tensMainAttack && data.tensMainAttack.length > 0) {
@@ -236,7 +221,7 @@ const getSchemeDisplayData = (scheme) => {
       }
       result.push(tensInfo)
     }
-    
+
     if (data.units && data.units.length > 0) {
       let unitsInfo = `个位: ${data.units.join('')}`
       if (data.unitsMainAttack && data.unitsMainAttack.length > 0) {
@@ -247,12 +232,12 @@ const getSchemeDisplayData = (scheme) => {
       }
       result.push(unitsInfo)
     }
-    
+
     if (result.length === 0) {
       result.push('未选择')
     }
   }
-  
+
   return result
 }
 
@@ -277,7 +262,7 @@ const loadIssueInfo = async () => {
     console.log('正在加载期号信息，跳过重复请求')
     return
   }
-  
+
   try {
     isLoadingIssueInfo.value = true
     // 从本地存储获取当前彩票类型
@@ -288,22 +273,22 @@ const loadIssueInfo = async () => {
       // 默认使用排列三
       lotteryType.value = { id: 16, code: 16, name: '排列三' }
     }
-    
+
     if (!lotteryType.value || !lotteryType.value.id) {
       return
     }
-    
+
     uni.showLoading({ title: '加载期号中...' })
-    
+
     const response = await apiGetIssueNo({ tname: lotteryType.value.name })
-    
+
     uni.hideLoading()
-    
+
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumberValue = null
       let issueStatus = '待开奖'
       let issueTime = '今天 21:30'
-      
+
       if (typeof response.data === 'number' || typeof response.data === 'string') {
         issueNumberValue = response.data.toString()
       } else if (typeof response.data === 'object') {
@@ -311,7 +296,7 @@ const loadIssueInfo = async () => {
         issueStatus = response.data.status || '待开奖'
         issueTime = response.data.time || '今天 21:30'
       }
-      
+
       // 直接使用获取到的期号，即使是0也使用
       issueNumber.value = issueNumberValue || '0'
       uni.showToast({ title: `期号加载成功: ${issueNumber.value}`, icon: 'success' })
@@ -340,7 +325,7 @@ const goBack = () => {
 const goToSchemePage = () => {
   console.log('=== 规律帖跳转到方案页面 ===')
   console.log('当前页面:', 'pages/pattern-predict/pattern-predict')
-  
+
   // 准备传递的数据
   const publishData = {
     lotteryType: lotteryType.value,
@@ -352,7 +337,7 @@ const goToSchemePage = () => {
     },
     schemes: schemes.value
   }
-  
+
   uni.navigateTo({
     url: `/pages/predict-scheme/predict-scheme?data=${encodeURIComponent(JSON.stringify(publishData))}`,
     success: () => {
@@ -394,15 +379,15 @@ const selectImage = async () => {
       sizeType: ['compressed'],
       sourceType: ['album', 'camera']
     })
-    
+
     if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
       // 显示上传进度
       uni.showLoading({
         title: '上传图片中...'
       })
-      
+
       isUploadingImage.value = true
-      
+
       // 批量上传图片
       const uploadPromises = chooseResult.tempFilePaths.map(async (tempFilePath, index) => {
         try {
@@ -417,7 +402,7 @@ const selectImage = async () => {
             // 小程序环境
             fileToUpload = tempFilePath
           }
-          
+
           // 上传到OSS
           return new Promise((resolve, reject) => {
             uploadObject(fileToUpload, (url) => {
@@ -428,22 +413,22 @@ const selectImage = async () => {
           throw error
         }
       })
-      
+
       // 等待所有图片上传完成
       const uploadResults = await Promise.all(uploadPromises)
-      
+
       // 更新图片列表
       uploadResults.forEach(({ tempFilePath, url }) => {
         selectedImages.value.push(tempFilePath)
         uploadedImageUrls.value.push(url)
       })
-      
+
       uni.hideLoading()
       uni.showToast({
         title: `成功上传${uploadResults.length}张图片`,
         icon: 'success'
       })
-      
+
       isUploadingImage.value = false
     }
   } catch (error) {
@@ -465,11 +450,11 @@ const removeImage = (index) => {
 // 生成帖子内容
 const generatePostContent = () => {
   let content = '【规律预测】\n\n'
-  
+
   if (schemes.value.length > 0) {
     schemes.value.forEach((scheme, index) => {
       content += `${index + 1}. [${scheme.id}]\n`
-      
+
       // 获取方案显示数据
       const schemeDetails = getSchemeDisplayData(scheme)
       schemeDetails.forEach(detail => {
@@ -478,12 +463,12 @@ const generatePostContent = () => {
       content += '\n'
     })
   }
-  
+
   // 使用获取到的期号，即使是0也使用
   const validIssueNumber = issueNumber.value || '0'
   content += `期号: 第${validIssueNumber}期\n`
   content += `发布时间: ${new Date().toLocaleString()}`
-  
+
   return content
 }
 
@@ -565,15 +550,6 @@ const handlePublish = async () => {
     uni.hideLoading()
 
     if (response.code === 200) {
-      // 发帖成功后，保存当前用户的头像信息到本地存储
-      try {
-        const userAvatars = uni.getStorageSync('userAvatars') || {}
-        userAvatars[getAccount()] = currentUserAvatar
-        uni.setStorageSync('userAvatars', userAvatars)
-      } catch (error) {
-        // 静默处理错误
-      }
-
       uni.showToast({
         title: '规律帖已提交审核',
         icon: 'success'

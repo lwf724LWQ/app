@@ -82,9 +82,7 @@ import {
 	apiGetIssueNo,
 } from '../../api/apis';
 import {
-	setToken,
 	getToken,
-	setAccount,
 	getAccount
 } from '@/utils/request.js'; // 导入setToken，账号
 // 导入 Pinia store
@@ -242,7 +240,6 @@ const loadLotteryDataByType = async (lotteryType) => {
 const switchTabByIndex = async (index) => {
 	// 切换标签时重新获取对应类型的视频列表
 	await fetchVideoList();
-	return
 
 	pickerIndex.value = index
 	switch (index) {
@@ -614,7 +611,7 @@ onMounted(async () => {
 	}
 }
 
-.video-page-container {
+.video-page-container.old-man-mode {
 	min-height: 100vh;
 	font-weight: bold;
 
