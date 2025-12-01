@@ -238,8 +238,7 @@ const loadLotteryDataByType = async (lotteryType) => {
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index) => {
-	// 切换标签时重新获取对应类型的视频列表
-	await fetchVideoList();
+
 
 	pickerIndex.value = index
 	switch (index) {
@@ -266,8 +265,10 @@ const switchTabByIndex = async (index) => {
 
 	// 与论坛相同：切换时请求期号信息
 	if (currentTab.value !== 'review') {
-		await loadLotteryDataByType(currentLotteryType.value)
+		loadLotteryDataByType(currentLotteryType.value)
 	}
+	// 切换标签时重新获取对应类型的视频列表
+	fetchVideoList();
 }
 
 // 方法
@@ -489,7 +490,6 @@ onShow(async () => {
 onMounted(async () => {
 	// 初次进入按默认标签请求期号和视频列表
 	await loadLotteryDataByType(currentLotteryType.value);
-	await fetchVideoList();
 });
 </script>
 
