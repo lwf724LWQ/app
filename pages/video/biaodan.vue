@@ -191,7 +191,7 @@ onLoad((pageOptions) => {
   options.value = optionType[type]
 
 })
-const defFillValue = '1xx1'
+const defFillValue = ''
 const optionType = [
   [{ label: '直码', hasInputs: true, inputCount: 1, inputs: [defFillValue] },
   { label: '猪胆', hasInputs: true, inputCount: 1, inputs: new Array(1).fill(defFillValue) },
