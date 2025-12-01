@@ -126,10 +126,6 @@
           <uni-icons type="compose" size="24" color="#222"></uni-icons>
           <text class="service-text">意见反馈</text>
         </view>
-        <view class="service-item" @click="logout">
-          <uni-icons type="settings" size="24" color="#222"></uni-icons>
-          <text class="service-text">设置</text>
-        </view>
         <!-- #ifdef APP-PLUS -->
         <view class="service-item" @click="checkUpdate">
           <uni-icons type="cloud-upload" size="24" color="#222"></uni-icons>
@@ -151,6 +147,10 @@
         <view class="service-item" @click="toggleoldManMode">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
           <text class="service-text">切换{{ useOldManModeStore.enabled ? '小字' : '大字' }}</text>
+        </view>
+        <view class="service-item" @click="logout">
+          <uni-icons type="settings" size="24" color="#222"></uni-icons>
+          <text class="service-text">退出登录</text>
         </view>
       </view>
     </view>
