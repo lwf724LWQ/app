@@ -302,17 +302,16 @@ import { useDrawLineSettingStore } from '@/stores/drawLine.js'
 import { getCurvePoint } from './utils'
 
 //解析日期
-const weekMap = {
-  0: '日',
-  1: '一',
-  2: '二',
-  3: '三',
-  4: '四',
-  5: '五',
-  6: '六'
-}
 const dateFromat = (dateStr) => {
-  // const dateArr = dateStr.split('-')
+  const weekMap = {
+    0: '日',
+    1: '一',
+    2: '二',
+    3: '三',
+    4: '四',
+    5: '五',
+    6: '六'
+  }
   const date = dayjs(dateStr).format('M/D')
   const dateArr2 = date.split('/')
   const dateStr2 = `${dateArr2[0]}/${dateArr2[1]} ${weekMap[dayjs(dateStr).format('d')]}`
@@ -365,17 +364,17 @@ const data = ref([])
 let positionList
 let showPeriod = options.showPeriod || 40
 const getData = async () => {
-  // const res = await uni.request({
-  //   url: `http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=${showPeriod}`
-  // })
-  // data.value = res.data.data.records.reverse()
-  // data.value.forEach((item) => {
-  //   item.number = item.number?.split(' ').slice(0, 5)
-  // })
-  data.value = mock.data.records
-  data.value.forEach((item) => {
-    item.number = item.number.split(' ').slice(0, 5)
+  const res = await uni.request({
+    url: `http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=${showPeriod}`
   })
+  data.value = res.data.data.records.reverse()
+  data.value.forEach((item) => {
+    item.number = item.number?.split(' ').slice(0, 5)
+  })
+  // data.value = mock.data.records
+  // data.value.forEach((item) => {
+  //   item.number = item.number.split(' ').slice(0, 5)
+  // })
 
   await nextTick()
   const query = uni.createSelectorQuery().in(instance.proxy)

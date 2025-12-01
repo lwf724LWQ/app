@@ -1,6 +1,13 @@
 {
   "pages": [
     {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/login/login",
       "style": {
         "navigationBarTitleText": "登录页"
@@ -17,13 +24,6 @@
       "path": "pages/juWang/drawLine/drawLine",
       "style": {
         "navigationBarTitleText": "画规",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "首页",
         "navigationStyle": "custom"
       }
     },
@@ -90,7 +90,6 @@
         "navigationStyle": "custom"
       }
     },
-
     {
       "path": "pages/video/oss",
       "style": {
@@ -219,6 +218,23 @@
         "enablePullDownRefresh": false,
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/table/table",
+      "style": {
+        "navigationBarTitleText": "",
+        "app-plus": {
+          "titleNView": {
+            "buttons": [
+              {
+                "text": "去画规",
+                "fontSize": "16px",
+                "color": "#333333"
+              }
+            ]
+          }
+        }
+      }
     }
   ],
   "globalStyle": {
@@ -226,7 +242,7 @@
     "navigationBarTitleText": "咸虾米壁纸",
     "navigationBarBackgroundColor": "#fff",
     "backgroundColor": "#F8F8F8",
-	"bounce": "none"
+    "bounce": "none"
   },
   "tabBar": {
     "color": "#9799a5",
