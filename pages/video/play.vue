@@ -1,5 +1,5 @@
 <template>
-	<view class="container">
+	<view class="container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
 		<view class="wrapper">
 			<view class="navbar">
 				<!-- 返回按钮 -->
@@ -22,9 +22,9 @@
 				</view>
 
 				<!-- 播放按钮遮罩层 -->
-				<view class="play-overlay" v-if="showPlayButton" @click="playVideo">
+				<view class="play-overlay" v-if="showPlayButton && !hasPaid" @click="playVideo">
 					<view class="play-button">
-						<uni-icons type="play-filled" size="60" color="#fff"></uni-icons>
+						<uni-icons type="videocam" size="60" color="#fff"></uni-icons>
 					</view>
 				</view>
 
@@ -154,6 +154,8 @@ const videoData = ref({
 	isLiked: false
 });
 
+let videoId = ""
+
 // 添加响应式数据
 const showPlayButton = ref(true) // 控制播放按钮显示
 const isPlaying = ref(false) // 视频播放状态
@@ -194,32 +196,38 @@ const loadVideoData = async (videoId) => {
 		uni.redirectTo({ url: '/pages/index/index' })
 	}
 	try {
-		let currentVideo = {}
 		uni.showLoading({ title: '加载中...' })
-		// 加载视频数据
-		const response = await apiGetVideoDetail({ videoId: videoId })
-		if (response.code === 200 && response.data) {
-			const item = response.data
-			currentVideo = {
-				id: item.id,
-				title: item.title,
-				src: `http://video.caimizm.com/${item.url}`,
-				account: item.account,
-				likeCount: item.likeCount || 0,
-				isLiked: item.isLiked || false,
-				flag: item.price > 0 ? item.flag : false, // 是否为收费视频
-				price: item.price,
-				imgurl: `http://video.caimizm.com/${item.vimg}`
-			}
+		const [likeList, response] = await Promise.all([apiGetLikelist(getAccount()), apiGetVideoDetail({ videoId: videoId })])
+
+		// 判断是否有点赞过
+		const isLiked = likeList.data.find(item => item.videoId == videoId)
+
+		let currentVideo = {}
+
+		const item = response.data
+		currentVideo = {
+			id: item.id,
+			title: item.title,
+			src: `http://video.caimizm.com/${item.url}`,
+			account: item.account,
+			likeCount: item.likeCount || 0,
+			isLiked: isLiked,
+			flag: item.price > 0 ? item.flag : false, // 是否为收费视频
+			price: item.price,
+			imgurl: `http://video.caimizm.com/${item.vimg}`
+		}
+		let isPay = true
+		// 检查付费状态（仅对付费视频）
+		if (item.flag) {
+			isPay = await checkPaymentStatus()
 		} else {
-			uni.showToast({
-				title: '视频不存在',
-				icon: 'none'
-			})
-			setTimeout(() => {
-				uni.redirectTo({ url: '/pages/video/video' })
-			}, 1500)
-			return
+			hasPaid.value = true
+		}
+		if (isPay && !videoData.value?.src?.indexOf("blob") == 0) {
+			// 这里判断已经付费才加载视频
+			currentVideo.src = await toBlobUrlVideo(currentVideo.src)
+		} else if (!videoData.value?.src?.indexOf("blob") == 0) {
+			currentVideo.src = videoData.value.src
 		}
 
 		// 使用获取到的视频数据
@@ -227,7 +235,7 @@ const loadVideoData = async (videoId) => {
 			videoData.value = {
 				id: currentVideo.id,
 				title: currentVideo.title,
-				src: "",
+				src: currentVideo.src,
 				account: currentVideo.account,
 				likeCount: currentVideo.likeCount || 0,
 				isLiked: currentVideo.isLiked || false,
@@ -242,18 +250,6 @@ const loadVideoData = async (videoId) => {
 			// 初始化视频上下文（如果视频数据已加载）
 			if (videoData.value.src && !videoContext.value) {
 				videoContext.value = uni.createVideoContext('videoPlayer')
-			}
-			let isPay = true
-			// 检查付费状态（仅对付费视频）
-			if (!isFreeVideo.value) {
-				isPay = await checkPaymentStatus()
-			} else {
-				hasPaid.value = true
-			}
-
-			if (isPay) {
-				// 这里判断已经付费才加载视频
-				videoData.value.src = await toBlobUrlVideo(currentVideo.src)
 			}
 		}
 	} catch (error) {
@@ -277,7 +273,12 @@ const toBlobUrlVideo = (videoUrl) => {
 		resolve(videoUrl)
 		return
 		// #endif
-		fetch(videoUrl)
+		// resolve(videoUrl)
+		// return
+		fetch(videoUrl, {
+			method: "GET",
+			headers: { "accept-encoding": "identity;q=1, *;q=0" }
+		})
 			.then((response) => response.blob())
 			.then((blob) => {
 				// 创建一个URL对象，将Blob对象转换为URL
@@ -300,11 +301,6 @@ const toIndex = () => {
  * @returns Boolean 是否已付费
  */
 const checkPaymentStatus = async () => {
-	// 如果是免费视频，不需要检查
-	if (isFreeVideo.value) {
-		hasPaid.value = true
-		return true
-	}
 
 	// 检查是否登录
 	const token = getToken()
@@ -315,7 +311,7 @@ const checkPaymentStatus = async () => {
 
 	try {
 		const paymentCheck = await apiCheckVideoPayment({
-			videoId: videoData.value.id,
+			videoId: videoId,
 			account: getAccount()
 		})
 
@@ -337,30 +333,13 @@ const checkPaymentStatus = async () => {
 const pageOptions = {}
 // 获取路由参数
 onLoad(async (options) => {
-	pageOptions.id = options.id
+	videoId = options.id
 })
 
 // 页面显示时重新加载数据（刷新时触发）
 onShow(async () => {
-	// 重置表单图片状态
-	// showFormImage.value = false
-	// formImageUrl.value = ''
-
-	// 如果 videoData 中没有 id，尝试从 store 或 URL 参数获取
-	// if (!videoData.value.id) {
-	// 	const pages = getCurrentPages()
-	// 	const currentPage = pages[pages.length - 1]
-	// 	const options = currentPage.options || {}
-	// 	if (options.id) {
-	// 		await loadVideoData(options.id)
-	// 	}
-	// } else {
-	// 	// 重新加载当前视频数据
-	// 	await loadVideoData(videoData.value.id)
-	// }
-
 	// 重新检查付费状态
-	await loadVideoData(pageOptions.id)
+	await loadVideoData(videoId)
 })
 
 // 在onMounted中初始化视频上下文
@@ -666,9 +645,19 @@ const toggleLike = async () => {
 			account: getAccount(),
 			isLiked: videoData.value.isLiked
 		});
+		const msg = response.msg
+		if (["点赞成功"].includes(msg)) {
+
+		} else if (["您已点赞过该视频"].includes(msg)) {
+			isLiked.value = true
+			videoData.value.isLiked = originalIsLiked;
+			videoData.value.likeCount = originalLikeCount;
+		}
+		uni.showToast({ title: msg })
+		// console.log(response)
 
 		// 获取点赞列表（可选）
-		const likeList = await apiGetLikelist(getAccount());
+
 	} catch (error) {
 		// 恢复原始状态
 		videoData.value.isLiked = originalIsLiked;
@@ -688,362 +677,713 @@ function toUserSpace() {
 }
 </script>
 
-<style scoped>
-.wrapper {
-	min-height: 100vh;
-	background-color: #f5f5f5;
-}
-
-.navbar {
-	height: 44px;
-	background-color: #1677ff;
-	color: white;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0 16px;
-	margin-bottom: 3rpx;
-	position: relative;
-	z-index: 10;
-}
-
-.navbar-left {
-	width: 44px;
-	height: 44px;
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	z-index: 11;
-}
-
-.navbar-left .uni-icons {
-	color: #fff !important;
-	font-size: 22px !important;
-}
-
-.navbar-title {
-	font-size: 18px;
-	font-weight: 500;
-	text-align: center;
-	position: absolute;
-	left: 0;
-	right: 0;
-	pointer-events: none;
-}
-
-.container {
-	padding: 20rpx;
-	padding-bottom: 120rpx;
+<style lang="scss" scoped>
+.container.old-man-mode {
 	background-color: #f5f5f5;
 	font-weight: bold;
 	padding-top: var(--status-bar-height);
+
+
+	.wrapper {
+		height: 100vh;
+		box-sizing: border-box;
+		background-color: #f5f5f5;
+		padding-bottom: 120rpx;
+	}
+
+	.navbar {
+		height: 44px;
+		background-color: #1677ff;
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 16px;
+		margin-bottom: 3rpx;
+		position: relative;
+		z-index: 10;
+	}
+
+	.navbar-left {
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		z-index: 11;
+	}
+
+	.navbar-left .uni-icons {
+		color: #fff !important;
+		font-size: 22px !important;
+	}
+
+	.navbar-title {
+		width: 500rpx;
+		font-size: 48rpx;
+		font-weight: 500;
+		text-align: center;
+		position: absolute;
+		left: calc(50% - 250rpx);
+		pointer-events: none;
+
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+
+
+	/* 视频容器样式 */
+	.video-container {
+		position: relative;
+		width: 100%;
+		height: 600rpx;
+		border-radius: 0;
+		overflow: hidden;
+		background-color: #000;
+	}
+
+	.video-player {
+		width: 100%;
+		height: 100%;
+	}
+
+	.video-full-screen {
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 80rpx
+	}
+
+	/* 播放按钮遮罩层 */
+	.play-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+	}
+
+	.play-button {
+		width: 80rpx;
+		height: 80rpx;
+		background-color: rgba(0, 0, 0, 0.5);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: transform 0.3s ease;
+	}
+
+	.play-button:active {
+		transform: scale(0.9);
+	}
+
+	/* 购买按钮遮罩 */
+	.buy-overlay {
+		position: absolute;
+		bottom: 30rpx;
+		right: 30rpx;
+		z-index: 11;
+	}
+
+	.buy-button {
+		background-color: #FF9500;
+		padding: 12rpx 24rpx;
+		border-radius: 8rpx;
+	}
+
+	.buy-text {
+		color: #fff;
+		font-size: 26rpx;
+		font-weight: 600;
+	}
+
+	/* 打赏和点赞交互栏 */
+	.interaction-bar {
+		display: flex;
+		padding: 20rpx 0;
+		background-color: #fff;
+		gap: 40rpx;
+		justify-content: center;
+	}
+
+	.reward-interaction,
+	.like-interaction {
+		display: flex;
+		align-items: center;
+		gap: 8rpx;
+	}
+
+	.interaction-text {
+		color: #FF9500;
+		font-size: 26rpx;
+	}
+
+	.like-interaction.liked .interaction-text {
+		color: #ff4757;
+	}
+
+	/* 视频信息卡片 */
+	.video-info-card {
+		background-color: #fff;
+		padding: 30rpx;
+	}
+
+	.info-header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 30rpx;
+	}
+
+	.author-avatar {
+		width: 60rpx;
+		height: 60rpx;
+		border-radius: 50%;
+		margin-right: 20rpx;
+	}
+
+	.author-info {
+		flex: 1;
+	}
+
+	.author-name {
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #333;
+		display: block;
+	}
+
+	.video-count {
+		font-size: 24rpx;
+		color: #999;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 20rpx;
+	}
+
+	.teacher-btn,
+	.follow-btn {
+		padding: 8rpx 16rpx;
+		font-size: 24rpx;
+		border-radius: 8rpx;
+	}
+
+	.teacher-btn {
+		background-color: transparent;
+		border: 1rpx solid #000;
+		color: #000;
+		font-size: 40rpx;
+		font-weight: bold;
+	}
+
+	.follow-btn {
+		color: #000;
+		font-size: 40rpx;
+		font-weight: bold;
+		border: none;
+	}
+
+	/* 视频标题区域 */
+	.video-title-section {
+		display: flex;
+		align-items: flex-start;
+		gap: 20rpx;
+	}
+
+	.price-tag {
+		background-color: #ff4757;
+		padding: 6rpx 12rpx;
+		border-radius: 4rpx;
+		color: #fff;
+		font-size: 24rpx;
+		font-weight: 600;
+	}
+
+	.video-title-text {
+		flex: 1;
+		font-size: 30rpx;
+		font-weight: 600;
+		color: #333;
+		line-height: 1.5;
+	}
+
+	/* 底部购买栏 */
+	.bottom-bar {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		background-color: #fff;
+		padding: 20rpx;
+		box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.bottom-left {
+		display: flex;
+		gap: 40rpx;
+	}
+
+	.icon-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4rpx;
+	}
+
+	.icon-label {
+		font-size: 40rpx;
+		font-size: bold;
+		color: #000;
+	}
+
+	.bottom-buy-btn {
+		flex: 1;
+		background-color: #FF9500;
+		color: #fff;
+		border: none;
+		border-radius: 50rpx;
+		font-size: 42rpx;
+		font-weight: 600;
+		margin-left: 40rpx;
+	}
+
+	/* 视频加载占位符 */
+	.video-placeholder {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		background-color: #000;
+		box-sizing: border-box;
+		padding-bottom: 30rpx;
+	}
+
+	.placeholder-text {
+		color: #fff;
+		font-size: 28rpx;
+	}
+
+	/* 表单图片显示 */
+	.form-image-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+	}
+
+	.form-image-container {
+		width: 90%;
+		max-width: 600rpx;
+		background-color: #fff;
+		border-radius: 20rpx;
+		overflow: hidden;
+		max-height: 80vh;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-image-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 30rpx;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.form-image-title {
+		font-size: 32rpx;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.save-image-button {
+		width: 100%;
+		height: 48rpx;
+		line-height: 48rpx;
+		padding: 20rpx;
+		border-radius: 10rpx;
+		font-size: 38rpx;
+		text-align: center;
+		background-color: #ff623a;
+	}
+
+	.form-image-close {
+		width: 48rpx;
+		height: 48rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.form-image {
+		width: 100%;
+		height: 70vh;
+	}
+
+	.form-image-loading {
+		padding: 60rpx;
+		text-align: center;
+		color: #666;
+		font-size: 28rpx;
+	}
 }
 
-/* 视频容器样式 */
-.video-container {
-	position: relative;
-	width: 100%;
-	height: 600rpx;
-	border-radius: 0;
-	overflow: hidden;
-	background-color: #000;
-}
 
-.video-player {
-	width: 100%;
-	height: 100%;
-}
+.container:not(.old-man-mode) {
 
-.video-full-screen {
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 80rpx
-}
+	background-color: #f5f5f5;
 
-/* 播放按钮遮罩层 */
-.play-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.3);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 10;
-}
+	.wrapper {
+		height: 100vh;
+		box-sizing: border-box;
+		background-color: #f5f5f5;
+		padding-bottom: 120rpx;
+	}
 
-.play-button {
-	width: 80rpx;
-	height: 80rpx;
-	background-color: rgba(0, 0, 0, 0.5);
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: transform 0.3s ease;
-}
+	.navbar {
+		height: 44px;
+		background-color: #ffffff;
+		color: #111;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 16px;
+		margin-bottom: 3rpx;
+		position: relative;
+		z-index: 10;
+		padding-top: var(--status-bar-height);
+	}
 
-.play-button:active {
-	transform: scale(0.9);
-}
+	.navbar-left {
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		z-index: 11;
+	}
 
-/* 购买按钮遮罩 */
-.buy-overlay {
-	position: absolute;
-	bottom: 30rpx;
-	right: 30rpx;
-	z-index: 11;
-}
+	.navbar-left .uni-icons {
+		color: #111 !important;
+		font-size: 22px !important;
+	}
 
-.buy-button {
-	background-color: #FF9500;
-	padding: 12rpx 24rpx;
-	border-radius: 8rpx;
-}
+	.navbar-title {
+		width: 500rpx;
+		font-size: 28rpx;
+		font-weight: 500;
+		text-align: center;
+		position: absolute;
+		left: calc(50% - 250rpx);
+		pointer-events: none;
 
-.buy-text {
-	color: #fff;
-	font-size: 26rpx;
-	font-weight: 600;
-}
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 
-/* 打赏和点赞交互栏 */
-.interaction-bar {
-	display: flex;
-	padding: 20rpx 0;
-	background-color: #fff;
-	gap: 40rpx;
-	justify-content: center;
-}
 
-.reward-interaction,
-.like-interaction {
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-}
+	/* 视频容器样式 */
+	.video-container {
+		position: relative;
+		width: 100%;
+		height: 600rpx;
+		border-radius: 0;
+		overflow: hidden;
+		background-color: #000;
+	}
 
-.interaction-text {
-	color: #FF9500;
-	font-size: 26rpx;
-}
+	.video-player {
+		width: 100%;
+		height: 100%;
+	}
 
-.like-interaction.liked .interaction-text {
-	color: #ff4757;
-}
+	/* 播放按钮遮罩层 */
+	.play-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+	}
 
-/* 视频信息卡片 */
-.video-info-card {
-	background-color: #fff;
-	padding: 30rpx;
-}
+	.play-button {
+		width: 80rpx;
+		height: 80rpx;
+		background-color: rgba(0, 0, 0, 0.5);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: transform 0.3s ease;
+	}
 
-.info-header {
-	display: flex;
-	align-items: center;
-	margin-bottom: 30rpx;
-}
+	.play-button:active {
+		transform: scale(0.9);
+	}
 
-.author-avatar {
-	width: 60rpx;
-	height: 60rpx;
-	border-radius: 50%;
-	margin-right: 20rpx;
-}
+	/* 购买按钮遮罩 */
+	.buy-overlay {
+		position: absolute;
+		bottom: 30rpx;
+		right: 30rpx;
+		z-index: 11;
+	}
 
-.author-info {
-	flex: 1;
-}
+	.buy-button {
+		background-color: #FF9500;
+		padding: 12rpx 24rpx;
+		border-radius: 8rpx;
+	}
 
-.author-name {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: #333;
-	display: block;
-}
+	.buy-text {
+		color: #fff;
+		font-size: 26rpx;
+		font-weight: 600;
+	}
 
-.video-count {
-	font-size: 24rpx;
-	color: #999;
-}
+	/* 打赏和点赞交互栏 */
+	.interaction-bar {
+		display: flex;
+		padding: 20rpx 0;
+		background-color: #fff;
+		gap: 40rpx;
+		justify-content: center;
+	}
 
-.header-actions {
-	display: flex;
-	gap: 20rpx;
-}
+	.reward-interaction,
+	.like-interaction {
+		display: flex;
+		align-items: center;
+		gap: 8rpx;
+	}
 
-.teacher-btn,
-.follow-btn {
-	padding: 8rpx 16rpx;
-	font-size: 24rpx;
-	border-radius: 8rpx;
-}
+	.interaction-text {
+		color: #FF9500;
+		font-size: 26rpx;
+	}
 
-.teacher-btn {
-	background-color: transparent;
-	border: 1rpx solid #000;
-	color: #000;
-	font-size: 40rpx;
-	font-weight: bold;
-}
+	.like-interaction.liked .interaction-text {
+		color: #ff4757;
+	}
 
-.follow-btn {
-	color: #000;
-	font-size: 40rpx;
-	font-weight: bold;
-	border: none;
-}
+	/* 视频信息卡片 */
+	.video-info-card {
+		background-color: #fff;
+		padding: 30rpx;
+	}
 
-/* 视频标题区域 */
-.video-title-section {
-	display: flex;
-	align-items: flex-start;
-	gap: 20rpx;
-}
+	.info-header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 30rpx;
+	}
 
-.price-tag {
-	background-color: #ff4757;
-	padding: 6rpx 12rpx;
-	border-radius: 4rpx;
-	color: #fff;
-	font-size: 24rpx;
-	font-weight: 600;
-}
+	.author-avatar {
+		width: 60rpx;
+		height: 60rpx;
+		border-radius: 50%;
+		margin-right: 20rpx;
+	}
 
-.video-title-text {
-	flex: 1;
-	font-size: 30rpx;
-	font-weight: 600;
-	color: #333;
-	line-height: 1.5;
-}
+	.author-info {
+		flex: 1;
+	}
 
-/* 底部购买栏 */
-.bottom-bar {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	display: flex;
-	background-color: #fff;
-	padding: 20rpx;
-	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
+	.author-name {
+		font-size: 28rpx;
+		font-weight: 600;
+		color: #333;
+		display: block;
+	}
 
-.bottom-left {
-	display: flex;
-	gap: 40rpx;
-}
+	.video-count {
+		font-size: 24rpx;
+		color: #999;
+	}
 
-.icon-item {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 4rpx;
-}
+	.header-actions {
+		display: flex;
+		gap: 20rpx;
+	}
 
-.icon-label {
-	font-size: 40rpx;
-	font-size: bold;
-	color: #000;
-}
+	.teacher-btn,
+	.follow-btn {
+		padding: 8rpx 16rpx;
+		font-size: 24rpx;
+		border-radius: 10px;
+	}
 
-.bottom-buy-btn {
-	flex: 1;
-	background-color: #FF9500;
-	color: #fff;
-	border: none;
-	border-radius: 50rpx;
-	font-size: 42rpx;
-	font-weight: 600;
-	margin-left: 40rpx;
-}
+	.teacher-btn {
+		background-color: transparent;
+		border: 1rpx solid #FF9500;
+		color: #FF9500;
+	}
 
-/* 视频加载占位符 */
-.video-placeholder {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #000;
-}
+	.follow-btn {
+		background-color: #FF9500;
+		color: #fff;
+		border: none;
+	}
 
-.placeholder-text {
-	color: #fff;
-	font-size: 28rpx;
-}
+	/* 视频标题区域 */
+	.video-title-section {
+		display: flex;
+		align-items: flex-start;
+		gap: 20rpx;
+	}
 
-/* 表单图片显示 */
-.form-image-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.8);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 9999;
-}
+	.price-tag {
+		background-color: #ff4757;
+		padding: 6rpx 12rpx;
+		border-radius: 4rpx;
+		color: #fff;
+		font-size: 24rpx;
+		font-weight: 600;
+	}
 
-.form-image-container {
-	width: 90%;
-	max-width: 600rpx;
-	background-color: #fff;
-	border-radius: 20rpx;
-	overflow: hidden;
-	max-height: 80vh;
-	display: flex;
-	flex-direction: column;
-}
+	.video-title-text {
+		flex: 1;
+		font-size: 30rpx;
+		font-weight: 600;
+		color: #333;
+		line-height: 1.5;
+	}
 
-.form-image-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 30rpx;
-	border-bottom: 1rpx solid #f0f0f0;
-}
+	/* 底部购买栏 */
+	.bottom-bar {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		background-color: #fff;
+		padding: 20rpx;
+		box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+	}
 
-.form-image-title {
-	font-size: 32rpx;
-	font-weight: 600;
-	color: #333;
-}
+	.bottom-left {
+		display: flex;
+		gap: 40rpx;
+	}
 
-.save-image-button {
-	width: 100%;
-	height: 48rpx;
-	line-height: 48rpx;
-	padding: 20rpx;
-	border-radius: 10rpx;
-	font-size: 38rpx;
-	text-align: center;
-	background-color: #ff623a;
-}
+	.icon-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4rpx;
+	}
 
-.form-image-close {
-	width: 48rpx;
-	height: 48rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
+	.icon-label {
+		font-size: 20rpx;
+		color: #666;
+	}
 
-.form-image {
-	width: 100%;
-	height: 70vh;
-}
+	.bottom-buy-btn {
+		flex: 1;
+		background-color: #FF9500;
+		color: #fff;
+		border: none;
+		border-radius: 50rpx;
+		font-size: 32rpx;
+		font-weight: 600;
+		margin-left: 40rpx;
+	}
 
-.form-image-loading {
-	padding: 60rpx;
-	text-align: center;
-	color: #666;
-	font-size: 28rpx;
+	/* 视频加载占位符 */
+	.video-placeholder {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: #000;
+	}
+
+	.placeholder-text {
+		color: #fff;
+		font-size: 28rpx;
+	}
+
+	/* 表单图片显示 */
+	.form-image-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+	}
+
+	.form-image-container {
+		width: 90%;
+		max-width: 600rpx;
+		background-color: #fff;
+		border-radius: 20rpx;
+		overflow: hidden;
+		max-height: 80vh;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-image-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 30rpx;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.form-image-title {
+		font-size: 32rpx;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.form-image-close {
+		width: 48rpx;
+		height: 48rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.form-image {
+		width: 100%;
+		max-height: 70vh;
+	}
+
+	.form-image-loading {
+		padding: 60rpx;
+		text-align: center;
+		color: #666;
+		font-size: 28rpx;
+	}
 }
 </style>

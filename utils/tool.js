@@ -19,17 +19,24 @@ const tool = {
         const folder = options.folder || 'uploads'
         const prefix = options.prefix || ''
         
+        // #ifdef H5
+        if (!(file instanceof File)) {
+            // 不是file文件
+            new Error('H5下必须传入file对象')
+        }
+        // #endif
+
         // 安全地获取文件名
         let fileName = ''
-		console.log(file)
+		      console.log(file)
         if (file && file.name) {
           fileName = file.name
         } else if (file && file.path) {
           const pathParts = file.path.split('/')
           fileName = pathParts[pathParts.length - 1]
         } else if (typeof file === 'string') {
-			fileName = file
-		} else {
+          fileName = file
+        } else {
           throw new Error('文件对象格式不正确，缺少 name 或 path 属性')
         }
         

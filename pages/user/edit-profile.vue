@@ -70,7 +70,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getToken, getAccount } from '@/utils/request.js'
 import { apiUpdateUserProfile, getCOSSecretKey } from '@/api/apis.js'
+import tool from "../../utils/tool.js"
+import { useUserStore } from '@/stores/userStore'
 
+const userStore = useUserStore()
 // 用户信息
 const userInfo = reactive({
   avatar: 'http://video.caimizm.com/himg/user.png',
@@ -81,85 +84,10 @@ const userInfo = reactive({
 // 保存状态
 const isSaving = ref(false)
 
-// 按照图片示例实现的OSS上传函数
-const uploadObject = async (file, callback) => {
-  try {
-    let fileName = file.name || ''
-    const origin_file_name = fileName.split(".").slice(0, fileName.split(".").length - 1).join('.') // 获取文件名
-
-    // 获取当前时间戳
-    const upload_file_name = new Date().getTime() + '.' + fileName.split(".")[fileName.split(".").length - 1]
-
-    // 请求接口得到token
-    let res = await getCOSSecretKey({})
-
-    console.log('STS接口返回数据:', res)
-    console.log('STS接口返回的data字段:', res.data)
-
-    if (res.code !== 200) {
-      throw new Error('获取上传凭证失败')
-    }
-
-    // 动态导入ali-oss
-    const OSS = await import('ali-oss')
-
-    // 根据STS接口实际返回的数据结构创建OSS客户端
-    const ossConfig = {
-      region: res.data.region || 'cn-guangzhou',
-      accessKeyId: res.data.STSaccessKeyId,
-      accessKeySecret: res.data.STSsecretAccessKey,
-      stsToken: res.data.security_token,
-      bucket: res.data.bucket || 'cjvd',
-      // 使用正确的endpoint
-      endpoint: 'https://oss-cn-guangzhou.aliyuncs.com',
-      // 添加STS token刷新机制
-      refreshSTSToken: async () => {
-        const newRes = await getCOSSecretKey({})
-        return {
-          accessKeyId: newRes.data.STSaccessKeyId,
-          accessKeySecret: newRes.data.STSsecretAccessKey,
-          stsToken: newRes.data.security_token
-        }
-      },
-      refreshSTSTokenInterval: 300000 // 5分钟刷新一次
-    }
-
-    console.log('OSS配置:', {
-      region: ossConfig.region,
-      bucket: ossConfig.bucket,
-      endpoint: ossConfig.endpoint,
-      accessKeyId: ossConfig.accessKeyId ? '***' : 'MISSING',
-      accessKeySecret: ossConfig.accessKeySecret ? '***' : 'MISSING',
-      stsToken: ossConfig.stsToken ? '***' : 'MISSING'
-    })
-
-    const client = new OSS.default(ossConfig)
-
-    console.log('开始上传文件:', upload_file_name)
-    // 上传文件
-    const result = await client.put(`himg/${upload_file_name}`, file)
-
-    if (result && result.url) {
-      // 直接使用固定的自定义域名前缀 + 唯一文件名
-      const customUrl = `http://video.caimizm.com/himg/${upload_file_name}`
-
-      console.log('上传成功，生成的自定义URL:', customUrl)
-      callback(customUrl)
-    } else {
-      throw new Error('上传失败')
-    }
-
-  } catch (error) {
-    console.error('OSS上传失败:', error)
-    throw error
-  }
-}
-
 // 返回上一页
 const goBack = () => {
   uni.navigateBack()
 }
-
 
 // 处理图片加载错误
 const handleImageError = () => {
@@ -168,69 +96,50 @@ const handleImageError = () => {
 
 // 处理头像点击事件
 const handleAvatarClick = async () => {
-  try {
-    // 选择图片
-    const chooseResult = await uni.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera']
-    })
+  // 选择图片
+  const chooseResult = await uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera']
+  })
 
-    if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
-      const tempFilePath = chooseResult.tempFilePaths[0]
 
-      // 显示上传进度
-      uni.showLoading({
-        title: '上传头像中...'
-      })
-
-      // 在H5环境中，需要将临时路径转换为File对象
-      let fileToUpload
-      if (process.env.NODE_ENV === 'development' || typeof window !== 'undefined') {
-        // H5环境
-        const response = await fetch(tempFilePath)
-        const blob = await response.blob()
-        fileToUpload = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
-      } else {
-        // 小程序环境
-        fileToUpload = tempFilePath
-      }
-
-      // 上传到OSS
-      await uploadObject(fileToUpload, (url) => {
-        // 上传成功，更新头像
-        userInfo.avatar = url
-
-        uni.hideLoading()
-        uni.showToast({
-          title: '头像上传成功',
-          icon: 'success'
-        })
-
-        // 立即保存到本地存储
-        uni.setStorageSync('userInfo', {
-          nickname: userInfo.nickname,
-          avatar: userInfo.avatar
-        })
-
-        const loginData = uni.getStorageSync('loginData') || {}
-        loginData.himg = userInfo.avatar
-        uni.setStorageSync('loginData', loginData)
-      })
-
-    }
-  } catch (error) {
-    uni.hideLoading()
-    console.error('头像上传失败:', error)
-    uni.showToast({
-      title: '头像上传失败',
-      icon: 'none'
-    })
+  if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
+    const tempFilePath = chooseResult.tempFilePaths[0]
+    userInfo.avatar = tempFilePath
   }
+  return
+  // 显示上传进度
+  uni.showLoading({
+    title: '上传头像中...'
+  })
+
+
 }
 
 
+async function uploadAvatar(tempFilePath) {
+  // 在H5环境中，需要将临时路径转换为File对象
+  let fileToUpload
 
+  // #ifdef H5
+  // H5环境
+  const response = await fetch(tempFilePath)
+  const blob = await response.blob()
+  fileToUpload = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+  // #endif
+  // #ifndef H5
+  // 小程序 APP环境
+  fileToUpload = tempFilePath
+  // #endif
+
+  // 上传到OSS
+  const uploadRes = await tool.oss.upload(fileToUpload, {
+    folder: 'himg',
+  })
+  // console.log(uploadRes)
+  return uploadRes.name
+}
 
 
 // 验证表单
@@ -258,6 +167,7 @@ const saveProfile = async () => {
 
   try {
     isSaving.value = true
+    const originDataInfo = userStore.getUserInfo
 
     uni.showLoading({
       title: '保存中...'
@@ -270,14 +180,30 @@ const saveProfile = async () => {
     }
 
     // 如果头像已更新，只传递文件名给后端
-    if (userInfo.avatar && userInfo.avatar !== 'http://video.caimizm.com/himg/user.png') {
-      // 从完整URL中提取文件名
-      const fileName = userInfo.avatar.replace('http://video.caimizm.com/himg/', '')
-      saveData.himg = fileName
+    if (originDataInfo.avatar != userInfo.avatar) {
+      try {
+        const avatarUrl = await uploadAvatar(userInfo.avatar)
+        saveData.himg = avatarUrl.replace("himg/", "")
+
+      } catch (error) {
+        console.error(error)
+        uni.showToast({
+          title: '上传头像失败，请重试',
+          icon: 'none'
+        })
+        uni.hideLoading()
+        return
+      }
     }
 
     // 调用保存用户信息的API
     const response = await apiUpdateUserProfile(saveData)
+    const avatarUrl = saveData.himg ? `http://video.caimizm.com/himg/${saveData.himg}` : originDataInfo.avatar
+    userStore.updateUserInfo({
+      nickname: saveData.uname,
+      avatar: avatarUrl,
+      account: saveData.account
+    })
 
     uni.hideLoading()
 
@@ -288,23 +214,6 @@ const saveProfile = async () => {
     uni.showToast({
       title: '保存成功',
       icon: 'success'
-    })
-
-    // 保存到本地存储
-    uni.setStorageSync('userInfo', {
-      nickname: userInfo.nickname,
-      avatar: userInfo.avatar
-    })
-
-    const loginData = uni.getStorageSync('loginData') || {}
-    loginData.uname = userInfo.nickname
-    loginData.himg = userInfo.avatar
-    uni.setStorageSync('loginData', loginData)
-
-    // 通知其他页面更新
-    uni.$emit('userProfileUpdated', {
-      nickname: userInfo.nickname,
-      avatar: userInfo.avatar
     })
 
     // 延迟返回上一页
@@ -327,7 +236,6 @@ const saveProfile = async () => {
 // 加载用户信息（从登录时保存的数据中获取）
 const loadUserInfo = async () => {
   const token = getToken()
-  const account = getAccount()
 
   if (!token) {
     uni.showToast({
@@ -339,37 +247,11 @@ const loadUserInfo = async () => {
     }, 1500)
     return
   }
+  const storeUserInfo = userStore.getUserInfo
 
-  try {
-    // 从本地存储获取登录时保存的用户信息
-    const savedUserInfo = uni.getStorageSync('userInfo') || {}
-    const loginData = uni.getStorageSync('loginData') || {}
-
-    // 加载用户信息
-    if (loginData.uname || loginData.account) {
-      userInfo.nickname = loginData.uname || '用户'
-      userInfo.phone = loginData.account || account || ''
-      userInfo.avatar = loginData.himg || 'http://video.caimizm.com/himg/user.png'
-    } else {
-      userInfo.nickname = savedUserInfo.nickname || '用户'
-      userInfo.phone = account || '13637666646'
-      userInfo.avatar = savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png'
-    }
-
-    console.log('加载的用户信息:', {
-      nickname: userInfo.nickname,
-      phone: userInfo.phone,
-      avatar: userInfo.avatar,
-      loginData: loginData
-    })
-
-  } catch (error) {
-    console.error('加载用户信息失败:', error)
-    // 使用默认值
-    userInfo.nickname = account || '用户'
-    userInfo.phone = account || '13637666646'
-    userInfo.avatar = 'http://video.caimizm.com/himg/user.png'
-  }
+  userInfo.nickname = storeUserInfo.nickname
+  userInfo.phone = storeUserInfo.account
+  userInfo.avatar = storeUserInfo.avatar
 }
 
 onMounted(() => {

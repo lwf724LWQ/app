@@ -229,8 +229,18 @@ async function getUserInfo() {
       nickname: savedUserInfo.nickname || '欢迎您'
     };
 
-    const data = await apiUserimg({ account: savedUserInfo.account })
+    const res = await apiUserimg({ account: savedUserInfo.account })
+    const avatar = `http://video.caimizm.com/himg/${res.data.himg}`
+    userStore.updateUserInfo({
+      nickname: res.data.uname,
+      avatar: avatar,
+      account: res.data.account
+    })
 
+    memberStore.profile = {
+      avatar: avatar || 'http://video.caimizm.com/himg/user.png',
+      nickname: res.data.uname || '欢迎您'
+    };
 
   } catch (error) {
     uni.showToast({
