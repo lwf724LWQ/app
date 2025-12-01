@@ -113,9 +113,10 @@ function loginGuard(res){
 		if (notLoginPages.includes(pages[pages.length - 1].route)) {
 			return false
 		}else{
+			const token = getToken()
 			uni.showModal({
 				title: '提示',
-				content: '该操作需要登录，是否前往',
+				content: token ? '登录过期，请重新登录' : '当前未登录或者登录过期，请重新登录',
 				success: async (res) => {
 					if (res.confirm) {
 						uni.navigateTo({url:'/pages/login/login'})
