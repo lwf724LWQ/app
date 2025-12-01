@@ -1,19 +1,28 @@
 const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
 
 import { useUserStore } from '../stores/userStore'
-const userStore = useUserStore()
+let userStore;
+function initStore() {
+	// 因为直接初始化store会导致提前调用，这样js加载后才调用就不会
+	if (!userStore) {
+		userStore = useUserStore()
+	}
+}
 
 // 设置token的方法
 export function setToken(token) {
+	initStore()
 	userStore.setToken(token);
   //保存到本地
 }
 // 获取Token的方法
 export function getToken() {
+	initStore()
     return userStore.getToken
 }
 // 移除Token的方法
 export function removeToken() {
+	initStore()
     userStore.clearUserInfo()
 }
 
@@ -25,6 +34,7 @@ export function apiGetBanner(){
 
 // 获取账号的方法
 export function getAccount() {
+	initStore()
     return userStore.getUserInfo?.account || false
 }
 

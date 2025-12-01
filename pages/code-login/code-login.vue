@@ -73,7 +73,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ref } from 'vue'
 import { apiSendCode } from '../../api/apis.js'
 import { apilogin } from '../../api/apis.js'
-import { setToken, setAccount } from '../../utils/request.js'
+import { setToken } from '../../utils/request.js'
 
 declare const uni: any
 
@@ -171,7 +171,7 @@ const login = async () => {
 
       // 设置全局account
       if (phone.value) {
-        setAccount(phone.value)
+        // setAccount(phone.value)
       }
 
       // 直接使用登录返回的用户信息
