@@ -13,7 +13,7 @@
         <uni-icons type="trash" size="25" color="#fff"></uni-icons>
         <view class="">清除</view>
       </view>
-      <view class="">
+      <view class="" @click="share">
         <uni-icons custom-prefix="iconfont" type="icon-fenxiang" size="20" color="#fff"></uni-icons>
         <view class="">分享</view>
       </view>
@@ -187,14 +187,14 @@
             </view>
           </view>
         </view>
-        <!-- 悬浮文字 -->
+        <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
         <view
           class="text"
           :class="{ 'text-handle-hide': textHandleHide }"
           v-for="(item, index) in textList"
           :key="index"
           :style="{
-            top: item.text.position.y - 100 * ratio + 'px',
+            top: item.text.position.y - (130 * ratio + safeArea.top + menuButtonInfo) + 'px',
             left: item.text.position.x + 'px',
             fontSize: item.style.fontSize + 'px',
             lineHeight: item.style.fontSize + 'px',
@@ -283,6 +283,8 @@
     </view>
     <!-- 设置 -->
     <Setting class="setting" v-model="isSettingOpen"></Setting>
+
+    <Share ref="shareNode" :getImageUrl="getImageUrl"></Share>
   </view>
 </template>
 
@@ -300,6 +302,8 @@ import html2canvas from 'html2canvas'
 import Setting from '@/components/juWang/Setting.vue'
 import { useDrawLineSettingStore } from '@/stores/drawLine.js'
 import { getCurvePoint } from './utils'
+import { apiTicketQuery } from '@/api/apis.js'
+import Share from '@/components/juWang/Share.vue'
 
 //解析日期
 const dateFromat = (dateStr) => {
@@ -325,7 +329,14 @@ const popup = ref(null)
 const systemInfo = uni.getSystemInfoSync()
 let ratio = systemInfo.screenWidth / 750
 
-const safeArea = systemInfo.safeArea // 安全距离
+const safeArea = systemInfo.safeAreaInsets // 安全距离
+
+// 获取胶囊按钮高度
+let menuButtonInfo = 0
+// #ifdef MP
+menuButtonInfo = uni.getMenuButtonBoundingClientRect().top * 0.6
+// #endif
+
 const windowHeight = systemInfo.windowHeight
 
 const scrollInitTop = ref(0) // 滚动条初始位置
@@ -364,10 +375,10 @@ const data = ref([])
 let positionList
 let showPeriod = options.showPeriod || 40
 const getData = async () => {
-  const res = await uni.request({
-    url: `http://caimi.s7.tunnelfrp.com/web/ticket/query?tname=排列五&page=1&limit=${showPeriod}`
-  })
-  data.value = res.data.data.records.reverse()
+  uni.showLoading({ title: '加载中...' })
+  const res = await apiTicketQuery({ tname: '排列五', page: '1', limit: showPeriod })
+  uni.hideLoading()
+  data.value = res.data.records.reverse()
   data.value.forEach((item) => {
     item.number = item.number?.split(' ').slice(0, 5)
   })
@@ -949,33 +960,64 @@ const trash = () => {
   drawnLineAll()
   lineCtx.draw()
 }
-// 保存页面截图
-const saveImage = async () => {
-  const canvas = await html2canvas(document.querySelector('.draw-line'))
-  const url = canvas.toDataURL('image/png')
+// 获取截图url
+const getImageUrl = async () => {
   // #ifdef H5
+  const canvas = await html2canvas(document.querySelector('.draw-line'))
+  return canvas.toDataURL('image/jpg')
+  // #endif
+
+  // #ifdef APP
+  return new Promise((resolve) => {
+    const pages = getCurrentPages()
+    const page = pages[pages.length - 1] // 当前页面
+    const currentWebview = page.$getAppWebview()
+
+    const bitmap = new plus.nativeObj.Bitmap('capture')
+
+    currentWebview.draw(bitmap, () => {
+      // 保存到本地
+      bitmap.save(`_doc/${new Date().getTime()}.jpg`, { overwrite: true }, (res) => {
+        resolve(res.target)
+        bitmap.clear()
+      })
+    })
+  })
+  // #endif
+}
+// 保存图片
+const saveImage = async () => {
+  // #ifdef H5
+  const url = await getImageUrl()
   const a = document.createElement('a')
   a.href = url
   a.download = 'canvas.png'
   a.click()
   // #endif
-
   // #ifdef APP
+  const url = await getImageUrl()
   uni.saveImageToPhotosAlbum({
     filePath: url,
     success: (res) => {
       uni.showToast({
-        title: '保存成功',
-        icon: 'none'
+        title: '保存成功'
       })
     },
     fail: (err) => {
-      uni.showToast({
-        title: '保存失败',
-        icon: 'none'
-      })
+      uni.showToast()
     }
   })
+  // #endif
+}
+// 分享
+const shareNode = ref()
+const share = async () => {
+  // #ifdef H5
+  await navigator.clipboard.writeText(window.location.href)
+  uni.showToast({ title: '复制链接成功' })
+  // #endif
+  // #ifdef APP
+  shareNode.value.open()
   // #endif
 }
 // 获取元素位置信息
@@ -1241,7 +1283,6 @@ page {
   background-color: v-bind('options.theme.topBar.backgroundColor');
 }
 .draw-line {
-  padding-top: v-bind('safeArea.top + "px"');
   background-color: v-bind('options.theme.topBar.backgroundColor');
 }
 .container {
@@ -1253,18 +1294,28 @@ page {
   view {
     box-sizing: border-box;
   }
+  /* #ifdef H5 */
   height: v-bind('windowHeight + "px"');
+  /* #endif */
   /* #ifdef APP */
   height: v-bind('windowHeight - safeArea.top + "px"');
+  /* #endif */
+  /* #ifdef MP */
+  height: v-bind('windowHeight - safeArea.top - menuButtonInfo + "px"');
+  /* #endif */
+
+  /* #ifdef APP */
+  padding-top: v-bind('safeArea.top + "px"');
+  /* #endif */
+  /* #ifdef MP */
+  padding-top: v-bind('safeArea.top + menuButtonInfo + "px"');
   /* #endif */
   position: relative;
   %btn-base {
     position: fixed;
     bottom: 30rpx;
     z-index: 10;
-    /* #ifdef MP */
-    // bottom: calc(30rpx + var(–window-bottom));
-    /* #endif */
+    bottom: calc(30rpx + v-bind('safeArea.bottom + "px"'));
   }
   .color-select {
     @extend %btn-base;
@@ -1288,13 +1339,10 @@ page {
     z-index: 99;
   }
 }
-$tools-height: 100rpx;
+$tools-height: 130rpx;
 .container {
   position: relative;
-  height: calc(v-bind('windowHeight + "px"') - $tools-height);
-  // /* #ifdef APP */
-  height: calc(v-bind('windowHeight - safeArea.top + "px"') - $tools-height);
-  // /* #endif */
+  height: calc(100% - $tools-height);
   .data {
     position: relative;
     .line-canvas {
@@ -1303,8 +1351,10 @@ $tools-height: 100rpx;
       width: 100vw;
       height: calc(100% + $tools-height);
       /* #ifdef APP */
-      top: calc(-100rpx - v-bind('safeArea.top + "px"'));
-      height: calc(100% + $tools-height - v-bind('safeArea.top + "px"'));
+      top: calc(-130rpx - v-bind('safeArea.top + "px"'));
+      /* #endif */
+      /* #ifdef MP */
+      top: calc(-130rpx - v-bind('safeArea.top + menuButtonInfo + "px"'));
       /* #endif */
       z-index: 2;
       pointer-events: v-bind('pointerEvents');
@@ -1365,7 +1415,10 @@ $tools-height: 100rpx;
       position: absolute;
       z-index: 5;
       left: v-bind('textareaPosition.x + "px"');
-      top: calc(v-bind('textareaPosition.y + "px"') - 100rpx);
+      // top减去canvas的top
+      top: calc(
+        v-bind('textareaPosition.y - safeArea.top - menuButtonInfo + "px"') - $tools-height
+      );
       background-color: rgba($color: #fff, $alpha: 0.8);
       transform: translate(-10%, -10%);
     }
@@ -1550,7 +1603,7 @@ $tools-height: 100rpx;
   width: 100vw;
   display: flex;
   justify-content: space-around;
-  font-size: 20rpx;
+  font-size: 30rpx;
   color: v-bind('options.theme.topBar.color');
   > view {
     width: 150rpx;

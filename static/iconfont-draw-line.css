@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'iconfont'; /* Project id 4959056 */
-  src: url('iconfont-draw-line.ttf?t=1764232415655') format('truetype');
+  src: url('iconfont-draw-line.ttf?t=1764653176895') format('truetype');
 }
 
 .iconfont {
@@ -9,6 +9,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-weixinpengyouquan1:before {
+  content: '\e609';
+}
+
+.icon-weixin:before {
+  content: '\e607';
 }
 
 .icon-reset:before {
