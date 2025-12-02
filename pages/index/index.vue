@@ -97,7 +97,7 @@
 					<text class="leng3">智能规</text>
 				</view>
 				<!-- 第二行 -->
-				<view class="icon-item">
+				<view class="icon-item" @click="goToLive">
 					<uni-icons type="videocam" size="20" color="#4A90E2"></uni-icons>
 					<text>开奖直播</text>
 				</view>
@@ -175,6 +175,19 @@ export default {
 			// uni.navigateTo({
 			// 	url: `/pages/juWang/drawLine/drawLine`
 			// });
+		},
+		goToLive() {
+			// #ifdef H5
+			uni.showModal({
+				title: '提示',
+				content: '收看直播功能仅支持APP内使用'
+			})
+			// #endif
+			// #ifdef APP-PLUS
+			uni.navigateTo({
+				url: "/pages/index/live"
+			})
+			// #endif
 		},
 		goToDreamInterpretation() {
 			uni.navigateTo({

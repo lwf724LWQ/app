@@ -259,6 +259,13 @@
       }
     },
     {
+      "path": "pages/index/live",
+      "style": {
+        "navigationBarTitleText": "直播",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
       "path": "pages/table/table",
       "style": {
         "navigationBarTitleText": "",
