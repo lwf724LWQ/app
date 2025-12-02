@@ -366,7 +366,7 @@ export function apiWordQuery(data = {}) {
 // 查询当前app版本
 export function apiAppversionQuery(data = {}) {
     return request({
-        url: "/web/version/query",
+        url: "/web/version/get_new",
         method: "GET",
         data
     })
@@ -376,6 +376,15 @@ export function getWXSDKAccessToken(data = {}) {
     return request({
         url: "/web/getWXSDKAccessToken",
         method: "GET",
+        data
+    })
+}
+
+// 提交反馈接口
+export function apiSubmitFeedback(data = {}) {
+    return request({
+        url: "/web/suggest/insert",
+        method: "POST",
         data
     })
 }

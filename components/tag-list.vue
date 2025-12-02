@@ -3,7 +3,12 @@
 		<!-- 左侧标签区域 -->
 		<scroll-view class="left-tags" :scroll-y="true">
 			<!-- 自定义标签插槽 -->
-
+			<view v-if="!$slots.tags" class="tags-default">
+				<view v-for="tag in tags" :key="tag.value" :class="['tag-item', { active: activeTag === tag.value }]"
+					@click="switchTag(tag.value)">
+					{{ tag.label }}
+				</view>
+			</view>
 			<slot name="tags" :active-tag="activeTag" :switch-tag="switchTag"></slot>
 		</scroll-view>
 
@@ -61,13 +66,27 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .tag-list-container {
 	display: flex;
 }
 
 .left-tags {
 	width: auto;
+}
+
+.tags-default {
+	min-height: 100%;
+	background-color: #efefef;
+
+	.tag-item {
+		padding: 28rpx 50rpx;
+
+		&.active {
+			color: rgb(223, 34, 34);
+			background-color: #fff;
+		}
+	}
 }
 
 .right-list {

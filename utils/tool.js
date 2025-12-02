@@ -95,42 +95,43 @@ const tool = {
   },
   checkAppUpdate() {
     // #ifdef APP-PLUS
-    return new Promise((resolve, reject) => { 
-      plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) { 
-        const nowAppVersion = widgetInfo.version.split('.')
-        
-        apiAppversionQuery().then(res => {
-          const serverVersion = res.data.version.split('.')
-          const dowUrl = res.data.url
-          if (serverVersion[0] > nowAppVersion[0] || serverVersion[1] > nowAppVersion[1] || serverVersion[2] > nowAppVersion[2]) {
-            console.log('有新版本，请更新')
-            resolve(true)
-            uni.showModal({
-              title: '提示',
-              content: '有新版本,点击确定开始自动下载',
-              success: function (res) {
-                if (res.confirm) {
-                  uni.downloadFile({
-                    url: dowUrl,
-                    success: function (res) {
-                      console.log('下载成功')
-                      plus.runtime.install(res.tempFilePath, { force: true }, function () {
-                        console.log('安装成功')
-                      }, function (e) {
-                        console.log('安装失败：' + e.message)
-                      })
-                    },
-                  })
-  
-                }
+    plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) { 
+      const nowAppVersion = widgetInfo.version.split('.')
+      
+      apiAppversionQuery().then(res => {
+        const serverVersion = res.data.version.split('.')
+        const dowUrl = res.data.url
+        if (serverVersion[0] > nowAppVersion[0] || serverVersion[1] > nowAppVersion[1] || serverVersion[2] > nowAppVersion[2]) {
+          console.log('有新版本，请更新')
+          uni.showModal({
+            title: '提示',
+            content: '有新版本,点击确定开始自动下载',
+            success: function (res) {
+              if (res.confirm) {
+                const dowTask = uni.downloadFile({
+                  url: dowUrl,
+                  success: function (res) {
+                    console.log('下载成功')
+                    plus.runtime.install(res.tempFilePath, { force: true }, function () {
+                      console.log('安装成功')
+                    }, function (e) {
+                      console.log('安装失败：' + e.message)
+                    })
+                  },
+                })
+
+                dowTask.onProgressUpdate(function (res) { 
+                  uni.showToast({title: '下载进度：' + res.progress + '%', icon: 'loading'})
+                })
+
               }
-            })
-          }else{
-            resolve(false)
-          }
-        })
-      });
-    })
+            }
+          })
+        }else{
+          resolve(false)
+        }
+      })
+    });
     
     // #endif
   },

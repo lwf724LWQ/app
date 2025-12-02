@@ -115,6 +115,7 @@ function loginGuard(res){
 			return false
 		}else{
 			const token = getToken()
+			userStore.clearUserInfo()
 			uni.showModal({
 				title: '提示',
 				content: token ? '登录过期，请重新登录' : '当前未登录或者登录过期，请重新登录',

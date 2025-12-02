@@ -123,7 +123,7 @@
           <text class="service-text">联系客服</text>
         </view>
         <view class="service-item">
-          <uni-icons type="compose" size="24" color="#222"></uni-icons>
+          <uni-icons type="compose" size="24" color="#222" @click="toFeedBack"></uni-icons>
           <text class="service-text">意见反馈</text>
         </view>
         <!-- #ifdef APP-PLUS -->
@@ -277,6 +277,19 @@ const checkLoginStatus = async () => {
   }
 }
 
+// 判断是否登录，否则弹框
+function requireLogin() {
+  if (!memberStore.profile) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+      duration: 2000
+    })
+    return false
+  }
+  return true
+}
+
 // 退出登录
 const logout = () => {
   uni.showModal({
@@ -297,24 +310,39 @@ const logout = () => {
   });
 }
 
+// 跳转到反馈页面
+const toFeedBack = () => {
+  if (requireLogin()) {
+    uni.navigateTo({ url: "/pages/user/feedbackPage" });
+  }
+}
+
 // 跳转到充值页面
 const goToRecharge = () => {
-  uni.navigateTo({ url: '/pages/recharge/recharge' });
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/recharge/recharge' });
+  }
 };
 
 // 跳转到交易记录页面
 const goToTransaction = () => {
-  uni.navigateTo({ url: '/pages/transaction/transaction' });
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/transaction/transaction' });
+  }
 };
 
 // 跳转到订单页面
 const goToOrders = () => {
-  uni.navigateTo({ url: '/pages/orders/orders' });
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/orders/orders' });
+  }
 };
 
 // 跳转到登录页面
 const goToLogin = () => {
-  uni.navigateTo({ url: '/pages/login/login' });
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/login/login' });
+  }
 };
 
 // 跳转到编辑用户信息页面

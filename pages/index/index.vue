@@ -1,5 +1,5 @@
 <template>
-	<view class="lottery-container" :class="{ 'old-man-mode': useOldManModeStore.enabled }">
+	<view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
 		<!-- 顶部广告轮播图 -->
 		<swiper class="ad-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500" circular="true"
 			easing-function="default">
@@ -147,6 +147,7 @@
 
 <script>
 import { apiFindResult } from '@/api/apis.js'
+import { mode } from 'crypto-js';
 
 export default {
 	inject: ['useOldManModeStore'],
@@ -322,12 +323,12 @@ export default {
 			}
 		}
 	},
-	onShow(){
+	onShow() {
 		// 加载开奖结果
 		this.loadLotteryResults()
 	},
 	onLoad() {
-		
+
 	}
 };
 </script>
