@@ -244,6 +244,13 @@
       }
     },
     {
+      "path": "pages/login/agreement",
+      "style": {
+        "navigationBarTitleText": "协议",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
       "path": "pages/user/feedbackPage",
       "style": {
         "navigationBarTitleText": "意见反馈",

@@ -118,7 +118,7 @@ const handleAvatarClick = async () => {
 }
 
 
-async function uploadAvatar(tempFilePath) {
+async function uploadAvatar(tempFilePath, folder = "img") {
   // 在H5环境中，需要将临时路径转换为File对象
   let fileToUpload
 
@@ -135,7 +135,7 @@ async function uploadAvatar(tempFilePath) {
 
   // 上传到OSS
   const uploadRes = await tool.oss.upload(fileToUpload, {
-    folder: 'himg',
+    folder: folder,
   })
   // console.log(uploadRes)
   return uploadRes.name
@@ -182,7 +182,7 @@ const saveProfile = async () => {
     // 如果头像已更新，只传递文件名给后端
     if (originDataInfo.avatar != userInfo.avatar) {
       try {
-        const avatarUrl = await uploadAvatar(userInfo.avatar)
+        const avatarUrl = await tool.oss.uploadImgForTempPath(userInfo.avatar, "himg")
         saveData.himg = avatarUrl.replace("himg/", "")
 
       } catch (error) {

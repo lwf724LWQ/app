@@ -5,6 +5,28 @@ import h5wxsdk from "./uniwxsdk/h5.js"
 
 const tool = {
   oss: {
+    async uploadImgForTempPath(tempFilePath, folder) {
+      // 在H5环境中，需要将临时路径转换为File对象
+      let fileToUpload
+    
+      // #ifdef H5
+      // H5环境
+      const response = await fetch(tempFilePath)
+      const blob = await response.blob()
+      fileToUpload = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+      // #endif
+      // #ifndef H5
+      // 小程序 APP环境
+      fileToUpload = tempFilePath
+      // #endif
+    
+      // 上传到OSS
+      const uploadRes = await tool.oss.upload(fileToUpload, {
+        folder: folder,
+      })
+      // console.log(uploadRes)
+      return uploadRes.name
+    },
     async upload(file, options = {}) {
       // try {
         // 确保客户端已初始化

@@ -375,19 +375,15 @@ const toggleAgreement = () => {
 
 // 显示用户协议
 const showUserAgreement = () => {
-  uni.showModal({
-    title: '用户协议',
-    content: '这里是用户协议的内容...',
-    showCancel: false
+  uni.navigateTo({
+    url: '/pages/login/agreement?type=UserAgreement',
   })
 }
 
 // 显示隐私政策
 const showPrivacyPolicy = () => {
-  uni.showModal({
-    title: '隐私授权',
-    content: '这里是隐私政策的内容...',
-    showCancel: false
+  uni.navigateTo({
+    url: '/pages/login/agreement?type=PrivacyPolicy',
   })
 }
 

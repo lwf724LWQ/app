@@ -89,6 +89,7 @@ import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { apiGetIssueNo, apiPost, getCOSSecretKey } from '@/api/apis.js'
 import { getAccount } from '@/utils/request.js'
+import tool from '@/utils/tool.js'
 
 // 响应式数据
 const issueNumber = ref('')
@@ -390,28 +391,8 @@ const selectImage = async () => {
 
       // 批量上传图片
       const uploadPromises = chooseResult.tempFilePaths.map(async (tempFilePath, index) => {
-        try {
-          // 在H5环境中，需要将临时路径转换为File对象
-          let fileToUpload
-          if (process.env.NODE_ENV === 'development' || typeof window !== 'undefined') {
-            // H5环境
-            const response = await fetch(tempFilePath)
-            const blob = await response.blob()
-            fileToUpload = new File([blob], `pattern-image-${index}.jpg`, { type: 'image/jpeg' })
-          } else {
-            // 小程序环境
-            fileToUpload = tempFilePath
-          }
-
-          // 上传到OSS
-          return new Promise((resolve, reject) => {
-            uploadObject(fileToUpload, (url) => {
-              resolve({ tempFilePath, url })
-            })
-          })
-        } catch (error) {
-          throw error
-        }
+        const url = await tool.oss.uploadImgForTempPath(tempFilePath, 'pimg')
+        return { tempFilePath, url: `http://video.caimizm.com/pimg/${url}` }
       })
 
       // 等待所有图片上传完成
@@ -432,6 +413,7 @@ const selectImage = async () => {
       isUploadingImage.value = false
     }
   } catch (error) {
+    console.log(error)
     uni.hideLoading()
     isUploadingImage.value = false
     uni.showToast({
@@ -574,7 +556,7 @@ const handlePublish = async () => {
   } catch (error) {
     uni.hideLoading()
     uni.showToast({
-      title: '发布失败，请重试',
+      title: error?.msg || '发布失败，请重试',
       icon: 'none'
     })
   }
