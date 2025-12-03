@@ -4,6 +4,7 @@
     </view>
 </template>
 <script>
+// https://appstatic.sporttery.cn/dl/h5/live/index/index.html
 export default {
 
 }
