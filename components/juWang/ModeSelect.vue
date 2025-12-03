@@ -10,7 +10,7 @@
       ></uni-icons>
     </view>
     <view class="list" :class="{ hide: hide }">
-      <view class="item" v-for="(item, index) in data" @click="change(index)" :key="index">
+      <view class="list-item" v-for="(item, index) in data" @click="change(index)" :key="index">
         <view class="item-text">{{ item.text }}</view>
         <uni-icons
           class="item-icon"
@@ -107,7 +107,7 @@ watch(currentIndex, (newVal) => {
     height: 630rpx;
     overflow: hidden;
     opacity: 1;
-    .item {
+    .list-item {
       display: flex;
 
       .item-text,

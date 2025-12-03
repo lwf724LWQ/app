@@ -51,7 +51,7 @@ defineExpose({
 
 const shareWx = async () => {
   const imageUrl = await proprs.getImageUrl()
-  const compressImage = await getCompressImage(url, 0.5)
+  const compressImage = await getCompressImage(imageUrl, 0.5)
   uni.share({
     provider: 'weixin',
     type: 0,
@@ -74,7 +74,7 @@ const shareWx = async () => {
 const shareWxpyq = async () => {
   // #ifdef APP
   const imageUrl = await proprs.getImageUrl()
-  const compressImage = await getCompressImage(url, 0.5)
+  const compressImage = await getCompressImage(imageUrl, 0.5)
   uni.share({
     provider: 'weixin',
     type: 0,

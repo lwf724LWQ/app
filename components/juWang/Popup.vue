@@ -170,17 +170,26 @@ import { ref, onMounted, computed } from 'vue'
 import uSwitch from '@/components/juWang/Switch.vue'
 import Message from '@/components/juWang/Message.vue'
 
+const props = defineProps({
+  type: {
+    type: String,
+    default: '排列五'
+  }
+})
 const formMode = ref('高级')
 const popup = ref(null)
 let index = ref(0)
 const conditions = computed(() => {
   const result = []
-  result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
+  if (props.type !== '福彩3D')
+    result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
+  else result.push('单', '双', '大', '小', 'X', '百十合', '百个合', '十个合', '杀', '稳码')
   return result
 })
-const simpleConditions = ref(['单', '双', '大', '小', 'X'])
+const simpleConditions = ['单', '双', '大', '小', 'X']
 const isSolid = ref(true)
-const effectViewList = ['千 A', '百 B', '十 C', '个 D']
+let effectViewList = ['千 A', '百 B', '十 C', '个 D']
+if (props.type === '福彩3D') effectViewList = ['百 B', '十 C', '个 D']
 const msg = ref(null)
 
 const open = (column) => {
@@ -260,6 +269,7 @@ const effectMap = {
   千十合: [0, 2],
   十个合: [2, 3],
   百个合: [1, 3],
+  百十合: [1, 2],
   杀: [undefined],
   稳码: [0, 1, 2, 3]
 }
@@ -271,20 +281,14 @@ const indexMap = {
   4: []
 }
 
-// const addNum = (num1, num2) => {
-//   numbers.value = []
-//   numbers.value.push(num1, num2)
-//   currentCondition.value = `${num1}/${num2}`
-// }
-
 // 提交
-const sbumit = defineEmits(['sbumit'])
+const submit = defineEmits(['submit'])
 const seniorSubmit = () => {
   if (numbers.value.length === 0) {
     msg.value.send('至少选择一个号码')
     return
   }
-  sbumit('sbumit', {
+  submit('submit', {
     condition: currentCondition.value,
     numbers: numbers.value,
     isSolid: isSolid.value,
@@ -295,11 +299,11 @@ const seniorSubmit = () => {
   popup.value.close()
 }
 const simpleSubmit = () => {
-  sbumit('sbumit', {
+  submit('submit', {
     condition: currentCondition.value,
     numbers: [],
     isSolid: true,
-    indexs: effectList.value.map((item) => item + 1),
+    indexs: [index.value + 1],
     senior: false
   })
   clearForm()
@@ -323,7 +327,7 @@ const openRefernumber = () => {
 
 const refernumberConditions = ['单', '双', '大', '小']
 const refernumberSubmit = () => {
-  sbumit('sbumit', { condition: currentCondition.value, numbers: [], isSolid: true, indexs: [0] })
+  submit('submit', { condition: currentCondition.value, numbers: [], isSolid: true, indexs: [0] })
   clearForm()
   refernumberPopup.value.close()
 }

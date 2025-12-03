@@ -42,6 +42,10 @@
       <view class="column-4" v-if="type !== '福彩3D'"></view>
     </view>
   </scroll-view>
+  <view class="nav">
+    <uni-icons type="left" size="20" @click="back"></uni-icons>
+    <view class="btn" @click="goDrawLine">去画规</view>
+  </view>
 </template>
 
 <script setup>
@@ -52,13 +56,16 @@ import { onLoad, onNavigationBarButtonTap } from '@dcloudio/uni-app'
 
 const data = ref([])
 const getData = async () => {
-  uni.showLoading({ title: '加载中...' })
-  const res = await apiTicketQuery({ tname: type.value, page: '1', limit: 40 })
-  uni.hideLoading()
-  data.value = res.data.records.reverse()
-  data.value.forEach((item) => {
-    item.number = item.number?.split(' ').slice(0, 5)
-  })
+  try {
+    uni.showLoading({ title: '加载中...' })
+    const res = await apiTicketQuery({ tname: type.value, page: '1', limit: 40 })
+    data.value = res.data.records.reverse()
+    data.value.forEach((item) => {
+      item.number = item.number?.split(' ').slice(0, 5)
+    })
+  } finally {
+    uni.hideLoading()
+  }
 
   // data.value = mock.data.records
   // data.value.forEach((item) => {
@@ -85,15 +92,21 @@ onLoad(async (options) => {
   scrollTop.value = 9999
 })
 
-onNavigationBarButtonTap((e) => {
-  if (e.text === '去画规') uni.navigateTo({ url: '/pages/juWang/peng-liao/drawLine/drawLine' })
-})
+const back = () => {
+  uni.navigateBack()
+}
+const goDrawLine = () => {
+  uni.navigateTo({ url: '/pages/juWang/peng-liao/drawLine/drawLine?type=' + type.value })
+}
+
+const top = uni.getSystemInfoSync().safeAreaInsets.top
+
+// #ifdef MP
+const menuButtonInfo = uni.getMenuButtonBoundingClientRect()
+// #endif
 </script>
 
 <style lang="scss" scoped>
-:deep(.uni-page-head) {
-  border-bottom: 3rpx solid rgba($color: #000000, $alpha: 0.1);
-}
 .text-active {
   color: #fe3a49;
 }
@@ -102,6 +115,7 @@ $border-color: #f9a29f;
   width: 100%;
   color: #83c283;
   height: calc(100vh - var(--window-top));
+  margin-top: v-bind('top + "px"');
   > .row:nth-child(4n) {
     border-top: 5rpx solid $border-color;
   }
@@ -127,6 +141,29 @@ $border-color: #f9a29f;
       border-right: 1rpx solid $border-color;
     }
   }
+}
+.nav {
+  box-sizing: border-box;
+  width: 750rpx;
+  position: fixed;
+  top: 0;
+  background-color: #fff;
+  border-bottom: 3rpx solid rgba($color: #000000, $alpha: 0.1);
+  color: #333333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30rpx;
+  margin-top: v-bind('top + "px"');
+  /* #ifndef MP */
+  height: 100rpx;
+  /* #endif */
+  /* #ifdef MP */
+  .btn {
+    margin-right: v-bind('menuButtonInfo.width + "px"');
+  }
+  height: 80rpx;
+  /* #endif */
 }
 .row {
   height: 110rpx;

@@ -229,18 +229,7 @@
       "path": "pages/table/table",
       "style": {
         "navigationBarTitleText": "",
-        "app-plus": {
-          "titleNView": {
-            "buttons": [
-              {
-                "text": "去画规",
-                "fontSize": "16px",
-                "color": "#333333",
-                "width": "50px"
-              }
-            ]
-          }
-        }
+        "navigationStyle": "custom"
       }
     }
   ],
