@@ -1,16 +1,15 @@
 {
   "pages": [
     {
-      "path": "pages/index/index",
+      "path": "pages/login/login",
       "style": {
-        "navigationBarTitleText": "首页",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "登录页"
       }
     },
     {
-      "path": "pages/login/login",
+      "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "登录页",
+        "navigationBarTitleText": "首页",
         "navigationStyle": "custom"
       }
     },
@@ -269,17 +268,7 @@
       "path": "pages/table/table",
       "style": {
         "navigationBarTitleText": "",
-        "app-plus": {
-          "titleNView": {
-            "buttons": [
-              {
-                "text": "去画规",
-                "fontSize": "16px",
-                "color": "#333333"
-              }
-            ]
-          }
-        }
+        "navigationStyle": "custom"
       }
     }
   ],
