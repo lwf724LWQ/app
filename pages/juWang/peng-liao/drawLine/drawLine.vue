@@ -1,6 +1,6 @@
 <template>
   <view class="draw-line">
-    <Popup ref="popup" @sbumit="popupSbumit"></Popup>
+    <Popup ref="popup" @submit="popupSubmit" :type="type"></Popup>
     <view class="tools">
       <view class="" @click="back">
         <uni-icons type="left" size="20" color="#fff"></uni-icons>
@@ -34,7 +34,7 @@
       :scroll-y="isScroll"
       :scroll-top="scrollInitTop"
     >
-      <view v-if="data" class="data">
+      <view v-if="data.length !== 0" class="data" :class="{ 'type-2': type === '福彩3D' }">
         <!-- 绘制图形 -->
         <canvas
           class="line-canvas"
@@ -55,25 +55,30 @@
             <view
               class="border"
               :class="{
-                active: pointActives[item.id + 0],
-                'border-radius': pointActives[item.id + 0]?.isRound
+                active: pointActives[item.issueno + 0],
+                'border-radius': pointActives[item.issueno + 0]?.isRound
               }"
               :style="{
                 borderColor:
-                  pointActives[item.id + 0]?.isSolid === false && pointActives[item.id + 0].color,
-                width: pointActives[item.id + 0]?.isSolid && 70 + 'rpx',
-                height: pointActives[item.id + 0]?.isSolid && 70 + 'rpx'
+                  pointActives[item.issueno + 0]?.isSolid === false
+                    ? pointActives[item.issueno + 0].color
+                    : '',
+                width: pointActives[item.issueno + 0]?.isSolid ? 70 + 'rpx' : '',
+                height: pointActives[item.issueno + 0]?.isSolid ? 70 + 'rpx' : ''
               }"
             >
               <view
                 class="item"
                 :style="{
-                  backgroundColor:
-                    pointActives[item.id + 0]?.isSolid && pointActives[item.id + 0].color,
+                  backgroundColor: pointActives[item.issueno + 0]?.isSolid
+                    ? pointActives[item.issueno + 0].color
+                    : '',
                   color:
-                    pointActives[item.id + 0]?.isSolid === false && pointActives[item.id + 0].color
+                    pointActives[item.issueno + 0]?.isSolid === false
+                      ? pointActives[item.issueno + 0].color
+                      : ''
                 }"
-                :id="item.id + 0"
+                :id="item.issueno + 0"
                 >{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view
               >
             </view>
@@ -84,28 +89,30 @@
               <view
                 class="border"
                 :class="{
-                  active: pointActives[item.id + (index + 1)],
-                  'border-radius': pointActives[item.id + (index + 1)]?.isRound
+                  active: pointActives[item.issueno + (index + 1)],
+                  'border-radius': pointActives[item.issueno + (index + 1)]?.isRound
                 }"
                 :style="{
                   borderColor:
-                    pointActives[item.id + (index + 1)]?.isSolid === false &&
-                    pointActives[item.id + (index + 1)].color,
-                  width: pointActives[item.id + (index + 1)]?.isSolid && 85 + 'rpx',
-                  height: pointActives[item.id + (index + 1)]?.isSolid && 85 + 'rpx'
+                    pointActives[item.issueno + (index + 1)]?.isSolid === false
+                      ? pointActives[item.issueno + (index + 1)].color
+                      : '',
+                  width: pointActives[item.issueno + (index + 1)]?.isSolid ? 85 + 'rpx' : '',
+                  height: pointActives[item.issueno + (index + 1)]?.isSolid ? 85 + 'rpx' : ''
                 }"
               >
                 <view
                   class="item"
                   :style="{
-                    backgroundColor:
-                      pointActives[item.id + (index + 1)]?.isSolid &&
-                      pointActives[item.id + (index + 1)].color,
+                    backgroundColor: pointActives[item.issueno + (index + 1)]?.isSolid
+                      ? pointActives[item.issueno + (index + 1)].color
+                      : '',
                     color:
-                      pointActives[item.id + (index + 1)]?.isSolid === false &&
-                      pointActives[item.id + (index + 1)].color
+                      pointActives[item.issueno + (index + 1)]?.isSolid === false
+                        ? pointActives[item.issueno + (index + 1)].color
+                        : ''
                   }"
-                  :id="item.id + (index + 1)"
+                  :id="item.issueno + (index + 1)"
                   >{{ number }}</view
                 >
               </view>
@@ -125,18 +132,20 @@
               }"
               :style="{
                 borderColor:
-                  pointActives[`${row}0`]?.isSolid === false && pointActives[`${row}0`].color,
-                width: pointActives[`${row}0`]?.isSolid && 70 + 'rpx',
-                height: pointActives[`${row}0`]?.isSolid && 70 + 'rpx'
+                  pointActives[`${row}0`]?.isSolid === false ? pointActives[`${row}0`].color : '',
+                width: pointActives[`${row}0`]?.isSolid ? 70 + 'rpx' : '',
+                height: pointActives[`${row}0`]?.isSolid ? 70 + 'rpx' : ''
               }"
             >
               <view
                 class="item"
                 :id="`${row}0`"
                 :style="{
-                  backgroundColor:
-                    pointActives[`${row}0`]?.isSolid && pointActives[`${row}0`].color,
-                  color: pointActives[`${row}0`]?.isSolid === false && pointActives[`${row}0`].color
+                  backgroundColor: pointActives[`${row}0`]?.isSolid
+                    ? pointActives[`${row}0`].color
+                    : '',
+                  color:
+                    pointActives[`${row}0`]?.isSolid === false ? pointActives[`${row}0`].color : ''
                 }"
                 >{{ marks[`${row}0`]?.marker.condition }}</view
               >
@@ -144,7 +153,7 @@
           </view>
 
           <view class="column-3">
-            <view v-for="(val, index) in 5" :key="val">
+            <view v-for="(val, index) in data[0].number.length" :key="val">
               <view
                 v-if="index !== 4 && marks[`${row}${index + 1}`]?.marker.senior"
                 class="senior"
@@ -164,21 +173,23 @@
                 }"
                 :style="{
                   borderColor:
-                    pointActives[`${row}${index + 1}`]?.isSolid === false &&
-                    pointActives[`${row}${index + 1}`].color,
-                  width: pointActives[`${row}${index + 1}`]?.isSolid && 85 + 'rpx',
-                  height: pointActives[`${row}${index + 1}`]?.isSolid && 85 + 'rpx'
+                    pointActives[`${row}${index + 1}`]?.isSolid === false
+                      ? pointActives[`${row}${index + 1}`].color
+                      : '',
+                  width: pointActives[`${row}${index + 1}`]?.isSolid ? 85 + 'rpx' : '',
+                  height: pointActives[`${row}${index + 1}`]?.isSolid ? 85 + 'rpx' : ''
                 }"
               >
                 <view
                   class="item"
                   :style="{
-                    backgroundColor:
-                      pointActives[`${row}${index + 1}`]?.isSolid &&
-                      pointActives[`${row}${index + 1}`].color,
+                    backgroundColor: pointActives[`${row}${index + 1}`]?.isSolid
+                      ? pointActives[`${row}${index + 1}`].color
+                      : '',
                     color:
-                      pointActives[`${row}${index + 1}`]?.isSolid === false &&
-                      pointActives[`${row}${index + 1}`].color
+                      pointActives[`${row}${index + 1}`]?.isSolid === false
+                        ? pointActives[`${row}${index + 1}`].color
+                        : ''
                   }"
                   :id="`${row}${index + 1}`"
                   >{{ marks[`${row}${index + 1}`]?.marker.condition }}</view
@@ -190,7 +201,7 @@
         <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
         <view
           class="text"
-          :class="{ 'text-handle-hide': textHandleHide }"
+          :class="{ 'text-handle-show': index === textChangeIndex }"
           v-for="(item, index) in textList"
           :key="index"
           :style="{
@@ -198,7 +209,7 @@
             left: item.text.position.x + 'px',
             fontSize: item.style.fontSize + 'px',
             lineHeight: item.style.fontSize + 'px',
-            borderColor: item.style.color
+            borderColor: index === textChangeIndex ? item.style.color : ''
           }"
         >
           <view
@@ -290,7 +301,7 @@
 
 <script setup>
 import { ref, nextTick, computed, watch } from 'vue'
-import { onReady } from '@dcloudio/uni-app'
+import { onLoad, onReady } from '@dcloudio/uni-app'
 import { getCurrentInstance } from 'vue'
 import mock from './mock.json'
 import Popup from '@/components/juWang/Popup.vue'
@@ -323,6 +334,7 @@ const dateFromat = (dateStr) => {
 }
 
 const instance = getCurrentInstance()
+const getSelectorQuery = () => uni.createSelectorQuery().in(instance.proxy)
 let lineCtx
 const popup = ref(null)
 
@@ -375,29 +387,37 @@ const data = ref([])
 let positionList
 let showPeriod = options.showPeriod || 40
 const getData = async () => {
-  uni.showLoading({ title: '加载中...' })
-  const res = await apiTicketQuery({ tname: '排列五', page: '1', limit: showPeriod })
-  uni.hideLoading()
-  data.value = res.data.records.reverse()
-  data.value.forEach((item) => {
-    item.number = item.number?.split(' ').slice(0, 5)
-  })
+  try {
+    uni.showLoading({ title: '加载中...' })
+    const res = await apiTicketQuery({ tname: type.value, page: '1', limit: showPeriod })
+
+    data.value = res.data.records.reverse()
+    data.value.forEach((item) => {
+      item.number = item.number?.split(' ')
+      if (type.value === '七星彩') item.number.slice(0, 5)
+    })
+  } finally {
+    uni.hideLoading()
+  }
+
   // data.value = mock.data.records
   // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
+  //   item.number = item.number.split(' ').slice(0, 3)
+  //   if (type.value === '七星彩') item.number.slice(0, 5)
   // })
 
   await nextTick()
-  const query = uni.createSelectorQuery().in(instance.proxy)
+  getPositionList()
+}
+const getPositionList = () => {
+  const query = getSelectorQuery()
   query
     .selectAll('.item')
     .boundingClientRect((data) => {
       positionList = data
     })
     .exec()
-  scrollInitTop.value = 9999
 }
-getData()
 
 const curveHandleX = ref(0)
 const curveHandleY = ref(0)
@@ -494,12 +514,17 @@ const isTextInputShow = ref(false)
 const textareaPosition = ref({}) // textarea坐标
 const textareaValue = ref('')
 const touchstart = (event) => {
-  textHandleHide.value = true // 关闭悬浮文字边框
+  // 关闭悬浮文字激活
+  if (textChangeIndex.value !== null && !isTextInputShow.value) textChangeIndex.value = null
+  //禁用曲线控制按钮
+  iscurveHandleShow.value = false
+
   const { x, y } = event.touches[0]
   startX = x
   startY = y
 
-  if (x < 130 * ratio) {
+  const column1Width = type.value === '福彩3D' ? 200 : 160
+  if (x < column1Width * ratio) {
     isScroll.value = true
     return
   } else {
@@ -540,9 +565,6 @@ const touchstart = (event) => {
       }
       break
   }
-  // startX = position.left + position.width / 2
-  // startY = position.top + position.height / 2
-  // record.value.push({ point: [position.id] })
 }
 const colors = [
   '#f2232b',
@@ -584,6 +606,7 @@ const touchmove = (event) => {
     case '智能曲线':
       if (isFirst) {
         if (options.count === 1) {
+          if (!tmpItemMeta) return
           record.value.push({
             point: [tmpItemMeta.id],
             style: { color: color.value, size: size.value, ...options.numberStyle }
@@ -663,10 +686,8 @@ const touchmove = (event) => {
   lineCtx.draw()
 }
 
-const textHandleHide = ref(true)
 const touchend = (event) => {
   if (isScroll.value) return
-  else isScroll.value = true
 
   let { x, y } = event.changedTouches[0]
   // 判断是否点击
@@ -675,24 +696,29 @@ const touchend = (event) => {
     if (mode.value === '添加文字') {
       if (!isTextInputShow.value) {
         // 弹出输入框
+        if (textChangeIndex.value !== null) {
+          textChangeIndex.value = null
+          return
+        }
         textPosition = { x, y }
         textareaPosition.value = { x, y }
         isTextInputShow.value = true
       } else {
         isTextInputShow.value = false
         // 修改文字
-        if (textChangeIndex !== null) {
-          const meta = record.value[textChangeIndex]
+        if (textChangeIndex.value !== null) {
+          const index = textList.value[textChangeIndex.value].index
+          const meta = record.value[index]
 
           meta.text.content = textareaValue.value
           // 重新计算文字框大小
           meta.style.width = 'auto'
           meta.style.height = 'auto'
           nextTick(async () => {
-            const { width, height } = await getRect(`#text${textChangeIndex}`)
+            const { width, height } = await getRect(`#text${textChangeIndex.value}`)
             meta.style.width = width
             meta.style.height = height
-            textChangeIndex = null
+            textChangeIndex.value = null
             textareaValue.value = ''
           })
 
@@ -716,7 +742,6 @@ const touchend = (event) => {
         })
         textareaValue.value = ''
         nextTick(async () => {
-          const query = uni.createSelectorQuery().in(instance.proxy)
           const { width, height } = await getRect(`#text${textList.value.length - 1}`)
           const item = record.value[record.value.length - 1]
           item.style.width = width
@@ -728,7 +753,7 @@ const touchend = (event) => {
         point: [tmpItemMeta.id],
         style: { color: color.value, ...options.numberStyle }
       })
-      if (tmpItemMeta.id.length < 10) openPopup()
+      if (tmpItemMeta.id.length === 2) openPopup()
     }
   } else {
     switch (mode.value) {
@@ -796,13 +821,15 @@ const touchend = (event) => {
           }
 
           // 结束位置为空白区域，同时结束位置没有标记，同时允许数字选择器
-          if (endPosition.id.length < 10 && !marks.value[endPosition.id] && options.numberPicker) {
+          if (endPosition.id.length === 2 && !marks.value[endPosition.id] && options.numberPicker) {
             openPopup()
           }
         }
         if (options.count === 1) {
           const position = getPosition(x, y)
-          addRecord(lastRecord, { startX, startY }, position)
+          if (position) {
+            addRecord(lastRecord, { startX, startY }, position)
+          }
           drawnLineAll()
         } else {
           for (let index = 0; index < lastRecord.length; index++) {
@@ -884,7 +911,6 @@ const touchend = (event) => {
     }
   }
 
-  isScroll.value = true
   isClick = true
   isFirst = true
 }
@@ -1023,7 +1049,7 @@ const share = async () => {
 // 获取元素位置信息
 const getRect = (id) => {
   return new Promise((resolve) => {
-    const query = uni.createSelectorQuery().in(instance.proxy)
+    const query = getSelectorQuery()
     query
       .select(id)
       .boundingClientRect((data) => {
@@ -1032,6 +1058,15 @@ const getRect = (id) => {
       .exec()
   })
 }
+const type = ref('')
+onLoad(async (options) => {
+  type.value = options.type
+  await getData()
+
+  scrollInitTop.value = 9999
+  await nextTick()
+  isScroll.value = false
+})
 onReady(async () => {
   lineCtx = uni.createCanvasContext('lineCanvas')
   ;({
@@ -1068,7 +1103,7 @@ const marks = computed(() => {
   })
   return result
 })
-const popupSbumit = (val) => {
+const popupSubmit = (val) => {
   let item = record.value[record.value.length - 1]
   if (Array.isArray(item)) item = item[0]
   item.marker = val
@@ -1106,7 +1141,7 @@ const getColorStyle = (id) => {
     } else if (meta.marker.numbers.length <= 2) {
       fontSize = 50
     } else {
-      fontSize = 39
+      fontSize = 40
     }
   }
   if (fontSize) {
@@ -1201,7 +1236,6 @@ const textTouchend = async (e, index) => {
   item.style.width = width
   item.style.height = height
 
-  isScroll.value = true
   isTextClick = true
 }
 
@@ -1232,25 +1266,27 @@ const textPositionMove = (e, index) => {
   item.text.position.y = pageY - textStartY + tmpTextY
 }
 
-let textChangeIndex = null
+let textChangeIndex = ref(null)
 const cursor = ref(0)
 const textPositionEnd = (e, index) => {
   if (isTextClick) {
     // 显示边框
-    if (textHandleHide.value) {
-      textHandleHide.value = false
+    if (textChangeIndex.value === null) {
+      textChangeIndex.value = index
+      return
+    }
+    if (textChangeIndex.value !== index) {
+      textChangeIndex.value = index
       return
     }
     isTextInputShow.value = true
-    textChangeIndex = index
-    textareaValue.value = record.value[index].text.content
+    textareaValue.value = record.value[textList.value[index].index].text.content
     const { pageX: x, pageY: y } = e.changedTouches[0]
     textareaPosition.value = { x, y: y + scrolltop }
     cursor.value = record.value[index].text.content.length
     return
   }
   isTextClick = true
-  isScroll.value = true
 }
 
 // 锁定页面
@@ -1371,7 +1407,7 @@ $tools-height: 130rpx;
     .text {
       padding: 9rpx;
       position: absolute;
-      border: 2px solid;
+      border: 2px solid transparent;
       border-radius: 5rpx;
       z-index: 5;
       .text-container {
@@ -1388,6 +1424,7 @@ $tools-height: 130rpx;
       $text-font-size: 25rpx;
       .text-btn-left,
       .text-btn-right {
+        display: none;
         position: absolute;
         width: 35rpx;
         height: 35rpx;
@@ -1422,11 +1459,11 @@ $tools-height: 130rpx;
       background-color: rgba($color: #fff, $alpha: 0.8);
       transform: translate(-10%, -10%);
     }
-    .text-handle-hide {
-      border-color: transparent !important;
+    .text-handle-show {
+      border: 2px solid;
       .text-btn-left,
       .text-btn-right {
-        display: none;
+        display: block;
       }
     }
   }
@@ -1581,13 +1618,6 @@ $tools-height: 130rpx;
     z-index: 2;
   }
 }
-// .active {
-//   color: #fff;
-//   border: 5rpx solid #f1f3f0;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-// }
 .border {
   position: relative;
   z-index: 3;
@@ -1621,5 +1651,25 @@ $tools-height: 130rpx;
   left: v-bind('curveHandleX + "px"');
   text-align: center;
   transform: translate(-50%, -50%);
+}
+.type-2 {
+  .row {
+    .column-1 {
+      width: 200rpx;
+    }
+    .column-2 {
+      width: 100rpx;
+    }
+    .column-3 {
+      width: 750rpx - 300rpx;
+      border-right: none;
+      > view {
+        width: 33.4%;
+      }
+      > view:nth-child(3) {
+        border-right: none;
+      }
+    }
+  }
 }
 </style>

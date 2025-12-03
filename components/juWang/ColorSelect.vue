@@ -12,7 +12,7 @@
 
     <scroll-view scroll-y :show-scrollbar="false" class="list-top">
       <view
-        class="item"
+        class="list-top-item"
         v-for="c in colors"
         :key="c"
         :style="`background-color: ${c};`"
@@ -23,7 +23,7 @@
     <scroll-view scroll-x :show-scrollbar="false" class="list-right">
       <view class="list">
         <view
-          class="item"
+          class="list-right-item"
           v-for="(icon, index) in sizeIcon"
           :key="icon"
           :class="{ 'size-active': size === sizes[index] }"
@@ -156,7 +156,7 @@ const resetColor = () => {
     overflow-y: scroll;
     transition: all 0.3s ease-in;
     opacity: 1;
-    .item {
+    .list-top-item {
       width: 100%;
       aspect-ratio: 1;
       background-color: red;
@@ -182,7 +182,7 @@ const resetColor = () => {
       justify-content: space-evenly;
       align-items: center;
       height: 100%;
-      .item {
+      .list-right-item {
         width: 60rpx;
         height: 60rpx;
         border-radius: 50%;
