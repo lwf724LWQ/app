@@ -394,7 +394,7 @@ const getData = async () => {
     data.value = res.data.records.reverse()
     data.value.forEach((item) => {
       item.number = item.number?.split(' ')
-      if (type.value === '七星彩') item.number.slice(0, 5)
+      if (type.value === '七星彩') item.number = item.number.slice(0, 5)
     })
   } finally {
     uni.hideLoading()
