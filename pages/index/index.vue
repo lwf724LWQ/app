@@ -61,8 +61,9 @@
 					</view>
 					<view class="winning-numbers-qxc">
 						<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
-							<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{ num
-							}}</view>
+							<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{
+								num
+								}}</view>
 							<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
 						</view>
 					</view>
@@ -183,6 +184,10 @@ export default {
 			// });
 		},
 		goToLive() {
+			uni.navigateTo({
+				url: "/pages/index/live"
+			})
+			return
 			// #ifdef H5
 			uni.showModal({
 				title: '提示',
