@@ -309,14 +309,14 @@
       }
     ]
   },
-	"condition" : {
-		"current": 0,
-		"list": [
-			{
-				"name": "",
-				"path": "",
-				"query": ""
-			}
-		]
-	}
+  "condition": {
+    "current": 0,
+    "list": [
+      {
+        "name": "",
+        "path": "",
+        "query": ""
+      }
+    ]
+  }
 }
