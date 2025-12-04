@@ -53,7 +53,7 @@
               <view
                 v-for="(item, index) in effectViewList"
                 :key="index"
-                v-show="effectList.length !== 4"
+                v-show="effectList.length !== effectMap['稳码'].length"
               >
                 <view
                   class="item"
@@ -71,7 +71,10 @@
                 </view>
                 {{ item }}
               </view>
-              <view class="item-all bg-active" v-show="effectList.length === 4">
+              <view
+                class="item-all bg-active"
+                v-show="effectList.length === effectMap['稳码'].length"
+              >
                 {{ numbers.length ? '稳上一码：' + numbers.join('') : '' }}
               </view>
             </view>
@@ -183,7 +186,7 @@ const conditions = computed(() => {
   const result = []
   if (props.type !== '福彩3D')
     result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
-  else result.push('单', '双', '大', '小', 'X', '百十合', '百个合', '十个合', '杀', '稳码')
+  else result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
   return result
 })
 const simpleConditions = ['单', '双', '大', '小', 'X']
@@ -262,7 +265,7 @@ const numberMap = {
 }
 
 const effectList = ref([0])
-const effectMap = {
+let effectMap = {
   头尾合: [0, 3],
   千百合: [0, 1],
   中肚合: [1, 2],
@@ -273,12 +276,27 @@ const effectMap = {
   杀: [undefined],
   稳码: [0, 1, 2, 3]
 }
-const indexMap = {
+
+let indexMap = {
   0: ['头尾合', '千百合', '千十合'],
   1: ['中肚合', '千百合', '百个合'],
   2: ['中肚合', '千十合', '十个合'],
   3: ['头尾合', '百个合', '十个合'],
   4: []
+}
+if (props.type === '福彩3D') {
+  effectMap = {
+    百十合: [0, 1],
+    百个合: [0, 2],
+    十个合: [1, 2],
+    杀: [undefined],
+    稳码: [0, 1, 2]
+  }
+  indexMap = {
+    0: ['百十合'],
+    1: ['百十合', '十个合'],
+    2: ['十个合']
+  }
 }
 
 // 提交
@@ -458,8 +476,7 @@ view {
     display: flex;
     justify-content: space-between;
     text-align: center;
-    // line-height: 70rpx;
-    // align-items: center;
+    height: 180rpx;
     .item {
       width: 140rpx;
       height: 140rpx;
@@ -487,7 +504,6 @@ view {
       width: 100%;
       height: 140rpx;
       line-height: 140rpx;
-      margin-bottom: 37rpx;
       background-color: #f6f6f3;
       border-radius: 20rpx;
     }
@@ -514,10 +530,8 @@ view {
   }
   .condition {
     display: flex;
-    // justify-content: space-between;
 
     .item {
-      // width: 80rpx;
       background-color: #f6f6f3;
       margin-right: 20rpx;
       border-radius: 8rpx;

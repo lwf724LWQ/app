@@ -334,7 +334,7 @@ const dateFromat = (dateStr) => {
 }
 
 const instance = getCurrentInstance()
-const query = uni.createSelectorQuery().in(instance.proxy)
+const getSelectorQuery = () => uni.createSelectorQuery().in(instance.proxy)
 let lineCtx
 const popup = ref(null)
 
@@ -410,7 +410,7 @@ const getData = async () => {
   getPositionList()
 }
 const getPositionList = () => {
-  const query = uni.createSelectorQuery().in(instance.proxy)
+  const query = getSelectorQuery()
   query
     .selectAll('.item')
     .boundingClientRect((data) => {
@@ -516,11 +516,15 @@ const textareaValue = ref('')
 const touchstart = (event) => {
   // 关闭悬浮文字激活
   if (textChangeIndex.value !== null && !isTextInputShow.value) textChangeIndex.value = null
+  //禁用曲线控制按钮
+  iscurveHandleShow.value = false
+
   const { x, y } = event.touches[0]
   startX = x
   startY = y
 
-  if (x < 130 * ratio) {
+  const column1Width = type.value === '福彩3D' ? 200 : 160
+  if (x < column1Width * ratio) {
     isScroll.value = true
     return
   } else {
@@ -561,9 +565,6 @@ const touchstart = (event) => {
       }
       break
   }
-  // startX = position.left + position.width / 2
-  // startY = position.top + position.height / 2
-  // record.value.push({ point: [position.id] })
 }
 const colors = [
   '#f2232b',
@@ -605,6 +606,7 @@ const touchmove = (event) => {
     case '智能曲线':
       if (isFirst) {
         if (options.count === 1) {
+          if (!tmpItemMeta) return
           record.value.push({
             point: [tmpItemMeta.id],
             style: { color: color.value, size: size.value, ...options.numberStyle }
@@ -686,7 +688,6 @@ const touchmove = (event) => {
 
 const touchend = (event) => {
   if (isScroll.value) return
-  else isScroll.value = true
 
   let { x, y } = event.changedTouches[0]
   // 判断是否点击
@@ -752,7 +753,7 @@ const touchend = (event) => {
         point: [tmpItemMeta.id],
         style: { color: color.value, ...options.numberStyle }
       })
-      if (tmpItemMeta.id.length < 10) openPopup()
+      if (tmpItemMeta.id.length === 2) openPopup()
     }
   } else {
     switch (mode.value) {
@@ -826,7 +827,9 @@ const touchend = (event) => {
         }
         if (options.count === 1) {
           const position = getPosition(x, y)
-          addRecord(lastRecord, { startX, startY }, position)
+          if (position) {
+            addRecord(lastRecord, { startX, startY }, position)
+          }
           drawnLineAll()
         } else {
           for (let index = 0; index < lastRecord.length; index++) {
@@ -908,7 +911,6 @@ const touchend = (event) => {
     }
   }
 
-  isScroll.value = true
   isClick = true
   isFirst = true
 }
@@ -1047,6 +1049,7 @@ const share = async () => {
 // 获取元素位置信息
 const getRect = (id) => {
   return new Promise((resolve) => {
+    const query = getSelectorQuery()
     query
       .select(id)
       .boundingClientRect((data) => {
@@ -1059,7 +1062,10 @@ const type = ref('')
 onLoad(async (options) => {
   type.value = options.type
   await getData()
+
   scrollInitTop.value = 9999
+  await nextTick()
+  isScroll.value = false
 })
 onReady(async () => {
   lineCtx = uni.createCanvasContext('lineCanvas')
@@ -1135,7 +1141,7 @@ const getColorStyle = (id) => {
     } else if (meta.marker.numbers.length <= 2) {
       fontSize = 50
     } else {
-      fontSize = 39
+      fontSize = 40
     }
   }
   if (fontSize) {
@@ -1230,7 +1236,6 @@ const textTouchend = async (e, index) => {
   item.style.width = width
   item.style.height = height
 
-  isScroll.value = true
   isTextClick = true
 }
 
@@ -1282,7 +1287,6 @@ const textPositionEnd = (e, index) => {
     return
   }
   isTextClick = true
-  isScroll.value = true
 }
 
 // 锁定页面

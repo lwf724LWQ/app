@@ -114,8 +114,8 @@ $border-color: #f9a29f;
 .table {
   width: 100%;
   color: #83c283;
-  height: calc(100vh - var(--window-top));
-  margin-top: v-bind('top + "px"');
+  height: calc(100vh - v-bind('top + "px"'));
+  padding-top: v-bind('top + "px"');
   > .row:nth-child(4n) {
     border-top: 5rpx solid $border-color;
   }
