@@ -16,53 +16,59 @@
 		</swiper>
 
 		<!-- 开奖结果区域 - 福彩3D -->
-		<view class="lottery-results-fc3d">
-			<view class="result-item-fc3d">
-				<view class="result-header-fc3d">
-					<view class="lottery-title-fc3d">福彩3D {{ fc3dPeriod }}</view>
-					<view class="lottery-date">{{ fc3dDate }}</view>
-				</view>
-				<view class="winning-numbers-fc3d">
-					<view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
-						<view class="number-item-fc3d">{{ num }}</view>
-						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+		<navigator :url="`/pages/table/table?type=福彩3D&period=${fc3dPeriod}`">
+			<view class="lottery-results-fc3d">
+				<view class="result-item-fc3d">
+					<view class="result-header-fc3d">
+						<view class="lottery-title-fc3d">福彩3D 第{{ fc3dPeriod }}期</view>
+						<view class="lottery-date">{{ fc3dDate }}</view>
+					</view>
+					<view class="winning-numbers-fc3d">
+						<view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
+							<view class="number-item-fc3d">{{ num }}</view>
+							<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+						</view>
 					</view>
 				</view>
 			</view>
-		</view>
+		</navigator>
 
 		<!-- 开奖结果区域 - 排列五 -->
-		<view class="lottery-results-plw">
-			<view class="result-item-plw" @click="gotoGuiRead">
-				<view class="result-header-plw">
-					<view class="lottery-title-plw">排列三 排列五 {{ plwPeriod }}</view>
-					<view class="lottery-date">{{ plwDate }}</view>
-				</view>
-				<view class="winning-numbers-plw">
-					<view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
-						<view class="number-item-plw">{{ num }}</view>
-						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+		<navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
+			<view class="lottery-results-plw">
+				<view class="result-item-plw">
+					<view class="result-header-plw">
+						<view class="lottery-title-plw">排列三 排列五 第{{ plwPeriod }}期</view>
+						<view class="lottery-date">{{ plwDate }}</view>
+					</view>
+					<view class="winning-numbers-plw">
+						<view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
+							<view class="number-item-plw">{{ num }}</view>
+							<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+						</view>
 					</view>
 				</view>
 			</view>
-		</view>
+		</navigator>
 
 		<!-- 开奖结果区域 - 七星彩 -->
-		<view class="lottery-results-qxc">
-			<view class="result-item-qxc">
-				<view class="result-header-qxc">
-					<view class="lottery-title-qxc">七星彩 {{ qxcPeriod }}</view>
-					<view class="lottery-date">{{ qxcDate }}</view>
-				</view>
-				<view class="winning-numbers-qxc">
-					<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
-						<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{ num
-						}}</view>
-						<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+		<navigator :url="`/pages/table/table?type=七星彩&period=${qxcPeriod}`">
+			<view class="lottery-results-qxc">
+				<view class="result-item-qxc">
+					<view class="result-header-qxc">
+						<view class="lottery-title-qxc">七星彩 第{{ qxcPeriod }}期</view>
+						<view class="lottery-date">{{ qxcDate }}</view>
+					</view>
+					<view class="winning-numbers-qxc">
+						<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
+							<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{ num
+							}}</view>
+							<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+						</view>
 					</view>
 				</view>
 			</view>
-		</view>
+		</navigator>
 
 		<!-- 通知横幅 -->
 		<view class="notice-banner">
@@ -180,11 +186,6 @@ export default {
 				url: '/pages/dream-interpretation/dream-interpretation'
 			});
 		},
-		gotoGuiRead() {
-			uni.navigateTo({
-				url: '/pages/juWang/drawLine/drawLineRead'
-			});
-		},
 		// 加载开奖结果
 		async loadLotteryResults() {
 			// 防止重复调用
@@ -220,7 +221,7 @@ export default {
 						// 福彩3D
 						if (tname && tname.includes('福彩3D')) {
 							this.fc3dNumbers = this.parseNumbers(item.number)
-							this.fc3dPeriod = '第' + item.issueno + '期'
+							this.fc3dPeriod = item.issueno
 							// 更新日期
 							if (item.opendate || item.date || item.createTime) {
 								const date = item.opendate || item.date || item.createTime
@@ -231,7 +232,7 @@ export default {
 						// 排列五
 						if (tname && tname.includes('排列五')) {
 							this.plwNumbers = this.parseNumbers(item.number)
-							this.plwPeriod = '第' + item.issueno + '期'
+							this.plwPeriod = item.issueno
 							// 更新日期
 							if (item.opendate || item.date || item.createTime) {
 								const date = item.opendate || item.date || item.createTime
@@ -242,7 +243,7 @@ export default {
 						// 排列三
 						if (tname && tname.includes('排列三')) {
 							// 排列三和排列五共用期号
-							this.plwPeriod = '第' + item.issueno + '期'
+							this.plwPeriod = item.issueno
 							// 排列三的日期会覆盖排列五的日期（因为排列五在前面）
 							if (item.opendate || item.date || item.createTime) {
 								const date = item.opendate || item.date || item.createTime
@@ -258,7 +259,7 @@ export default {
 								numbers.push(item.refernumber)
 							}
 							this.qxcNumbers = numbers
-							this.qxcPeriod = '第' + item.issueno + '期'
+							this.qxcPeriod = item.issueno
 							// 更新日期
 							if (item.opendate || item.date || item.createTime) {
 								const date = item.opendate || item.date || item.createTime

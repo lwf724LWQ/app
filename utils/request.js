@@ -1,4 +1,4 @@
-const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
+export const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
 
 // 全局token变量
 let globalToken = '';
