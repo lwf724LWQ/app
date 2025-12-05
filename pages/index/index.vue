@@ -149,7 +149,7 @@
 			</view>
 		</view>
 
-		<PrivacyPolicyModal :visible="true"></PrivacyPolicyModal>
+		<!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
 	</view>
 
 </template>
@@ -158,6 +158,7 @@
 import { apiFindResult } from '@/api/apis.js'
 import { mode } from 'crypto-js';
 import PrivacyPolicyModal from "../../components/PrivacyPolicyModal.vue"
+import { useUserStore } from '../../stores/userStore';
 export default {
 	inject: ['useOldManModeStore'],
 	components: { PrivacyPolicyModal },
@@ -204,9 +205,23 @@ export default {
 			// #endif
 		},
 		goToDreamInterpretation() {
-			uni.navigateTo({
-				url: '/pages/dream-interpretation/dream-interpretation'
-			});
+			const userStore = useUserStore()
+			if(userStore.getUserInfo.account){
+				uni.navigateTo({
+					url: '/pages/dream-interpretation/dream-interpretation'
+				});
+			}else{
+				uni.showModal({
+					title: '提示',
+					content: '该功能需要登录，是否前往',
+					success: async (res) => {
+						if (res.confirm) {
+							uni.navigateTo({ url: '/pages/login/login' })
+						}
+					},
+					showCancel: true,
+				})
+			}
 		},
 		// 加载开奖结果
 		async loadLotteryResults() {

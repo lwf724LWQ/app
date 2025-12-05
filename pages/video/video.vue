@@ -793,7 +793,7 @@ onMounted(async () => {
 	justify-content: center;
 	gap: 10rpx;
 	right: 30rpx;
-	bottom: 120rpx;
+	bottom: calc(120rpx + var(--window-bottom));
 	width: 190rpx;
 	height: 60rpx;
 	line-height: 60rpx;

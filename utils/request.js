@@ -119,41 +119,43 @@ function loginGuard(res){
 			title: "登录校验过期，重新登录中..."
 		})
 		const account = uni.getStorageSync("account")
-		request({
-			url: "/web/user/login",
-			method: "POST",
-			data:{
-				type: "0",
-				account: account,
-				password: uni.getStorageSync("password"),
-			}
-		}).then((loginRes)=>{
-			uni.hideLoading()
-			// 从登录返回的数据中提取用户信息
-			const loginData = loginRes.data || {};
-			// 保存用户信息到本地存储
-			const userInfo = {
-			  nickname: loginData.uname || '用户',
-			  avatar: loginData.himg,
-			  account: account.value
-			};
-			userStore.updateUserInfo(userInfo, success.data.token);
-			uni.showToast({
-				title: "重新登录成功，请重新操作"
-			})
-		}).catch(()=>{
-			uni.hideLoading()
-			uni.showModal({
-				title: "自动登录失败",
-				content: "请使用账号密码重新登录",
-				success: (res) => {
-					if (res.confirm) {
-						uni.navigateTo({url:'/pages/login/login'})
-					}
+		if(account){
+			request({
+				url: "/web/user/login",
+				method: "POST",
+				data:{
+					type: "0",
+					account: account,
+					password: uni.getStorageSync("password"),
 				}
+			}).then((loginRes)=>{
+				uni.hideLoading()
+				// 从登录返回的数据中提取用户信息
+				const loginData = loginRes.data || {};
+				// 保存用户信息到本地存储
+				const userInfo = {
+				  nickname: loginData.uname || '用户',
+				  avatar: loginData.himg,
+				  account: account.value
+				};
+				userStore.updateUserInfo(userInfo, success.data.token);
+				uni.showToast({
+					title: "重新登录成功，请重新操作"
+				})
+			}).catch(()=>{
+				uni.hideLoading()
+				uni.showModal({
+					title: "自动登录失败",
+					content: "请使用账号密码重新登录",
+					success: (res) => {
+						if (res.confirm) {
+							uni.navigateTo({url:'/pages/login/login'})
+						}
+					}
+				})
 			})
-		})
-		return
+			return
+		}
 		// #endif
 		
 		const token = getToken()

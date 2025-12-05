@@ -630,7 +630,7 @@ onUnmounted(() => {
     .agreement-text,
     .price-text,
     .rule-item {
-      font-size: 32rpx;
+      font-size: 36rpx;
       font-weight: bold;
     }
 
