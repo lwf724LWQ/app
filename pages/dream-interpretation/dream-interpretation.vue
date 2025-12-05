@@ -88,22 +88,18 @@
               <view class="card-image-section">
                 <view class="card-image">
                   <image v-if="!item.imageError && item.img"
-                    :src="item.currentImageUrl || getImageUrl(item.id, item.img)" mode="aspectFill" class="dream-image"
-                    @error="handleImageError(item, index)" @load="handleImageLoad(item, index)"></image>
-                  <view class="default-icon" v-else>
-                    <text class="icon-text"></text>
-                  </view>
+                    :src="item.currentImageUrl || getImageUrl(item.id, item.img)" mode="aspectFill full-w"
+                    class="dream-image" @error="handleImageError(item, index)" @load="handleImageLoad(item, index)">
+                  </image>
                 </view>
-              </view>
-
-              <!-- 右侧内容区域 -->
-              <!-- 号码区域 -->
-              <view class="card-numbers-section" v-if="item.numberOne || item.numberTwo">
-                <text class="number-text" v-if="item.numberOne">{{ item.numberOne }}</text>
-                <text class="number-text" v-if="item.numberTwo">{{ item.numberTwo }}</text>
               </view>
             </view>
             <!-- 梦境标题 -->
+            <view class="card-numbers-section" v-if="item.numberOne || item.numberTwo">
+              <!-- 号码区域 -->
+              <text class="number-text" v-if="item.numberOne">{{ item.numberOne }}</text>
+              <text class="number-text" v-if="item.numberTwo">{{ item.numberTwo }}</text>
+            </view>
             <text class="card-title">{{ item.content }}</text>
           </view>
         </view>
@@ -164,7 +160,8 @@ const popularDreams = ref([
   '苍蝇幼虫', '走私被捕', '剪刀割手', '跳楼', '伯父死了', '失踪少女'
 ])
 
-// 第一次打开需提醒
+// #ifdef APP-PLUS
+// 第一次打开需提醒 防不过审
 if (uni.getStorageSync('firstOpenDreamInterpretation') !== 'true') {
   uni.showModal({
     title: '温馨提示',
@@ -178,7 +175,7 @@ if (uni.getStorageSync('firstOpenDreamInterpretation') !== 'true') {
     }
   })
 }
-
+// #endif
 
 const popularCategories = ref([])
 
@@ -445,7 +442,7 @@ const loadDefaultData = async () => {
     const response = await apiDreamQuery({
       content: '', // 空内容获取默认数据
       page: '1',
-      limit: '4' // 只获取4条数据
+      limit: '12' // 只获取4条数据
     })
 
     dreamResults.value = response.data.records || []
@@ -512,7 +509,7 @@ const loadDefaultData = async () => {
 
 /* 主要内容区域 */
 .main-content {
-  padding: 88rpx 30rpx 30rpx;
+  padding: 88rpx 0 0 0;
   padding-top: calc(88rpx + var(--status-bar-height));
 }
 
@@ -593,20 +590,18 @@ const loadDefaultData = async () => {
 .result-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
+  gap: 0 10rpx;
+  border: 1rpx solid #000000;
 }
 
 .result-card {
-  background-color: #fff;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
   transition: all 0.2s ease;
-  border: 1rpx solid #f0f0f0;
+  border: 1rpx solid #000000;
+  border-top: none;
   text-align: center;
 }
 
@@ -621,16 +616,16 @@ const loadDefaultData = async () => {
 }
 
 .card-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 8rpx;
+  width: 360rpx;
+  height: 280rpx;
   overflow: hidden;
   position: relative;
-  background-color: #f8f8f8;
   display: flex;
+  background-color: #f8f8f8;
   align-items: center;
   justify-content: center;
-  border: 1rpx solid #e8e8e8;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #000000;
 }
 
 .dream-image {
@@ -669,10 +664,11 @@ const loadDefaultData = async () => {
 }
 
 .card-title {
+  font-family: "宋体";
   font-size: 26rpx;
   color: #333;
   line-height: 1.3;
-  font-weight: 500;
+  font-weight: bolder;
   text-align: center;
   word-break: break-all;
   max-height: 80rpx;
@@ -681,6 +677,11 @@ const loadDefaultData = async () => {
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+
+  border-top: 1px solid #000000;
+  width: 100%;
+  padding: 10rpx 0;
+
 }
 
 /* 号码区域 */
@@ -688,7 +689,7 @@ const loadDefaultData = async () => {
   flex: 1;
   width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 20rpx;
   align-items: center;
   justify-content: center;
@@ -696,13 +697,14 @@ const loadDefaultData = async () => {
 }
 
 .number-text {
-  font-size: 38rpx;
+  font-family: "宋体";
+  font-size: 42rpx;
   color: #fc3a3a;
-  font-weight: bold;
-  background-color: rgba(200, 200, 40, 0.2);
+  font-weight: bolder;
+  /* background-color: rgba(200, 200, 40, 0.2); */
   padding: 4rpx 8rpx;
   border-radius: 6rpx;
-  border: 1rpx solid rgb(200, 200, 40);
+  /* border: 1rpx solid rgb(200, 200, 40); */
   min-width: 40rpx;
   text-align: center;
   line-height: 1;
@@ -860,9 +862,9 @@ const loadDefaultData = async () => {
 }
 
 .card-title {
-  font-size: 28rpx;
+  font-size: 38rpx;
   color: #333;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 
