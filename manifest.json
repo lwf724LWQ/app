@@ -1,5 +1,5 @@
 {
-    "name" : "caimi",
+    "name" : "彩迷",
     "appid" : "__UNI__FA93A0C",
     "description" : "彩迷",
     "versionName" : "1.0.0",
@@ -20,7 +20,8 @@
         /* 模块配置 */
         "modules" : {
             "Camera" : {},
-            "VideoPlayer" : {}
+            "VideoPlayer" : {},
+            "Payment" : {}
         },
         /* 应用发布信息 */
         "distribute" : {

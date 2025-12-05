@@ -110,23 +110,64 @@ const notLoginPages = ['pages/login/login'] // 白名单
 function loginGuard(res){
 	if (res.msg && ["Token验证失败","Token已过期"].includes(res.msg)) {
 		const pages = getCurrentPages()
-
 		if (notLoginPages.includes(pages[pages.length - 1].route)) {
 			return false
-		}else{
-			const token = getToken()
-			userStore.clearUserInfo()
+		}
+		// #ifdef APP-PLUS
+		// app的话直接拿缓存的账号密码重新登录
+		uni.showLoading({
+			title: "登录校验过期，重新登录中..."
+		})
+		const account = uni.getStorageSync("account")
+		request({
+			url: "/web/user/login",
+			method: "POST",
+			data:{
+				type: "0",
+				account: account,
+				password: uni.getStorageSync("password"),
+			}
+		}).then((loginRes)=>{
+			uni.hideLoading()
+			// 从登录返回的数据中提取用户信息
+			const loginData = loginRes.data || {};
+			// 保存用户信息到本地存储
+			const userInfo = {
+			  nickname: loginData.uname || '用户',
+			  avatar: loginData.himg,
+			  account: account.value
+			};
+			userStore.updateUserInfo(userInfo, success.data.token);
+			uni.showToast({
+				title: "重新登录成功，请重新操作"
+			})
+		}).catch(()=>{
+			uni.hideLoading()
 			uni.showModal({
-				title: '提示',
-				content: token ? '登录过期，请重新登录' : '当前未登录或者登录过期，请重新登录',
-				success: async (res) => {
+				title: "自动登录失败",
+				content: "请使用账号密码重新登录",
+				success: (res) => {
 					if (res.confirm) {
 						uni.navigateTo({url:'/pages/login/login'})
 					}
-				},
-				showCancel: true,
+				}
 			})
-		}
+		})
+		return
+		// #endif
+		
+		const token = getToken()
+		userStore.clearUserInfo()
+		uni.showModal({
+			title: '提示',
+			content: token ? '登录过期，请重新登录' : '当前未登录或者登录过期，请重新登录',
+			success: async (res) => {
+				if (res.confirm) {
+					uni.navigateTo({url:'/pages/login/login'})
+				}
+			},
+			showCancel: true,
+		})
 		return false	
 	}
 	return true

@@ -1,20 +1,21 @@
 <template>
 	<view class="video-page-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
 		<!-- 为了适配小程序顶部高度的盒子-->
-		<StatusBarPlaceholder></StatusBarPlaceholder>
+		<StatusBarPlaceholder v-show="useOldManModeStore.enabled"></StatusBarPlaceholder>
 		<!-- 图片 -->
-		<image class='photo' src="@/static/video/swiper.png" mode="aspectFill"></image>
+		<image v-show="useOldManModeStore.enabled" class='photo' src="@/static/video/swiper.png" mode="aspectFill">
+		</image>
 
 		<!-- 切换标签栏（参考 forum.vue 风格） -->
 		<view class="switch-tabs">
 			<view class="tab-item" :class="{ active: currentTab === 'fc' }" @click="switchTabByIndex(3)">
 				<text class="tab-text">福彩3D</text>
 			</view>
-			<view class="tab-item" :class="{ active: currentTab === 'plw' }" @click="switchTabByIndex(0)">
-				<text class="tab-text">排列五</text>
-			</view>
 			<view class="tab-item" :class="{ active: currentTab === 'pls' }" @click="switchTabByIndex(1)">
 				<text class="tab-text">排列三</text>
+			</view>
+			<view class="tab-item" :class="{ active: currentTab === 'plw' }" @click="switchTabByIndex(0)">
+				<text class="tab-text">排列五</text>
 			</view>
 			<view class="tab-item" :class="{ active: currentTab === 'qxc' }" @click="switchTabByIndex(2)">
 				<text class="tab-text">七星彩</text>
@@ -58,7 +59,8 @@
 
 		<!-- 发布按钮 -->
 		<view class="publish-btn" @click="gotoOss()">
-			<uni-icons type="plus" size="20" color="#fff"></uni-icons>
+			投稿
+			<uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
 		</view>
 	</view>
 </template>
@@ -172,8 +174,8 @@ const fetchVideoList = async () => {
 
 			uni.showToast({
 				title: `已加载 ${videoList.value.length} 个视频`,
-				icon: 'success',
-				duration: 1500
+				position: 'bottom',
+				icon: 'none'
 			});
 		} else {
 			console.warn('API 返回数据格式不符合预期:', Videoinfo);
@@ -609,6 +611,10 @@ onMounted(async () => {
 			}
 		}
 	}
+
+	.switch-tabs {
+		padding-top: var(--status-bar-height);
+	}
 }
 
 .video-page-container.old-man-mode {
@@ -782,16 +788,27 @@ onMounted(async () => {
 /* 发布按钮 */
 .publish-btn {
 	position: fixed;
-	right: 30rpx;
-	bottom: 120rpx;
-	width: 100rpx;
-	height: 100rpx;
-	background-color: #28B389;
-	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4rpx 20rpx rgba(40, 179, 137, 0.3);
+	gap: 10rpx;
+	right: 30rpx;
+	bottom: 120rpx;
+	width: 190rpx;
+	height: 60rpx;
+	line-height: 60rpx;
+	text-align: center;
+	color: #fff;
+	font-size: 40rpx;
+	font-weight: bold;
+	background-color: #b3d35a;
+	border-radius: 10px;
+	padding: 10rpx;
+	// display: flex;
+	// align-items: center;
+	// justify-content: center;
+	border: 6rpx solid #ffffff;
+	box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
 	z-index: 999;
 }
 

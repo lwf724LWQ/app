@@ -102,11 +102,14 @@ import { onLoad } from '@dcloudio/uni-app'
 import { apiWordInsert } from '@/api/apis.js'
 import moment from "moment";
 import tool from '../../utils/tool';
+import { useUserStore } from '../../stores/userStore.ts'
+
+const userStore = useUserStore()
 
 // 表单数据
 const formData = ref({
   issueNo: '',
-  name1: '',
+  name1: userStore.getUserInfo.nickname,
   date: ''
 })
 

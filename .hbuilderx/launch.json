@@ -3,7 +3,8 @@
     "configurations" : [
         {
             "customPlaygroundType" : "device",
-            "playground" : "standard",
+            "packageName" : "com.app.caimi",
+            "playground" : "custom",
             "type" : "uni-app:app-android"
         }
     ]

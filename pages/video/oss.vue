@@ -1,13 +1,6 @@
 <template>
 	<view class="container">
-		<view class="navbar">
-			<!-- 返回按钮 -->
-			<view class="navbar-left" @click="goBack">
-				<uni-icons type="left" size="30"></uni-icons>
-			</view>
-			<!-- 标题 -->
-			<view class="navbar-title">上传视频</view>
-		</view>
+		<top-navigation-bar title="上传视频" bgColor="#1677ff" color="#fff" />
 
 		<!-- 视频信息表单 -->
 		<view class="form-area">
@@ -30,10 +23,11 @@
 				</view>
 			</view>
 
-			<view class="form-item" v-if="isCharge === 2">
+			<view class="form-item price-box" v-if="isCharge === 2">
 				<text class="form-label">收费价格</text>
-				<input class="form-input" v-model="chargePrice" type="number" placeholder="请输入价格" />
-				<text class="price-unit">元</text>
+				<NumberInput v-model="chargePrice" :min="10" :max="99999" :step="1" />
+				<!-- <input class="form-input" v-model="chargePrice" type="number" placeholder="请输入价格" /> -->
+				<text class="price-unit">金币</text>
 			</view>
 		</view>
 
@@ -116,6 +110,8 @@ import {
 	getAccount
 } from '@/utils/request.js'
 
+import NumberInput from '../../components/number-input.vue';
+import TopNavigationBar from '../../components/TopNavigationBar.vue';
 // 接收从 video.vue 传递的 tname 参数
 const routeParams = ref({
 	tname: ''
@@ -164,7 +160,7 @@ const statusClass = ref('')
 // 新增：视频信息表单
 const videoTitle = ref('')
 const isCharge = ref(1) // 1=免费，2=收费
-const chargePrice = ref('')
+const chargePrice = ref(10)
 
 // 封面图片
 const coverImage = ref('')
@@ -493,7 +489,7 @@ const formatFileSize = (bytes) => {
 }
 </script>
 
-<style>
+<style scoped>
 .navbar {
 	height: 44px;
 	background-color: #1677ff;
@@ -536,9 +532,7 @@ const formatFileSize = (bytes) => {
 	height: 44px;
 }
 
-.container {
-	padding: 20rpx;
-}
+.container {}
 
 /* 新增：表单样式 */
 .form-area {
@@ -594,6 +588,7 @@ const formatFileSize = (bytes) => {
 	border: 2px dashed #3498db;
 	border-radius: 8px;
 	padding: 30px;
+	margin: 20rpx;
 	text-align: center;
 	background: #f8fafc;
 	margin-bottom: 20px;

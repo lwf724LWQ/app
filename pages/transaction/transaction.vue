@@ -1,5 +1,5 @@
 <template>
-  <view class="transaction-container">
+  <view class="transaction-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 导航栏 -->
     <view class="navbar">
       <view class="nav-content">
@@ -18,7 +18,7 @@
       <view class="filter-section">
         <view class="filter-bar">
           <view class="filter-dropdown" @click="showFilterOptions">
-            <text class="filter-text">全部账单</text>
+            <text class="filter-text">{{ incomeText(selectedIncomeType) }}</text>
             <text class="dropdown-arrow">▼</text>
           </view>
 
@@ -247,10 +247,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getToken, getAccount } from '@/utils/request.js'
 import { apiBillQuery } from '@/api/apis.js'
+
+// 老人模式
+const useOldManModeStore = inject('useOldManModeStore')
 
 // 响应式数据
 const activeTab = ref('all')
@@ -581,6 +584,14 @@ const closeFilterModal = () => {
 
 const selectIncomeType = (type) => {
   selectedIncomeType.value = type
+}
+
+const incomeText = (type) => {
+  return {
+    'all': '全部',
+    'expense': '支出',
+    'income': '收入'
+  }[type]
 }
 
 const selectTransactionType = (type) => {
@@ -993,10 +1004,44 @@ onShow(async () => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .transaction-container {
   min-height: 100vh;
   background-color: #f5f5f5;
+
+  &.old-man-mode {
+
+    .calendar-title,
+    .btn-text {
+      font-size: 42rpx;
+      font-weight: bold;
+    }
+
+    .filter-text,
+    .statistics-text,
+    .transaction-title {
+      font-size: 38rpx;
+      font-weight: bold;
+    }
+
+    .order-time,
+    .tab-text,
+    .picker-text,
+    .expense-amount,
+    .income-amount,
+    .transaction-desc,
+    .transaction-time,
+    .amount-text,
+    .amount-unit {
+      font-size: 34rpx;
+      font-weight: bold;
+    }
+
+    .order-status {
+      font-size: 32rpx;
+      font-weight: bold;
+    }
+  }
 }
 
 /* 导航栏 */

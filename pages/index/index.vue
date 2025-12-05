@@ -63,7 +63,7 @@
 						<view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
 							<view class="number-item-qxc" :class="{ 'qxc-special': index === qxcNumbers.length - 1 }">{{
 								num
-								}}</view>
+							}}</view>
 							<view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
 						</view>
 					</view>
@@ -148,6 +148,8 @@
 				</view>
 			</view>
 		</view>
+
+		<PrivacyPolicyModal :visible="true"></PrivacyPolicyModal>
 	</view>
 
 </template>
@@ -155,9 +157,10 @@
 <script>
 import { apiFindResult } from '@/api/apis.js'
 import { mode } from 'crypto-js';
-
+import PrivacyPolicyModal from "../../components/PrivacyPolicyModal.vue"
 export default {
 	inject: ['useOldManModeStore'],
+	components: { PrivacyPolicyModal },
 	data() {
 		return {
 			currentTab: 'plw',

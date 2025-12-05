@@ -7,6 +7,18 @@ interface UserInfo {
     account: string
 }
 
+function hanldeAvatar(str: string): string {
+	if (str) {
+	  if (str.startsWith('http')) {
+	    return str
+	  } else {
+	    // 相对路径，拼接完整URL
+	    return `http://video.caimizm.com/himg/${str}`;
+	  }
+	}
+	return 'http://video.caimizm.com/himg/user.png' // 默认头像
+}
+
 export const useUserStore = defineStore('user', {
     state: () => ({
         userInfo: uni.getStorageSync('userInfo') as UserInfo | null,
@@ -16,7 +28,7 @@ export const useUserStore = defineStore('user', {
 
     getters: {
         getUserInfo(): UserInfo | null {
-            return this.userInfo
+            return Object.assign({}, this.userInfo, {avatar: hanldeAvatar(this.userInfo?.avatar)})
         },
 
         getIsLoggedIn(): boolean {
@@ -41,9 +53,9 @@ export const useUserStore = defineStore('user', {
             }
             // 使用 uni.setStorageSync 持久化存储用户信息
             try {
-            uni.setStorageSync('userInfo', info)
+				uni.setStorageSync('userInfo', info)
             } catch (error) {
-            console.error('存储用户信息失败:', error)
+				console.error('存储用户信息失败:', error)
             }
         },
 
@@ -85,6 +97,8 @@ export const useUserStore = defineStore('user', {
             try {
                 uni.removeStorageSync('userInfo')
                 uni.removeStorageSync('token')
+                uni.removeStorageSync('account')
+                uni.removeStorageSync('password')
             } catch (error) {
                 console.error('清除用户信息失败:', error)
             }

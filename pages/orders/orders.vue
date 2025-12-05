@@ -1,5 +1,5 @@
 <template>
-  <view class="orders-container">
+  <view class="orders-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 导航栏 -->
     <view class="navbar">
       <view class="nav-content">
@@ -229,9 +229,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { getToken, getAccount } from '@/utils/request.js'
 import { apiOrderQuery } from '@/api/apis.js'
+
+// 老人模式
+const useOldManModeStore = inject('useOldManModeStore')
 
 // 响应式数据
 const searchKeyword = ref('')
@@ -884,6 +887,28 @@ onMounted(async () => {
 .orders-container {
   min-height: 100vh;
   background-color: #f5f5f5;
+  
+	&.old-man-mode {
+		.calendar-title,.btn-text{
+			font-size: 42rpx;
+			font-weight: bold;
+		}
+		.order-no,.order-title,.order-amount,.stats-text,.search-bar,.search-text,.month-text{
+			font-size: 38rpx;
+			font-weight: bold;
+		}
+		.order-time,.tab-text,.picker-text{
+			font-size: 34rpx;
+			font-weight: bold;
+		}
+		.order-status{
+			font-size: 32rpx;
+			font-weight: bold;
+		}
+	}
+  
+    &:not(.old-man-mode) {}
+	
 }
 
 /* 导航栏 */
@@ -1085,6 +1110,7 @@ onMounted(async () => {
   padding: 30rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .order-card:active {

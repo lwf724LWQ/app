@@ -1,5 +1,5 @@
 <template>
-  <view class="dream-container">
+  <view class="dream-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 导航栏 -->
     <view class="navbar">
       <view class="nav-content">
@@ -10,25 +10,19 @@
         <view class="nav-right"></view>
       </view>
     </view>
-    
+
     <!-- 主要内容区域 -->
     <view class="main-content">
       <!-- 搜索区域 -->
       <view class="search-section">
         <view class="search-input-wrapper" @click="focusSearch">
           <uni-icons type="search" size="16" color="#999"></uni-icons>
-          <input 
-            type="text" 
-            placeholder="梦境关键词或者号码" 
-            class="search-input"
-            v-model="searchKeyword"
-            @confirm="searchDream"
-            @focus="focusSearch"
-          />
+          <input type="text" placeholder="梦境关键词或者号码" class="search-input" v-model="searchKeyword" @confirm="searchDream"
+            @focus="focusSearch" />
         </view>
         <button class="search-btn" @click="searchDream">搜索</button>
       </view>
-      
+
       <!-- 搜索框获得焦点时显示的内容 -->
       <view class="search-overlay" v-if="showSearchOverlay">
         <!-- 历史搜索 -->
@@ -40,49 +34,37 @@
             </view>
           </view>
           <view class="history-tags">
-            <view 
-              class="history-tag" 
-              v-for="(item, index) in dreamHistory" 
-              :key="index"
-              @click="selectHistoryKeyword(item.keyword)"
-            >
+            <view class="history-tag" v-for="(item, index) in dreamHistory" :key="index"
+              @click="selectHistoryKeyword(item.keyword)">
               {{ item.keyword }}
             </view>
           </view>
         </view>
-        
+
         <!-- 热门梦境 -->
         <view class="popular-dreams-section">
           <text class="section-title">热门梦境</text>
           <view class="popular-tags">
-            <view 
-              class="popular-tag" 
-              v-for="(dream, index) in popularDreams" 
-              :key="index"
-              @click="selectPopularKeyword(dream)"
-            >
+            <view class="popular-tag" v-for="(dream, index) in popularDreams" :key="index"
+              @click="selectPopularKeyword(dream)">
               {{ dream }}
             </view>
           </view>
         </view>
-        
+
         <!-- 温馨提示 -->
         <view class="tip-section">
           <text class="tip-title">【温馨提示】</text>
           <text class="tip-content">解梦仅提供参考,切勿深信!</text>
         </view>
       </view>
-      
+
       <!-- 热门分类 -->
       <view class="category-section" v-if="!showSearchOverlay">
         <text class="section-title"></text>
         <view class="category-grid">
-          <view 
-            class="category-card" 
-            v-for="(category, index) in popularCategories" 
-            :key="index"
-            @click="selectPopularCategory(category)"
-          >
+          <view class="category-card" v-for="(category, index) in popularCategories" :key="index"
+            @click="selectPopularCategory(category)">
             <view class="card-icon">
               <text class="icon-text">{{ category.icon }}</text>
             </view>
@@ -94,49 +76,39 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 梦境解析结果 -->
       <view class="result-section" v-if="dreamResults.length > 0">
         <text class="result-count" v-if="hasSearched && searchKeyword">为您找到 {{ dreamResults.length }} 个结果</text>
         <text class="result-count" v-else>推荐梦境解析</text>
         <view class="result-list">
-          <view 
-            class="result-card" 
-            v-for="(item, index) in dreamResults" 
-            :key="index"
-          >
-            <!-- 左侧图片区域 -->
-            <view class="card-image-section">
-              <view class="card-image">
-                <image 
-                  v-if="!item.imageError && item.img"
-                  :src="item.currentImageUrl || getImageUrl(item.id, item.img)" 
-                  mode="aspectFill" 
-                  class="dream-image"
-                  @error="handleImageError(item, index)"
-                  @load="handleImageLoad(item, index)"
-                ></image>
-                <view class="default-icon" v-else>
-                  <text class="icon-text"></text>
+          <view class="result-card" v-for="(item, index) in dreamResults" :key="index">
+            <view class="card-content">
+              <!-- 左侧图片区域 -->
+              <view class="card-image-section">
+                <view class="card-image">
+                  <image v-if="!item.imageError && item.img"
+                    :src="item.currentImageUrl || getImageUrl(item.id, item.img)" mode="aspectFill" class="dream-image"
+                    @error="handleImageError(item, index)" @load="handleImageLoad(item, index)"></image>
+                  <view class="default-icon" v-else>
+                    <text class="icon-text"></text>
+                  </view>
                 </view>
               </view>
-            </view>
-            
-            <!-- 右侧内容区域 -->
-            <view class="card-content-section">
-              <!-- 梦境标题 -->
-              <text class="card-title">{{ item.content }}</text>
-              
+
+              <!-- 右侧内容区域 -->
               <!-- 号码区域 -->
               <view class="card-numbers-section" v-if="item.numberOne || item.numberTwo">
                 <text class="number-text" v-if="item.numberOne">{{ item.numberOne }}</text>
                 <text class="number-text" v-if="item.numberTwo">{{ item.numberTwo }}</text>
               </view>
             </view>
+            <!-- 梦境标题 -->
+            <text class="card-title">{{ item.content }}</text>
           </view>
         </view>
       </view>
-      
+
       <!-- 加载更多按钮 -->
       <view class="load-more-section" v-if="dreamResults.length > 0 && hasMoreData && !isLoading">
         <button class="load-more-btn" @click="loadMoreData" :disabled="isLoadingMore">
@@ -145,18 +117,18 @@
           <text class="page-info">({{ currentPage }}/{{ totalPages }})</text>
         </button>
       </view>
-      
+
       <!-- 没有更多数据提示 -->
       <view class="no-more-section" v-if="dreamResults.length > 0 && !hasMoreData && !isLoading">
         <text class="no-more-text">已显示全部 {{ totalRecords }} 条结果</text>
       </view>
-      
+
       <!-- 加载状态 -->
       <view class="loading-section" v-if="isLoading">
         <uni-icons type="spinner-cycle" size="24" color="#28B389"></uni-icons>
         <text class="loading-text">正在解析梦境...</text>
       </view>
-      
+
       <!-- 空状态 -->
       <view class="empty-section" v-if="!isLoading && dreamResults.length === 0 && hasSearched && searchKeyword">
         <uni-icons type="info" size="48" color="#ccc"></uni-icons>
@@ -167,9 +139,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { getToken } from '@/utils/request.js'
 import { apiDreamQuery } from '@/api/apis.js'
+
+const useOldManModeStore = inject('useOldManModeStore')
 
 const dreamResults = ref([])
 const isLoading = ref(false)
@@ -190,10 +164,26 @@ const popularDreams = ref([
   '苍蝇幼虫', '走私被捕', '剪刀割手', '跳楼', '伯父死了', '失踪少女'
 ])
 
+// 第一次打开需提醒
+if (uni.getStorageSync('firstOpenDreamInterpretation') !== 'true') {
+  uni.showModal({
+    title: '温馨提示',
+    content: "解梦仅提供参考,切勿深信!",
+    confirmText: '以后不再提醒',
+    cancelText: '关闭',
+    success: function (res) {
+      if (res.confirm) {
+        uni.setStorageSync('firstOpenDreamInterpretation', 'true')
+      }
+    }
+  })
+}
+
+
 const popularCategories = ref([])
 
 const getImageUrl = (id, imgName) => {
-	
+
   if (!id || !imgName) return ''
   const baseUrl = 'http://video.caimizm.com'
   if (imgName.startsWith('http')) return imgName
@@ -215,7 +205,7 @@ const handleImageError = (item, index) => {
   console.log('图片加载失败:', item.img)
   item.imageError = true
   item.currentImageUrl = ''
-  
+
   // 如果当前尝试的是第一个路径，可以尝试其他路径
   if (!item.triedAlternativePaths) {
     item.triedAlternativePaths = true
@@ -226,7 +216,7 @@ const handleImageError = (item, index) => {
       `${baseUrl}/images/${item.id}/${item.img}`,
       `${baseUrl}/static/images/${item.img}`
     ]
-    
+
     // 尝试下一个路径
     const nextPathIndex = item.currentPathIndex || 0
     if (nextPathIndex < alternativePaths.length) {
@@ -275,22 +265,22 @@ const queryDreamAPI = async (content, page = '1', limit = '10', isLoadMore = fal
     } else {
       isLoading.value = true
     }
-    
+
     if (!checkLoginStatus()) {
       uni.showToast({ title: '请先登录', icon: 'none' })
       return
     }
-    
+
     const hasNetwork = await checkNetworkStatus()
     if (!hasNetwork) {
       uni.showToast({ title: '网络连接不可用', icon: 'none' })
       return
     }
-    
+
     const response = await apiDreamQuery({ content, page, limit })
-    
+
     const newRecords = response.data.records || []
-    
+
     if (isLoadMore) {
       // 加载更多时，追加到现有数据
       dreamResults.value = [...dreamResults.value, ...newRecords]
@@ -299,29 +289,29 @@ const queryDreamAPI = async (content, page = '1', limit = '10', isLoadMore = fal
       dreamResults.value = newRecords
       currentPage.value = 1
     }
-    
+
     // 更新分页信息
     totalRecords.value = response.data.total || 0
     totalPages.value = Math.ceil(totalRecords.value / pageSize.value)
     currentPage.value = parseInt(page)
     hasMoreData.value = currentPage.value < totalPages.value
-    
+
     hasSearched.value = true
-    
+
     // 调试信息
     console.log('API返回的数据:', response.data)
     console.log('梦境解析结果:', dreamResults.value)
     console.log('分页信息:', { currentPage: currentPage.value, totalPages: totalPages.value, totalRecords: totalRecords.value })
-    
+
     if (!isLoadMore) {
       uni.showToast({ title: '查询成功', icon: 'success' })
     }
-    
+
   } catch (error) {
     // request.js已经处理了token过期，这里只需要处理其他错误
-    uni.showToast({ 
-      title: error.errMsg || error.msg || '查询失败，请重试', 
-      icon: 'none' 
+    uni.showToast({
+      title: error.errMsg || error.msg || '查询失败，请重试',
+      icon: 'none'
     })
   } finally {
     if (isLoadMore) {
@@ -347,12 +337,12 @@ const searchDream = async () => {
     uni.showToast({ title: '请输入梦境关键词', icon: 'none' })
     return
   }
-  
+
   if (!checkLoginStatus()) {
     uni.showToast({ title: '请先登录', icon: 'none' })
     return
   }
-  
+
   showSearchOverlay.value = false
   await queryDreamAPI(searchKeyword.value, '1', pageSize.value.toString(), false)
   addToHistory(searchKeyword.value)
@@ -363,7 +353,7 @@ const loadMoreData = async () => {
   if (!hasMoreData.value || isLoadingMore.value) {
     return
   }
-  
+
   const nextPage = currentPage.value + 1
   await queryDreamAPI(searchKeyword.value, nextPage.toString(), pageSize.value.toString(), true)
 }
@@ -380,20 +370,20 @@ const focusSearch = () => {
 const addToHistory = (keyword) => {
   const now = new Date()
   const timeStr = `${now.getMonth() + 1}-${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`
-  
+
   const historyItem = { keyword, time: timeStr }
-  
+
   const existingIndex = dreamHistory.value.findIndex(item => item.keyword === keyword)
   if (existingIndex > -1) {
     dreamHistory.value.splice(existingIndex, 1)
   }
-  
+
   dreamHistory.value.unshift(historyItem)
-  
+
   if (dreamHistory.value.length > 10) {
     dreamHistory.value = dreamHistory.value.slice(0, 10)
   }
-  
+
   uni.setStorageSync('dream_history', dreamHistory.value)
 }
 
@@ -432,7 +422,7 @@ onMounted(async () => {
   if (savedHistory) {
     dreamHistory.value = savedHistory
   }
-  
+
   // 页面加载时默认显示第一页数据
   await loadDefaultData()
 })
@@ -440,30 +430,30 @@ onMounted(async () => {
 const loadDefaultData = async () => {
   try {
     isLoading.value = true
-    
+
     if (!checkLoginStatus()) {
       uni.showToast({ title: '请先登录', icon: 'none' })
       return
     }
-    
+
     const hasNetwork = await checkNetworkStatus()
     if (!hasNetwork) {
       uni.showToast({ title: '网络连接不可用', icon: 'none' })
       return
     }
-    
-    const response = await apiDreamQuery({ 
+
+    const response = await apiDreamQuery({
       content: '', // 空内容获取默认数据
-      page: '1', 
+      page: '1',
       limit: '4' // 只获取4条数据
     })
-    
+
     dreamResults.value = response.data.records || []
     hasSearched.value = true
-    
+
     console.log('默认加载的数据:', response.data)
     console.log('梦境解析结果:', dreamResults.value)
-    
+
   } catch (error) {
     console.log('默认数据加载失败:', error)
     // 不显示错误提示，静默处理
@@ -488,6 +478,7 @@ const loadDefaultData = async () => {
   height: 88rpx;
   background-color: #28B389;
   z-index: 999;
+  padding-top: var(--status-bar-height);
 }
 
 .nav-content {
@@ -498,7 +489,8 @@ const loadDefaultData = async () => {
   padding: 0 30rpx;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 60rpx;
   display: flex;
   align-items: center;
@@ -520,8 +512,8 @@ const loadDefaultData = async () => {
 
 /* 主要内容区域 */
 .main-content {
-  padding-top: 88rpx;
   padding: 88rpx 30rpx 30rpx;
+  padding-top: calc(88rpx + var(--status-bar-height));
 }
 
 /* 搜索区域 */
@@ -529,6 +521,7 @@ const loadDefaultData = async () => {
   display: flex;
   align-items: center;
   gap: 20rpx;
+  margin-top: 30rpx;
   margin-bottom: 40rpx;
 }
 
@@ -553,9 +546,9 @@ const loadDefaultData = async () => {
 .search-btn {
   background: linear-gradient(135deg, #28B389 0%, #20a085 100%);
   color: #fff;
-  padding: 20rpx 30rpx;
+  padding: 0 30rpx;
   border-radius: 25rpx;
-  font-size: 15rpx;
+  font-size: 35rpx;
   font-weight: 400;
   border: none;
   box-shadow: 0 4rpx 15rpx rgba(40, 179, 137, 0.3);
@@ -576,7 +569,7 @@ const loadDefaultData = async () => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.5s;
 }
 
@@ -590,10 +583,11 @@ const loadDefaultData = async () => {
 }
 
 .result-count {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #666;
   margin-bottom: 20rpx;
   padding: 0 10rpx;
+  display: block;
 }
 
 .result-list {
@@ -668,6 +662,12 @@ const loadDefaultData = async () => {
   align-items: center;
 }
 
+.card-content {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
 .card-title {
   font-size: 26rpx;
   color: #333;
@@ -685,22 +685,24 @@ const loadDefaultData = async () => {
 
 /* 号码区域 */
 .card-numbers-section {
+  flex: 1;
+  width: 100%;
   display: flex;
-  flex-direction: row;
-  gap: 8rpx;
+  flex-direction: column;
+  gap: 20rpx;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .number-text {
-  font-size: 22rpx;
-  color: #28B389;
-  font-weight: 600;
-  background-color: #f0f8f5;
+  font-size: 38rpx;
+  color: #fc3a3a;
+  font-weight: bold;
+  background-color: rgba(200, 200, 40, 0.2);
   padding: 4rpx 8rpx;
   border-radius: 6rpx;
-  border: 1rpx solid #28B389;
+  border: 1rpx solid rgb(200, 200, 40);
   min-width: 40rpx;
   text-align: center;
   line-height: 1;

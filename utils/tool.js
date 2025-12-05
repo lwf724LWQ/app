@@ -119,10 +119,11 @@ const tool = {
     // #ifdef APP-PLUS
     plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) { 
       const nowAppVersion = widgetInfo.version.split('.')
-      
       apiAppversionQuery().then(res => {
+		  // res.data.version = "1.2.0"
         const serverVersion = res.data.version.split('.')
         const dowUrl = res.data.url
+		// const dowUrl = "http://192.168.31.234/static/caimi.apk"
         if (serverVersion[0] > nowAppVersion[0] || serverVersion[1] > nowAppVersion[1] || serverVersion[2] > nowAppVersion[2]) {
           console.log('有新版本，请更新')
           uni.showModal({
@@ -130,6 +131,9 @@ const tool = {
             content: '有新版本,点击确定开始自动下载',
             success: function (res) {
               if (res.confirm) {
+				  uni.showToast({
+				  	title: "开始下载"
+				  })
                 const dowTask = uni.downloadFile({
                   url: dowUrl,
                   success: function (res) {
@@ -140,6 +144,11 @@ const tool = {
                       console.log('安装失败：' + e.message)
                     })
                   },
+					fail: () => {
+							uni.showModal({
+								content: "下载失败"
+							})
+					}
                 })
 
                 dowTask.onProgressUpdate(function (res) { 
@@ -150,7 +159,7 @@ const tool = {
             }
           })
         }else{
-          resolve(false)
+          uni.showToast({title: '当前已经是最新版本', icon: 'none'})
         }
       })
     });

@@ -134,7 +134,7 @@ const userStore = useUserStore()
 const account = ref('');
 const password = ref('');
 const code = ref('');
-const isAgreed = ref(true);
+const isAgreed = ref(false);
 const showPassword = ref(false);
 
 // 切换登录方式
@@ -183,6 +183,7 @@ onLoad((options) => {
     })
     .catch((error) => {
       loginShow.value = true;
+
     })
     .finally(() => {
       // loginShow.value = true;
@@ -244,6 +245,10 @@ const gologin = async () => {
     }
     const success = await apilogin(loginData);
 
+    // #ifdef APP-PLUS
+    uni.setStorageSync('account', account.value)
+    uni.setStorageSync('password', password.value)
+    // #endif
     // 隐藏加载提示
     uni.hideLoading()
 
@@ -264,22 +269,10 @@ const gologin = async () => {
       // 从登录返回的数据中提取用户信息
       const loginData = success.data || {};
 
-      // 处理头像URL
-      let avatarUrl = 'http://video.caimizm.com/himg/user.png'; // 默认头像
-      if (loginData.himg) {
-        if (loginData.himg.startsWith('http')) {
-          // 已经是完整URL
-          avatarUrl = loginData.himg;
-        } else {
-          // 相对路径，拼接完整URL
-          avatarUrl = `http://video.caimizm.com/himg/${loginData.himg}`;
-        }
-      }
-
       // 保存用户信息到本地存储
       const userInfo = {
         nickname: loginData.uname || '用户',
-        avatar: avatarUrl,
+        avatar: loginData.himg,
         account: account.value
       };
       userStore.updateUserInfo(userInfo, success.data.token);

@@ -1,5 +1,5 @@
 <template>
-  <view class="recharge-container">
+  <view class="recharge-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 导航栏 -->
     <view class="navbar">
       <view class="nav-content">
@@ -115,9 +115,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { getToken, getAccount } from '@/utils/request.js'
 import { apiUserRecharge, apiGetUserBalance, apiGetOrderPayStatus } from '@/api/apis.js'
+
+// 老人模式
+const useOldManModeStore = inject('useOldManModeStore')
 
 // 响应式数据
 const currentUser = ref('vfmumq')
@@ -178,10 +181,8 @@ const toggleAgreement = () => {
 }
 
 const viewAgreement = () => {
-  uni.showModal({
-    title: '充值服务协议',
-    content: '这里是充值服务协议的内容...',
-    showCancel: false
+  uni.navigateTo({
+    url: '/pages/login/agreement?type=topupAgreement',
   })
 }
 
@@ -607,10 +608,39 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .recharge-container {
   min-height: 100vh;
   background-color: #f5f5f5;
+
+  &.old-man-mode {
+    .payment-btn {
+      font-size: 48rpx;
+    }
+
+    .user-text,
+    .balance-text,
+    .balance-amount,
+    .custom-input {
+      font-size: 38rpx;
+      font-weight: bold;
+    }
+
+    .amount-text,
+    .agreement-text,
+    .price-text,
+    .rule-item {
+      font-size: 32rpx;
+      font-weight: bold;
+    }
+
+    .conversion-text {
+      font-size: 34rpx;
+      font-weight: bold;
+    }
+  }
+
+  &:not(.old-man-mode) {}
 }
 
 /* 导航栏 */

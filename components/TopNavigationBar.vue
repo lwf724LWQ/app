@@ -5,7 +5,7 @@
         <div class="nav-left" @click="goBack">
             <slot name="left">
                 <!-- 默认返回按钮 -->
-                <uni-icons class="back-button" :type="props.backIcon"></uni-icons>
+                <uni-icons class="back-button" :style="{ color: color }" :type="props.backIcon"></uni-icons>
             </slot>
         </div>
 
@@ -13,7 +13,7 @@
         <div class="nav-center">
             <slot name="center">
                 <!-- 默认标题 -->
-                <span class="title">{{ props.title }}</span>
+                <span class="title" :style="{ color: color }">{{ props.title }}</span>
             </slot>
         </div>
 
@@ -41,12 +41,14 @@ interface Props {
     backIcon?: string;
     title?: string;
     bgColor?: string;
+    color?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     backIcon: 'left',
     title: '标题',
-    bgColor: '#fff'
+    bgColor: '#fff',
+    color: '#111'
 });
 
 // 获取当前实例
