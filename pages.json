@@ -261,7 +261,8 @@
       "path": "pages/index/live",
       "style": {
         "navigationBarTitleText": "直播",
-        "enablePullDownRefresh": false
+        "enablePullDownRefresh": false,
+        "navigationStyle": "custom"
       }
     },
     {
