@@ -40,8 +40,8 @@ const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8
 const countdownTime: Ref<number> = ref(1)
 
 // 开奖时间
-const targetDate = new Date('2024-01-01 21:25:00')
-const liveEndDate = new Date('2024-01-01 21:45:00')
+const targetDate = new Date('2024-01-01 21:00:00')
+const liveEndDate = new Date('2024-01-01 22:00:00')
 targetDate.setFullYear(new Date().getFullYear())
 targetDate.setMonth(new Date().getMonth())
 targetDate.setDate(new Date().getDate())
@@ -64,6 +64,9 @@ const timer = setInterval(() => {
 }, 1000)
 
 function formatTime(time: number): string {
+	if (new Date() > liveEndDate) {
+		return "今天的直播已经结束"
+	}
 	return moment.utc(time).format('HH:mm:ss')
 }
 

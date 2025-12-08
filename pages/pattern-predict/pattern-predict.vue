@@ -392,7 +392,7 @@ const selectImage = async () => {
       // 批量上传图片
       const uploadPromises = chooseResult.tempFilePaths.map(async (tempFilePath, index) => {
         const url = await tool.oss.uploadImgForTempPath(tempFilePath, 'pimg')
-        return { tempFilePath, url: `http://video.caimizm.com/pimg/${url}` }
+        return { tempFilePath, url: `http://video.caimizm.com/${url}` }
       })
 
       // 等待所有图片上传完成

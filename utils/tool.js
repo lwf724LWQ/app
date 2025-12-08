@@ -140,8 +140,13 @@ const tool = {
                     console.log('下载成功')
                     plus.runtime.install(res.tempFilePath, { force: true }, function () {
                       console.log('安装成功')
+					  plus.runtime.restart()
                     }, function (e) {
-                      console.log('安装失败：' + e.message)
+						console.log('安装失败：' + e.message)
+						uni.showModal({
+							title:"安装失败",
+							content: "请到官网下载后，手动安装"
+						})
                     })
                   },
 					fail: () => {

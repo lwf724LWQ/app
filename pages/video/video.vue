@@ -21,7 +21,11 @@
 				<text class="tab-text">七星彩</text>
 			</view>
 		</view>
-
+		<view v-if="videoList.length === 0">
+			<view class="no-data-container">
+				<view class="no-data-text">暂无数据</view>
+			</view>
+		</view>
 
 		<!-- 功能图标区 -->
 		<view class="area" v-if="currentTab !== 'review'">
@@ -814,5 +818,14 @@ onMounted(async () => {
 
 .publish-btn:active {
 	transform: scale(0.95);
+}
+
+.no-data-container {
+	.no-data-text {
+		text-align: center;
+		font-size: 32rpx;
+		color: #666;
+		margin-top: 50rpx;
+	}
 }
 </style>
