@@ -159,6 +159,7 @@ import { apiFindResult } from '@/api/apis.js'
 import { mode } from 'crypto-js';
 import PrivacyPolicyModal from "../../components/PrivacyPolicyModal.vue"
 import { useUserStore } from '../../stores/userStore';
+import tool from "../../utils/tool"
 export default {
 	inject: ['useOldManModeStore'],
 	components: { PrivacyPolicyModal },
@@ -361,7 +362,7 @@ export default {
 		this.loadLotteryResults()
 	},
 	onLoad() {
-
+		tool.checkAppUpdate()
 	}
 };
 </script>

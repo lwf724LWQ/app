@@ -414,7 +414,13 @@ function toggleoldManMode() {
 }
 
 function checkUpdate() {
-  tool.checkAppUpdate()
+  tool.checkAppUpdate().then((msg)=>{
+	  if(msg){
+		  uni.showToast({
+		  	title: msg
+		  })
+	  }
+  })
 }
 </script>
 

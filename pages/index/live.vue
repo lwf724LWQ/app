@@ -3,10 +3,9 @@
 		<top-navigation-bar title="开奖直播" />
 		<view class="video-container">
 			<!-- 视频 -->
-			<view class="live-not-started" v-if="countdownTime > 0">
+			<view class="live-not-started" v-if="isShowLiveVideo">
 				<!-- 未开始直播时展示 -->
 				<view class="live-not-started-poster"></view>
-				<view class="live-not-started-text">距离开奖还有 {{ formatTime(countdownTime) }}</view>
 			</view>
 			<video 
 				v-else
@@ -22,8 +21,13 @@
 				:show-play-btn="false"
 				:show-center-play-btn="true"
 				:enable-progress-gesture="false"
+				:enable-play-gesture="false"
 				@error="videoReload"
+				@loadedmetadata="videoReload"
 			></video>
+		</view>
+		<view class="nextlive-timetext" v-if="countdownTime>0">
+			距离开奖还有 {{ formatTime(countdownTime) }}
 		</view>
 		<view class="result-container">
 			<!-- 开奖信息 -->
@@ -42,7 +46,7 @@
 
 <script lang='ts' setup>
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
-import { ref, onUnmounted, Ref, onMounted } from "vue";
+import { ref, onUnmounted, Ref, onMounted, computed, nextTick } from "vue";
 import moment from "moment";
 import { apiFindResult } from '@/api/apis.js'
 import { onShow } from "@dcloudio/uni-app"
@@ -53,8 +57,11 @@ const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8
 // 声明倒计时变量
 const countdownTime: Ref<number> = ref(0)
 
+
+// 直播提前预热时间
+const livePreheatingTime = 15 * 60 * 1000
 // 开奖时间
-const targetDate = new Date('2024-01-01 21:00:00')
+const targetDate = new Date('2024-01-01 21:15:00')
 const liveEndDate = new Date('2024-01-01 22:00:00')
 targetDate.setFullYear(new Date().getFullYear())
 targetDate.setMonth(new Date().getMonth())
@@ -64,6 +71,7 @@ liveEndDate.setMonth(new Date().getMonth())
 liveEndDate.setDate(new Date().getDate())
 
 // 创建定时器
+let isAutoPlay = false
 const timer = setInterval(() => {
 	if (new Date() > liveEndDate) {
 		countdownTime.value = 0
@@ -83,6 +91,10 @@ function formatTime(time: number): string {
 	}
 	return moment.utc(time).format('HH:mm:ss')
 }
+
+const isShowLiveVideo = computed(()=>{
+	return (countdownTime.value - livePreheatingTime) > 0
+})
 
 // 开奖信息
 interface openCodeItem {
@@ -105,7 +117,7 @@ function loadLotteryResults() {
 
 function videoReload(){
 	// 出现错误
-	if(countdownTime.value === 0){
+	if(isShowLiveVideo.value){
 		const videoContext = uni.createVideoContext('live-video')
 		videoContext.pause()
 		setTimeout(()=>{
@@ -113,9 +125,8 @@ function videoReload(){
 		}, 300)
 	}
 }
-
 onShow(()=>{
-	if(countdownTime.value === 0){
+	if(isShowLiveVideo.value){
 		const videoContext = uni.createVideoContext('live-video')
 		videoContext.play()
 	}
@@ -177,7 +188,11 @@ onMounted(() => {
 			flex-basis: 400rpx;
 		}
 	}
-
+	.nextlive-timetext{
+		color: #fff;
+		font-size: 50rpx;
+		padding: 20rpx;
+	}
 	.result-container {
 		padding: 40rpx 20rpx;
 		font-weight: bold;
