@@ -188,10 +188,6 @@ export default {
 			// });
 		},
 		goToLive() {
-			uni.navigateTo({
-				url: "/pages/index/live"
-			})
-			return
 			// #ifdef H5
 			uni.showModal({
 				title: '提示',

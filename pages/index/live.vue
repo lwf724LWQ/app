@@ -8,9 +8,22 @@
 				<view class="live-not-started-poster"></view>
 				<view class="live-not-started-text">距离开奖还有 {{ formatTime(countdownTime) }}</view>
 			</view>
-			<video v-else class="video" :src="livePath" :is-live="true" :play-strategy="2" :autoplay="true"
-				:controls="true" :show-progress="false" :show-fullscreen-btn="true" :show-play-btn="false"
-				:show-center-play-btn="true" :enable-progress-gesture="false"></video>
+			<video 
+				v-else
+				id="live-video"
+				class="video"
+				:src="livePath"
+				:is-live="true"
+				:play-strategy="2"
+				:autoplay="true"
+				:controls="true"
+				:show-progress="false"
+				:show-fullscreen-btn="true"
+				:show-play-btn="false"
+				:show-center-play-btn="true"
+				:enable-progress-gesture="false"
+				@error="videoReload"
+			></video>
 		</view>
 		<view class="result-container">
 			<!-- 开奖信息 -->
@@ -32,12 +45,13 @@ import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import { ref, onUnmounted, Ref, onMounted } from "vue";
 import moment from "moment";
 import { apiFindResult } from '@/api/apis.js'
+import { onShow } from "@dcloudio/uni-app"
 
 const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8')
-// const livePath = ref('http://playertest.longtailvideo.com/adaptive/bipbop/gear4/prog_index.m3u8')
+// const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
 
 // 声明倒计时变量
-const countdownTime: Ref<number> = ref(1)
+const countdownTime: Ref<number> = ref(0)
 
 // 开奖时间
 const targetDate = new Date('2024-01-01 21:00:00')
@@ -88,6 +102,24 @@ function loadLotteryResults() {
 		})
 	})
 }
+
+function videoReload(){
+	// 出现错误
+	if(countdownTime.value === 0){
+		const videoContext = uni.createVideoContext('live-video')
+		videoContext.pause()
+		setTimeout(()=>{
+			videoContext.play()
+		}, 300)
+	}
+}
+
+onShow(()=>{
+	if(countdownTime.value === 0){
+		const videoContext = uni.createVideoContext('live-video')
+		videoContext.play()
+	}
+})
 
 // 组件卸载时清除定时器
 onUnmounted(() => {
