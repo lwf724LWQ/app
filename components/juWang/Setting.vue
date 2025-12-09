@@ -36,13 +36,13 @@
         <view class="common" v-show="crurentPage === '通用设置'">
           <view class="title">字体大小</view>
           <view class="select-1">
-            <view :class="{ 'btn-active': options.fontSize === 50 }" @click="options.fontSize = 50"
+            <view :class="{ 'btn-active': options.fontSize === 30 }" @click="options.fontSize = 30"
               >标准</view
             >
-            <view :class="{ 'btn-active': options.fontSize === 60 }" @click="options.fontSize = 60"
+            <view :class="{ 'btn-active': options.fontSize === 40 }" @click="options.fontSize = 40"
               >大号</view
             >
-            <view :class="{ 'btn-active': options.fontSize === 70 }" @click="options.fontSize = 70"
+            <view :class="{ 'btn-active': options.fontSize === 50 }" @click="options.fontSize = 60"
               >超大号</view
             >
           </view>
@@ -112,9 +112,9 @@
             <view
               v-for="value in themeList"
               :key="value.id"
-              @click="options.theme = value.style"
+              @click="changeTheme(value)"
               :style="{
-                color: options.theme.borderColor === value.style.borderColor ? '#fc3d44' : ''
+                color: options.theme === value.text ? '#fc3d44' : ''
               }"
             >
               <image class="image" :src="value.url" mode="aspectFill"></image>
@@ -268,252 +268,53 @@ const styleMap = [
   { isSolid: true, isRound: true }
 ]
 
-// const themeList = ['鸿运', '护眼', '怀旧', '金黄', '金玉', '经典', '护眼', '护眼', '护眼']
+// const themeList = ['鸿运', '护眼', '怀旧', '金黄', '金玉', '经典', '护眼', '护眼', '护眼', '其他']
 const themeList = [
   {
     text: '经典',
-    url: '/static/images/draw-line/jingdian.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#3a4e33',
-        color: '#f6f6f6'
-      },
-      column2: {
-        backgroundColor: '#f1f1ef',
-        color: '#898989'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#898989'
-      },
-      column4: {
-        backgroundColor: '#f1f1ef',
-        color: '#bfbdbe'
-      },
-      topBar: {
-        backgroundColor: '#898989',
-        color: '#ffffff'
-      },
-      borderColor: '#dddddd'
-    }
+    url: '/static/images/draw-line/jingdian.jpg'
   },
   {
     text: '护眼',
-    url: '/static/images/draw-line/huyan.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#90c281',
-        color: '#dfedbc'
-      },
-      column2: {
-        backgroundColor: '#dfedbc',
-        color: '#90c381'
-      },
-      column3: {
-        backgroundColor: '#fefefc',
-        color: '#90c281'
-      },
-      column4: {
-        backgroundColor: '#dfedbc',
-        color: '#90c281'
-      },
-      topBar: {
-        backgroundColor: '#90c281',
-        color: '#ffffff'
-      },
-      borderColor: '#88ae96'
-    }
+    url: '/static/images/draw-line/huyan.jpg'
   },
   {
     text: '夜间',
-    url: '/static/images/draw-line/yejian.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#2a2a2a',
-        color: '#898989'
-      },
-      column2: {
-        backgroundColor: '#2a2a2a',
-        color: '#898989'
-      },
-      column3: {
-        backgroundColor: '#2a2a2a',
-        color: '#ffffff'
-      },
-      column4: {
-        backgroundColor: '#2a2a2a',
-        color: '#898989'
-      },
-      topBar: {
-        backgroundColor: '#2a2a2a',
-        color: '#ffffff'
-      },
-      borderColor: '#4e4e4e'
-    }
+    url: '/static/images/draw-line/yejian.jpg'
   },
   {
     text: '怀旧',
-    url: '/static/images/draw-line/huaijiu.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#f75b69',
-        color: '#000001'
-      },
-      column2: {
-        backgroundColor: '#000001',
-        color: '#ffffff'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#000000'
-      },
-      column4: {
-        backgroundColor: '#f0eff5',
-        color: '#000000'
-      },
-      topBar: {
-        backgroundColor: '#39383e',
-        color: '#ffffff'
-      },
-      borderColor: '#39383e'
-    }
+    url: '/static/images/draw-line/huaijiu.jpg'
   },
   {
     text: '鸿运',
-    url: '/static/images/draw-line/hongyun.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#fc3d44',
-        color: '#fff5f4'
-      },
-      column2: {
-        backgroundColor: '#fff5f4',
-        color: '#fc3d44'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#fc3d44'
-      },
-      column4: {
-        backgroundColor: '#fff5f4',
-        color: '#000000'
-      },
-      topBar: {
-        backgroundColor: '#fc3d44',
-        color: '#fffcfc'
-      },
-      borderColor: '#fc3d43'
-    }
+    url: '/static/images/draw-line/hongyun.jpg'
   },
   {
     text: '金玉',
-    url: '/static/images/draw-line/jinyu.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#ff9f00',
-        color: '#fef9f2'
-      },
-      column2: {
-        backgroundColor: '#fefaf1',
-        color: '#f8a00e'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#ff9f00'
-      },
-      column4: {
-        backgroundColor: '#fefaf1',
-        color: '#ff9f00'
-      },
-      topBar: {
-        backgroundColor: '#ff9f00',
-        color: '#ffffff'
-      },
-      borderColor: '#e08d00'
-    }
+    url: '/static/images/draw-line/jinyu.jpg'
   },
   {
     text: '素棕',
-    url: '/static/images/draw-line/suzong.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#f5eee8',
-        color: '#a29795'
-      },
-      column2: {
-        backgroundColor: '#fef9f5',
-        color: '#a29795'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#4e2768'
-      },
-      column4: {
-        backgroundColor: '#fef9f5',
-        color: '#a29795'
-      },
-      topBar: {
-        backgroundColor: '#d3c7b7',
-        color: '#3d3b39'
-      },
-      borderColor: '#d3c7b7'
-    }
+    url: '/static/images/draw-line/suzong.jpg'
   },
   {
     text: '金黄',
-    url: '/static/images/draw-line/jinhuang.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#f7f5df',
-        color: '#d1aa81'
-      },
-      column2: {
-        backgroundColor: '#8b6a3f',
-        color: '#ffffff'
-      },
-      column3: {
-        backgroundColor: '#ffda21',
-        color: '#8b6a3f'
-      },
-      column4: {
-        backgroundColor: '#f7f5df',
-        color: '#d1aa81'
-      },
-      topBar: {
-        backgroundColor: '#8b6a3f',
-        color: '#bfbdbe'
-      },
-      borderColor: '#e2d8cb'
-    }
+    url: '/static/images/draw-line/jinhuang.jpg'
   },
   {
     text: '浅蓝',
-    url: '/static/images/draw-line/qianlan.jpg',
-    style: {
-      column1: {
-        backgroundColor: '#f2f6ff',
-        color: '#929fb0'
-      },
-      column2: {
-        backgroundColor: '#cedef5',
-        color: '#929fb0'
-      },
-      column3: {
-        backgroundColor: '#ffffff',
-        color: '#4a5060'
-      },
-      column4: {
-        backgroundColor: '#f2f6ff',
-        color: '#929fb1'
-      },
-      topBar: {
-        backgroundColor: '#cedef5',
-        color: '#3a3d3f'
-      },
-      borderColor: '#b0bfd3'
-    }
+    url: '/static/images/draw-line/qianlan.jpg'
+  },
+  {
+    text: '其他',
+    url: '/static/images/draw-line/other.jpg'
   }
 ]
+
+const changeTheme = (value) => {
+  options.theme = value.text
+}
 
 const drawLineSettingStore = useDrawLineSettingStore()
 const options = drawLineSettingStore.options
@@ -579,7 +380,7 @@ $background-color-active: #fc3d44;
 }
 .drawer-content {
   flex: 1;
-  height: 800rpx;
+  height: 1000rpx;
   padding: 30rpx;
   > view {
     > view {

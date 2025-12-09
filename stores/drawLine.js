@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { getStyleConfig } from '@/pages/juWang/peng-liao/drawLine/styleConfig'
 
 export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
   const options = ref({
     // 字号
-    fontSize: 60,
+    fontSize: 40,
     // 号码样式
     numberStyle: {
       isSolid: true,
@@ -17,29 +18,7 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     // 屏幕常亮
     keepScreenOn: false,
     // 主题：护眼
-    theme: {
-      column1: {
-        backgroundColor: '#90c281',
-        color: '#dfedbc'
-      },
-      column2: {
-        backgroundColor: '#dfedbc',
-        color: '#90c381'
-      },
-      column3: {
-        backgroundColor: '#fefefc',
-        color: '#90c281'
-      },
-      column4: {
-        backgroundColor: '#dfedbc',
-        color: '#90c281'
-      },
-      topBar: {
-        backgroundColor: '#90c281',
-        color: '#ffffff'
-      },
-      borderColor: '#88ae96'
-    },
+    theme: '其他',
     // 显示期数
     showPeriod: 40,
     // 显示设置
@@ -60,5 +39,13 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     options.value = newOptions
   }
 
-  return { options, setOptions }
+  const styleConfig = ref({})
+
+  let _type
+  const setStyleConfig = (type, theme) => {
+    _type = type
+    styleConfig.value = getStyleConfig(type, theme)
+  }
+
+  return { options, setOptions, styleConfig, setStyleConfig }
 })

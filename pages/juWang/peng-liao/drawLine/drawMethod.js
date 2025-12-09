@@ -1,18 +1,12 @@
 export class DrawShape {
-  constructor(color, size, ctx) {
-    this.color = color
-    this.size = size
+  constructor(ctx) {
     this.ctx = ctx
   }
+  draw(...args) {
+    this.ctx.draw(...args)
+  }
   // 绘制直线
-  drawnStraightLine = (
-    startX,
-    startY,
-    endX,
-    endY,
-    color = this.color.value,
-    size = this.size.value
-  ) => {
+  drawnStraightLine(startX, startY, endX, endY, color, size) {
     this.ctx.beginPath()
     this.ctx.lineWidth = size
     this.ctx.setStrokeStyle(color)
@@ -21,16 +15,7 @@ export class DrawShape {
     this.ctx.stroke()
   }
   // 绘制曲线
-  drawnCurveLine = (
-    startX,
-    startY,
-    centerX,
-    centerY,
-    endX,
-    endY,
-    color = this.color.value,
-    size = this.value
-  ) => {
+  drawnCurveLine(startX, startY, centerX, centerY, endX, endY, color, size = this.value) {
     this.ctx.beginPath()
     this.ctx.lineWidth = size
     this.ctx.setStrokeStyle(color)
@@ -39,7 +24,7 @@ export class DrawShape {
     this.ctx.stroke()
   }
   // 绘制轨迹
-  drawnTrack = (TrackList, color = this.color.value, size = this.size.value) => {
+  drawnTrack(TrackList, color, size) {
     this.ctx.lineWidth = size
     this.ctx.setStrokeStyle(color)
     this.ctx.beginPath()
@@ -50,18 +35,18 @@ export class DrawShape {
     this.ctx.stroke()
   }
   // 绘制实心方框
-  drawSolidRect = (x, y, width, height, color = this.color.value) => {
+  drawSolidRect(x, y, width, height, color) {
     this.ctx.fillStyle = color
     this.ctx.fillRect(x, y, width, height)
   }
   // 绘制空心方框
-  drawHollowRect = (x, y, width, height, color = this.color.value, size = this.size.value) => {
+  drawHollowRect(x, y, width, height, color, size) {
     this.ctx.lineWidth = size
     this.ctx.setStrokeStyle(color)
     this.ctx.strokeRect(x, y, width, height)
   }
   // 绘制实心圆/椭圆
-  drawSolidCircle = (startX, startY, endX, endY, color = this.color.value) => {
+  drawSolidCircle(startX, startY, endX, endY, color) {
     const x = (startX + endX) / 2
     const y = (startY + endY) / 2
     const rX = Math.abs(startX - endX) / 2
@@ -80,14 +65,7 @@ export class DrawShape {
     this.ctx.fill()
   }
   // 绘制空心圆/椭圆
-  drawHollowCircle = (
-    startX,
-    startY,
-    endX,
-    endY,
-    color = this.color.value,
-    size = this.size.value
-  ) => {
+  drawHollowCircle(startX, startY, endX, endY, color, size) {
     const x = (startX + endX) / 2
     const y = (startY + endY) / 2
     const rX = Math.abs(startX - endX) / 2
@@ -104,5 +82,13 @@ export class DrawShape {
     this.ctx.bezierCurveTo(x - rX, y + rY * 0.5523, x - rX * 0.5523, y + rY, x, y + rY)
     this.ctx.bezierCurveTo(x + rX * 0.5523, y + rY, x + rX, y + rY * 0.5523, x + rX, y)
     this.ctx.stroke()
+  }
+  // 绘制文字
+  drawText(text, x, y, color, size) {
+    this.ctx.textAlign = 'center'
+    this.ctx.font = `bold ${size}px Arial`
+    this.ctx.textBaseline = 'middle'
+    this.ctx.setFillStyle(color)
+    this.ctx.fillText(text, x, y)
   }
 }
