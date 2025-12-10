@@ -355,6 +355,7 @@
         </view>
       </view>
     </view>
+	<bottomBar current-path="/pages/forum/forum"/>
   </view>
 </template>
 
@@ -364,7 +365,7 @@ import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
 import { getAccount } from '@/utils/request.js'
 import { getToken } from '../../utils/request'
 import { useUserStore } from '../../stores/userStore'
-
+import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
 // 用户数据存储
 const userStore = useUserStore()
 

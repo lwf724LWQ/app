@@ -150,6 +150,7 @@
 		</view>
 
 		<!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
+		<bottomBar current-path="/pages/index/index"/>
 	</view>
 
 </template>
@@ -160,9 +161,10 @@ import { mode } from 'crypto-js';
 import PrivacyPolicyModal from "../../components/PrivacyPolicyModal.vue"
 import { useUserStore } from '../../stores/userStore';
 import tool from "../../utils/tool"
+import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
 export default {
 	inject: ['useOldManModeStore'],
-	components: { PrivacyPolicyModal },
+	components: { PrivacyPolicyModal, bottomBar },
 	data() {
 		return {
 			currentTab: 'plw',

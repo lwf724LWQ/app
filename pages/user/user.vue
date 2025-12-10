@@ -17,11 +17,11 @@
         </view>
       </view>
       <view class="user-stats">
-        <view class="stat-item">
+        <view class="stat-item" @click="goToFollowlist">
           <text class="stat-label">关注</text>
           <text class="stat-value">128</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item" @click="goToFanslist">
           <text class="stat-label">粉丝</text>
           <text class="stat-value">256</text>
         </view>
@@ -52,11 +52,11 @@
         </view>
       </view>
       <view class="user-stats">
-        <view class="stat-item">
+        <view class="stat-item" @click="goToFollowlist">
           <text class="stat-label">关注</text>
           <text class="stat-value">0</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item" @click="goToFanslist">
           <text class="stat-label">粉丝</text>
           <text class="stat-value">0</text>
         </view>
@@ -118,10 +118,10 @@
     <view class="services-section">
       <view class="section-title">其它服务</view>
       <view class="services-grid">
-        <view class="service-item">
+        <!-- <view class="service-item">
           <uni-icons type="headphones" size="24" color="#222"></uni-icons>
           <text class="service-text">联系客服</text>
-        </view>
+        </view> -->
         <view class="service-item">
           <uni-icons type="compose" size="24" color="#222" @click="toFeedBack"></uni-icons>
           <text class="service-text">意见反馈</text>
@@ -132,15 +132,15 @@
           <text class="service-text">检查更新</text>
         </view>
         <!-- #endif -->
-        <view class="service-item">
+        <!-- <view class="service-item">
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
-        </view>
+        </view> -->
         <view class="service-item">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
         </view>
-        <view class="service-item">
+        <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
         </view>
@@ -154,7 +154,7 @@
         </view>
       </view>
     </view>
-
+    <bottomBar current-path="/pages/user/user" />
   </view>
 </template>
 
@@ -166,7 +166,7 @@ import { getToken, removeToken, getAccount } from "@/utils/request.js";
 import { apiGetUserBalance, apiUserimg } from "@/api/apis.js";
 import tool from "../../utils/tool";
 import { useUserStore } from '@/stores/userStore'
-
+import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
 const userStore = useUserStore()
 
 const memberStore = reactive({
@@ -279,6 +279,8 @@ const checkLoginStatus = async () => {
 
 // 判断是否登录，否则弹框
 function requireLogin() {
+
+  console.log(123)
   if (!memberStore.profile) {
     uni.showToast({
       title: '请先登录',
@@ -309,7 +311,22 @@ const logout = () => {
     }
   });
 }
-
+const showAboutAs = () => {
+  uni.navigateTo({
+    url: '/pages/login/agreement?type=AboutAs',
+  })
+}
+// 跳转到关注列表
+const goToFollowlist = () => {
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/user/follow-list' });
+  }
+}
+const goToFanslist = () => {
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/user/fans-list' });
+  }
+}
 // 跳转到反馈页面
 const toFeedBack = () => {
   if (requireLogin()) {
@@ -340,9 +357,7 @@ const goToOrders = () => {
 
 // 跳转到登录页面
 const goToLogin = () => {
-  if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/login/login' });
-  }
+  uni.navigateTo({ url: '/pages/login/login' });
 };
 
 // 跳转到编辑用户信息页面
@@ -414,12 +429,12 @@ function toggleoldManMode() {
 }
 
 function checkUpdate() {
-  tool.checkAppUpdate().then((msg)=>{
-	  if(msg){
-		  uni.showToast({
-		  	title: msg
-		  })
-	  }
+  tool.checkAppUpdate().then((msg) => {
+    if (msg) {
+      uni.showToast({
+        title: msg
+      })
+    }
   })
 }
 </script>
