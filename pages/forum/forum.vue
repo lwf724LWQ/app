@@ -94,7 +94,7 @@
     </view>
 
     <!-- 论坛内容 -->
-    <view class="forum-content">
+    <scroll-view class="forum-content" scroll-y :refresher-enabled="true" :refresher-triggered="refreshing" @refresherrefresh="onRefresh">
       <!-- 头条内容 -->
       <view v-if="activeTab === 'headlines'" class="tab-content">
         <view class="headlines-list">
@@ -236,7 +236,7 @@
           </view>
         </view>
       </view>
-    </view>
+    </scroll-view>
 
     <!-- 发布按钮 -->
     <view class="publish-btn" @click="showPublishModal">
@@ -355,7 +355,7 @@
         </view>
       </view>
     </view>
-	<bottomBar current-path="/pages/forum/forum"/>
+    <bottomBar current-path="/pages/forum/forum" />
   </view>
 </template>
 
@@ -703,6 +703,17 @@ const loadLotteryDataByType = async (lotteryType) => {
   } finally {
     isLoadingLottery.value = false
   }
+}
+
+const refreshing = ref(false)
+const onRefresh = async () => {
+  refreshing.value = true
+  try {
+    await loadPredictPosts()
+  } catch (error) {
+    
+  }
+  refreshing.value = false
 }
 
 // 根据彩票类型加载数据（兼容旧接口，通过code查找）
@@ -1174,13 +1185,13 @@ const loadPredictPosts = async () => {
       limit: '20'
     }
 
-    const patternResponse = await apiPostListQuery(patternQueryData)
+    // const patternResponse = await apiPostListQuery(patternQueryData)
 
-    if (patternResponse.code === 200) {
-      if (patternResponse.data && patternResponse.data.records && Array.isArray(patternResponse.data.records)) {
-        allPosts = [...allPosts, ...patternResponse.data.records]
-      }
-    }
+    // if (patternResponse.code === 200) {
+    //   if (patternResponse.data && patternResponse.data.records && Array.isArray(patternResponse.data.records)) {
+    //     allPosts = [...allPosts, ...patternResponse.data.records]
+    //   }
+    // }
 
     // 处理所有帖子数据
     if (allPosts.length > 0) {
@@ -1530,12 +1541,7 @@ const extractSchemeFromContent = (content) => {
 
 </script>
 
-<style scoped>
-/* 滚动容器特殊处理 */
-.scroll-container {
-  touch-action: pan-y;
-}
-
+<style scoped lang="scss">
 /* 输入框特殊处理 */
 input,
 textarea {
@@ -1543,19 +1549,16 @@ textarea {
 }
 
 .forum-container {
-  min-height: 100vh;
   background-color: #f5f5f5;
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 /* 主导航栏 */
 .main-navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   height: 88rpx;
+  flex-basis: 88rpx;
   background-color: #28B389;
   z-index: 999;
   display: flex;
@@ -1563,8 +1566,6 @@ textarea {
   justify-content: space-between;
   padding: 0 30rpx;
   padding-top: var(--status-bar-height);
-  /* 优化触摸性能 */
-  touch-action: manipulation;
 }
 
 .nav-left,
@@ -1724,11 +1725,10 @@ textarea {
 
 /* 切换标签栏 */
 .switch-tabs {
-  position: fixed;
-  top: calc(88rpx + var(--status-bar-height));
   left: 0;
   right: 0;
   height: 88rpx;
+  flex-basis: 88rpx;
   background-color: #fff;
   z-index: 998;
   display: flex;
@@ -1765,11 +1765,10 @@ textarea {
 
 /* 搜索栏 */
 .search-header {
-  position: fixed;
-  top: calc(176rpx + var(--status-bar-height));
   left: 0;
   right: 0;
   height: 80rpx;
+  flex-basis: 80rpx;
   background-color: #fff;
   z-index: 997;
   display: flex;
@@ -1890,11 +1889,8 @@ textarea {
 
 /* 分类标签栏 */
 .category-tags {
-  position: fixed;
-  top: calc(256rpx + var(--status-bar-height));
-  left: 0;
-  right: 0;
   height: 80rpx;
+  flex-basis: 80rpx;
   background-color: #fff;
   z-index: 996;
   padding: 20rpx 0;
@@ -1940,11 +1936,8 @@ textarea {
 }
 
 .forum-content {
-  padding: 20rpx;
-  padding-top: calc(396rpx + var(--status-bar-height));
-  /* 为四个固定区域留出空间 */
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  overflow: hidden;
 }
 
 /* 标签内容区域 */

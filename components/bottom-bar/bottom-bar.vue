@@ -1,20 +1,23 @@
 <!-- components/BottomTabBar.vue -->
 <template>
-  <view class="tab-bar">
-    <view class="tab-item" v-for="(item, index) in tabList" :key="index" @click="switchTab(item.path)">
-      <image :src="currentPath === item.path ? item.selectedIcon : item.icon" class="tab-icon"></image>
-      <text :class="['tab-text', currentPath === item.path ? 'active' : '']">
-        {{ item.text }}
-      </text>
+  <view :class="{ oldManMode: useOldManModeStore.enabled }">
+    <view class="tab-bar-reserved-grid"></view>
+    <view class="tab-bar">
+      <view class="tab-item" v-for="(item, index) in tabList" :key="index" @click="switchTab(item.path)">
+        <image :src="currentPath === item.path ? item.selectedIcon : item.icon" class="tab-icon"></image>
+        <text :class="['tab-text', currentPath === item.path ? 'active' : '']">
+          {{ item.text }}
+        </text>
+      </view>
     </view>
   </view>
 </template>
 
 <script>
-	/**
-	 * 注意要在pages.json中也配置相应页面
-	 * 否则不能正常跳转
-	 */
+/**
+ * 注意要在pages.json中也配置相应页面
+ * 否则不能正常跳转
+ */
 import homeimg from "./tabBar/home.png"
 import homeselectimg from "./tabBar/home-h.png"
 import classifyimg from "./tabBar/classify.png"
@@ -32,6 +35,7 @@ export default {
       required: true
     }
   },
+  inject: ['useOldManModeStore'],
   data() {
     return {
       tabList: [
@@ -65,7 +69,7 @@ export default {
   methods: {
     switchTab(path) {
       if (this.currentPath !== path) {
-		  console.log(path)
+        console.log(path)
         uni.switchTab({
           url: path
         })
@@ -78,19 +82,39 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.oldManMode {
+  .tab-bar-reserved-grid {
+    /* 占位用 */
+    height: 100rpx;
+  }
+
+  .tab-bar {
+    height: 100rpx;
+  }
+
+  .tab-text {
+    font-size: 30rpx;
+  }
+}
+
+.tab-bar-reserved-grid {
+  /* 占位用 */
+  height: 90rpx;
+}
+
 .tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 100rpx;
+  height: 90rpx;
   /* 50px * 2 = 100rpx */
   background-color: #ffffff;
   display: flex;
   border-top: 2rpx solid #e5e5e5;
   /* 1px * 2 = 2rpx */
-  z-index: 999;
+  z-index: 9;
 }
 
 .tab-item {
@@ -111,7 +135,7 @@ export default {
 }
 
 .tab-text {
-  font-size: 30rpx;
+  font-size: 22rpx;
   font-weight: bold;
   /* 12px * 2 = 24rpx */
   color: #666666;

@@ -25,9 +25,13 @@
           <text class="stat-label">粉丝</text>
           <text class="stat-value">256</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item" @click="goToPostlist">
           <text class="stat-label">帖子</text>
           <text class="stat-value">89</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">评分</text>
+          <text class="stat-value">100</text>
         </view>
       </view>
     </view>
@@ -60,9 +64,13 @@
           <text class="stat-label">粉丝</text>
           <text class="stat-value">0</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item" @click="goToPostlist">
           <text class="stat-label">帖子</text>
           <text class="stat-value">0</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">评分</text>
+          <text class="stat-value">100</text>
         </view>
       </view>
     </view>
@@ -316,6 +324,13 @@ const showAboutAs = () => {
     url: '/pages/login/agreement?type=AboutAs',
   })
 }
+// 跳转到帖子列表
+const goToPostlist = () => {
+  if (requireLogin()) {
+    uni.navigateTo({ url: '/pages/user/post-list' });
+  }
+}
+
 // 跳转到关注列表
 const goToFollowlist = () => {
   if (requireLogin()) {

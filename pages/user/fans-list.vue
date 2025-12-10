@@ -14,6 +14,7 @@
 import { ref } from 'vue'
 import TopNavigationBar from '../../components/TopNavigationBar.vue'
 import UserList from './components/userList.vue'
+import { onLoad } from '@dcloudio/uni-app'
 
 // 关注列表数据
 const followList = ref([
@@ -33,13 +34,6 @@ const onRefresh = () => {
 
         // 刷新完成后关闭刷新状态
         refreshing.value = false
-
-        // 提示刷新成功
-        uni.showToast({
-            title: '刷新成功',
-            icon: 'none',
-            duration: 1000
-        })
     }, 1500)
 }
 
@@ -48,6 +42,7 @@ const goToUserDetail = (userId) => {
     // 跳转逻辑
     console.log('跳转到用户详情页', userId)
 }
+onLoad(() => onRefresh())
 </script>
 
 <style scoped>

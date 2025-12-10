@@ -13,7 +13,7 @@
         </view>
 
         <!-- 空状态 -->
-        <view class="empty-state" v-if="followList.length === 0 && !loading">
+        <view class="empty-state" v-if="followList.length === 0 && !refreshing">
             <image class="empty-icon" src="/static/empty-follow.png" mode="aspectFit"></image>
             <text class="empty-text">{{ emptyText }}</text>
         </view>
@@ -23,7 +23,6 @@
 <script setup>
 import { inject } from "vue"
 const useOldManModeStore = inject('useOldManModeStore')
-
 // 定义组件属性
 const props = defineProps({
     followList: {
@@ -31,10 +30,6 @@ const props = defineProps({
         default: () => []
     },
     refreshing: {
-        type: Boolean,
-        default: false
-    },
-    loading: {
         type: Boolean,
         default: false
     },

@@ -285,6 +285,20 @@
         "navigationBarTitleText": "粉丝列表",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/user/post-list",
+      "style": {
+        "navigationBarTitleText": "帖子列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/predict-scheme/index",
+      "style": {
+        "navigationBarTitleText": "帖子列表",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
