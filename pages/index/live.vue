@@ -13,7 +13,7 @@
 				class="video"
 				:src="livePath"
 				:is-live="true"
-				:play-strategy="2"
+				play-strategy="2"
 				:autoplay="true"
 				:controls="true"
 				:show-progress="false"
@@ -22,6 +22,7 @@
 				:show-center-play-btn="true"
 				:enable-progress-gesture="false"
 				:enable-play-gesture="false"
+				codec="software"
 				@error="videoReload"
 				@loadedmetadata="videoReload"
 			></video>
@@ -51,8 +52,8 @@ import moment from "moment";
 import { apiFindResult } from '@/api/apis.js'
 import { onShow } from "@dcloudio/uni-app"
 
-const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8')
-// const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
+// const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8')
+const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
 
 // 声明倒计时变量
 const countdownTime: Ref<number> = ref(0)
@@ -61,7 +62,7 @@ const countdownTime: Ref<number> = ref(0)
 // 直播提前预热时间
 const livePreheatingTime = 15 * 60 * 1000
 // 开奖时间
-const targetDate = new Date('2024-01-01 21:15:00')
+const targetDate = new Date('2024-01-01 10:15:00')
 const liveEndDate = new Date('2024-01-01 22:00:00')
 targetDate.setFullYear(new Date().getFullYear())
 targetDate.setMonth(new Date().getMonth())

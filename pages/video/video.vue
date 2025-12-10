@@ -66,6 +66,7 @@
 			投稿
 			<uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
 		</view>
+		<bottomBar current-path="/pages/video/video"/>
 	</view>
 </template>
 
@@ -78,7 +79,7 @@ import {
 	ref,
 	reactive,
 	onMounted,
-	inject
+	inject,
 } from 'vue';
 import {
 	apiGetVideo,
@@ -96,6 +97,7 @@ import {
 	useVideoStore
 } from '@/stores/video.js'
 const useOldManModeStore = inject('useOldManModeStore')
+import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
 
 // 初始化 store
 const videoStore = useVideoStore()

@@ -486,7 +486,8 @@ const handlePublish = async () => {
 
     // 准备发帖数据
     const postData = {
-      tname: lotteryType.value ? `${lotteryType.value.name}-规律预测` : '规律预测', // 彩票名称 - 添加"规律预测"标识
+      tname: lotteryType.value.name,
+      // tname: lotteryType.value ? `${lotteryType.value.name}-规律预测` : '规律预测', // 彩票名称 - 添加"规律预测"标识
       issueno: parseInt(issueNumber.value) || 0, // 期号转换为数字
       content: generatePostContent(), // 发帖内容
       account: getAccount() || '', // 账号

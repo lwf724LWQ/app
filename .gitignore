@@ -34,3 +34,6 @@ unpackage/
 coverage/
 .temp/
 .tmp/
+
+upToServer.sh
+dist.tar.gz
