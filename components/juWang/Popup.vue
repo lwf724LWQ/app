@@ -133,8 +133,8 @@
         </form>
       </view>
     </uni-popup>
-    <uni-popup ref="refernumberPopup" type="bottom" class="popup">
-      <view class="container refernumberPopup">
+    <uni-popup ref="NumberPopup" type="bottom" class="popup">
+      <view class="container NumberPopup">
         <view class="sub-title">选择号码</view>
         <view class="number">
           <view
@@ -161,7 +161,7 @@
 
         <view class="btns">
           <button class="close" @click="close">关闭</button>
-          <button class="submit" @click="refernumberSubmit">确认</button>
+          <button class="submit" @click="numberSubmit">确认</button>
         </view>
       </view>
     </uni-popup>
@@ -169,9 +169,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import uSwitch from '@/components/juWang/Switch.vue'
 import Message from '@/components/juWang/Message.vue'
+import { useDrawLineSettingStore } from '@/stores/drawLine'
 
 const props = defineProps({
   type: {
@@ -179,14 +180,18 @@ const props = defineProps({
     default: '排列五'
   }
 })
+
+const getStyleConfig = () => {
+  return useDrawLineSettingStore().styleConfig
+}
+
 const formMode = ref('高级')
 const popup = ref(null)
 let index = ref(0)
+let columnIndex
 const conditions = computed(() => {
   const result = []
-  if (props.type !== '福彩3D')
-    result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
-  else result.push('单', '双', '大', '小', 'X', ...indexMap[index.value], '杀', '稳码')
+  result.push('单', '双', '大', '小', 'X', ...(indexMap[index.value] || ''), '杀', '稳码')
   return result
 })
 const simpleConditions = ['单', '双', '大', '小', 'X']
@@ -195,11 +200,14 @@ let effectViewList = ['千 A', '百 B', '十 C', '个 D']
 if (props.type === '福彩3D') effectViewList = ['百 B', '十 C', '个 D']
 const msg = ref(null)
 
-const open = (column) => {
+const openSenior = (col) => {
   popup.value.open('center')
-  index.value = column
-  effectList.value = [column]
-  effectMap.杀 = [column]
+  const styleConfig = getStyleConfig()
+  let columnIndex = col - 2
+  if (styleConfig.theme === '其他') columnIndex = col - 1
+  index.value = columnIndex
+  effectList.value = [columnIndex]
+  effectMap.杀 = [columnIndex]
 }
 
 const radioChange = (val) => {
@@ -301,59 +309,60 @@ if (props.type === '福彩3D') {
 
 // 提交
 const submit = defineEmits(['submit'])
+
 const seniorSubmit = () => {
   if (numbers.value.length === 0) {
     msg.value.send('至少选择一个号码')
     return
   }
+  const styleConfig = getStyleConfig()
+  let index = 2
+  if (styleConfig.theme === '其他') index = 1
   submit('submit', {
     condition: currentCondition.value,
     numbers: numbers.value,
     isSolid: isSolid.value,
-    indexs: effectList.value.map((item) => item + 1),
+    indexs: effectList.value.map((item) => item + index),
     senior: true
   })
   clearForm()
   popup.value.close()
 }
+
 const simpleSubmit = () => {
   submit('submit', {
     condition: currentCondition.value,
     numbers: [],
     isSolid: true,
-    indexs: [index.value + 1],
+    indexs: [columnIndex],
     senior: false
   })
   clearForm()
   popup.value.close()
   isSwitchShow.value = true
 }
-const close = () => {
-  popup.value.close()
-  refernumberPopup.value.close()
-  numbers.value = []
-  currentCondition.value = ''
-  effectList.value = [1]
-  isSwitchShow.value = true
-  formMode.value = '高级'
-}
 
-const refernumberPopup = ref(null)
-const openRefernumber = () => {
-  refernumberPopup.value.open('center')
+const NumberPopup = ref(null)
+const openNumber = () => {
+  NumberPopup.value.open('center')
 }
 
 const refernumberConditions = ['单', '双', '大', '小']
-const refernumberSubmit = () => {
-  submit('submit', { condition: currentCondition.value, numbers: [], isSolid: true, indexs: [0] })
+const numberSubmit = () => {
+  submit('submit', {
+    condition: currentCondition.value,
+    numbers: [],
+    isSolid: true,
+    indexs: [columnIndex]
+  })
   clearForm()
-  refernumberPopup.value.close()
+  NumberPopup.value.close()
 }
 
 const openSimple = () => {
   formMode.value = '简易'
   isSwitchShow.value = false
-  open(4)
+  openSenior()
 }
 
 // 清空表单
@@ -364,11 +373,31 @@ const clearForm = () => {
   isSwitchShow.value = true
   formMode.value = '高级'
 }
+const close = () => {
+  popup.value.close()
+  NumberPopup.value.close()
+  clearForm()
+}
 
+const open = (column) => {
+  columnIndex = column
+
+  const styleConfig = getStyleConfig()
+
+  const markType = styleConfig.columns[column].markType
+  switch (markType) {
+    case 'simple':
+      openSimple()
+      break
+    case 'number':
+      openNumber()
+      break
+    case 'senior':
+      openSenior(column)
+  }
+}
 defineExpose({
-  open,
-  openRefernumber,
-  openSimple
+  open
 })
 </script>
 
@@ -510,7 +539,7 @@ view {
   }
 }
 
-.refernumberPopup {
+.NumberPopup {
   .sub-title {
     margin: 30rpx 0;
     font-weight: 600;

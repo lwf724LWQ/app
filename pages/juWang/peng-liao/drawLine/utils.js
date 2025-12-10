@@ -32,6 +32,13 @@ export const getCurvePoint = (x1, y1, x2, y2, distance) => {
   }
 }
 
+// 格式化日期
+export const getDate = (date) => {
+  const week = ['日', '一', '二', '三', '四', '五', '六']
+  const day = new Date(date).getDay()
+  return date.replace(/-/g, '/').slice(-5) + ' ' + week[day]
+}
+
 // 图片压缩
 const TARGET_SIZE = 20 * 1024
 export const getCompressImage = async (url, quality = 1) => {
