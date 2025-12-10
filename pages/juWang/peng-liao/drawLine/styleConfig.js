@@ -497,7 +497,6 @@ export const getStyleConfig = (type, theme) => {
     item.backgroundColor = backgroundColor
     item.color = color
   })
-  console.log({ columns, topBar, borderColor, numberStartIndex, type, theme })
 
   return { columns, topBar, borderColor, numberStartIndex, type, theme }
 }

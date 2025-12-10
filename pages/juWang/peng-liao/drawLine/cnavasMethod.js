@@ -6,6 +6,7 @@ const systemInfo = uni.getSystemInfoSync()
 let ratio = systemInfo.screenWidth / 750
 
 const ROW_HEIGHT = 110 * ratio
+const PADDING = 0.1
 
 let borderColor, columns, type, theme, numberStartIndex
 
@@ -60,7 +61,7 @@ export class Draw {
   draw(record, pointActives) {
     this.drawLine(record)
 
-    this.drawPoint(pointActives)
+    this.drawActiveNumber(pointActives)
 
     this.drawMark(record)
     this.baseCtx.draw()
@@ -315,58 +316,62 @@ export class Draw {
       }
     })
   }
-  drawPoint(pointActives) {
+  // 渲染激活数字
+  drawActiveNumber(pointActives) {
     if (!pointActives || pointActives.length <= 0) return
-
-    const padding = 3 * ratio
 
     for (const pointKey in pointActives) {
       const { color, isSolid, isRound } = pointActives[pointKey]
       let [rowIndex, columnIndex] = pointKey.split('-')
       rowIndex = Number(rowIndex)
       columnIndex = Number(columnIndex)
-      const columnStyle = columns[columnIndex]
-      // 绘制背景
-      if (isSolid) {
-        const colors = ['#f0f0ec', '#fffaf6', color]
-        for (let index = 0; index < 3; index++) {
-          const maxSize = Math.min(columnStyle.width, ROW_HEIGHT)
-          const tmpPadding = 3 * ratio * index + padding
-          const x = columnStyle.left + (columnStyle.width - maxSize) / 2 + tmpPadding
-          const size = maxSize - tmpPadding * 2
-          const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - maxSize) / 2 + tmpPadding
+      const text = this.getNumber(rowIndex, columnIndex)
+      this.drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text)
+    }
+  }
+  drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text) {
+    const padding = 3 * ratio
 
-          if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index])
-          else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index])
-        }
-      } else {
+    const columnStyle = columns[columnIndex]
+    // 绘制背景
+    if (isSolid) {
+      const colors = ['#f0f0ec', '#fffaf6', color]
+      for (let index = 0; index < 3; index++) {
         const maxSize = Math.min(columnStyle.width, ROW_HEIGHT)
-        const tmpPadding = 6 * ratio + padding
+        const tmpPadding = 3 * ratio * index + padding
         const x = columnStyle.left + (columnStyle.width - maxSize) / 2 + tmpPadding
         const size = maxSize - tmpPadding * 2
         const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - maxSize) / 2 + tmpPadding
 
-        if (isRound) {
-          this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
-          this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 3 * ratio)
-        } else {
-          this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
-          this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
-        }
+        if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index])
+        else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index])
       }
-      // 绘制文字
-      const text = this.getNumber(rowIndex, columnIndex)
+    } else {
+      const maxSize = Math.min(columnStyle.width, ROW_HEIGHT)
+      const tmpPadding = 6 * ratio + padding
+      const x = columnStyle.left + (columnStyle.width - maxSize) / 2 + tmpPadding
+      const size = maxSize - tmpPadding * 2
+      const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - maxSize) / 2 + tmpPadding
 
-      if (text === undefined) continue
-      this.drawCenterText(
-        this.drawShapeActive,
-        rowIndex,
-        columnIndex,
-        text,
-        columnStyle.fontSize,
-        isSolid ? '#fff' : color
-      )
+      if (isRound) {
+        this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
+        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 3 * ratio)
+      } else {
+        this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
+        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
+      }
     }
+
+    // 绘制文字
+    if (text === undefined) return
+    this.drawCenterText(
+      this.drawShapeActive,
+      rowIndex,
+      columnIndex,
+      text,
+      columnStyle.fontSize,
+      isSolid ? '#fff' : color
+    )
   }
   getNumber(rowIndex, columnIndex) {
     if (theme === '其他') {
@@ -398,10 +403,15 @@ export class Draw {
     }
   }
   drawMark(record) {
+    if (!record?.length) return
     record.forEach((item) => {
       const mark = Array.isArray(item) ? item[0]?.mark : item?.mark
-      const color = Array.isArray(item) ? item[0]?.style.color : item?.style.color
+      let color = Array.isArray(item) ? item[0]?.style.color : item?.style.color
+
       if (!mark) return
+      const isSenior = mark.senior
+      const isSolid = mark.isSolid
+      console.log(mark)
 
       mark.indexs.forEach((index) => {
         const x = columns[index].left
@@ -409,46 +419,73 @@ export class Draw {
         const width = columns[index].width
         const height = ROW_HEIGHT
         // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"indexs":[2],"senior":true,"row":40}
-        this.drawShapeActive.drawSolidRect(x, y, width, height, color)
-        // 更改字号
-        let fontSize = 30 * ratio
-        if (!mark.condition) {
-          if (mark.numbers.length === 1) {
-            fontSize = 60 * ratio
-          } else if (mark.numbers.length <= 2) {
-            fontSize = 50 * ratio
+        if (isSenior) {
+          let fontColor
+          if (isSolid) {
+            fontColor = '#fff'
+            this.drawShapeActive.drawSolidRect(x, y, width, height, color)
           } else {
+            fontColor = color
+            this.drawShapeActive.drawSolidRect(x, y, width, height, columns[index].backgroundColor)
+            this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio)
+          }
+          // 更改字号
+          let fontSize = 30 * ratio
+          if (!mark.condition) {
+            if (mark.numbers.length === 1) {
+              fontSize = 60 * ratio
+            } else if (mark.numbers.length <= 2) {
+              fontSize = 50 * ratio
+            } else {
+              fontSize = 40 * ratio
+            }
+          }
+          // 文字位置
+          let fontY1 = y + 30 * ratio
+          let fontY2 = y + 60 * ratio
+          let fontY3 = y + 90 * ratio
+
+          if (!mark.condition && mark.numbers.length > 3) {
+            fontY2 = y + 40 * ratio
+            fontY3 = y + 80 * ratio
+            fontSize = 40 * ratio
+          } else if (mark.condition && mark.numbers.length < 3) {
+            fontY1 = y + 40 * ratio
+            fontY2 = y + 80 * ratio
             fontSize = 40 * ratio
           }
-        }
-        // 第一行文字
-        mark.condition &&
-          this.drawShapeActive.drawText(
-            mark.condition,
-            x + width / 2,
-            y + 30 * ratio,
-            '#fff',
-            fontSize
-          )
-        // 第二行数字
-        if (mark.numbers.length > 0) {
-          this.drawShapeActive.drawText(
-            mark.numbers.slice(0, 3).join(''),
-            x + width / 2,
-            y + 60 * ratio,
-            '#fff',
-            fontSize
-          )
-        }
-        // 第三行数字
-        if (mark.numbers.length > 3) {
-          this.drawShapeActive.drawText(
-            mark.numbers.slice(3, 5).join(''),
-            x + width / 2,
-            y + 90 * ratio,
-            '#fff',
-            fontSize
-          )
+
+          // 第一行文字
+          mark.condition &&
+            this.drawShapeActive.drawText(
+              mark.condition,
+              x + width / 2,
+              fontY1,
+              fontColor,
+              fontSize
+            )
+          // 第二行数字
+          if (mark.numbers.length > 0) {
+            this.drawShapeActive.drawText(
+              mark.numbers.slice(0, 3).join(''),
+              x + width / 2,
+              fontY2,
+              fontColor,
+              fontSize
+            )
+          }
+          // 第三行数字
+          if (mark.numbers.length > 3) {
+            this.drawShapeActive.drawText(
+              mark.numbers.slice(3, 5).join(''),
+              x + width / 2,
+              fontY3,
+              fontColor,
+              fontSize
+            )
+          }
+        } else {
+          this.drawPoint(mark.row, index, color, isSolid, true, mark.condition)
         }
       })
     })
@@ -465,7 +502,7 @@ export class Draw {
     const width = this.canvasSize.width
     const height = this.canvasSize.height
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       uni.canvasGetImageData({
         canvasId: sourseCtxId,
         x: 0,
@@ -482,6 +519,9 @@ export class Draw {
             data: res.data,
             success(res) {
               resolve(res)
+            },
+            fail(err) {
+              reject(err)
             }
           })
         }

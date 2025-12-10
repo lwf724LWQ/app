@@ -1,6 +1,6 @@
 <template>
   <view class="mode-select" :class="{ 'mode-select-close-setting': !options.showSetting }">
-    <view class="setting" @click="openSetting = true">设置</view>
+    <view class="setting" @click.stop="openSetting = true">设置</view>
     <view class="icon" @click="hide = !hide">
       <uni-icons
         custom-prefix="iconfont"
