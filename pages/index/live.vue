@@ -7,27 +7,13 @@
 				<!-- 未开始直播时展示 -->
 				<view class="live-not-started-poster"></view>
 			</view>
-			<video 
-				v-else
-				id="live-video"
-				class="video"
-				:src="livePath"
-				:is-live="true"
-				play-strategy="2"
-				:autoplay="true"
-				:controls="true"
-				:show-progress="false"
-				:show-fullscreen-btn="true"
-				:show-play-btn="false"
-				:show-center-play-btn="true"
-				:enable-progress-gesture="false"
-				:enable-play-gesture="false"
-				codec="software"
-				@error="videoReload"
-				@loadedmetadata="videoReload"
-			></video>
+			<video v-else id="live-video" class="video" :src="livePath" :is-live="true" play-strategy="2"
+				:autoplay="true" :controls="true" :show-progress="false" :show-fullscreen-btn="true"
+				:show-play-btn="false" :show-center-play-btn="true" :enable-progress-gesture="false"
+				:enable-play-gesture="false" codec="software" @error="videoReload"
+				@loadedmetadata="videoReload"></video>
 		</view>
-		<view class="nextlive-timetext" v-if="countdownTime>0">
+		<view class="nextlive-timetext" v-if="countdownTime > 0">
 			距离开奖还有 {{ formatTime(countdownTime) }}
 		</view>
 		<view class="result-container">
@@ -52,11 +38,11 @@ import moment from "moment";
 import { apiFindResult } from '@/api/apis.js'
 import { onShow } from "@dcloudio/uni-app"
 
-// const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8')
-const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
+const livePath = ref('https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8')
+// const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
 
 // 声明倒计时变量
-const countdownTime: Ref<number> = ref(0)
+const countdownTime: Ref<number> = ref(10)
 
 
 // 直播提前预热时间
@@ -93,7 +79,7 @@ function formatTime(time: number): string {
 	return moment.utc(time).format('HH:mm:ss')
 }
 
-const isShowLiveVideo = computed(()=>{
+const isShowLiveVideo = computed(() => {
 	return (countdownTime.value - livePreheatingTime) > 0
 })
 
@@ -116,18 +102,18 @@ function loadLotteryResults() {
 	})
 }
 
-function videoReload(){
+function videoReload() {
 	// 出现错误
-	if(isShowLiveVideo.value){
+	if (isShowLiveVideo.value) {
 		const videoContext = uni.createVideoContext('live-video')
 		videoContext.pause()
-		setTimeout(()=>{
+		setTimeout(() => {
 			videoContext.play()
 		}, 300)
 	}
 }
-onShow(()=>{
-	if(isShowLiveVideo.value){
+onShow(() => {
+	if (isShowLiveVideo.value) {
 		const videoContext = uni.createVideoContext('live-video')
 		videoContext.play()
 	}
@@ -189,11 +175,13 @@ onMounted(() => {
 			flex-basis: 400rpx;
 		}
 	}
-	.nextlive-timetext{
+
+	.nextlive-timetext {
 		color: #fff;
 		font-size: 50rpx;
 		padding: 20rpx;
 	}
+
 	.result-container {
 		padding: 40rpx 20rpx;
 		font-weight: bold;
