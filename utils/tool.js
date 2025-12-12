@@ -196,7 +196,13 @@ const tool = {
   },
   initWxSDK(){
     h5wxsdk.wxInit()
-  }
+  },
+  formatUrlParams(params) { 
+    return Object.keys(params)
+      .filter(key => params[key] !== null && params[key] !== '')
+      .map(key => `${key}=${params[key]}`)
+      .join('&')
+  },
 }
 
 export default tool

@@ -8,13 +8,24 @@
       </view>
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
-          <text class="period-text">{{ currentLotteryType.name }} {{ currentLotteryType.status }}</text>
-          <uni-icons type="arrowdown" size="16" color="#fff" :class="{ 'rotate': showPeriodDropdown }"></uni-icons>
+          <text class="period-text"
+            >{{ currentLotteryType.name }} {{ currentLotteryType.status }}</text
+          >
+          <uni-icons
+            type="arrowdown"
+            size="16"
+            color="#fff"
+            :class="{ rotate: showPeriodDropdown }"
+          ></uni-icons>
         </view>
       </view>
 
       <!-- 期号下拉菜单遮罩 -->
-      <view v-if="showPeriodDropdown" class="dropdown-mask" @click="closePeriodDropdown"></view>
+      <view
+        v-if="showPeriodDropdown"
+        class="dropdown-mask"
+        @click="closePeriodDropdown"
+      ></view>
 
       <!-- 期号下拉菜单 -->
       <view v-if="showPeriodDropdown" class="period-dropdown" @click.stop>
@@ -25,9 +36,16 @@
           </view>
         </view>
         <scroll-view scroll-y class="dropdown-list">
-          <view class="dropdown-item" :class="{ active: lotteryType.id === currentLotteryType.id }"
-            v-for="lotteryType in lotteryTypes" :key="lotteryType.id" @click="selectLotteryType(lotteryType)">
-            <text class="period-item-text">{{ lotteryType.name }} {{ lotteryType.status }}</text>
+          <view
+            class="dropdown-item"
+            :class="{ active: lotteryType.id === currentLotteryType.id }"
+            v-for="lotteryType in lotteryTypes"
+            :key="lotteryType.id"
+            @click="selectLotteryType(lotteryType)"
+          >
+            <text class="period-item-text"
+              >{{ lotteryType.name }} {{ lotteryType.status }}</text
+            >
             <text class="period-item-time">{{ lotteryType.time }}</text>
           </view>
         </scroll-view>
@@ -42,16 +60,32 @@
 
     <!-- 切换标签栏 -->
     <view class="switch-tabs">
-      <view class="tab-item" :class="{ active: activeTab === 'headlines' }" @click="switchTab('headlines')">
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'headlines' }"
+        @click="switchTab('headlines')"
+      >
         <text class="tab-text">头条</text>
       </view>
-      <view class="tab-item" :class="{ active: activeTab === 'follow' }" @click="switchTab('follow')">
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'follow' }"
+        @click="switchTab('follow')"
+      >
         <text class="tab-text">关注</text>
       </view>
-      <view class="tab-item" :class="{ active: activeTab === 'predict' }" @click="switchTab('predict')">
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'predict' }"
+        @click="switchTab('predict')"
+      >
         <text class="tab-text">预测</text>
       </view>
-      <view class="tab-item" :class="{ active: activeTab === 'soup' }" @click="switchTab('soup')">
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'soup' }"
+        @click="switchTab('soup')"
+      >
         <text class="tab-text">鸡汤</text>
       </view>
     </view>
@@ -61,8 +95,14 @@
       <text class="search-label">搜索帖子</text>
       <view class="search-input-wrapper">
         <uni-icons type="search" size="16" color="#999"></uni-icons>
-        <input type="text" placeholder="搜索头尾、芝麻、靓规等帖" class="search-input" v-model="searchKeyword"
-          @input="handleSearchInput" @focus="showSearchSuggestions = true" />
+        <input
+          type="text"
+          placeholder="搜索头尾、芝麻、靓规等帖"
+          class="search-input"
+          v-model="searchKeyword"
+          @input="handleSearchInput"
+          @focus="showSearchSuggestions = true"
+        />
         <view v-if="searchKeyword" class="clear-search" @click="clearSearch">
           <uni-icons type="clear" size="16" color="#999"></uni-icons>
         </view>
@@ -73,9 +113,16 @@
     </view>
 
     <!-- 搜索建议下拉框 -->
-    <view v-if="showSearchSuggestions && searchSuggestions.length > 0" class="search-suggestions">
-      <view class="suggestion-item" v-for="(suggestion, index) in searchSuggestions" :key="index"
-        @click="selectSuggestion(suggestion)">
+    <view
+      v-if="showSearchSuggestions && searchSuggestions.length > 0"
+      class="search-suggestions"
+    >
+      <view
+        class="suggestion-item"
+        v-for="(suggestion, index) in searchSuggestions"
+        :key="index"
+        @click="selectSuggestion(suggestion)"
+      >
         <uni-icons type="search" size="14" color="#999"></uni-icons>
         <text class="suggestion-text">{{ suggestion }}</text>
       </view>
@@ -85,8 +132,13 @@
     <view class="category-tags">
       <scroll-view scroll-x class="category-scroll">
         <view class="tag-list">
-          <view class="tag-item" :class="{ active: activeTag === index }" v-for="(tag, index) in tags" :key="index"
-            @click="selectTag(index)">
+          <view
+            class="tag-item"
+            :class="{ active: activeTag === index }"
+            v-for="(tag, index) in tags"
+            :key="index"
+            @click="selectTag(index)"
+          >
             {{ tag }}
           </view>
         </view>
@@ -94,11 +146,21 @@
     </view>
 
     <!-- 论坛内容 -->
-    <scroll-view class="forum-content" scroll-y :refresher-enabled="true" :refresher-triggered="refreshing" @refresherrefresh="onRefresh">
+    <scroll-view
+      class="forum-content"
+      scroll-y
+      :refresher-enabled="true"
+      :refresher-triggered="refreshing"
+      @refresherrefresh="onRefresh"
+    >
       <!-- 头条内容 -->
       <view v-if="activeTab === 'headlines'" class="tab-content">
         <view class="headlines-list">
-          <view class="headline-item" v-for="(headline, index) in headlinesList" :key="index">
+          <view
+            class="headline-item"
+            v-for="(headline, index) in headlinesList"
+            :key="index"
+          >
             <view class="headline-header">
               <text class="headline-title">{{ headline.title }}</text>
               <text class="headline-time">{{ headline.time }}</text>
@@ -115,7 +177,11 @@
       <!-- 关注内容 -->
       <view v-if="activeTab === 'follow'" class="tab-content">
         <view class="follow-list">
-          <view class="follow-item" v-for="(follow, index) in followList" :key="index">
+          <view
+            class="follow-item"
+            v-for="(follow, index) in followList"
+            :key="index"
+          >
             <view class="follow-header">
               <image :src="follow.avatar" class="user-avatar"></image>
               <view class="user-info">
@@ -135,13 +201,20 @@
       <view v-if="activeTab === 'predict'" class="tab-content">
         <!-- 搜索状态提示 -->
         <view v-if="isSearching && searchKeyword" class="search-status">
-          <text class="search-status-text">搜索"{{ searchKeyword }}"的结果</text>
+          <text class="search-status-text"
+            >搜索"{{ searchKeyword }}"的结果</text
+          >
           <text class="search-count">共{{ filteredPredictList.length }}条</text>
         </view>
 
         <view class="predict-list">
-          <view class="predict-item"
-            v-for="(item, index) in (isSearching && searchKeyword ? filteredPredictList : predictList)" :key="index">
+          <view
+            class="predict-item"
+            v-for="(item, index) in isSearching && searchKeyword
+              ? filteredPredictList
+              : predictList"
+            :key="index"
+          >
             <!-- 帖子头部 -->
             <view class="post-header">
               <view class="user-info">
@@ -151,7 +224,11 @@
                 </view>
               </view>
               <view class="more-options">
-                <uni-icons type="more-filled" size="20" color="#999"></uni-icons>
+                <uni-icons
+                  type="more-filled"
+                  size="20"
+                  color="#999"
+                ></uni-icons>
               </view>
             </view>
 
@@ -167,15 +244,34 @@
               <!-- 规律帖图片显示 - 支持多张图片 -->
               <view v-if="item.image" class="post-image-container">
                 <!-- 单张图片 -->
-                <image v-if="!isMultipleImages(item.image)"
-                  :src="item.image.startsWith('http') ? item.image : `http://video.caimizm.com/himg/${item.image}`"
-                  class="post-image" mode="aspectFit" @click="previewImage(item.image, [item.image])" />
+                <image
+                  v-if="!isMultipleImages(item.image)"
+                  :src="
+                    item.image.startsWith('http')
+                      ? item.image
+                      : `http://video.caimizm.com/himg/${item.image}`
+                  "
+                  class="post-image"
+                  mode="aspectFit"
+                  @click="previewImage(item.image, [item.image])"
+                />
                 <!-- 多张图片 -->
                 <view v-else class="multiple-images">
-                  <view v-for="(imageUrl, index) in getImageUrls(item.image)" :key="index" class="image-item">
-                    <image :src="imageUrl.startsWith('http') ? imageUrl : `http://video.caimizm.com/himg/${imageUrl}`"
-                      class="post-image-small" mode="aspectFit"
-                      @click="previewImage(imageUrl, getImageUrls(item.image))" />
+                  <view
+                    v-for="(imageUrl, index) in getImageUrls(item.image)"
+                    :key="index"
+                    class="image-item"
+                  >
+                    <image
+                      :src="
+                        imageUrl.startsWith('http')
+                          ? imageUrl
+                          : `http://video.caimizm.com/himg/${imageUrl}`
+                      "
+                      class="post-image-small"
+                      mode="aspectFit"
+                      @click="previewImage(imageUrl, getImageUrls(item.image))"
+                    />
                   </view>
                 </view>
               </view>
@@ -183,9 +279,19 @@
 
             <!-- 帖子底部操作 -->
             <view class="post-footer">
-              <view class="action-item" :class="{ 'liked-disabled': item.isLiked }" @click="handleLike(item)">
-                <uni-icons type="hand-up" size="18" :color="item.isLiked ? '#ff4757' : '#999'"></uni-icons>
-                <text class="count" :class="{ 'liked': item.isLiked }">{{ item.likes }}</text>
+              <view
+                class="action-item"
+                :class="{ 'liked-disabled': item.isLiked }"
+                @click="handleLike(item)"
+              >
+                <uni-icons
+                  type="hand-up"
+                  size="18"
+                  :color="item.isLiked ? '#ff4757' : '#999'"
+                ></uni-icons>
+                <text class="count" :class="{ liked: item.isLiked }">{{
+                  item.likes
+                }}</text>
               </view>
               <view class="action-item">
                 <uni-icons type="redo" size="18" color="#999"></uni-icons>
@@ -195,7 +301,10 @@
                 <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
                 <text class="count">{{ item.comments }}</text>
               </view>
-              <view class="action-item append-btn" @click="handleAppendPost(item)">
+              <view
+                class="action-item append-btn"
+                @click="handleAppendPost(item)"
+              >
                 <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
                 <text class="count">追帖</text>
               </view>
@@ -212,7 +321,11 @@
       <!-- 鸡汤内容 -->
       <view v-if="activeTab === 'soup'" class="tab-content">
         <view class="soup-list">
-          <view class="soup-item" v-for="(soup, index) in soupList" :key="index">
+          <view
+            class="soup-item"
+            v-for="(soup, index) in soupList"
+            :key="index"
+          >
             <view class="soup-header">
               <image :src="soup.avatar" class="user-avatar"></image>
               <view class="user-info">
@@ -245,8 +358,15 @@
     </view>
 
     <!-- 发布弹出层 -->
-    <uni-popup ref="publishPopup" type="bottom" :safe-area="false" :mask-click="false" :animation="true"
-      :mask-background-color="'rgba(0,0,0,0.5)'" :duration="300">
+    <uni-popup
+      ref="publishPopup"
+      type="bottom"
+      :safe-area="false"
+      :mask-click="false"
+      :animation="true"
+      :mask-background-color="'rgba(0,0,0,0.5)'"
+      :duration="300"
+    >
       <view class="publish-modal">
         <view class="modal-header">
           <text class="modal-title">发布帖子</text>
@@ -303,28 +423,46 @@
         </view>
 
         <view class="modal-footer">
-          <button class="close-btn-modal" @click="hidePublishModal">关闭</button>
+          <button class="close-btn-modal" @click="hidePublishModal">
+            关闭
+          </button>
         </view>
       </view>
     </uni-popup>
 
     <!-- 搜索建议遮罩 -->
-    <view v-if="showSearchSuggestions" class="search-suggestions-mask" @click="showSearchSuggestions = false"></view>
+    <view
+      v-if="showSearchSuggestions"
+      class="search-suggestions-mask"
+      @click="showSearchSuggestions = false"
+    ></view>
 
     <!-- 筛选弹窗 -->
-    <view v-if="showFilterDialog" class="filter-dialog-mask" @click="hideFilterModal">
+    <view
+      v-if="showFilterDialog"
+      class="filter-dialog-mask"
+      @click="hideFilterModal"
+    >
       <view class="filter-dialog" @click.stop>
         <!-- 弹窗头部 -->
         <view class="filter-header">
           <text class="filter-title">心水预测</text>
-          <text class="filter-period">第{{ currentLotteryType.name }}期 {{ currentLotteryType.status }}</text>
+          <text class="filter-period"
+            >第{{ currentLotteryType.name }}期
+            {{ currentLotteryType.status }}</text
+          >
         </view>
 
         <!-- 心水预测筛选 -->
         <view class="filter-section">
           <view class="filter-grid">
-            <view class="filter-item" :class="{ active: selectedPredictionFilter === filter }"
-              v-for="filter in predictionFilters" :key="filter" @click="togglePredictionFilter(filter)">
+            <view
+              class="filter-item"
+              :class="{ active: selectedPredictionFilter === filter }"
+              v-for="filter in predictionFilters"
+              :key="filter"
+              @click="togglePredictionFilter(filter)"
+            >
               {{ filter }}
             </view>
           </view>
@@ -335,8 +473,13 @@
           <text class="section-title">其他筛选</text>
           <text class="section-subtitle">(可结合上面选项选择一个)</text>
           <view class="filter-grid">
-            <view class="filter-item" :class="{ active: selectedOtherFilter === filter }" v-for="filter in otherFilters"
-              :key="filter" @click="toggleOtherFilter(filter)">
+            <view
+              class="filter-item"
+              :class="{ active: selectedOtherFilter === filter }"
+              v-for="filter in otherFilters"
+              :key="filter"
+              @click="toggleOtherFilter(filter)"
+            >
               {{ filter }}
             </view>
           </view>
@@ -360,820 +503,907 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { apiGetIssueNo, apiPostListQuery, apiPostLike } from '@/api/apis.js'
-import { getAccount } from '@/utils/request.js'
-import { getToken } from '../../utils/request'
-import { useUserStore } from '../../stores/userStore'
-import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
+import { ref, onMounted } from "vue";
+import { apiGetIssueNo, apiPostListQuery, apiPostLike } from "@/api/apis.js";
+import { getAccount } from "@/utils/request.js";
+import { getToken } from "../../utils/request";
+import { useUserStore } from "../../stores/userStore";
+import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
+import tool from "@/utils/tool.js";
 // 用户数据存储
-const userStore = useUserStore()
+const userStore = useUserStore();
 
 // 工具与常量：安全本地存取、函数防抖、文本规范化
 const safeGet = (key, fallback) => {
   try {
-    const v = uni.getStorageSync(key)
-    return v === undefined || v === null ? fallback : v
+    const v = uni.getStorageSync(key);
+    return v === undefined || v === null ? fallback : v;
   } catch (e) {
-    return fallback
+    return fallback;
   }
-}
+};
 
 const safeSet = (key, value) => {
   try {
-    uni.setStorageSync(key, value)
+    uni.setStorageSync(key, value);
   } catch (e) {
     // 非关键失败忽略
   }
-}
+};
 
 const debounce = (fn, delay = 300) => {
-  let timer
+  let timer;
   return (...args) => {
-    clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
-  }
-}
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+};
 
-const normalizeText = (val) => String(val || '').toLowerCase()
+const normalizeText = (val) => String(val || "").toLowerCase();
 
 // 当前选中的标签
-const activeTab = ref('predict')
+const activeTab = ref("predict");
 
 // 当前选中的标签（分类标签）
-const activeTag = ref(0)
+const activeTag = ref(0);
 
 // 彩票类型下拉框状态
-const showPeriodDropdown = ref(false)
+const showPeriodDropdown = ref(false);
 
 // 弹出层引用
-const publishPopup = ref(null)
+const publishPopup = ref(null);
 
 // 协议同意状态
-const agreedToTerms = ref(false)
+const agreedToTerms = ref(false);
 
 // 选中的功能类型
-const selectedFunction = ref('')
+const selectedFunction = ref("");
 
 // 筛选弹窗相关
-const showFilterDialog = ref(false)
-const selectedPredictionFilter = ref('') // 心水预测只能选择一个
-const selectedOtherFilter = ref('') // 其他筛选只能选择一个
+const showFilterDialog = ref(false);
+const selectedPredictionFilter = ref(""); // 心水预测只能选择一个
+const selectedOtherFilter = ref(""); // 其他筛选只能选择一个
 
 // 搜索相关
-const searchKeyword = ref('')
-const showSearchSuggestions = ref(false)
-const searchSuggestions = ref([])
-const filteredPredictList = ref([])
-const isSearching = ref(false)
+const searchKeyword = ref("");
+const showSearchSuggestions = ref(false);
+const searchSuggestions = ref([]);
+const filteredPredictList = ref([]);
+const isSearching = ref(false);
 
 // 请求锁 - 防止重复请求
-const isLoadingPosts = ref(false)
-const isLoadingLottery = ref(false)
+const isLoadingPosts = ref(false);
+const isLoadingLottery = ref(false);
 
 // 请求缓存 - 记录当前正在请求的参数，避免重复请求
-const currentQueryKey = ref(null) // 格式: "tname_issueno"
+const currentQueryKey = ref(null); // 格式: "tname_issueno"
 
 // 心水预测筛选选项
 const predictionFilters = ref([
-  '头尾', '芝麻', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾',
-  '稳码', '中肚', '头尾合', '中肚合', '千百合', '千十合', '百个合', '十个合',
-  'ABXD', 'ABCX', 'AXCD', 'XBCD', 'ABXX', 'AXCX', 'XXCD', 'XBXD', '死数',
-  '二字现', '三字现', '过滤王二定', '过滤王三定', '过滤王四定',
-  '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合'
-])
+  "头尾",
+  "芝麻",
+  "定头",
+  "定百",
+  "定十",
+  "定尾",
+  "杀头",
+  "杀百",
+  "杀十",
+  "杀尾",
+  "稳码",
+  "中肚",
+  "头尾合",
+  "中肚合",
+  "千百合",
+  "千十合",
+  "百个合",
+  "十个合",
+  "ABXD",
+  "ABCX",
+  "AXCD",
+  "XBCD",
+  "ABXX",
+  "AXCX",
+  "XXCD",
+  "XBXD",
+  "死数",
+  "二字现",
+  "三字现",
+  "过滤王二定",
+  "过滤王三定",
+  "过滤王四定",
+  "头尾不合",
+  "中肚不合",
+  "千百不合",
+  "千十不合",
+  "百个不合",
+  "十个不合",
+]);
 
 // 其他筛选选项
-const otherFilters = ref(['大师帖子', '靓规贴子', '点赞最多', '讨论最热'])
+const otherFilters = ref(["大师帖子", "靓规贴子", "点赞最多", "讨论最热"]);
 
 // 分类标签列表
-const tags = ref([
-  '#全部', '#大师', '#靓规贴', '#过滤王', '#点赞最多'
-])
+const tags = ref(["#全部", "#大师", "#靓规贴", "#过滤王", "#点赞最多"]);
 
 // 彩票类别列表
 const lotteryTypes = ref([
-  { id: 16, name: '排列三', code: 'pl3', status: '待开奖', time: '今天 21:30' },
-  { id: 17, name: '排列五', code: 'pl5', status: '待开奖', time: '今天 21:30' },
-  { id: 15, name: '七星彩', code: 'qxc', status: '待开奖', time: '今天 21:30' },
-  { id: 12, name: '福彩3D', code: 'fc3d', status: '待开奖', time: '今天 21:30' }
-])
+  { id: 16, name: "排列三", code: "pl3", status: "待开奖", time: "今天 21:30" },
+  { id: 17, name: "排列五", code: "pl5", status: "待开奖", time: "今天 21:30" },
+  { id: 15, name: "七星彩", code: "qxc", status: "待开奖", time: "今天 21:30" },
+  {
+    id: 12,
+    name: "福彩3D",
+    code: "fc3d",
+    status: "待开奖",
+    time: "今天 21:30",
+  },
+]);
 
 // 当前选中的彩票类别
-const currentLotteryType = ref(lotteryTypes.value[0])
+const currentLotteryType = ref(lotteryTypes.value[0]);
 
 // 头条列表
 const headlinesList = ref([
   {
     id: 1,
-    title: '2024年彩票行业最新政策解读',
-    content: '国家彩票管理中心发布最新政策，对彩票销售和兑奖流程进行了优化调整...',
-    time: '2小时前',
+    title: "2024年彩票行业最新政策解读",
+    content:
+      "国家彩票管理中心发布最新政策，对彩票销售和兑奖流程进行了优化调整...",
+    time: "2小时前",
     views: 1256,
-    likes: 89
+    likes: 89,
   },
   {
     id: 2,
-    title: '数字彩票中奖概率分析报告',
-    content: '专业机构发布最新中奖概率分析，帮助彩民理性购彩...',
-    time: '5小时前',
+    title: "数字彩票中奖概率分析报告",
+    content: "专业机构发布最新中奖概率分析，帮助彩民理性购彩...",
+    time: "5小时前",
     views: 892,
-    likes: 67
+    likes: 67,
   },
   {
     id: 3,
-    title: '彩票公益金使用情况公示',
-    content: '本年度彩票公益金主要用于教育、医疗、体育等公益事业...',
-    time: '1天前',
+    title: "彩票公益金使用情况公示",
+    content: "本年度彩票公益金主要用于教育、医疗、体育等公益事业...",
+    time: "1天前",
     views: 2156,
-    likes: 156
-  }
-])
+    likes: 156,
+  },
+]);
 
 // 关注列表
 const followList = ref([
   {
     id: 1,
-    username: '彩友小王',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '刚刚',
-    content: '今天分享一个实用的选号技巧，希望对大家有帮助！'
+    username: "彩友小王",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "刚刚",
+    content: "今天分享一个实用的选号技巧，希望对大家有帮助！",
   },
   {
     id: 2,
-    username: '幸运星',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '30分钟前',
-    content: '最近在研究号码走势，发现了一些有趣的规律'
+    username: "幸运星",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "30分钟前",
+    content: "最近在研究号码走势，发现了一些有趣的规律",
   },
   {
     id: 3,
-    username: '数字达人',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '1小时前',
-    content: '新一期预测已发布，欢迎大家参考讨论'
-  }
-])
+    username: "数字达人",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "1小时前",
+    content: "新一期预测已发布，欢迎大家参考讨论",
+  },
+]);
 
 // 预测列表
-const predictList = ref([])
+const predictList = ref([]);
 
 // 当前期号信息
 const currentIssueInfo = ref({
   id: null,
   number: null,
-  status: '待开奖',
-  time: '今天 21:30'
-})
+  status: "待开奖",
+  time: "今天 21:30",
+});
 
 // 鸡汤列表
 const soupList = ref([
   {
     id: 1,
-    username: '心灵导师',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '1小时前',
-    content: '生活就像彩票，不买永远没有中奖的机会，但买了也不一定中奖。重要的是保持一颗平常心，享受过程，期待美好。',
+    username: "心灵导师",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "1小时前",
+    content:
+      "生活就像彩票，不买永远没有中奖的机会，但买了也不一定中奖。重要的是保持一颗平常心，享受过程，期待美好。",
     likes: 45,
-    comments: 12
+    comments: 12,
   },
   {
     id: 2,
-    username: '正能量小王',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '3小时前',
-    content: '每一次失败都是成功的垫脚石，每一次尝试都是成长的机会。相信自己，坚持下去，好运总会降临。',
+    username: "正能量小王",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "3小时前",
+    content:
+      "每一次失败都是成功的垫脚石，每一次尝试都是成长的机会。相信自己，坚持下去，好运总会降临。",
     likes: 67,
-    comments: 23
+    comments: 23,
   },
   {
     id: 3,
-    username: '励志达人',
-    avatar: '/static/images/defaultAvatar.png',
-    time: '6小时前',
-    content: '人生就像选号，没有标准答案，但有无数种可能。勇敢尝试，坚持梦想，你就是自己的幸运星。',
+    username: "励志达人",
+    avatar: "/static/images/defaultAvatar.png",
+    time: "6小时前",
+    content:
+      "人生就像选号，没有标准答案，但有无数种可能。勇敢尝试，坚持梦想，你就是自己的幸运星。",
     likes: 89,
-    comments: 34
-  }
-])
+    comments: 34,
+  },
+]);
 
 // 页面是否已经初始化
-const isPageInitialized = ref(false)
+const isPageInitialized = ref(false);
 
 // 页面加载完成
 onMounted(() => {
   if (isPageInitialized.value) {
-    return
+    return;
   }
 
-  const savedLotteryType = safeGet('currentLotteryType', null)
+  const savedLotteryType = safeGet("currentLotteryType", null);
   if (savedLotteryType) {
-    currentLotteryType.value = savedLotteryType
+    currentLotteryType.value = savedLotteryType;
   }
 
-  optimizeTouchEvents()
-  loadLotteryData(currentLotteryType.value.code)
-  isPageInitialized.value = true
-})
+  optimizeTouchEvents();
+  loadLotteryData(currentLotteryType.value.code);
+  isPageInitialized.value = true;
+});
 
 // 切换标签
 const switchTab = (tab) => {
-  activeTab.value = tab
-}
+  activeTab.value = tab;
+};
 
 // 选择分类标签
 const selectTag = (index) => {
-  activeTag.value = index
-  const selectedTag = tags.value[index]
+  activeTag.value = index;
+  const selectedTag = tags.value[index];
 
   // 提取标签内容（去掉#号）
-  const tagContent = selectedTag.replace('#', '')
+  const tagContent = selectedTag.replace("#", "");
 
   // 设置搜索关键词并执行搜索
-  searchKeyword.value = tagContent
-  performFuzzySearch()
+  searchKeyword.value = tagContent;
+  performFuzzySearch();
 
   // 关闭搜索建议框
-  showSearchSuggestions.value = false
-}
+  showSearchSuggestions.value = false;
+};
 
 // 切换彩票类型下拉框
 const togglePeriodDropdown = () => {
-  showPeriodDropdown.value = !showPeriodDropdown.value
-}
+  showPeriodDropdown.value = !showPeriodDropdown.value;
+};
 
 // 关闭彩票类型下拉框
 const closePeriodDropdown = () => {
-  showPeriodDropdown.value = false
-}
+  showPeriodDropdown.value = false;
+};
 
 // 选择彩票类型
 const selectLotteryType = (lotteryType) => {
   if (currentLotteryType.value.code === lotteryType.code) {
-    showPeriodDropdown.value = false
-    return
+    showPeriodDropdown.value = false;
+    return;
   }
 
-  currentLotteryType.value = lotteryType
-  showPeriodDropdown.value = false
+  currentLotteryType.value = lotteryType;
+  showPeriodDropdown.value = false;
 
   try {
-    uni.setStorageSync('currentLotteryType', lotteryType)
+    uni.setStorageSync("currentLotteryType", lotteryType);
   } catch (error) {
     // 静默处理错误
   }
 
-  loadLotteryDataByType(lotteryType)
-}
+  loadLotteryDataByType(lotteryType);
+};
 
 // 根据彩票类型对象加载数据（直接传入完整对象）
 const loadLotteryDataByType = async (lotteryType) => {
   if (isLoadingLottery.value) {
-    return
+    return;
   }
 
   if (!lotteryType || !lotteryType.name) {
-    return
+    return;
   }
-
   try {
-    isLoadingLottery.value = true
-    uni.showLoading({ title: '加载中...' })
-    const response = await apiGetIssueNo({ tname: lotteryType.name })
-    uni.hideLoading()
+    isLoadingLottery.value = true;
+    uni.showLoading({ title: "加载中..." });
+    const response = await apiGetIssueNo({ tname: lotteryType.name });
+    uni.hideLoading();
 
-    if (response.code === 200 && response.data !== null && response.data !== undefined) {
-      let issueNumber = null
-      let issueStatus = '待开奖'
-      let issueTime = '今天 21:30'
+    if (
+      response.code === 200 &&
+      response.data !== null &&
+      response.data !== undefined
+    ) {
+      let issueNumber = null;
+      let issueStatus = "待开奖";
+      let issueTime = "今天 21:30";
 
-      if (typeof response.data === 'number' || typeof response.data === 'string') {
-        issueNumber = response.data.toString()
-      } else if (typeof response.data === 'object') {
-        issueNumber = response.data.issueno || response.data.number || response.data.id
-        issueStatus = response.data.status || '待开奖'
-        issueTime = response.data.time || '今天 21:30'
+      if (
+        typeof response.data === "number" ||
+        typeof response.data === "string"
+      ) {
+        issueNumber = response.data.toString();
+      } else if (typeof response.data === "object") {
+        issueNumber =
+          response.data.issueno || response.data.number || response.data.id;
+        issueStatus = response.data.status || "待开奖";
+        issueTime = response.data.time || "今天 21:30";
       }
 
       // 更新当前彩票类型的状态
-      lotteryType.status = issueStatus
-      lotteryType.time = issueTime
+      lotteryType.status = issueStatus;
+      lotteryType.time = issueTime;
 
       // 更新当前选中的彩票类型状态
       if (currentLotteryType.value.code === lotteryType.code) {
-        currentLotteryType.value.status = issueStatus
-        currentLotteryType.value.time = issueTime
+        currentLotteryType.value.status = issueStatus;
+        currentLotteryType.value.time = issueTime;
       }
 
       // 更新到lotteryTypes数组中对应的项
-      const index = lotteryTypes.value.findIndex(type => type.code === lotteryType.code)
+      const index = lotteryTypes.value.findIndex(
+        (type) => type.code === lotteryType.code
+      );
       if (index !== -1) {
-        lotteryTypes.value[index].status = issueStatus
-        lotteryTypes.value[index].time = issueTime
+        lotteryTypes.value[index].status = issueStatus;
+        lotteryTypes.value[index].time = issueTime;
       }
 
       // 检查期号是否真的发生了变化
-      const oldIssueNumber = currentIssueInfo.value?.number
-      const newIssueNumber = issueNumber
+      const oldIssueNumber = currentIssueInfo.value?.number;
+      const newIssueNumber = issueNumber;
 
       currentIssueInfo.value = {
         id: issueNumber,
         number: issueNumber,
         status: issueStatus,
-        time: issueTime
-      }
+        time: issueTime,
+      };
 
-      safeSet('currentIssueInfo', currentIssueInfo.value)
+      safeSet("currentIssueInfo", currentIssueInfo.value);
 
-      // 只有当期号发生变化或者是第一次加载时才加载帖子，避免重复请求
-      if (oldIssueNumber !== newIssueNumber || oldIssueNumber === null) {
-        loadPredictPosts()
-      }
+      loadPredictPosts();
     } else {
-      uni.showToast({ title: response.msg || '数据加载失败', icon: 'none' })
+      uni.showToast({ title: response.msg || "数据加载失败", icon: "none" });
     }
   } catch (error) {
-    uni.hideLoading()
-    const errorMsg = error?.msg || error?.message || '网络错误，请重试'
+    uni.hideLoading();
+    const errorMsg = error?.msg || error?.message || "网络错误，请重试";
     uni.showToast({
       title: errorMsg,
-      icon: 'none',
-      duration: 3000
-    })
+      icon: "none",
+      duration: 3000,
+    });
   } finally {
-    isLoadingLottery.value = false
+    isLoadingLottery.value = false;
   }
-}
+};
 
-const refreshing = ref(false)
+const refreshing = ref(false);
 const onRefresh = async () => {
-  refreshing.value = true
+  refreshing.value = true;
   try {
-    await loadPredictPosts()
-  } catch (error) {
-    
-  }
-  refreshing.value = false
-}
+    await loadPredictPosts();
+  } catch (error) {}
+  refreshing.value = false;
+};
 
 // 根据彩票类型加载数据（兼容旧接口，通过code查找）
 const loadLotteryData = async (lotteryCode) => {
-  const lotteryType = lotteryTypes.value.find(type => type.code === lotteryCode)
+  const lotteryType = lotteryTypes.value.find(
+    (type) => type.code === lotteryCode
+  );
   if (!lotteryType) {
-    return
+    return;
   }
-  await loadLotteryDataByType(lotteryType)
-}
+  await loadLotteryDataByType(lotteryType);
+};
 
 // 检查是否为多张图片（包含逗号分隔）
 const isMultipleImages = (imageStr) => {
-  return imageStr && imageStr.includes(',')
-}
+  return imageStr && imageStr.includes(",");
+};
 
 // 获取图片URL数组
 const getImageUrls = (imageStr) => {
-  if (!imageStr) return []
-  return imageStr.split(',').map(url => url.trim()).filter(url => url)
-}
+  if (!imageStr) return [];
+  return imageStr
+    .split(",")
+    .map((url) => url.trim())
+    .filter((url) => url);
+};
 
 // 预览图片
 const previewImage = (current, urls) => {
   uni.previewImage({
     current,
-    urls
-  })
-}
+    urls,
+  });
+};
 
 // 显示发布弹出层
 const showPublishModal = () => {
   if (getToken()) {
-    publishPopup.value.open()
+    publishPopup.value.open();
   } else {
     uni.showModal({
-      title: '提示',
-      content: '该操作需要登录，是否前往',
+      title: "提示",
+      content: "该操作需要登录，是否前往",
       success: async (res) => {
         if (res.confirm) {
-          uni.navigateTo({ url: '/pages/login/login' + '?redirect=/pages/video/video' })
+          uni.navigateTo({
+            url: "/pages/login/login" + "?redirect=/pages/video/video",
+          });
         }
       },
       showCancel: true,
-    })
+    });
   }
-
-}
+};
 
 // 隐藏发布弹出层
 const hidePublishModal = () => {
-  publishPopup.value.close()
-}
+  publishPopup.value.close();
+};
 
 // 切换协议同意状态
 const toggleAgreementManually = () => {
-  agreedToTerms.value = !agreedToTerms.value
-}
+  agreedToTerms.value = !agreedToTerms.value;
+};
 
 // 选择功能类型
 const selectFunction = (type) => {
-
   // 所有功能都需要先同意协议
   if (!agreedToTerms.value) {
     uni.showToast({
-      title: '请先同意管理规范',
-      icon: 'none'
-    })
-    return
+      title: "请先同意管理规范",
+      icon: "none",
+    });
+    return;
   }
 
+  selectedFunction.value = type;
 
-  selectedFunction.value = type
+  const urlParams = tool.formatUrlParams({
+    lotteryType: currentLotteryType.value.name,
+  });
 
   // 根据选择的类型跳转到不同的发布页面
   switch (type) {
-    case 'predict':
+    case "predict":
       // 跳转到设置方案页面
       uni.navigateTo({
-        url: '/pages/predict-scheme/predict-scheme',
+        url: `/pages/forum/post/created-scheme?${urlParams}`,
         success: () => {
-          hidePublishModal()
+          hidePublishModal();
         },
         fail: () => {
           uni.showToast({
-            title: '跳转失败',
-            icon: 'none'
-          })
-        }
-      })
-      break
-    case 'pattern':
+            title: "跳转失败",
+            icon: "none",
+          });
+        },
+      });
+      break;
+    case "pattern":
       // 跳转到规律预测页面
       uni.navigateTo({
-        url: '/pages/pattern-predict/pattern-predict',
+        url: `/pages/forum/post/upload-diagram?${urlParams}`,
         success: () => {
-          hidePublishModal()
+          hidePublishModal();
         },
         fail: () => {
           uni.showToast({
-            title: '跳转失败',
-            icon: 'none'
-          })
-        }
-      })
-      break
-    case 'filter':
+            title: "跳转失败",
+            icon: "none",
+          });
+        },
+      });
+      break;
+    case "filter":
       uni.showToast({
-        title: '跳转到过滤王帖发布',
-        icon: 'none'
-      })
-      break
-    case 'soup':
+        title: "跳转到过滤王帖发布",
+        icon: "none",
+      });
+      break;
+    case "soup":
       uni.showToast({
-        title: '跳转到老母鸡汤发布',
-        icon: 'none'
-      })
-      break
+        title: "跳转到老母鸡汤发布",
+        icon: "none",
+      });
+      break;
   }
 
   // 关闭弹出层
-  hidePublishModal()
-}
+  hidePublishModal();
+};
 
 // 显示筛选弹窗
 const showFilterModal = () => {
-  showFilterDialog.value = true
-}
+  showFilterDialog.value = true;
+};
 
 // 隐藏筛选弹窗
 const hideFilterModal = () => {
-  showFilterDialog.value = false
-}
+  showFilterDialog.value = false;
+};
 
 // 切换筛选选项
 // 切换心水预测筛选
 const togglePredictionFilter = (filter) => {
   if (selectedPredictionFilter.value === filter) {
-    selectedPredictionFilter.value = '' // 取消选择
+    selectedPredictionFilter.value = ""; // 取消选择
   } else {
-    selectedPredictionFilter.value = filter // 选择新的
+    selectedPredictionFilter.value = filter; // 选择新的
   }
-}
+};
 
 // 切换其他筛选
 const toggleOtherFilter = (filter) => {
   if (selectedOtherFilter.value === filter) {
-    selectedOtherFilter.value = '' // 取消选择
+    selectedOtherFilter.value = ""; // 取消选择
   } else {
-    selectedOtherFilter.value = filter // 选择新的
+    selectedOtherFilter.value = filter; // 选择新的
   }
-}
+};
 
 // 处理搜索输入
 const _handleSearchInput = () => {
   if (searchKeyword.value.trim()) {
     // 生成搜索建议
-    generateSearchSuggestions()
+    generateSearchSuggestions();
     // 执行模糊搜索
-    performFuzzySearch()
+    performFuzzySearch();
   } else {
     // 清空搜索
-    clearSearchResults()
+    clearSearchResults();
   }
-}
-const handleSearchInput = debounce(_handleSearchInput, 300)
+};
+const handleSearchInput = debounce(_handleSearchInput, 300);
 
 // 生成搜索建议
 const generateSearchSuggestions = () => {
-  const keyword = normalizeText(searchKeyword.value.trim())
-  const suggestions = []
+  const keyword = normalizeText(searchKeyword.value.trim());
+  const suggestions = [];
 
   // 从两类筛选选项中生成建议
-  const candidates = [...predictionFilters.value, ...otherFilters.value]
-  candidates.forEach(filter => {
+  const candidates = [...predictionFilters.value, ...otherFilters.value];
+  candidates.forEach((filter) => {
     if (normalizeText(filter).includes(keyword)) {
-      suggestions.push(filter)
+      suggestions.push(filter);
     }
-  })
+  });
 
   // 限制建议数量
-  searchSuggestions.value = suggestions.slice(0, 5)
-}
+  searchSuggestions.value = suggestions.slice(0, 5);
+};
 
 // 选择搜索建议
 const selectSuggestion = (suggestion) => {
-  searchKeyword.value = suggestion
-  showSearchSuggestions.value = false
-  performFuzzySearch()
-}
+  searchKeyword.value = suggestion;
+  showSearchSuggestions.value = false;
+  performFuzzySearch();
+};
 
 // 清空搜索
 const clearSearch = () => {
-  searchKeyword.value = ''
-  showSearchSuggestions.value = false
-  activeTag.value = -1 // 重置标签选中状态
-  clearSearchResults()
-}
+  searchKeyword.value = "";
+  showSearchSuggestions.value = false;
+  activeTag.value = -1; // 重置标签选中状态
+  clearSearchResults();
+};
 
 // 执行模糊搜索
 const performFuzzySearch = () => {
-  const keyword = normalizeText(searchKeyword.value.trim())
+  const keyword = normalizeText(searchKeyword.value.trim());
 
   if (!keyword) {
-    clearSearchResults()
-    return
+    clearSearchResults();
+    return;
   }
 
-  isSearching.value = true
+  isSearching.value = true;
 
   // 对预测帖子进行模糊搜索
-  filteredPredictList.value = predictList.value.filter(post => {
+  filteredPredictList.value = predictList.value.filter((post) => {
     // 搜索用户名
     if (post.username && normalizeText(post.username).includes(keyword)) {
-      return true
+      return true;
     }
 
     // 搜索帖子内容
     if (post.content && normalizeText(post.content).includes(keyword)) {
-      return true
+      return true;
     }
 
     // 搜索期号
     if (post.period && post.period.toString().includes(keyword)) {
-      return true
+      return true;
     }
 
     // 特殊标签搜索逻辑
-    if (keyword === '全部') {
-      return true // 显示所有帖子
+    if (keyword === "全部") {
+      return true; // 显示所有帖子
     }
 
-    if (keyword === '大师' || keyword === '大师帖子') {
+    if (keyword === "大师" || keyword === "大师帖子") {
       // 搜索包含"大师"关键词的帖子
-      return post.content && post.content.includes('大师')
+      return post.content && post.content.includes("大师");
     }
 
-    if (keyword === '靓规贴' || keyword === '靓规贴子') {
+    if (keyword === "靓规贴" || keyword === "靓规贴子") {
       // 搜索包含"靓规"关键词的帖子
-      return post.content && post.content.includes('靓规')
+      return post.content && post.content.includes("靓规");
     }
 
-    if (keyword === '过滤王') {
+    if (keyword === "过滤王") {
       // 搜索包含"过滤王"关键词的帖子
-      return post.content && post.content.includes('过滤王')
+      return post.content && post.content.includes("过滤王");
     }
 
-    if (keyword === '点赞最多') {
+    if (keyword === "点赞最多") {
       // 按点赞数排序（这里简化处理，实际可以按likes字段排序）
-      return post.likes > 0
+      return post.likes > 0;
     }
 
-    return false
-  })
+    return false;
+  });
 
   // 如果是"点赞最多"标签，按点赞数排序
-  if (keyword === '点赞最多') {
-    filteredPredictList.value.sort((a, b) => b.likes - a.likes)
+  if (keyword === "点赞最多") {
+    filteredPredictList.value.sort((a, b) => b.likes - a.likes);
   }
 
   uni.showToast({
     title: `找到${filteredPredictList.value.length}条结果`,
-    icon: 'success'
-  })
-}
+    icon: "success",
+  });
+};
 
 // 清空搜索结果
 const clearSearchResults = () => {
-  filteredPredictList.value = []
-  isSearching.value = false
-}
+  filteredPredictList.value = [];
+  isSearching.value = false;
+};
 
 // 执行筛选搜索
 const performSearch = () => {
-  const filters = []
+  const filters = [];
   if (selectedPredictionFilter.value) {
-    filters.push(selectedPredictionFilter.value)
+    filters.push(selectedPredictionFilter.value);
   }
   if (selectedOtherFilter.value) {
-    filters.push(selectedOtherFilter.value)
+    filters.push(selectedOtherFilter.value);
   }
-
 
   // 检查是否选择了筛选条件
   if (filters.length === 0) {
     uni.showToast({
-      title: '请选择筛选条件',
-      icon: 'none'
-    })
-    return
+      title: "请选择筛选条件",
+      icon: "none",
+    });
+    return;
   }
 
   // 设置搜索关键词
-  searchKeyword.value = filters.join('+')
+  searchKeyword.value = filters.join("+");
 
   // 执行筛选搜索
-  performFilterSearch(filters)
+  performFilterSearch(filters);
 
   // 关闭筛选弹窗
-  hideFilterModal()
+  hideFilterModal();
 
   // 重置标签选中状态
-  activeTag.value = -1
+  activeTag.value = -1;
 
   uni.showToast({
-    title: `搜索${filters.join('+')}`,
-    icon: 'success'
-  })
-}
+    title: `搜索${filters.join("+")}`,
+    icon: "success",
+  });
+};
 
 // 执行筛选搜索的具体逻辑
 const performFilterSearch = (filters) => {
-  isSearching.value = true
+  isSearching.value = true;
 
   // 对预测帖子进行筛选搜索
-  filteredPredictList.value = predictList.value.filter(post => {
-    let matches = false
+  filteredPredictList.value = predictList.value.filter((post) => {
+    let matches = false;
 
     // 检查心水预测筛选条件
     if (selectedPredictionFilter.value) {
-      const predictionFilter = selectedPredictionFilter.value.toLowerCase()
+      const predictionFilter = selectedPredictionFilter.value.toLowerCase();
 
       // 在帖子内容中搜索匹配的筛选条件
-      if (post.content && post.content.toLowerCase().includes(predictionFilter)) {
-        matches = true
+      if (
+        post.content &&
+        post.content.toLowerCase().includes(predictionFilter)
+      ) {
+        matches = true;
       }
 
       // 特殊处理一些筛选条件
-      if (predictionFilter === '头尾' && post.content &&
-        (post.content.includes('头') || post.content.includes('尾'))) {
-        matches = true
+      if (
+        predictionFilter === "头尾" &&
+        post.content &&
+        (post.content.includes("头") || post.content.includes("尾"))
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter === '芝麻' && post.content &&
-        post.content.includes('芝麻')) {
-        matches = true
+      if (
+        predictionFilter === "芝麻" &&
+        post.content &&
+        post.content.includes("芝麻")
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter === '中肚' && post.content &&
-        post.content.includes('中肚')) {
-        matches = true
+      if (
+        predictionFilter === "中肚" &&
+        post.content &&
+        post.content.includes("中肚")
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter.includes('定') && post.content &&
-        post.content.includes('定')) {
-        matches = true
+      if (
+        predictionFilter.includes("定") &&
+        post.content &&
+        post.content.includes("定")
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter.includes('杀') && post.content &&
-        post.content.includes('杀')) {
-        matches = true
+      if (
+        predictionFilter.includes("杀") &&
+        post.content &&
+        post.content.includes("杀")
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter.includes('合') && post.content &&
-        post.content.includes('合')) {
-        matches = true
+      if (
+        predictionFilter.includes("合") &&
+        post.content &&
+        post.content.includes("合")
+      ) {
+        matches = true;
       }
 
-      if (predictionFilter.includes('过滤王') && post.content &&
-        post.content.includes('过滤王')) {
-        matches = true
+      if (
+        predictionFilter.includes("过滤王") &&
+        post.content &&
+        post.content.includes("过滤王")
+      ) {
+        matches = true;
       }
     }
 
     // 检查其他筛选条件
     if (selectedOtherFilter.value) {
-      const otherFilter = selectedOtherFilter.value.toLowerCase()
+      const otherFilter = selectedOtherFilter.value.toLowerCase();
 
-      if (otherFilter === '大师帖子' && post.content &&
-        post.content.includes('大师')) {
-        matches = true
+      if (
+        otherFilter === "大师帖子" &&
+        post.content &&
+        post.content.includes("大师")
+      ) {
+        matches = true;
       }
 
-      if (otherFilter === '靓规贴子' && post.content &&
-        post.content.includes('靓规')) {
-        matches = true
+      if (
+        otherFilter === "靓规贴子" &&
+        post.content &&
+        post.content.includes("靓规")
+      ) {
+        matches = true;
       }
 
-      if (otherFilter === '点赞最多' && post.likes > 0) {
-        matches = true
+      if (otherFilter === "点赞最多" && post.likes > 0) {
+        matches = true;
       }
 
-      if (otherFilter === '讨论最热' && post.comments > 0) {
-        matches = true
+      if (otherFilter === "讨论最热" && post.comments > 0) {
+        matches = true;
       }
     }
 
-    return matches
-  })
+    return matches;
+  });
 
   // 如果是"点赞最多"或"讨论最热"，按相应字段排序
-  if (selectedOtherFilter.value === '点赞最多') {
-    filteredPredictList.value.sort((a, b) => b.likes - a.likes)
-  } else if (selectedOtherFilter.value === '讨论最热') {
-    filteredPredictList.value.sort((a, b) => b.comments - a.comments)
+  if (selectedOtherFilter.value === "点赞最多") {
+    filteredPredictList.value.sort((a, b) => b.likes - a.likes);
+  } else if (selectedOtherFilter.value === "讨论最热") {
+    filteredPredictList.value.sort((a, b) => b.comments - a.comments);
   }
-
-}
+};
 
 // 获取搜索按钮文本
 const getSearchButtonText = () => {
-  const filters = []
+  const filters = [];
   if (selectedPredictionFilter.value) {
-    filters.push(selectedPredictionFilter.value)
+    filters.push(selectedPredictionFilter.value);
   }
   if (selectedOtherFilter.value) {
-    filters.push(selectedOtherFilter.value)
+    filters.push(selectedOtherFilter.value);
   }
 
   if (filters.length === 0) {
-    return '搜索'
+    return "搜索";
   }
 
-  return filters.join('+')
-}
+  return filters.join("+");
+};
 
 // 加载预测帖子数据
 const loadPredictPosts = async () => {
   // 先检查是否正在加载，避免重复请求
   if (isLoadingPosts.value) {
-    return
+    return;
   }
 
   // 构建查询参数
-  const tname = currentLotteryType.value?.name
-  const issueno = currentIssueInfo.value?.number || currentIssueInfo.value?.id || '--'
+  const tname = currentLotteryType.value?.name;
+  const issueno =
+    currentIssueInfo.value?.number || currentIssueInfo.value?.id || "--";
 
   // 如果参数不完整，不执行请求
   if (!tname || !issueno) {
-    return
+    return;
   }
 
   // 生成请求唯一标识
-  const queryKey = `${tname}_${issueno}`
+  const queryKey = `${tname}_${issueno}`;
 
   // 如果正在请求相同的参数，跳过（防止重复请求）
   if (currentQueryKey.value === queryKey) {
-    return
+    return;
   }
 
   try {
-    isLoadingPosts.value = true
-    currentQueryKey.value = queryKey
+    isLoadingPosts.value = true;
+    currentQueryKey.value = queryKey;
 
     // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
       tname: tname, // 查询预测帖
       issueno: issueno,
-      page: '1',
-      limit: '20'
-    }
+      page: "1",
+      limit: "20",
+    };
 
     // 查询预测帖
-    const response = await apiPostListQuery(queryData)
+    const response = await apiPostListQuery(queryData);
 
-    let allPosts = []
+    let allPosts = [];
 
     if (response.code === 200) {
-      if (response.data && response.data.records && Array.isArray(response.data.records)) {
-        allPosts = [...response.data.records]
+      if (
+        response.data &&
+        response.data.records &&
+        Array.isArray(response.data.records)
+      ) {
+        allPosts = [...response.data.records];
       }
     }
 
@@ -1181,9 +1411,9 @@ const loadPredictPosts = async () => {
     const patternQueryData = {
       tname: `${tname}-规律预测`, // 查询规律帖
       issueno: issueno,
-      page: '1',
-      limit: '20'
-    }
+      page: "1",
+      limit: "20",
+    };
 
     // const patternResponse = await apiPostListQuery(patternQueryData)
 
@@ -1195,235 +1425,241 @@ const loadPredictPosts = async () => {
 
     // 处理所有帖子数据
     if (allPosts.length > 0) {
-      predictList.value = allPosts.map((post) => {
-        const postId = post.id
+      predictList.value = allPosts
+        .map((post) => {
+          const postId = post.id;
 
-        // 检查postId是否有效
-        if (!postId) {
-          return null // 跳过无效的帖子
-        }
+          // 检查postId是否有效
+          if (!postId) {
+            return null; // 跳过无效的帖子
+          }
 
-        // 检查当前用户是否点赞过这个帖子
-        const currentAccount = getAccount()
-        const userLikedKey = `${postId}_${currentAccount}`
-        const isLiked = getLikedStatus(userLikedKey)
+          // 检查当前用户是否点赞过这个帖子
+          const currentAccount = getAccount();
+          const userLikedKey = `${postId}_${currentAccount}`;
+          const isLiked = getLikedStatus(userLikedKey);
 
-        // 使用服务器返回的点赞数
-        const serverLikeCount = post.likeCount || 0
+          // 使用服务器返回的点赞数
+          const serverLikeCount = post.likeCount || 0;
 
-        // 处理用户头像
-        let userAvatar = 'http://video.caimizm.com/himg/user.png'
+          // 处理用户头像
+          let userAvatar = "http://video.caimizm.com/himg/user.png";
 
-        // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
-        userAvatar = getUserAvatar(post.account)
+          // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
+          userAvatar = getUserAvatar(post.account);
 
-        return {
-          id: postId,
-          username: post.account || '匿名用户',
-          avatar: userAvatar, // 使用处理后的头像
-          time: formatTime(post.createTime),
-          status: '预测中',
-          period: post.issueno || currentIssueInfo.value.number,
-          content: post.content || '',
-          image: post.pimg || '', // 帖子图片（规律帖的图片）
-          likes: serverLikeCount, // 使用服务器返回的点赞数
-          comments: post.comment || 0,
-          shares: 0,
-          isLiked: isLiked, // 检查当前用户是否点赞过
-          isLiking: false // 点赞中状态
-        }
-      }).filter(post => post !== null)
+          return {
+            id: postId,
+            username: post.account || "匿名用户",
+            avatar: userAvatar, // 使用处理后的头像
+            time: formatTime(post.createTime),
+            status: "预测中",
+            period: post.issueno || currentIssueInfo.value.number,
+            content: post.content || "",
+            image: post.pimg || "", // 帖子图片（规律帖的图片）
+            likes: serverLikeCount, // 使用服务器返回的点赞数
+            comments: post.comment || 0,
+            shares: 0,
+            isLiked: isLiked, // 检查当前用户是否点赞过
+            isLiking: false, // 点赞中状态
+          };
+        })
+        .filter((post) => post !== null);
     } else {
-      predictList.value = []
+      predictList.value = [];
     }
   } catch (error) {
-    predictList.value = []
+    predictList.value = [];
   } finally {
-    isLoadingPosts.value = false
-    currentQueryKey.value = null
+    isLoadingPosts.value = false;
+    currentQueryKey.value = null;
   }
-}
+};
 
 // 获取本地存储的点赞状态和数字
 const getLikedStatus = (postId) => {
-  const likedPosts = safeGet('likedPosts', {})
-  return likedPosts[postId] || false
-}
+  const likedPosts = safeGet("likedPosts", {});
+  return likedPosts[postId] || false;
+};
 
 // 获取本地存储的点赞数字
 const getLikedCount = (postId) => {
-  const likedCounts = safeGet('likedCounts', {})
-  return likedCounts[postId] || 0
-}
+  const likedCounts = safeGet("likedCounts", {});
+  return likedCounts[postId] || 0;
+};
 
 // 保存点赞状态到本地存储
 const saveLikedStatus = (postId, isLiked) => {
-  const likedPosts = safeGet('likedPosts', {})
-  likedPosts[postId] = isLiked
-  safeSet('likedPosts', likedPosts)
-}
+  const likedPosts = safeGet("likedPosts", {});
+  likedPosts[postId] = isLiked;
+  safeSet("likedPosts", likedPosts);
+};
 
 // 保存点赞数字到本地存储
 const saveLikedCount = (postId, count) => {
-  const likedCounts = safeGet('likedCounts', {})
-  likedCounts[postId] = count
-  safeSet('likedCounts', likedCounts)
-}
+  const likedCounts = safeGet("likedCounts", {});
+  likedCounts[postId] = count;
+  safeSet("likedCounts", likedCounts);
+};
 
 // 获取用户头像
 const getUserAvatar = (account) => {
   try {
-    const userInfo = userStore.getUserInfo()
-    return userInfo.avatar || 'http://video.caimizm.com/himg/user.png'
+    const userInfo = userStore.getUserInfo();
+    return userInfo.avatar || "http://video.caimizm.com/himg/user.png";
   } catch (error) {
-    return 'http://video.caimizm.com/himg/user.png'
+    return "http://video.caimizm.com/himg/user.png";
   }
-}
+};
 
 // 保存用户头像信息
 const saveUserAvatar = (account, avatarUrl) => {
-  userStore.updateAvatar(avatarUrl)
-}
+  userStore.updateAvatar(avatarUrl);
+};
 
 // 格式化时间
 const formatTime = (timeStr) => {
-  if (!timeStr) return '刚刚'
+  if (!timeStr) return "刚刚";
 
   try {
-    const time = new Date(timeStr)
-    const now = new Date()
-    const diff = now - time
+    const time = new Date(timeStr);
+    const now = new Date();
+    const diff = now - time;
 
-    if (diff < 60000) return '刚刚'
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-    return `${Math.floor(diff / 86400000)}天前`
+    if (diff < 60000) return "刚刚";
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+    return `${Math.floor(diff / 86400000)}天前`;
   } catch (error) {
-    return '刚刚'
+    return "刚刚";
   }
-}
+};
 
 // 清空筛选选择
 const clearFilterSelection = () => {
-  selectedPredictionFilter.value = ''
-  selectedOtherFilter.value = ''
+  selectedPredictionFilter.value = "";
+  selectedOtherFilter.value = "";
 
   uni.showToast({
-    title: '已清空筛选条件',
-    icon: 'success'
-  })
-}
+    title: "已清空筛选条件",
+    icon: "success",
+  });
+};
 
 // 处理帖子点赞
 const handleLike = async (post) => {
   try {
     // 防止重复点击
     if (post.isLiking) {
-      return
+      return;
     }
 
     // 检查当前用户是否已经点赞过这个帖子
-    const currentAccount = getAccount()
-    const userLikedKey = `${post.id}_${currentAccount}`
-    const hasUserLiked = getLikedStatus(userLikedKey)
+    const currentAccount = getAccount();
+    const userLikedKey = `${post.id}_${currentAccount}`;
+    const hasUserLiked = getLikedStatus(userLikedKey);
 
     if (hasUserLiked) {
       uni.showToast({
-        title: '你已经点赞过了',
-        icon: 'none'
-      })
-      return
+        title: "你已经点赞过了",
+        icon: "none",
+      });
+      return;
     }
 
     // 检查postId是否有效
     if (!post.id) {
       uni.showToast({
-        title: '帖子数据异常，无法点赞',
-        icon: 'none'
-      })
-      return
+        title: "帖子数据异常，无法点赞",
+        icon: "none",
+      });
+      return;
     }
 
-    post.isLiking = true
+    post.isLiking = true;
 
     // 调用点赞接口
     const likeData = {
       postId: post.id,
-      account: currentAccount // 使用当前登录用户账号
-    }
+      account: currentAccount, // 使用当前登录用户账号
+    };
 
-    const response = await apiPostLike(likeData)
+    const response = await apiPostLike(likeData);
 
     if (response.code === 200) {
       // 点赞成功，更新状态
-      post.isLiked = true
-      post.likes += 1
+      post.isLiked = true;
+      post.likes += 1;
 
       // 保存当前用户对这个帖子的点赞状态
-      saveLikedStatus(userLikedKey, true)
+      saveLikedStatus(userLikedKey, true);
 
       uni.showToast({
-        title: response.msg || '点赞成功',
-        icon: 'success'
-      })
+        title: response.msg || "点赞成功",
+        icon: "success",
+      });
 
       // 更新列表中的对应帖子
-      updatePostInList(post)
-
+      updatePostInList(post);
     } else {
       uni.showToast({
-        title: response.msg || '点赞失败',
-        icon: 'none'
-      })
+        title: response.msg || "点赞失败",
+        icon: "none",
+      });
     }
-
   } catch (error) {
     uni.showToast({
-      title: '网络错误，请重试',
-      icon: 'none'
-    })
+      title: "网络错误，请重试",
+      icon: "none",
+    });
   } finally {
-    post.isLiking = false
+    post.isLiking = false;
   }
-}
+};
 
 // 更新列表中的帖子数据
 const updatePostInList = (updatedPost) => {
   // 更新原始列表
-  const originalIndex = predictList.value.findIndex(p => p.id === updatedPost.id)
+  const originalIndex = predictList.value.findIndex(
+    (p) => p.id === updatedPost.id
+  );
   if (originalIndex !== -1) {
-    predictList.value[originalIndex] = { ...updatedPost }
+    predictList.value[originalIndex] = { ...updatedPost };
   }
 
   // 更新筛选列表
-  const filteredIndex = filteredPredictList.value.findIndex(p => p.id === updatedPost.id)
+  const filteredIndex = filteredPredictList.value.findIndex(
+    (p) => p.id === updatedPost.id
+  );
   if (filteredIndex !== -1) {
-    filteredPredictList.value[filteredIndex] = { ...updatedPost }
+    filteredPredictList.value[filteredIndex] = { ...updatedPost };
   }
-}
+};
 
 // 优化触摸事件性能
 const optimizeTouchEvents = () => {
   try {
     // 在H5环境下优化触摸事件
-    if (typeof window !== 'undefined' && window.addEventListener) {
+    if (typeof window !== "undefined" && window.addEventListener) {
       // 为所有元素添加被动事件监听器
       const addPassiveListener = (element, event, handler) => {
-        element.addEventListener(event, handler, { passive: true })
-      }
+        element.addEventListener(event, handler, { passive: true });
+      };
 
       // 为滚动容器添加被动滚动监听器
-      const scrollContainers = document.querySelectorAll('.predict-list, .modal-content, .dropdown-list, .filter-dialog')
-      scrollContainers.forEach(container => {
-        addPassiveListener(container, 'touchstart', () => { })
-        addPassiveListener(container, 'touchmove', () => { })
-        addPassiveListener(container, 'touchend', () => { })
-      })
+      const scrollContainers = document.querySelectorAll(
+        ".predict-list, .modal-content, .dropdown-list, .filter-dialog"
+      );
+      scrollContainers.forEach((container) => {
+        addPassiveListener(container, "touchstart", () => {});
+        addPassiveListener(container, "touchmove", () => {});
+        addPassiveListener(container, "touchend", () => {});
+      });
     }
   } catch (error) {
     // 静默处理错误
   }
-}
+};
 
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
@@ -1431,46 +1667,46 @@ const handleAppendPost = (post) => {
     // 检查帖子ID是否有效
     if (!post.id) {
       uni.showToast({
-        title: '帖子数据异常，无法追帖',
-        icon: 'none'
-      })
-      return
+        title: "帖子数据异常，无法追帖",
+        icon: "none",
+      });
+      return;
     }
 
     // 检查是否是当前用户自己的帖子
-    const currentAccount = getAccount()
+    const currentAccount = getAccount();
     if (post.username === currentAccount) {
       uni.showModal({
-        title: '追帖确认',
+        title: "追帖确认",
         content: `确定要对帖子"第${post.period}期"进行追帖吗？`,
-        confirmText: '确定追帖',
-        cancelText: '取消',
+        confirmText: "确定追帖",
+        cancelText: "取消",
         success: (res) => {
           if (res.confirm) {
             // 跳转到追帖页面
-            navigateToAppendPost(post)
+            navigateToAppendPost(post);
           }
-        }
-      })
+        },
+      });
     } else {
       uni.showToast({
-        title: '只能追帖自己的帖子',
-        icon: 'none'
-      })
+        title: "只能追帖自己的帖子",
+        icon: "none",
+      });
     }
   } catch (error) {
     uni.showToast({
-      title: '操作失败，请重试',
-      icon: 'none'
-    })
+      title: "操作失败，请重试",
+      icon: "none",
+    });
   }
-}
+};
 
 // 跳转到追帖页面
 const navigateToAppendPost = (post) => {
   try {
     // 从帖子内容中提取所有方案信息
-    const schemeIds = extractSchemeFromContent(post.content)
+    const schemeIds = extractSchemeFromContent(post.content);
     // 保存帖子信息到本地存储，供predict-scheme.vue使用
     const appendPostData = {
       postId: post.id,
@@ -1478,67 +1714,96 @@ const navigateToAppendPost = (post) => {
       postContent: post.content,
       period: post.period,
       lotteryType: currentLotteryType.value.name, // 添加彩票类型
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    };
 
-    uni.setStorageSync('appendPostData', appendPostData)
+    uni.setStorageSync("appendPostData", appendPostData);
 
     // 跳转到方案设置页面，让用户选择要追加的方案
     uni.navigateTo({
-      url: '/pages/predict-scheme/predict-scheme',
+      url: "/pages/predict-scheme/predict-scheme",
       success: () => {
         uni.showToast({
-          title: '请选择要追加的方案',
-          icon: 'success'
-        })
+          title: "请选择要追加的方案",
+          icon: "success",
+        });
       },
       fail: () => {
         uni.showToast({
-          title: '跳转失败',
-          icon: 'none'
-        })
-      }
-    })
-
+          title: "跳转失败",
+          icon: "none",
+        });
+      },
+    });
   } catch (error) {
     uni.showToast({
-      title: '跳转失败',
-      icon: 'none'
-    })
+      title: "跳转失败",
+      icon: "none",
+    });
   }
-}
+};
 
 // 从帖子内容中提取所有方案ID
 const extractSchemeFromContent = (content) => {
   try {
-    if (!content) return []
+    if (!content) return [];
 
     // 常见的方案类型列表
     const schemeTypes = [
-      '头尾', '中肚', 'ABXX', 'AXCX', 'XBXD', 'XXCD', 'ABCX', 'ABXD', 'AXCD', 'XBCD',
-      '芝麻', '二字现', '三字现', '定头', '定百', '定十', '定尾', '杀头', '杀百', '杀十', '杀尾',
-      '稳码', '头尾合', '中肚合', '千百合', '千十合', '百个合', '十个合', '死数',
-      '头尾不合', '中肚不合', '千百不合', '千十不合', '百个不合', '十个不合',
-      '过滤王二定', '过滤王三定', '过滤王四定'
-    ]
+      "头尾",
+      "中肚",
+      "ABXX",
+      "AXCX",
+      "XBXD",
+      "XXCD",
+      "ABCX",
+      "ABXD",
+      "AXCD",
+      "XBCD",
+      "芝麻",
+      "二字现",
+      "三字现",
+      "定头",
+      "定百",
+      "定十",
+      "定尾",
+      "杀头",
+      "杀百",
+      "杀十",
+      "杀尾",
+      "稳码",
+      "头尾合",
+      "中肚合",
+      "千百合",
+      "千十合",
+      "百个合",
+      "十个合",
+      "死数",
+      "头尾不合",
+      "中肚不合",
+      "千百不合",
+      "千十不合",
+      "百个不合",
+      "十个不合",
+      "过滤王二定",
+      "过滤王三定",
+      "过滤王四定",
+    ];
 
-    const foundSchemes = []
+    const foundSchemes = [];
 
     // 在内容中查找所有方案类型
-    schemeTypes.forEach(scheme => {
+    schemeTypes.forEach((scheme) => {
       if (content.includes(scheme)) {
-        foundSchemes.push(scheme)
+        foundSchemes.push(scheme);
       }
-    })
+    });
 
-    return foundSchemes
-
+    return foundSchemes;
   } catch (error) {
-    return []
+    return [];
   }
-}
-
-
+};
 </script>
 
 <style scoped lang="scss">
@@ -1559,7 +1824,7 @@ textarea {
 .main-navbar {
   height: 88rpx;
   flex-basis: 88rpx;
-  background-color: #28B389;
+  background-color: #28b389;
   z-index: 999;
   display: flex;
   align-items: center;
@@ -1883,7 +2148,7 @@ textarea {
 
 .search-count {
   font-size: 24rpx;
-  color: #28B389;
+  color: #28b389;
   font-weight: 500;
 }
 
@@ -2209,11 +2474,11 @@ textarea {
 
 /* 追帖按钮样式 */
 .action-item.append-btn {
-  color: #28B389;
+  color: #28b389;
 }
 
 .action-item.append-btn .count {
-  color: #28B389;
+  color: #28b389;
   font-weight: 500;
 }
 
@@ -2287,7 +2552,6 @@ textarea {
 .publish-btn:active {
   transform: scale(0.95);
 }
-
 
 /* 发布弹出层样式 */
 .publish-modal {
@@ -2440,7 +2704,7 @@ textarea {
 }
 
 .predict-icon {
-  background-color: #28B389;
+  background-color: #28b389;
 }
 
 .pattern-icon {

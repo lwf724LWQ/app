@@ -3,8 +3,16 @@
   <view :class="{ oldManMode: useOldManModeStore.enabled }">
     <view class="tab-bar-reserved-grid"></view>
     <view class="tab-bar">
-      <view class="tab-item" v-for="(item, index) in tabList" :key="index" @click="switchTab(item.path)">
-        <image :src="currentPath === item.path ? item.selectedIcon : item.icon" class="tab-icon"></image>
+      <view
+        class="tab-item"
+        v-for="(item, index) in tabList"
+        :key="index"
+        @click="switchTab(item.path)"
+      >
+        <image
+          :src="currentPath === item.path ? item.selectedIcon : item.icon"
+          class="tab-icon"
+        ></image>
         <text :class="['tab-text', currentPath === item.path ? 'active' : '']">
           {{ item.text }}
         </text>
@@ -18,68 +26,68 @@
  * 注意要在pages.json中也配置相应页面
  * 否则不能正常跳转
  */
-import homeimg from "./tabBar/home.png"
-import homeselectimg from "./tabBar/home-h.png"
-import classifyimg from "./tabBar/classify.png"
-import classifyselectimg from "./tabBar/classify-h.png"
-import userimg from "./tabBar/user.png"
-import userselectimg from "./tabBar/user-h.png"
-import videoimg from "./tabBar/video.png"
-import videoselectimg from "./tabBar/video-h.png"
+import homeimg from "./tabBar/home.png";
+import homeselectimg from "./tabBar/home-h.png";
+import classifyimg from "./tabBar/classify.png";
+import classifyselectimg from "./tabBar/classify-h.png";
+import userimg from "./tabBar/user.png";
+import userselectimg from "./tabBar/user-h.png";
+import videoimg from "./tabBar/video.png";
+import videoselectimg from "./tabBar/video-h.png";
 export default {
-  name: 'BottomTabBar',
+  name: "BottomTabBar",
   props: {
     // 当前路由路径
     currentPath: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  inject: ['useOldManModeStore'],
+  inject: ["useOldManModeStore"],
   data() {
     return {
       tabList: [
         {
-          text: '首页',
-          path: '/pages/index/index',
+          text: "首页",
+          path: "/pages/index/index",
           icon: homeimg,
-          selectedIcon: homeselectimg
+          selectedIcon: homeselectimg,
         },
         {
-          text: '视频',
-          path: '/pages/video/video',
+          text: "视频",
+          path: "/pages/video/video",
           icon: videoimg,
-          selectedIcon: videoselectimg
+          selectedIcon: videoselectimg,
         },
         {
-          text: '帖子',
-          path: '/pages/forum/forum',
+          text: "彩友圈",
+          path: "/pages/forum/forum",
           icon: classifyimg,
-          selectedIcon: classifyselectimg
+          selectedIcon: classifyselectimg,
         },
         {
-          text: '我的',
-          path: '/pages/user/user',
+          text: "我的",
+          path: "/pages/user/user",
           icon: userimg,
-          selectedIcon: userselectimg
-        }
-      ]
-    }
+          selectedIcon: userselectimg,
+        },
+      ],
+    };
   },
   methods: {
     switchTab(path) {
       if (this.currentPath !== path) {
-        console.log(path)
+        console.log(path);
         uni.switchTab({
-          url: path
-        })
+          url: path,
+        });
       }
-    }
+    },
   },
   created() {
-    uni.hideTabBar()
-  }
-}
+    uni.hideTabBar();
+  },
+};
 </script>
 
 <style scoped lang="scss">

@@ -163,30 +163,6 @@
       }
     },
     {
-      "path": "pages/predict-scheme/predict-scheme",
-      "style": {
-        "navigationBarTitleText": "设置方案",
-        "enablePullDownRefresh": false,
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/predict-publish/predict-publish",
-      "style": {
-        "navigationBarTitleText": "预测",
-        "enablePullDownRefresh": false,
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/pattern-predict/pattern-predict",
-      "style": {
-        "navigationBarTitleText": "规律预测",
-        "enablePullDownRefresh": false,
-        "navigationStyle": "custom"
-      }
-    },
-    {
       "path": "pages/dream-interpretation/dream-interpretation",
       "style": {
         "navigationBarTitleText": "解梦",
@@ -294,9 +270,23 @@
       }
     },
     {
-      "path": "pages/predict-scheme/index",
+      "path": "pages/forum/post/created-scheme",
       "style": {
-        "navigationBarTitleText": "帖子列表",
+        "navigationBarTitleText": "创建方案",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/forum/post/append-confirm",
+      "style": {
+        "navigationBarTitleText": "确定方案",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/forum/post/upload-diagram",
+      "style": {
+        "navigationBarTitleText": "规则图",
         "navigationStyle": "custom"
       }
     }
