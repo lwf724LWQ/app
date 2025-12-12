@@ -337,39 +337,43 @@ export class Draw {
     if (isSolid) {
       const colors = ['#f0f0ec', '#fffaf6', color]
       for (let index = 0; index < 3; index++) {
-        const maxSize = Math.min(columnStyle.width, ROW_HEIGHT)
-        const tmpPadding = 3 * ratio * index + padding
-        const x = columnStyle.left + (columnStyle.width - maxSize) / 2 + tmpPadding
-        const size = maxSize - tmpPadding * 2
-        const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - maxSize) / 2 + tmpPadding
+        const minSize = Math.min(columnStyle.width, ROW_HEIGHT)
+        const cloumnWidth = columnStyle.width
+        const padding = cloumnWidth * PADDING + index * 3 * ratio
+        const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
+        const size = minSize - padding * 2
+        const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
 
         if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index])
         else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index])
       }
     } else {
-      const maxSize = Math.min(columnStyle.width, ROW_HEIGHT)
-      const tmpPadding = 6 * ratio + padding
-      const x = columnStyle.left + (columnStyle.width - maxSize) / 2 + tmpPadding
-      const size = maxSize - tmpPadding * 2
-      const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - maxSize) / 2 + tmpPadding
+      const minSize = Math.min(columnStyle.width, ROW_HEIGHT)
+      const cloumnWidth = columnStyle.width
+      const padding = cloumnWidth * PADDING + 6 * ratio
+      const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
+      const size = minSize - padding * 2
+      const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
 
       if (isRound) {
         this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
-        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 3 * ratio)
+        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio)
       } else {
         this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
-        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
+        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 5 * ratio)
       }
     }
 
     // 绘制文字
     if (text === undefined) return
+    let fontSize = columnStyle.fontSize
+    if (text.length >= 3) fontSize = fontSize * 0.8
     this.drawCenterText(
       this.drawShapeActive,
       rowIndex,
       columnIndex,
       text,
-      columnStyle.fontSize,
+      fontSize,
       isSolid ? '#fff' : color
     )
   }
@@ -411,23 +415,24 @@ export class Draw {
       if (!mark) return
       const isSenior = mark.senior
       const isSolid = mark.isSolid
-      console.log(mark)
 
       mark.indexs.forEach((index) => {
-        const x = columns[index].left
-        const y = mark.row * ROW_HEIGHT
-        const width = columns[index].width
-        const height = ROW_HEIGHT
+        const minSize = Math.min(columns[index].width, ROW_HEIGHT)
+        const centerX = columns[index].left + columns[index].width / 2
+        const padding = minSize * PADDING * 0.3
+        const x = columns[index].left + (columns[index].width - minSize) / 2 + padding
+        const y = mark.row * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
+        const size = minSize - padding * 2
         // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"indexs":[2],"senior":true,"row":40}
         if (isSenior) {
           let fontColor
           if (isSolid) {
             fontColor = '#fff'
-            this.drawShapeActive.drawSolidRect(x, y, width, height, color)
+            this.drawShapeActive.drawSolidRect(x, y, size, size, color)
           } else {
             fontColor = color
-            this.drawShapeActive.drawSolidRect(x, y, width, height, columns[index].backgroundColor)
-            this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio)
+            this.drawShapeActive.drawSolidRect(x, y, size, size, columns[index].backgroundColor)
+            this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
           }
           // 更改字号
           let fontSize = 30 * ratio
@@ -441,34 +446,28 @@ export class Draw {
             }
           }
           // 文字位置
-          let fontY1 = y + 30 * ratio
-          let fontY2 = y + 60 * ratio
-          let fontY3 = y + 90 * ratio
+          let fontY1 = y + 22 * ratio
+          let fontY2 = y + 52 * ratio
+          let fontY3 = y + 82 * ratio
 
           if (!mark.condition && mark.numbers.length > 3) {
-            fontY2 = y + 40 * ratio
-            fontY3 = y + 80 * ratio
+            fontY2 = y + 35 * ratio
+            fontY3 = y + 75 * ratio
             fontSize = 40 * ratio
           } else if (mark.condition && mark.numbers.length < 3) {
-            fontY1 = y + 40 * ratio
-            fontY2 = y + 80 * ratio
+            fontY1 = y + 35 * ratio
+            fontY2 = y + 75 * ratio
             fontSize = 40 * ratio
           }
 
           // 第一行文字
           mark.condition &&
-            this.drawShapeActive.drawText(
-              mark.condition,
-              x + width / 2,
-              fontY1,
-              fontColor,
-              fontSize
-            )
+            this.drawShapeActive.drawText(mark.condition, centerX, fontY1, fontColor, fontSize)
           // 第二行数字
           if (mark.numbers.length > 0) {
             this.drawShapeActive.drawText(
               mark.numbers.slice(0, 3).join(''),
-              x + width / 2,
+              centerX,
               fontY2,
               fontColor,
               fontSize
@@ -478,7 +477,7 @@ export class Draw {
           if (mark.numbers.length > 3) {
             this.drawShapeActive.drawText(
               mark.numbers.slice(3, 5).join(''),
-              x + width / 2,
+              centerX,
               fontY3,
               fontColor,
               fontSize

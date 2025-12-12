@@ -176,7 +176,6 @@ import Popup from '@/components/juWang/Popup.vue'
 import ColorSelect from '@/components/juWang/ColorSelect.vue'
 import ModeSelect from '@/components/juWang/ModeSelect.vue'
 import { DrawShape } from './drawMethod'
-// import dayjs from 'dayjs'
 import html2canvas from 'html2canvas'
 import Setting from '@/components/juWang/Setting.vue'
 import { useDrawLineSettingStore } from '@/stores/drawLine.js'
@@ -184,29 +183,10 @@ import { getCurvePoint } from './utils'
 import { apiTicketQuery } from '@/api/apis.js'
 import Share from '@/components/juWang/Share.vue'
 import { Draw } from './cnavasMethod'
-import { getPointPosition, getRowAndColumn } from './cnavasMethod'
-import { getStyleConfig } from './styleConfig'
-
-// //解析日期
-// const dateFromat = (dateStr) => {
-//   const weekMap = {
-//     0: '日',
-//     1: '一',
-//     2: '二',
-//     3: '三',
-//     4: '四',
-//     5: '五',
-//     6: '六'
-//   }
-//   const date = dayjs(dateStr).format('M/D')
-//   const dateArr2 = date.split('/')
-//   const dateStr2 = `${dateArr2[0]}/${dateArr2[1]} ${weekMap[dayjs(dateStr).format('d')]}`
-//   return dateStr2
-// }
+import { getPointPosition } from './cnavasMethod'
 
 const instance = getCurrentInstance()
 const getSelectorQuery = () => uni.createSelectorQuery().in(instance.proxy)
-let lineCtx
 const popup = ref(null)
 
 const systemInfo = uni.getSystemInfoSync()
@@ -306,15 +286,10 @@ const isTextInputShow = ref(false)
 const textareaPosition = ref({}) // textarea坐标
 const textareaValue = ref('')
 let tmpStartPositions = [] // 保存多个临时位置
-let gestureStartDistance = 0 // 手势操作开始距离
-// let gestureStartCenter = ref({ x: 0, y: 0 }) // 手势操作开始中心位置
 
 const touchstart = (event) => {
   if (Object.keys(event.touches).length >= 2 && options.theme === '其他') {
-    const { 0: touch1, 1: touch2 } = event.touches
-    gestureStartDistance = Math.sqrt((touch1.x - touch2.x) ** 2 + (touch1.y - touch2.y) ** 2)
-
-    tmpScale = scale.value
+    gesturestart(event)
     return
   } else {
     gestureStartDistance = 0
@@ -354,17 +329,17 @@ const touchstart = (event) => {
       track = [{ x, y }]
       break
     case '直线':
-      startPosition = getPointPosition(x, y)
+      startPosition = { x, y }
       break
     case '添加文字':
       break
     case '实心方框':
     case '空心方框':
-      startPosition = getPointPosition(x, y)
+      startPosition = { x, y }
       break
     case '实心圆框':
     case '空心圆框':
-      startPosition = getPointPosition(x, y)
+      startPosition = { x, y }
       break
   }
 }
@@ -715,18 +690,31 @@ const touchend = async (event) => {
         }
         if (options.count === 1) {
           endPosition = getPointPosition(x, y)
-          if (endPosition) {
+          // endPosition.x有值：未超出视图，同时为数字列
+          if (
+            endPosition &&
+            endPosition.x &&
+            endPosition.column >= styleConfig.value.numberStartIndex
+          ) {
             addRecord(lastRecord, startPosition, endPosition)
           }
         } else {
           for (let index = 0; index < lastRecord.length; index++) {
             const record = lastRecord[index]
             endPosition = getPointPosition(x, y - 110 * ratio * index * (options.distance + 1))
+
+            if (!endPosition.x || endPosition.column < styleConfig.value.numberStartIndex) continue
+
             addRecord(record, tmpStartPositions[index], endPosition)
           }
         }
         // 是否显示曲线控制按钮
-        if (options.dragPoint && options.count === 1) {
+        if (
+          options.dragPoint &&
+          options.count === 1 &&
+          endPosition.x &&
+          endPosition.column >= styleConfig.value.numberStartIndex
+        ) {
           curveHandleX.value = (startPosition.x / 2 + endPosition.x / 2) * scale.value
           curveHandleY.value = (startPosition.y / 2 + endPosition.y / 2) * scale.value
           iscurveHandleShow.value = true
@@ -825,19 +813,63 @@ const touchend = async (event) => {
 
 // 手势缩放
 const scale = ref(1)
+// const scale = ref(0.8)
 let tmpScale
+let gestureStartDistance = 0 // 手势操作开始距离
+const gestureStartCenterY = ref(0) // 手势操作开始中心位置
+const initHeight = computed(() => (data.value.length + options.bottomRow) * 110)
+const containerHeight = ref(0)
+
+const gesturestart = (event) => {
+  //禁用曲线控制按钮
+  iscurveHandleShow.value = false
+  containerHeight.value = initHeight.value
+
+  const { 0: touch1, 1: touch2 } = event.touches
+  gestureStartDistance = Math.sqrt((touch1.x - touch2.x) ** 2 + (touch1.y - touch2.y) ** 2)
+
+  const y = (touch1.y + touch2.y) / 2
+
+  isScroll.value = true // 开启滚动
+  // isApiScroll = true
+  scrollInitTop.value = y / scale.value - (y - scrolltop)
+
+  gestureStartCenterY.value = y / scale.value
+  tmpScale = scale.value
+}
+
 const gesturemove = (event) => {
   const { 0: end1, 1: end2 } = event.touches
   if (!end1 || !end2) return
-  const gestureEndDistance = Math.sqrt(Math.pow(end1.x - end2.x, 2) + Math.pow(end1.y - end2.y, 2))
 
-  scale.value = (gestureEndDistance / gestureStartDistance) * tmpScale
+  isScroll.value = false // 关闭滚动
+
+  const gestureEndDistance = Math.sqrt(Math.pow(end1.x - end2.x, 2) + Math.pow(end1.y - end2.y, 2))
+  const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
+  if (_scale < 0.6 || _scale > 2) return
+  scale.value = _scale
 }
 
 const cnavasWidth = ref(750)
+// const cnavasWidth = ref(750 / 0.8)
 
-const gestureend = () => {
+const gestureend = async (event) => {
+  if (event.touches?.[0] || options.theme !== '其他') return
+
   cnavasWidth.value = 750 / scale.value
+
+  isScroll.value = true // 开启滚动
+  // isApiScroll = true
+  scrollInitTop.value =
+    gestureStartCenterY.value * scale.value - (gestureStartCenterY.value - scrolltop)
+
+  // 删除容器多余的高度
+  let bottom = initHeight.value - gestureStartCenterY.value / ratio
+  if (bottom > windowHeight / ratio) bottom = windowHeight / ratio
+  const height = bottom + (gestureStartCenterY.value / ratio) * scale.value
+  containerHeight.value = height
+
+  gestureStartCenterY.value = 0
 }
 watch(
   record,
@@ -1088,8 +1120,23 @@ const popupSubmit = (val) => {
 // 滚动高度
 let scrolltop = 0
 const isScroll = ref(true)
+// let isApiScroll = false // 是否是通过API调用滚动
+
 const scroll = (event) => {
   scrolltop = event.detail.scrollTop
+
+  // 删除容器多余的高度
+  // if (isApiScroll) {
+  //   isApiScroll = false
+  //   return
+  // }
+  // console.log(event.detail.deltaY)
+
+  // const minHeight = initHeight.value * scale.value
+  // const height = containerHeight.value - event.detail.deltaY
+  // if (height < minHeight) {
+  //   containerHeight.value = minHeight
+  // }
 }
 
 // 绘制图形
@@ -1171,9 +1218,6 @@ const textTouchmove = (e, index) => {
 }
 const textTouchend = async (e, index) => {
   const item = record.value[index]
-  item.text.width = 'auto'
-  item.text.height = 'auto'
-  await nextTick()
   const { width, height } = await getRect(`#text-${index}`)
   item.text.width = width
   item.text.height = height
@@ -1319,6 +1363,7 @@ page {
   height: calc(100% - v-bind('TOP_BAR_HEIGHT + "px"'));
   .container {
     position: relative;
+    height: v-bind('containerHeight + "rpx"');
 
     .bg-canvas,
     .base-canvas,
@@ -1338,7 +1383,7 @@ page {
       /* #endif */
       z-index: 2;
       transform: scale(v-bind('scale'));
-      transform-origin: 0 0;
+      transform-origin: 0 v-bind('gestureStartCenterY + "px"');
     }
     .bg-canvas,
     .base-canvas,
@@ -1378,6 +1423,7 @@ page {
       left: v-bind('curveHandleX + "px"');
       text-align: center;
       transform: translate(-50%, -50%) scale(v-bind('scale'));
+      pointer-events: v-bind('isLock ? "none" : "auto"');
     }
 
     .text {
@@ -1435,7 +1481,7 @@ page {
           v-bind('TOP_BAR_HEIGHT + "px"')
       );
       background-color: rgba($color: #fff, $alpha: 0.8);
-      transform: translate(-10%, -10%) scale(v-bind('scale'));
+      transform: translate(-10%, -10%);
     }
     .text-handle-show {
       border: 2px solid;
