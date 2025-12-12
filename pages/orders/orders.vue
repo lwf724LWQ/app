@@ -883,7 +883,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .orders-container {
   min-height: 100vh;
   background-color: #f5f5f5;

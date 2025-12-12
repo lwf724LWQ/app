@@ -36,9 +36,9 @@ import { getCompressImage } from '@/pages/juWang/peng-liao/drawLine/utils'
 
 const share = ref(null)
 
-const proprs = defineProps({
-  getImageUrl: {
-    type: Function
+const props = defineProps({
+  imageUrl: {
+    type: String
   }
 })
 
@@ -50,14 +50,14 @@ defineExpose({
 })
 
 const shareWx = async () => {
-  const imageUrl = await proprs.getImageUrl()
-  const compressImage = await getCompressImage(imageUrl, 0.5)
+  // const imageUrl = await props.getImageUrl()
+  // const compressImage = await getCompressImage(imageUrl, 0.5)
   uni.share({
     provider: 'weixin',
     type: 0,
     scene: 'WXSceneSession',
     href: `${BASE_URL}/pages/juWang/peng-liao/drawLine/drawLine`,
-    imageUrl: compressImage,
+    imageUrl: props.imageUrl,
     success(res) {
       uni.showToast({
         title: '分享成功',
@@ -73,7 +73,7 @@ const shareWx = async () => {
 
 const shareWxpyq = async () => {
   // #ifdef APP
-  const imageUrl = await proprs.getImageUrl()
+  const imageUrl = await props.getImageUrl()
   const compressImage = await getCompressImage(imageUrl, 0.5)
   uni.share({
     provider: 'weixin',
