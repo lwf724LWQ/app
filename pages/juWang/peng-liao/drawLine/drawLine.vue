@@ -51,6 +51,8 @@
       v-if="data.length !== 0"
     >
       <view class="container">
+        <canvas class="image-canvas" hidpi canvas-id="imageCanvas" id="imageCanvas"></canvas>
+
         <!-- 背景canvas -->
         <canvas class="bg-canvas" hidpi canvas-id="bgCanvas" id="bgCanvas"></canvas>
         <!-- 绘制图形 -->
@@ -66,6 +68,7 @@
           @touchmove="touchmove"
           @touchend="touchend"
         ></canvas>
+
         <uni-icons
           custom-prefix="iconfont"
           type="icon-shizi"
@@ -98,15 +101,7 @@
             @touchmove="textPositionMove($event, index)"
             @touchend="textPositionEnd($event, index)"
           >
-            <view
-              class="text-item"
-              :style="{
-                width: item.text.width === 'auto' ? 'auto' : item.text.width + 'px',
-                height: item.text.height === 'auto' ? 'auto' : item.text.height + 'px'
-              }"
-            >
-              <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
-            </view>
+            <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
           </view>
           <view
             class="text-btn-left"
@@ -163,7 +158,7 @@
     <!-- 设置 -->
     <Setting class="setting" v-model="isSettingOpen"></Setting>
 
-    <Share ref="shareNode" :getImageUrl="getImageUrl"></Share>
+    <Share ref="shareNode" :imageUrl="imageUrl"></Share>
   </view>
 </template>
 
@@ -176,7 +171,6 @@ import Popup from '@/components/juWang/Popup.vue'
 import ColorSelect from '@/components/juWang/ColorSelect.vue'
 import ModeSelect from '@/components/juWang/ModeSelect.vue'
 import { DrawShape } from './drawMethod'
-import html2canvas from 'html2canvas'
 import Setting from '@/components/juWang/Setting.vue'
 import { useDrawLineSettingStore } from '@/stores/drawLine.js'
 import { getCurvePoint } from './utils'
@@ -261,7 +255,7 @@ const getData = async () => {
   //   }
   // })
 
-  await nextTick()
+  // await nextTick()
 }
 
 const curveHandleX = ref(0)
@@ -326,6 +320,7 @@ const touchstart = (event) => {
       startPosition = getPointPosition(x, y)
       break
     case '自由线':
+      startPosition = getPointPosition(x, y)
       track = [{ x, y }]
       break
     case '直线':
@@ -401,7 +396,7 @@ const touchmove = (event) => {
           for (let index = 0; index < options.count; index++) {
             tmpStartPositions.push({
               x: startPosition.x,
-              y: startPosition.y - 110 * ratio * index * (options.distance + 1),
+              y: startPosition.y - options.rowHeight * ratio * index * (options.distance + 1),
               row: startPosition.row - index * (options.distance + 1),
               column: startPosition.column
             })
@@ -443,7 +438,7 @@ const touchmove = (event) => {
           if (options.colorType !== 'single') {
             c = colors[colorStartIndex + index]
           }
-          const endY = y - 110 * ratio * index * (options.distance + 1)
+          const endY = y - options.rowHeight * ratio * index * (options.distance + 1)
           drawMethod.drawnStraightLine(
             item.x,
             item.y - scrolltop / scale.value,
@@ -571,8 +566,8 @@ const touchend = async (event) => {
           meta.style.height = 'auto'
           nextTick(async () => {
             const { width, height } = await getRect(`#text-${textChangeIndex.value}`)
-            meta.style.width = width
-            meta.style.height = height
+            meta.text.width = width + 15 * ratio * 2
+            meta.text.height = height + 5 * ratio * 2
             textChangeIndex.value = null
             textareaValue.value = ''
           })
@@ -597,17 +592,20 @@ const touchend = async (event) => {
         nextTick(async () => {
           const { width, height } = await getRect(`#text-${textList.value.length - 1}`)
           const item = record.value[record.value.length - 1]
-          item.text.width = width
-          item.text.height = height
+          // 加上padding
+          item.text.width = width + 15 * ratio * 2
+          item.text.height = height + 5 * ratio * 2
         })
       }
     } else {
       const position = getPointPosition(startPosition.x, startPosition.y)
-      record.value.push({
-        point: [position],
-        style: { color: color.value, ...options.numberStyle }
-      })
-      if (position.row > data.value.length - 1) openPopup()
+      if (position && position.x && position.column >= styleConfig.value.numberStartIndex) {
+        record.value.push({
+          point: [position],
+          style: { color: color.value, ...options.numberStyle }
+        })
+        openPopup(position.row, position.column)
+      }
     }
   } else {
     switch (mode.value) {
@@ -678,15 +676,8 @@ const touchend = async (event) => {
             }
           }
 
-          // 结束位置为空白区域，同时为数字列、结束位置没有标记、允许数字选择器
-          if (
-            endPosition.row > data.value.length - 1 &&
-            endPosition.column >= styleConfig.value.numberStartIndex &&
-            !marks.value[`${endPosition.row}-${endPosition.column}`] &&
-            options.numberPicker
-          ) {
-            openPopup()
-          }
+          openPopup(endPosition.row, endPosition.column)
+          // }
         }
         if (options.count === 1) {
           endPosition = getPointPosition(x, y)
@@ -701,7 +692,10 @@ const touchend = async (event) => {
         } else {
           for (let index = 0; index < lastRecord.length; index++) {
             const record = lastRecord[index]
-            endPosition = getPointPosition(x, y - 110 * ratio * index * (options.distance + 1))
+            endPosition = getPointPosition(
+              x,
+              y - options.rowHeight * ratio * index * (options.distance + 1)
+            )
 
             if (!endPosition.x || endPosition.column < styleConfig.value.numberStartIndex) continue
 
@@ -710,6 +704,7 @@ const touchend = async (event) => {
         }
         // 是否显示曲线控制按钮
         if (
+          (startPosition.x !== endPosition.x || startPosition.y !== endPosition.y) &&
           options.dragPoint &&
           options.count === 1 &&
           endPosition.x &&
@@ -817,7 +812,7 @@ const scale = ref(1)
 let tmpScale
 let gestureStartDistance = 0 // 手势操作开始距离
 const gestureStartCenterY = ref(0) // 手势操作开始中心位置
-const initHeight = computed(() => (data.value.length + options.bottomRow) * 110)
+const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight)
 const containerHeight = ref(0)
 
 const gesturestart = (event) => {
@@ -893,12 +888,20 @@ watch(
   }
 )
 
-const openPopup = () => {
-  let item = record.value[record.value.length - 1]
-  if (Array.isArray(item)) item = item[0]
+const openPopup = (row, column) => {
+  // 结束位置为空白区域，同时为数字列、结束位置没有标记、允许数字选择器、运行的样式主题
+  if (
+    row > data.value.length - 1 &&
+    column >= styleConfig.value.numberStartIndex &&
+    !marks.value[`${row}-${column}`] &&
+    options.numberPicker &&
+    options.theme !== '其他'
+  ) {
+    let item = record.value[record.value.length - 1]
+    if (Array.isArray(item)) item = item[0]
 
-  const column = item.point[item.point.length - 1].column
-  popup.value.open(column)
+    popup.value.open(column)
+  }
 }
 
 // 修改曲线
@@ -985,42 +988,27 @@ const trash = () => {
   iscurveHandleShow.value = false
   record.value = []
 }
-// 获取截图url
-const getImageUrl = async () => {
-  // #ifdef H5
-  const canvas = await html2canvas(document.querySelector('.draw-line'))
-  return canvas.toDataURL('image/jpg')
-  // #endif
 
-  // #ifdef APP
-  return new Promise((resolve) => {
-    const pages = getCurrentPages()
-    const page = pages[pages.length - 1] // 当前页面
-    const currentWebview = page.$getAppWebview()
-
-    const bitmap = new plus.nativeObj.Bitmap('capture')
-
-    currentWebview.draw(bitmap, () => {
-      // 保存到本地
-      bitmap.save(`_doc/${new Date().getTime()}.jpg`, { overwrite: true }, (res) => {
-        resolve(res.target)
-        bitmap.clear()
-      })
-    })
-  })
-  // #endif
-}
 // 保存图片
 const saveImage = async () => {
+  uni.showLoading({ title: '保存中' })
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  let url
+  try {
+    url = await draw.save(scrolltop / scale.value)
+  } finally {
+    uni.hideLoading()
+  }
   // #ifdef H5
-  const url = await getImageUrl()
   const a = document.createElement('a')
   a.href = url
   a.download = 'canvas.png'
   a.click()
+  uni.showToast({
+    title: '保存成功'
+  })
   // #endif
-  // #ifdef APP
-  const url = await getImageUrl()
+  // #ifdef APP || MP
   uni.saveImageToPhotosAlbum({
     filePath: url,
     success: (res) => {
@@ -1036,13 +1024,15 @@ const saveImage = async () => {
 }
 // 分享
 const shareNode = ref()
+const imageUrl = ref('')
 const share = async () => {
   // #ifdef H5
   await navigator.clipboard.writeText(window.location.href)
   uni.showToast({ title: '复制链接成功' })
   // #endif
-  // #ifdef APP
+  // #ifdef APP || MP
   shareNode.value.open()
+  imageUrl.value = await draw.save(scrolltop / scale.value)
   // #endif
 }
 // 获取元素位置信息
@@ -1074,10 +1064,22 @@ onReady(async () => {
   const paintCtx = uni.createCanvasContext('paintCanvas')
   const contentCtx = uni.createCanvasContext('contentCanvas')
   const activeCtx = uni.createCanvasContext('activeCanvas')
+  const imageCtx = uni.createCanvasContext('imageCanvas')
   drawMethod = new DrawShape(paintCtx)
   await getData()
   const canvasSize = await getRect('#bgCanvas') // canvas 尺寸
-  draw = new Draw(bgCtx, baseCtx, paintCtx, contentCtx, activeCtx, data, options, canvasSize)
+
+  draw = new Draw(
+    bgCtx,
+    baseCtx,
+    paintCtx,
+    contentCtx,
+    activeCtx,
+    imageCtx,
+    data,
+    options,
+    canvasSize
+  )
 
   drawnLineAll = draw.draw.bind(draw)
   drawnLineAll(record.value)
@@ -1159,7 +1161,10 @@ const textStyle = (index) => {
 
   return {
     backgroundColor: meta.isSolid ? meta.style.color : 'transparent',
-    color: meta.isSolid ? '#fff' : meta.style.color
+    color: meta.isSolid ? '#fff' : meta.style.color,
+    width: textList.value[index].text.width + 'px',
+    height: textList.value[index].text.height + 'px',
+    borderColor: meta.style.color
   }
 }
 
@@ -1219,8 +1224,8 @@ const textTouchmove = (e, index) => {
 const textTouchend = async (e, index) => {
   const item = record.value[index]
   const { width, height } = await getRect(`#text-${index}`)
-  item.text.width = width
-  item.text.height = height
+  item.text.width = width + 15 * ratio * 2
+  item.text.height = height + 5 * ratio * 2
 
   isTextClick = true
 }
@@ -1300,10 +1305,10 @@ const changeMode = () => {
 @use 'sass:math';
 /* #ifdef MP || APP*/
 page {
-  background-color: v-bind('options.theme.topBar?.backgroundColor');
+  background-color: v-bind('styleConfig.topBar?.backgroundColor');
 }
 .draw-line {
-  background-color: v-bind('options.theme.topBar?.backgroundColor');
+  background-color: v-bind('styleConfig.topBar?.backgroundColor');
 }
 .scroll-view {
   background-color: #fff;
@@ -1374,7 +1379,7 @@ page {
       // top: -v-bind('TOP_BAR_HEIGHT + "px"');
       width: 100vw;
       // height: calc(100% + v-bind('TOP_BAR_HEIGHT + "px"'));
-      height: v-bind('(data.length + options.bottomRow) * 110 + "rpx"');
+      height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       /* #ifdef APP */
       top: calc(-130rpx - v-bind('safeArea.top + "px"'));
       /* #endif */
@@ -1407,12 +1412,24 @@ page {
       top: v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"');
       height: calc((100vh - v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"')) / v-bind('scale'));
       /* #endif */
+      /* #ifdef MP */
+      top: v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"');
+      height: calc(
+        (100vh - v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"')) / v-bind('scale')
+      );
+      /* #endif */
       left: 0;
+    }
+    .image-canvas {
+      visibility: hidden;
+      width: 100vw;
+      height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
     }
 
     .curve-handle {
       position: absolute;
-      width: 50px;
+      width: 35rpx;
+      height: 35rpx;
       z-index: 4;
       /* #ifdef H5 */
       top: v-bind('curveHandleY + "px"');
@@ -1436,13 +1453,13 @@ page {
       .text-container {
         padding: 5rpx 15rpx;
         border-radius: 10rpx;
-        .text-item {
-          .text-content {
-            display: inline-block;
-            word-break: break-all;
-            vertical-align: top;
-          }
+        // .text-item {
+        .text-content {
+          display: inline-block;
+          word-break: break-all;
+          vertical-align: top;
         }
+        // }
       }
       $text-font-size: 25rpx;
       .text-btn-left,
