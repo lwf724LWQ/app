@@ -364,6 +364,8 @@ const goToConfirm = async () => {
   width: 100%;
   height: 100vh;
   background-color: #fff;
+  box-sizing: border-box;
+  padding-top: var(--status-bar-height);
 }
 
 // 左侧标签栏样式

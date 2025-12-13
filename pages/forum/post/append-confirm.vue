@@ -123,6 +123,7 @@ import {
 } from "@/api/apis.js";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import postTool from "./post-tool";
+import { onLoad } from "@dcloudio/uni-app";
 
 // 方案数据
 const schemes = ref([]);
@@ -388,14 +389,7 @@ const handlePageBack = (event) => {
     },
   });
 };
-
-// 页面加载时获取传递的方案数据
-onMounted(async () => {
-  // 获取页面参数
-  const pages = getCurrentPages();
-  const currentPage = pages[pages.length - 1];
-  const options = currentPage.options;
-
+onLoad(async (options) => {
   if (!options.lotteryType) {
     uni.reLaunch({ url: "/pages/forum/forum" });
     return;
