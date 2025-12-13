@@ -119,10 +119,10 @@ const tool = {
     // #ifdef APP-PLUS
 	return new Promise((resolve) => {
 		plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
-		  const nowAppVersion = widgetInfo.version.split('.')
+		  const nowAppVersion = widgetInfo.version.split('.').map(item => parseInt(item))
 		  apiAppversionQuery().then(res => {
 			  // res.data.version = "1.2.0"
-		    const serverVersion = res.data.version.split('.')
+		    const serverVersion = res.data.version.split('.').map(item => parseInt(item))
 		    const dowUrl = res.data.url
 			// const dowUrl = "http://192.168.31.234/static/caimi.apk"
 		    if (serverVersion[0] > nowAppVersion[0] || serverVersion[1] > nowAppVersion[1] || serverVersion[2] > nowAppVersion[2]) {
