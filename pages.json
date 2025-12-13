@@ -289,6 +289,13 @@
         "navigationBarTitleText": "规则图",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/zc/index",
+      "style": {
+        "navigationBarTitleText": "足球资讯",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
@@ -306,6 +313,10 @@
       {
         "text": "推荐",
         "pagePath": "pages/index/index"
+      },
+      {
+        "text": "体彩",
+        "pagePath": "pages/zc/index"
       },
       {
         "text": "视频",
