@@ -3,7 +3,11 @@
     scroll-y
     :scrollTop="scrollTop"
     class="table"
-    :class="{ 'type-1': type === '排列五' || type === '七星彩', 'type-2': type === '福彩3D' }"
+    :class="{
+      'type-1': type === '排列五',
+      'type-2': type === '福彩3D',
+      'type-3': type === '七星彩'
+    }"
   >
     <view
       class="row"
@@ -17,17 +21,12 @@
       </view>
       <view class="column-2">{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view>
       <view class="column-3">
-        <view
-          class="column-3-item"
-          v-for="number in item.number.slice(
-            0,
-            type === '福彩3D' ? item.number.length : item.number.length - 1
-          )"
-          >{{ number }}</view
-        >
+        <view class="column-3-item" v-for="number in item.number.slice(0, 4)" :key="number">{{
+          number
+        }}</view>
       </view>
-      <view class="column-4" v-if="type !== '福彩3D'">{{
-        item.number[item.number.length - 1]
+      <view class="column-4" v-for="value in item.number.slice(4, 8)" :key="value">{{
+        value
       }}</view>
     </view>
     <view class="row" v-for="val in 4" :key="val">
@@ -37,9 +36,18 @@
       </view>
       <view class="column-2"></view>
       <view class="column-3">
-        <view class="column-3-item" v-for="number in type === '福彩3D' ? 3 : 4"></view>
+        <view
+          class="column-3-item"
+          v-for="number in type === '福彩3D' ? 3 : 4"
+          :key="number"
+        ></view>
       </view>
-      <view class="column-4" v-if="type !== '福彩3D'"></view>
+      <view
+        class="column-4"
+        v-if="type !== '福彩3D'"
+        v-for="value in type === '排列五' ? 1 : 3"
+        :key="value"
+      ></view>
     </view>
   </scroll-view>
   <view class="nav">
@@ -52,16 +60,18 @@
 import { ref, nextTick } from 'vue'
 import { apiTicketQuery } from '@/api/apis.js'
 import mock from '/pages/juWang/peng-liao/drawLine/mock.json'
-import { onLoad, onNavigationBarButtonTap } from '@dcloudio/uni-app'
+import { onLoad } from '@dcloudio/uni-app'
 
 const data = ref([])
 const getData = async () => {
   try {
     uni.showLoading({ title: '加载中...' })
     const res = await apiTicketQuery({ tname: type.value, page: '1', limit: 40 })
+
     data.value = res.data.records.reverse()
     data.value.forEach((item) => {
-      item.number = item.number?.split(' ').slice(0, 5)
+      item.number = item.number?.split(' ')
+      if (type.value === '七星彩') item.number.push(item.refernumber)
     })
   } finally {
     uni.hideLoading()
@@ -186,12 +196,7 @@ $border-color: #f9a29f;
       line-height: 24rpx;
     }
   }
-  // .column-2,
-  // .column-4 {
-  //   width: 100rpx;
-  // }
   .column-2 {
-    // font-size: 25rpx;
     font-weight: 500;
   }
   .column-4 {
@@ -199,7 +204,6 @@ $border-color: #f9a29f;
   }
   .column-3 {
     display: flex;
-    // width: 750rpx - 250rpx;
     font-size: 60rpx;
     .column-3-item {
       width: 25%;
@@ -239,6 +243,23 @@ $border-color: #f9a29f;
       }
       > .column-3-item:nth-child(3) {
         border-right: none;
+      }
+    }
+  }
+}
+.type-3 {
+  .row {
+    .column-1 {
+      width: 140rpx;
+    }
+    .column-2,
+    .column-4 {
+      width: 58rpx;
+    }
+    .column-3 {
+      width: 360rpx;
+      .column-3-item {
+        width: 25%;
       }
     }
   }

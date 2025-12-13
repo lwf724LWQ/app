@@ -45,6 +45,33 @@ export class DrawShape {
     this.ctx.setStrokeStyle(color)
     this.ctx.strokeRect(x, y, width, height)
   }
+  // 绘制圆角实心方框
+  drawRoundRect(x, y, width, height, radius, color) {
+    radius = radius * 2
+    this.ctx.beginPath()
+    this.ctx.moveTo(x + radius, y)
+    this.ctx.lineTo(x + width - radius, y)
+    this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius)
+    this.ctx.lineTo(x + width, y + height - radius)
+    this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+    this.ctx.lineTo(x + radius, y + height)
+    this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius)
+    this.ctx.lineTo(x, y + radius)
+    this.ctx.quadraticCurveTo(x, y, x + radius, y)
+  }
+  // 绘制圆角实心方框
+  drawSolidRoundRect(x, y, width, height, radius, color) {
+    this.ctx.setFillStyle(color)
+    this.drawRoundRect(x, y, width, height, radius, color)
+    this.ctx.fill()
+  }
+  // 绘制圆角空心方框
+  drawHollowRoundRect(x, y, width, height, radius, color, size) {
+    this.ctx.lineWidth = size
+    this.ctx.setStrokeStyle(color)
+    this.drawRoundRect(x, y, width, height, radius, color)
+    this.ctx.stroke()
+  }
   // 绘制实心圆/椭圆
   drawSolidCircle(startX, startY, endX, endY, color) {
     const x = (startX + endX) / 2
@@ -84,9 +111,9 @@ export class DrawShape {
     this.ctx.stroke()
   }
   // 绘制文字
-  drawText(text, x, y, color, size) {
+  drawText(text, x, y, color, size, fontWeight = 'normal') {
     this.ctx.textAlign = 'center'
-    this.ctx.font = `bold ${size}px Arial`
+    this.ctx.font = `${fontWeight} ${Math.round(size)}px Arial`
     this.ctx.textBaseline = 'middle'
     this.ctx.setFillStyle(color)
     this.ctx.fillText(text, x, y)

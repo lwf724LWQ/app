@@ -4,11 +4,12 @@ import { useDrawLineSettingStore } from '@/stores/drawLine'
 
 const systemInfo = uni.getSystemInfoSync()
 let ratio = systemInfo.screenWidth / 750
+const windowHeight = systemInfo.windowHeight
+const safeAreaTop = systemInfo.safeAreaInsets.top
 
-const ROW_HEIGHT = 110 * ratio
-const PADDING = 0.1
+const PADDING = 0.01
 
-let borderColor, columns, type, theme, numberStartIndex
+let borderColor, columns, type, theme, numberStartIndex, rowHeight
 
 const getStyleConfig = () => {
   const drawLineSettingStore = useDrawLineSettingStore()
@@ -17,28 +18,40 @@ const getStyleConfig = () => {
   type = drawLineSettingStore.styleConfig.type
   theme = drawLineSettingStore.styleConfig.theme
   numberStartIndex = drawLineSettingStore.styleConfig.numberStartIndex
+  rowHeight = drawLineSettingStore.options.rowHeight * ratio
 }
 
 // 获取行和列
 export const getRowAndColumn = (x, y) => {
   const column = columns.findIndex((column) => column.left <= x && column.right >= x)
-  const row = Math.floor(y / ROW_HEIGHT)
+  const row = Math.floor(y / rowHeight)
   return { row, column }
 }
 export const getPointPosition = (x, y) => {
   const { row, column } = getRowAndColumn(x, y)
   const startX = columns[column]?.left + columns[column]?.width / 2
-  const startY = row * ROW_HEIGHT + ROW_HEIGHT / 2
+  const startY = row * rowHeight + rowHeight / 2
   return { x: Math.trunc(startX), y: Math.trunc(startY), row, column }
 }
 
 export class Draw {
-  constructor(bgCtx, baseCtx, paintCtx, contentCtx, activeCtx, data, options, canvasSize) {
+  constructor(
+    bgCtx,
+    baseCtx,
+    paintCtx,
+    contentCtx,
+    activeCtx,
+    imageCtx,
+    data,
+    options,
+    canvasSize
+  ) {
     this.bgCtx = bgCtx
     this.baseCtx = baseCtx
     this.paintCtx = paintCtx
     this.contentCtx = contentCtx
     this.activeCtx = activeCtx
+    this.imageCtx = imageCtx
     this.data = data
     this.options = options
     this.canvasSize = canvasSize
@@ -48,6 +61,7 @@ export class Draw {
     this.drawShapePain = new DrawShape(paintCtx)
     this.drawShapeContent = new DrawShape(contentCtx)
     this.drawShapeActive = new DrawShape(activeCtx)
+    this.drawShapeImage = new DrawShape(imageCtx)
 
     getStyleConfig()
 
@@ -59,6 +73,7 @@ export class Draw {
     this.contentCtx.draw()
   }
   draw(record, pointActives) {
+    this.record = record
     this.drawLine(record)
 
     this.drawActiveNumber(pointActives)
@@ -68,17 +83,20 @@ export class Draw {
     this.activeCtx.draw()
   }
   // 重新绘制所有画布
-  redraw(record, pointActives) {
+  async redraw(record, pointActives) {
+    this.record = record
     getStyleConfig()
 
-    this.drawGrid()
+    setTimeout(() => {
+      this.drawGrid()
 
-    this.data.value.forEach((item, index) => {
-      this.drawContent(index, item)
-    })
-    this.contentCtx.draw()
+      this.data.value.forEach((item, index) => {
+        this.drawContent(index, item)
+      })
+      this.contentCtx.draw()
 
-    this.draw(record, pointActives)
+      this.draw(record, pointActives)
+    }, 0)
   }
   // 绘制网格
   drawGrid() {
@@ -100,9 +118,9 @@ export class Draw {
       }
       this.drawShapeBg.drawnStraightLine(
         0,
-        index * ROW_HEIGHT,
+        index * rowHeight,
         columns[columns.length - 1].right,
-        index * ROW_HEIGHT,
+        index * rowHeight,
         borderColor,
         width
       )
@@ -115,7 +133,7 @@ export class Draw {
       if (column.border === 0) continue
       const x = columns[index].right + columns[index].border / 2
       const y = 0
-      const endY = (this.data.value.length + this.options.bottomRow) * ROW_HEIGHT
+      const endY = (this.data.value.length + this.options.bottomRow) * rowHeight
       this.drawShapeBg.drawnStraightLine(x, y, x, endY, borderColor, column.border)
     }
   }
@@ -126,7 +144,7 @@ export class Draw {
       const x = columns[index]?.left || 0
       const y = 0
       const width = column.width
-      const height = (this.data.value.length + this.options.bottomRow) * ROW_HEIGHT
+      const height = (this.data.value.length + this.options.bottomRow) * rowHeight
       let color = column.backgroundColor
       this.drawShapeBg.drawSolidRect(x, y, width, height, color)
     }
@@ -142,15 +160,15 @@ export class Draw {
 
       value = data.issueno
       x = columns[0].width / 2
-      y = (rowIndex + 1) * ROW_HEIGHT - 70 * ratio
+      y = (rowIndex + 1) * rowHeight - 70 * ratio
       color = columns[0].color
-      this.drawShapeContent.drawText(value, x, y, color, fontSize[0])
+      this.drawShapeContent.drawText(value, x, y, color, fontSize[0], 'bold')
 
       value = getDate(data.opendate)
       x = columns[0].width / 2
-      y = (rowIndex + 1) * ROW_HEIGHT - 30 * ratio
+      y = (rowIndex + 1) * rowHeight - 30 * ratio
       color = columns[0].color
-      this.drawShapeContent.drawText(value, x, y, color, fontSize[1])
+      this.drawShapeContent.drawText(value, x, y, color, fontSize[1], 'bold')
     }
 
     if (theme === '其他') {
@@ -265,9 +283,9 @@ export class Draw {
   //绘制居中文字
   drawCenterText(drawShape, rowIndex, columnIndex, text, fontSize, color) {
     const x = columns[columnIndex].left + columns[columnIndex].width / 2
-    const y = (rowIndex + 0.5) * ROW_HEIGHT + fontSize * 0.1
+    const y = (rowIndex + 0.5) * rowHeight + fontSize * 0.1
 
-    drawShape.drawText(text, x, y, color || columns[columnIndex].color, fontSize)
+    drawShape.drawText(text, x, y, color || columns[columnIndex].color, fontSize, 'bold')
   }
   drawLine(record) {
     if (!record || record.length <= 0) return
@@ -330,36 +348,34 @@ export class Draw {
     }
   }
   drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text) {
-    const padding = 3 * ratio
-
     const columnStyle = columns[columnIndex]
     // 绘制背景
     if (isSolid) {
       const colors = ['#f0f0ec', '#fffaf6', color]
       for (let index = 0; index < 3; index++) {
-        const minSize = Math.min(columnStyle.width, ROW_HEIGHT)
+        const minSize = Math.min(columnStyle.width, rowHeight)
         const cloumnWidth = columnStyle.width
         const padding = cloumnWidth * PADDING + index * 3 * ratio
         const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
         const size = minSize - padding * 2
-        const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
+        const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
 
         if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index])
         else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index])
       }
     } else {
-      const minSize = Math.min(columnStyle.width, ROW_HEIGHT)
+      const minSize = Math.min(columnStyle.width, rowHeight)
       const cloumnWidth = columnStyle.width
-      const padding = cloumnWidth * PADDING + 6 * ratio
+      const padding = cloumnWidth * PADDING + 3 * ratio
       const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
       const size = minSize - padding * 2
-      const y = rowIndex * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
+      const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
 
       if (isRound) {
-        this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
+        if (theme !== '其他') this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
         this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio)
       } else {
-        this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
+        if (theme !== '其他') this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
         this.drawShapeActive.drawHollowRect(x, y, size, size, color, 5 * ratio)
       }
     }
@@ -417,11 +433,11 @@ export class Draw {
       const isSolid = mark.isSolid
 
       mark.indexs.forEach((index) => {
-        const minSize = Math.min(columns[index].width, ROW_HEIGHT)
+        const minSize = Math.min(columns[index].width, rowHeight)
         const centerX = columns[index].left + columns[index].width / 2
-        const padding = minSize * PADDING * 0.3
+        const padding = minSize * PADDING * 2
         const x = columns[index].left + (columns[index].width - minSize) / 2 + padding
-        const y = mark.row * ROW_HEIGHT + (ROW_HEIGHT - minSize) / 2 + padding
+        const y = mark.row * rowHeight + (rowHeight - minSize) / 2 + padding
         const size = minSize - padding * 2
         // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"indexs":[2],"senior":true,"row":40}
         if (isSenior) {
@@ -462,7 +478,14 @@ export class Draw {
 
           // 第一行文字
           mark.condition &&
-            this.drawShapeActive.drawText(mark.condition, centerX, fontY1, fontColor, fontSize)
+            this.drawShapeActive.drawText(
+              mark.condition,
+              centerX,
+              fontY1,
+              fontColor,
+              fontSize,
+              'bold'
+            )
           // 第二行数字
           if (mark.numbers.length > 0) {
             this.drawShapeActive.drawText(
@@ -470,7 +493,8 @@ export class Draw {
               centerX,
               fontY2,
               fontColor,
-              fontSize
+              fontSize,
+              'bold'
             )
           }
           // 第三行数字
@@ -480,7 +504,8 @@ export class Draw {
               centerX,
               fontY3,
               fontColor,
-              fontSize
+              fontSize,
+              'bold'
             )
           }
         } else {
@@ -494,25 +519,31 @@ export class Draw {
     this.reset(this.paintCtx)
   }
   // 将canvas绘制到另一个canvas上,耗时较长
-  drawToCanvas(sourseCtx, targetCtx) {
+  drawToCanvas(sourseCtx, targetCtx, y) {
     const sourseCtxId = sourseCtx.id
     const targetCtxId = targetCtx.id
 
-    const width = this.canvasSize.width
-    const height = this.canvasSize.height
+    const width = Math.trunc(this.canvasSize.width) - 1
+    let height
+    if (y) {
+      height = Math.trunc(windowHeight - 130 * ratio - safeAreaTop)
+    } else {
+      height = Math.trunc(this.canvasSize.height)
+      y = 0
+    }
 
     return new Promise((resolve, reject) => {
       uni.canvasGetImageData({
         canvasId: sourseCtxId,
         x: 0,
-        y: 0,
+        y,
         width,
         height,
         success(res) {
           uni.canvasPutImageData({
             canvasId: targetCtxId,
             x: 0,
-            y: 0,
+            y,
             width,
             height,
             data: res.data,
@@ -531,5 +562,52 @@ export class Draw {
   reset(ctx) {
     ctx.clearRect(0, 0, this.canvasSize.width, this.canvasSize.height)
     ctx.draw()
+  }
+  // 保存所有绘制内容
+  async save(top) {
+    const imageCtx = this.imageCtx
+    const sourseCtxes = [this.bgCtx, this.baseCtx, this.contentCtx, this.activeCtx]
+    const promiseMap = sourseCtxes.map((ctx) => this.drawToCanvas(ctx, imageCtx, top))
+    await Promise.all(promiseMap)
+    this.drawHoverText(top)
+    return new Promise((resolve, reject) => {
+      uni.canvasToTempFilePath({
+        canvasId: imageCtx.id,
+        y: top,
+        height: windowHeight - 130 * ratio,
+        success(res) {
+          resolve(res.tempFilePath)
+          imageCtx.draw(false)
+        },
+        fail(err) {
+          reject(err)
+        }
+      })
+    })
+  }
+  // 绘制悬浮文字
+  drawHoverText(top) {
+    const bottom = top + Math.trunc(windowHeight - 130 * ratio - safeAreaTop)
+    const round = 5 * ratio
+    this.record.forEach((item) => {
+      const style = item.style
+      const text = item.text
+      const { width, height } = text
+      const { x, y } = text.position
+      // 判断是否在可视区域内
+      if (y >= top && y + text.height <= bottom) {
+        if (item.isSolid)
+          this.drawShapeImage.drawSolidRoundRect(x, y, width, height, round, style.color)
+
+        this.drawShapeImage.drawText(
+          text.content,
+          x + width / 2,
+          y + height / 2 + style.fontSize * 0.1,
+          item.isSolid ? '#fff' : style.color,
+          style.fontSize
+        )
+      }
+    })
+    this.imageCtx.draw(true)
   }
 }

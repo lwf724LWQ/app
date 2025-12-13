@@ -32,8 +32,25 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     // 单色/多色 single/multi
     colorType: 'single',
     // 线型：直线/上曲线/下曲线 straight/curveUp/curveDown
-    lineType: 'straight'
+    lineType: 'straight',
+    rowHeight: 110
   })
+  let tmpNumberStyle
+  watch(
+    () => options.value.theme,
+    (newVal) => {
+      options.value.rowHeight = newVal === '其他' ? 90 : 110
+      if (newVal === '其他') {
+        tmpNumberStyle = options.value.numberStyle
+        options.value.numberStyle = {
+          isSolid: false,
+          isRound: true
+        }
+      } else {
+        options.value.numberStyle = tmpNumberStyle
+      }
+    }
+  )
 
   const setOptions = (newOptions) => {
     options.value = newOptions
