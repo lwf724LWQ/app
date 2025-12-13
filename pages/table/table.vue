@@ -169,10 +169,8 @@ $border-color: #f9a29f;
   height: 100rpx;
   /* #endif */
   /* #ifdef MP */
-  .btn {
-    margin-right: v-bind('menuButtonInfo.width + "px"');
-  }
-  height: 80rpx;
+  padding-top: v-bind('menuButtonInfo.height + "px"');
+  height: calc(100rpx + v-bind('menuButtonInfo.height + "px"'));
   /* #endif */
 }
 .row {
