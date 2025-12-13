@@ -1,14 +1,6 @@
 import { getAccount } from '@/utils/request.js'
 import tool from '@/utils/tool.js'
 
-// 彩票类别列表
-const lotteryTypes = [
-  { id: 16, name: '排列三', code: 'pl3', status: '待开奖', time: '今天 21:30' },
-  { id: 17, name: '排列五', code: 'pl5', status: '待开奖', time: '今天 21:30' },
-  { id: 15, name: '七星彩', code: 'qxc', status: '待开奖', time: '今天 21:30' },
-  { id: 12, name: '福彩3D', code: 'fc3d', status: '待开奖', time: '今天 21:30' }
-]
-
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
     try {
@@ -53,12 +45,15 @@ const handleAppendPost = (post) => {
   // 跳转到追帖页面
   const navigateToAppendPost = (post) => {
     const params = tool.formatUrlParams({
-      lotteryType: post.tname
+      lotteryType: post.tname,
+      id: post.id,
     })
+
+    uni.setStorageSync("postContent", post.content)
 
     // 跳转到方案设置页面，让用户选择要追加的方案
     uni.navigateTo({
-      url: `/pages/predict-scheme/index?` + params,
+      url: `/pages/forum/post/created-scheme?` + params,
       success: () => {
       },
       fail: () => {

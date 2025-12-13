@@ -28,6 +28,8 @@
  */
 import homeimg from "./tabBar/home.png";
 import homeselectimg from "./tabBar/home-h.png";
+import zc from "./tabBar/zc.png";
+import zcselectimg from "./tabBar/zc-h.png";
 import classifyimg from "./tabBar/classify.png";
 import classifyselectimg from "./tabBar/classify-h.png";
 import userimg from "./tabBar/user.png";
@@ -52,6 +54,12 @@ export default {
           path: "/pages/index/index",
           icon: homeimg,
           selectedIcon: homeselectimg,
+        },
+        {
+          text: "体彩",
+          path: "/pages/zc/index",
+          icon: zc,
+          selectedIcon: zcselectimg,
         },
         {
           text: "视频",

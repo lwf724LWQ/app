@@ -99,21 +99,25 @@ onLoad(async (options) => {
   if (from.value !== "upload-diagram") {
     postTool.clearSchemesData();
   }
+  if (!options.id) {
+    uni.setStorageSync("postContent", "");
+  }
 
   try {
     const postData = await postTool.getTodayNewPost(lotteryType.value);
-
-    if (postData) {
+    const content = uni.getStorageSync("postContent") || postData?.content;
+    const postid = options.id || postData?.id;
+    if (content) {
       // 追贴
-      id.value = postData.id;
+      id.value = postid;
 
       disabledTag.value = tags.value
         .filter((tag) => {
-          return postData.content.includes(tag.name);
+          return content.includes(tag.name);
         })
         .map((tag) => tag.name);
 
-      uni.setStorageSync("appendPostData", { postContent: postData.content });
+      uni.setStorageSync("appendPostData", { postContent: content });
     }
 
     // 默认选中第一个没有被禁用的标签
