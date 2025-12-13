@@ -5,7 +5,7 @@ import { getStyleConfig } from '@/pages/juWang/peng-liao/drawLine/styleConfig'
 export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
   const options = ref({
     // 字号
-    fontSize: 40,
+    fontSizeRatio: 1,
     // 号码样式
     numberStyle: {
       isSolid: true,
@@ -13,6 +13,8 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     },
     // 数字选择器
     numberPicker: true,
+    // 固定字体
+    fontFamily: 'serif',
     // 底部行数
     bottomRow: 6,
     // 屏幕常亮
@@ -35,11 +37,12 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     lineType: 'straight',
     rowHeight: 110
   })
-  let tmpNumberStyle
+  let tmpNumberStyle = options.value.numberStyle
   watch(
     () => options.value.theme,
     (newVal) => {
       options.value.rowHeight = newVal === '其他' ? 90 : 110
+
       if (newVal === '其他') {
         tmpNumberStyle = options.value.numberStyle
         options.value.numberStyle = {
@@ -49,6 +52,8 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
       } else {
         options.value.numberStyle = tmpNumberStyle
       }
+
+      styleConfig.value = getStyleConfig(_type, newVal)
     }
   )
 

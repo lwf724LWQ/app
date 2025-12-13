@@ -82,21 +82,29 @@ export class Draw {
     this.baseCtx.draw()
     this.activeCtx.draw()
   }
+  drawAllText(pointActives) {
+    this.data.value.forEach((item, index) => {
+      this.drawContent(index, item)
+    })
+    this.drawActiveNumber(pointActives)
+    this.contentCtx.draw()
+    this.activeCtx.draw()
+  }
   // 重新绘制所有画布
   async redraw(record, pointActives) {
     this.record = record
     getStyleConfig()
 
-    setTimeout(() => {
-      this.drawGrid()
+    // setTimeout(() => {
+    this.drawGrid()
 
-      this.data.value.forEach((item, index) => {
-        this.drawContent(index, item)
-      })
-      this.contentCtx.draw()
+    this.data.value.forEach((item, index) => {
+      this.drawContent(index, item)
+    })
+    this.contentCtx.draw()
 
-      this.draw(record, pointActives)
-    }, 0)
+    this.draw(record, pointActives)
+    // }, 0)
   }
   // 绘制网格
   drawGrid() {
@@ -162,13 +170,29 @@ export class Draw {
       x = columns[0].width / 2
       y = (rowIndex + 1) * rowHeight - 70 * ratio
       color = columns[0].color
-      this.drawShapeContent.drawText(value, x, y, color, fontSize[0], 'bold')
+      this.drawShapeContent.drawText(
+        value,
+        x,
+        y,
+        color,
+        fontSize[0] * this.options.fontSizeRatio,
+        this.options.fontFamily,
+        'bold'
+      )
 
       value = getDate(data.opendate)
       x = columns[0].width / 2
       y = (rowIndex + 1) * rowHeight - 30 * ratio
       color = columns[0].color
-      this.drawShapeContent.drawText(value, x, y, color, fontSize[1], 'bold')
+      this.drawShapeContent.drawText(
+        value,
+        x,
+        y,
+        color,
+        fontSize[1] * this.options.fontSizeRatio,
+        this.options.fontFamily,
+        'bold'
+      )
     }
 
     if (theme === '其他') {
@@ -283,9 +307,17 @@ export class Draw {
   //绘制居中文字
   drawCenterText(drawShape, rowIndex, columnIndex, text, fontSize, color) {
     const x = columns[columnIndex].left + columns[columnIndex].width / 2
-    const y = (rowIndex + 0.5) * rowHeight + fontSize * 0.1
+    const y = (rowIndex + 0.5) * rowHeight
 
-    drawShape.drawText(text, x, y, color || columns[columnIndex].color, fontSize, 'bold')
+    drawShape.drawText(
+      text,
+      x,
+      y,
+      color || columns[columnIndex].color,
+      fontSize * this.options.fontSizeRatio,
+      this.options.fontFamily,
+      'bold'
+    )
   }
   drawLine(record) {
     if (!record || record.length <= 0) return
@@ -484,6 +516,7 @@ export class Draw {
               fontY1,
               fontColor,
               fontSize,
+              this.options.fontFamily,
               'bold'
             )
           // 第二行数字
@@ -494,6 +527,7 @@ export class Draw {
               fontY2,
               fontColor,
               fontSize,
+              this.options.fontFamily,
               'bold'
             )
           }
@@ -505,6 +539,7 @@ export class Draw {
               fontY3,
               fontColor,
               fontSize,
+              this.options.fontFamily,
               'bold'
             )
           }
@@ -520,8 +555,8 @@ export class Draw {
   }
   // 将canvas绘制到另一个canvas上,耗时较长
   drawToCanvas(sourseCtx, targetCtx, y) {
-    const sourseCtxId = sourseCtx.id
-    const targetCtxId = targetCtx.id
+    const sourseCtxId = sourseCtx.id || sourseCtx.canvasId
+    const targetCtxId = targetCtx.id || targetCtx.canvasId
 
     const width = Math.trunc(this.canvasSize.width) - 1
     let height
@@ -604,6 +639,7 @@ export class Draw {
           x + width / 2,
           y + height / 2 + style.fontSize * 0.1,
           item.isSolid ? '#fff' : style.color,
+          this.options.fontFamily,
           style.fontSize
         )
       }
