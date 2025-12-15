@@ -156,15 +156,15 @@
       <uni-icons type="locked-filled" size="30" color="#fff" v-else></uni-icons>
     </view>
     <!-- 设置 -->
-    <Setting class="setting" v-model="isSettingOpen"></Setting>
+    <Setting class="setting" v-model="isSettingOpen" :record="record"></Setting>
 
-    <Share ref="shareNode" :imageUrl="imageUrl"></Share>
+    <Share ref="shareNode" :getImageUrl="getImageUrl"></Share>
   </view>
 </template>
 
 <script setup>
 import { ref, nextTick, computed, watch } from 'vue'
-import { onLoad, onReady } from '@dcloudio/uni-app'
+import { onLoad, onReady, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
 import { getCurrentInstance } from 'vue'
 import mock from './mock.json'
 import Popup from '@/components/juWang/Popup.vue'
@@ -192,7 +192,7 @@ const safeArea = systemInfo.safeAreaInsets // 安全距离
 // 获取胶囊按钮高度
 let menuButtonInfo = 0
 // #ifdef MP
-menuButtonInfo = uni.getMenuButtonBoundingClientRect().top * 0.6
+menuButtonInfo = uni.getMenuButtonBoundingClientRect().top
 // #endif
 
 const windowHeight = systemInfo.windowHeight
@@ -206,8 +206,12 @@ const isSettingOpen = ref(false)
 
 watch(
   () => options.showPeriod,
-  () => {
-    getData()
+  async () => {
+    await getData()
+    await nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 34))
+    draw.redraw()
+    iscurveHandleShow.value = false
   }
 )
 // 设置屏幕常亮
@@ -227,15 +231,26 @@ watch(
   }
 )
 // #endif
-
+watch(
+  () => options.bottomRow,
+  async (newVal) => {
+    if (newVal === 6) {
+      await nextTick()
+      await new Promise((resolve) => setTimeout(resolve, 17))
+      draw.redraw(record.value, pointActives.value)
+    }
+  }
+)
 // 页面数据
 const data = ref([])
-// let positionList
-let showPeriod = options.showPeriod || 40
 const getData = async () => {
   try {
     uni.showLoading({ title: '加载中...' })
-    const res = await apiTicketQuery({ tname: type.value, page: '1', limit: showPeriod })
+    const res = await apiTicketQuery({
+      tname: type.value,
+      page: '1',
+      limit: options.showPeriod || 40
+    })
 
     data.value = res.data.records.reverse()
     data.value.forEach((item) => {
@@ -878,15 +893,20 @@ watch(
 )
 watch(
   () => options.theme,
-  (newVal, oldVal) => {
-    if (newVal === '其他' || oldVal === '其他') record.value = []
+  async (newVal, oldVal) => {
+    if (newVal === '其他' || oldVal === '其他') record.value.splice(0, record.value.length)
     if (newVal !== '其他') scale.value = 1
-    drawLineSettingStore.setStyleConfig(type.value, options.theme)
     styleConfig.value = drawLineSettingStore.styleConfig
+
+    await nextTick()
+    await new Promise((resolve) => setTimeout(resolve, 17))
     draw.redraw(record.value, pointActives.value)
     iscurveHandleShow.value = false
   }
 )
+watch([() => options.fontFamily, () => options.fontSizeRatio], () => {
+  draw.drawAllText(pointActives.value)
+})
 
 const openPopup = (row, column) => {
   // 结束位置为空白区域，同时为数字列、结束位置没有标记、允许数字选择器、运行的样式主题
@@ -986,7 +1006,7 @@ const revoke = () => {
 // 清除
 const trash = () => {
   iscurveHandleShow.value = false
-  record.value = []
+  record.value.splice(0, record.value.length)
 }
 
 // 保存图片
@@ -1024,15 +1044,18 @@ const saveImage = async () => {
 }
 // 分享
 const shareNode = ref()
-const imageUrl = ref('')
+const getImageUrl = ref(null)
 const share = async () => {
   // #ifdef H5
   await navigator.clipboard.writeText(window.location.href)
   uni.showToast({ title: '复制链接成功' })
   // #endif
-  // #ifdef APP || MP
+  // #ifdef APP
   shareNode.value.open()
-  imageUrl.value = await draw.save(scrolltop / scale.value)
+  getImageUrl.value = draw.save(scrolltop / scale.value)
+  // #endif
+  // #ifdef MP
+  shareNode.value.open()
   // #endif
 }
 // 获取元素位置信息
@@ -1047,6 +1070,21 @@ const getRect = (id) => {
       .exec()
   })
 }
+// #ifdef MP
+onShareAppMessage((from, target, webViewUrl) => {
+  return {
+    title: '分享',
+    path: '/pages/juWang/peng-liao/drawLine/drawLine.vue?type=' + type.value
+  }
+})
+onShareTimeline(() => {
+  return {
+    title: '分享',
+    path: '/pages/juWang/peng-liao/drawLine/drawLine.vue?type=' + type.value
+  }
+})
+// #endif
+
 const type = ref('')
 onLoad(async (options) => {
   type.value = options.type

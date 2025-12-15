@@ -36,13 +36,19 @@
         <view class="common" v-show="crurentPage === '通用设置'">
           <view class="title">字体大小</view>
           <view class="select-1">
-            <view :class="{ 'btn-active': options.fontSize === 30 }" @click="options.fontSize = 30"
+            <view
+              :class="{ 'btn-active': options.fontSizeRatio === 1 }"
+              @click="options.fontSizeRatio = 1"
               >标准</view
             >
-            <view :class="{ 'btn-active': options.fontSize === 40 }" @click="options.fontSize = 40"
+            <view
+              :class="{ 'btn-active': options.fontSizeRatio === 1.1 }"
+              @click="options.fontSizeRatio = 1.1"
               >大号</view
             >
-            <view :class="{ 'btn-active': options.fontSize === 50 }" @click="options.fontSize = 60"
+            <view
+              :class="{ 'btn-active': options.fontSizeRatio === 1.2 }"
+              @click="options.fontSizeRatio = 1.2"
               >超大号</view
             >
           </view>
@@ -80,10 +86,16 @@
               @change="options.numberPicker = $event.detail.value"
             />
           </view>
-          <!-- <view class="switch">
-            <text>固体字体</text>
-            <switch color="#fc3d44" checked />
-          </view> -->
+          <view class="switch">
+            <text>固定字体</text>
+            <switch
+              color="#fc3d44"
+              :checked="options.fontFamily === 'sans-serif'"
+              @change="
+                options.fontFamily = options.fontFamily === 'sans-serif' ? 'serif' : 'sans-serif'
+              "
+            />
+          </view>
           <view class="switch">
             <text>底部增加两行</text>
             <switch
@@ -126,25 +138,16 @@
         <view class="show" v-show="crurentPage === '显示设置'">
           <view class="title">显示期数</view>
           <view class="select-1">
-            <view
-              @click="options.showPeriod = 40"
-              :class="{ 'btn-active': options.showPeriod === 40 }"
-            >
+            <view @click="changePeriod(40)" :class="{ 'btn-active': options.showPeriod === 40 }">
               40期
             </view>
-            <view
-              @click="options.showPeriod = 60"
-              :class="{ 'btn-active': options.showPeriod === 60 }"
+            <view @click="changePeriod(60)" :class="{ 'btn-active': options.showPeriod === 60 }"
               >60期</view
             >
-            <view
-              @click="options.showPeriod = 80"
-              :class="{ 'btn-active': options.showPeriod === 80 }"
+            <view @click="changePeriod(80)" :class="{ 'btn-active': options.showPeriod === 80 }"
               >80期</view
             >
-            <view
-              @click="options.showPeriod = 100"
-              :class="{ 'btn-active': options.showPeriod === 100 }"
+            <view @click="changePeriod(100)" :class="{ 'btn-active': options.showPeriod === 100 }"
               >100期</view
             >
           </view>
@@ -324,6 +327,26 @@ const open = defineModel()
 watch(open, (newVal) => {
   if (newVal) settingPopup.value.open()
 })
+
+const props = defineProps(['record'])
+
+// 切换期数
+const changePeriod = (value) => {
+  if (!props.record?.length) {
+    options.showPeriod = value
+  } else {
+    uni.showModal({
+      title: '提示',
+      content: '切换期数会清空当前记录，是否继续？',
+      success: (res) => {
+        if (res.confirm) {
+          options.showPeriod = value
+          props.record.splice(0, props.record.length)
+        }
+      }
+    })
+  }
+}
 </script>
 
 <style lang="scss" scoped>

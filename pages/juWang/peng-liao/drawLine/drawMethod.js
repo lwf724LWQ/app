@@ -111,9 +111,9 @@ export class DrawShape {
     this.ctx.stroke()
   }
   // 绘制文字
-  drawText(text, x, y, color, size, fontWeight = 'normal') {
+  drawText(text, x, y, color, size, fontFamily, fontWeight = 'normal') {
     this.ctx.textAlign = 'center'
-    this.ctx.font = `${fontWeight} ${Math.round(size)}px Arial`
+    this.ctx.font = `${fontWeight} ${Math.round(size)}px ${fontFamily}`
     this.ctx.textBaseline = 'middle'
     this.ctx.setFillStyle(color)
     this.ctx.fillText(text, x, y)

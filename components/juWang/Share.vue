@@ -4,23 +4,27 @@
       <view class="title">选择要分享的平台</view>
       <view class="btns">
         <view class="wx" @click="shareWx">
-          <uni-icons
-            class="icon"
-            custom-prefix="iconfont"
-            type="icon-weixin"
-            size="30"
-            color="#07c160"
-          ></uni-icons>
+          <button class="icon" open-type="share" id="shareWx">
+            <uni-icons
+              custom-prefix="iconfont"
+              type="icon-weixin"
+              size="30"
+              color="#07c160"
+            ></uni-icons>
+          </button>
+
           微信
         </view>
         <view class="wxpyq" @click="shareWxpyq">
-          <uni-icons
-            class="icon"
-            custom-prefix="iconfont"
-            type="icon-weixinpengyouquan1"
-            size="30"
-            color="#07c160"
-          ></uni-icons>
+          <button class="icon" open-type="share" id="shareWxpyq">
+            <uni-icons
+              custom-prefix="iconfont"
+              type="icon-weixinpengyouquan1"
+              size="30"
+              color="#07c160"
+            ></uni-icons>
+          </button>
+
           微信朋友圈
         </view>
       </view>
@@ -31,14 +35,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { BASE_URL } from '@/utils/request.js'
 import { getCompressImage } from '@/pages/juWang/peng-liao/drawLine/utils'
 
 const share = ref(null)
 
 const props = defineProps({
-  imageUrl: {
-    type: String
+  getImageUrl: {
+    type: Promise
   }
 })
 
@@ -50,14 +53,14 @@ defineExpose({
 })
 
 const shareWx = async () => {
-  // const imageUrl = await props.getImageUrl()
-  // const compressImage = await getCompressImage(imageUrl, 0.5)
+  // #ifdef APP
+  const imageUrl = await props.getImageUrl
+
   uni.share({
     provider: 'weixin',
-    type: 0,
+    type: 2,
     scene: 'WXSceneSession',
-    href: `${BASE_URL}/pages/juWang/peng-liao/drawLine/drawLine`,
-    imageUrl: props.imageUrl,
+    imageUrl,
     success(res) {
       uni.showToast({
         title: '分享成功',
@@ -69,18 +72,18 @@ const shareWx = async () => {
       share.value.close()
     }
   })
+  // #endif
 }
 
 const shareWxpyq = async () => {
   // #ifdef APP
-  const imageUrl = await props.getImageUrl()
-  const compressImage = await getCompressImage(imageUrl, 0.5)
+  const imageUrl = await props.getImageUrl
+
   uni.share({
     provider: 'weixin',
-    type: 0,
+    type: 2,
     scene: 'WXSceneTimeline',
-    href: `${BASE_URL}/pages/juWang/peng-liao/drawLine/drawLine`,
-    imageUrl: compressImage,
+    imageUrl,
     success(res) {
       uni.showToast({
         title: '分享成功',
@@ -120,6 +123,12 @@ const shareWxpyq = async () => {
         border-radius: 50%;
         box-shadow: 0 0 10rpx rgba($color: #000000, $alpha: 0.1);
         margin-bottom: 30rpx;
+        text-align: center;
+        padding: 0;
+        background-color: #fff;
+        &:after {
+          border: none;
+        }
       }
 
       display: flex;
