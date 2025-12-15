@@ -42,7 +42,12 @@
 
     <!-- 赛事列表 -->
     <scroll-view class="match-list" scroll-y>
-      <view v-for="(match, index) in matches" :key="index" class="match-item">
+      <view
+        v-for="(match, index) in matches"
+        :key="index"
+        class="match-item"
+        @click="toDetail"
+      >
         <view class="match-content">
           <view class="match-info">
             <view class="match-teams">
@@ -199,6 +204,11 @@ export default {
     },
     selectStatus(status) {
       this.selectedStatus = status;
+    },
+    toDetail() {
+      uni.navigateTo({
+        url: "/pages/zc/detail",
+      });
     },
   },
 };

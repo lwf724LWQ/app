@@ -296,6 +296,13 @@
         "navigationBarTitleText": "足球资讯",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/zc/detail",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
