@@ -53,7 +53,7 @@
               <view
                 v-for="(item, index) in effectViewList"
                 :key="index"
-                v-show="effectList.length !== effectMap['稳码'].length"
+                v-show="currentCondition !== '稳码'"
               >
                 <view
                   class="item"
@@ -71,10 +71,7 @@
                 </view>
                 {{ item }}
               </view>
-              <view
-                class="item-all bg-active"
-                v-show="effectList.length === effectMap['稳码'].length"
-              >
+              <view class="item-all bg-active" v-show="currentCondition === '稳码'">
                 {{ numbers.length ? '稳上一码：' + numbers.join('') : '' }}
               </view>
             </view>
@@ -200,11 +197,12 @@ let effectViewList = ['千 A', '百 B', '十 C', '个 D']
 if (props.type === '福彩3D') effectViewList = ['百 B', '十 C', '个 D']
 const msg = ref(null)
 
-const openSenior = (col) => {
+// column：表格列数，columnIndex：表单预览列数
+const openSenior = (column) => {
   popup.value.open('center')
   const styleConfig = getStyleConfig()
-  let columnIndex = col - 2
-  if (styleConfig.theme === '其他') columnIndex = col - 1
+  columnIndex = column - 2
+  if (styleConfig.theme === '其他') columnIndex = column - 1
   index.value = columnIndex
   effectList.value = [columnIndex]
   effectMap.杀 = [columnIndex]
@@ -246,9 +244,11 @@ const addNumberList = (val) => {
     // 选择数字
     numbers.value = []
     numbers.value.push(...numberMap[val])
+    effectList.value = [columnIndex]
   } else {
     // 选择效果
     if (val === '杀' && numbers.value.length > 2) numbers.value = []
+    if (val === '稳码' && numbers.value.length > 2) numbers.value = []
     effectList.value = effectMap[val]
   }
 }

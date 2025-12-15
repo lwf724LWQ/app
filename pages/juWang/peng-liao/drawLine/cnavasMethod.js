@@ -23,7 +23,9 @@ const getStyleConfig = () => {
 
 // 获取行和列
 export const getRowAndColumn = (x, y) => {
-  const column = columns.findIndex((column) => column.left <= x && column.right >= x)
+  const column = columns.findIndex(
+    (column) => column.left <= x && column.right + column.border >= x
+  )
   const row = Math.floor(y / rowHeight)
   return { row, column }
 }
@@ -44,7 +46,8 @@ export class Draw {
     imageCtx,
     data,
     options,
-    canvasSize
+    canvasSize,
+    marks
   ) {
     this.bgCtx = bgCtx
     this.baseCtx = baseCtx
@@ -55,6 +58,7 @@ export class Draw {
     this.data = data
     this.options = options
     this.canvasSize = canvasSize
+    this.marks = marks
 
     this.drawShapeBg = new DrawShape(bgCtx)
     this.drawShapeBase = new DrawShape(baseCtx)
@@ -78,7 +82,7 @@ export class Draw {
 
     this.drawActiveNumber(pointActives)
 
-    this.drawMark(record)
+    this.drawMark(this.marks.value)
     this.baseCtx.draw()
     this.activeCtx.draw()
   }
@@ -87,6 +91,7 @@ export class Draw {
       this.drawContent(index, item)
     })
     this.drawActiveNumber(pointActives)
+    this.drawMark(this.marks.value)
     this.contentCtx.draw()
     this.activeCtx.draw()
   }
@@ -453,100 +458,131 @@ export class Draw {
       return this.data.value[rowIndex]?.number[index]
     }
   }
-  drawMark(record) {
-    if (!record?.length) return
-    record.forEach((item) => {
-      const mark = Array.isArray(item) ? item[0]?.mark : item?.mark
-      let color = Array.isArray(item) ? item[0]?.style.color : item?.style.color
+  drawMark(marks) {
+    for (const key in marks) {
+      const item = marks[key]
+      const mark = item.mark
+      const [row, column] = key.split('-')
+      let color = item.style.color
 
-      if (!mark) return
       const isSenior = mark.senior
       const isSolid = mark.isSolid
 
-      mark.indexs.forEach((index) => {
-        const minSize = Math.min(columns[index].width, rowHeight)
-        const centerX = columns[index].left + columns[index].width / 2
-        const padding = minSize * PADDING * 2
-        const x = columns[index].left + (columns[index].width - minSize) / 2 + padding
-        const y = mark.row * rowHeight + (rowHeight - minSize) / 2 + padding
-        const size = minSize - padding * 2
-        // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"indexs":[2],"senior":true,"row":40}
-        if (isSenior) {
-          let fontColor
-          if (isSolid) {
-            fontColor = '#fff'
-            this.drawShapeActive.drawSolidRect(x, y, size, size, color)
-          } else {
-            fontColor = color
-            this.drawShapeActive.drawSolidRect(x, y, size, size, columns[index].backgroundColor)
-            this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
-          }
-          // 更改字号
-          let fontSize = 30 * ratio
-          if (!mark.condition) {
-            if (mark.numbers.length === 1) {
-              fontSize = 60 * ratio
-            } else if (mark.numbers.length <= 2) {
-              fontSize = 50 * ratio
-            } else {
-              fontSize = 40 * ratio
-            }
-          }
-          // 文字位置
-          let fontY1 = y + 22 * ratio
-          let fontY2 = y + 52 * ratio
-          let fontY3 = y + 82 * ratio
+      // 额外处理稳码的情况
+      if (mark.condition === '稳码') {
+        let fontColor
+        const padding = rowHeight * PADDING
+        const startIndex = numberStartIndex + 1
+        const endIndex = type === '福彩3D' ? startIndex + 2 : startIndex + 3
+        const x = columns[startIndex].left + padding
+        const y = row * rowHeight + padding
+        const centerX = columns[startIndex].left / 2 + columns[endIndex].right / 2
+        const centerY = (Number(row) + 0.5) * rowHeight
+        const width = columns[endIndex].right - columns[startIndex].left - padding * 2
+        const height = rowHeight - padding * 2
 
-          if (!mark.condition && mark.numbers.length > 3) {
-            fontY2 = y + 35 * ratio
-            fontY3 = y + 75 * ratio
-            fontSize = 40 * ratio
-          } else if (mark.condition && mark.numbers.length < 3) {
-            fontY1 = y + 35 * ratio
-            fontY2 = y + 75 * ratio
-            fontSize = 40 * ratio
-          }
-
-          // 第一行文字
-          mark.condition &&
-            this.drawShapeActive.drawText(
-              mark.condition,
-              centerX,
-              fontY1,
-              fontColor,
-              fontSize,
-              this.options.fontFamily,
-              'bold'
-            )
-          // 第二行数字
-          if (mark.numbers.length > 0) {
-            this.drawShapeActive.drawText(
-              mark.numbers.slice(0, 3).join(''),
-              centerX,
-              fontY2,
-              fontColor,
-              fontSize,
-              this.options.fontFamily,
-              'bold'
-            )
-          }
-          // 第三行数字
-          if (mark.numbers.length > 3) {
-            this.drawShapeActive.drawText(
-              mark.numbers.slice(3, 5).join(''),
-              centerX,
-              fontY3,
-              fontColor,
-              fontSize,
-              this.options.fontFamily,
-              'bold'
-            )
-          }
+        if (isSolid) {
+          fontColor = '#fff'
+          this.drawShapeActive.drawSolidRect(x, y, width, height, color)
         } else {
-          this.drawPoint(mark.row, index, color, isSolid, true, mark.condition)
+          fontColor = color
+          this.drawShapeActive.drawSolidRect(x, y, width, height, columns[column].backgroundColor)
+          this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio)
         }
-      })
-    })
+        this.drawShapeActive.drawText(
+          `稳上一码：${mark.numbers.join('')}`,
+          centerX,
+          centerY,
+          fontColor,
+          width * 0.1,
+          this.options.fontFamily,
+          'bold'
+        )
+        continue
+      }
+
+      const minSize = Math.min(columns[column].width, rowHeight)
+      const centerX = columns[column].left + columns[column].width / 2
+      const padding = minSize * PADDING * 2
+      const x = columns[column].left + (columns[column].width - minSize) / 2 + padding
+      const y = row * rowHeight + (rowHeight - minSize) / 2 + padding
+      const size = minSize - padding * 2
+      // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"columns":[2],"senior":true,"row":40}
+      if (isSenior) {
+        let fontColor
+        if (isSolid) {
+          fontColor = '#fff'
+          this.drawShapeActive.drawSolidRect(x, y, size, size, color)
+        } else {
+          fontColor = color
+          this.drawShapeActive.drawSolidRect(x, y, size, size, columns[column].backgroundColor)
+          this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
+        }
+        // 更改字号
+        let fontSize = 30 * ratio
+        if (!mark.condition) {
+          if (mark.numbers.length === 1) {
+            fontSize = 60 * ratio
+          } else if (mark.numbers.length <= 2) {
+            fontSize = 50 * ratio
+          } else {
+            fontSize = 40 * ratio
+          }
+        }
+        // 文字位置
+        let fontY1 = y + 22 * ratio
+        let fontY2 = y + 52 * ratio
+        let fontY3 = y + 82 * ratio
+
+        if (!mark.condition && mark.numbers.length > 3) {
+          fontY2 = y + 35 * ratio
+          fontY3 = y + 75 * ratio
+          fontSize = 40 * ratio
+        } else if (mark.condition && mark.numbers.length < 3) {
+          fontY1 = y + 35 * ratio
+          fontY2 = y + 75 * ratio
+          fontSize = 30 * ratio
+        }
+
+        // 第一行文字
+        mark.condition &&
+          this.drawShapeActive.drawText(
+            mark.condition,
+            centerX,
+            fontY1,
+            fontColor,
+            fontSize,
+            this.options.fontFamily,
+            'bold'
+          )
+        // 第二行数字
+        if (mark.numbers.length > 0) {
+          this.drawShapeActive.drawText(
+            mark.numbers.slice(0, 3).join(''),
+            centerX,
+            fontY2,
+            fontColor,
+            fontSize,
+            this.options.fontFamily,
+            'bold'
+          )
+        }
+        // 第三行数字
+        if (mark.numbers.length > 3) {
+          this.drawShapeActive.drawText(
+            mark.numbers.slice(3, 5).join(''),
+            centerX,
+            fontY3,
+            fontColor,
+            fontSize,
+            this.options.fontFamily,
+            'bold'
+          )
+        }
+      } else {
+        this.drawPoint(row, column, color, isSolid, true, mark.condition)
+      }
+    }
   }
   async saveDraw() {
     await this.drawToCanvas(this.paintCtx, this.baseCtx)
@@ -623,9 +659,11 @@ export class Draw {
   drawHoverText(top) {
     const bottom = top + Math.trunc(windowHeight - 130 * ratio - safeAreaTop)
     const round = 5 * ratio
+    if (!this.record.length) return
     this.record.forEach((item) => {
       const style = item.style
       const text = item.text
+      if (!text) return
       const { width, height } = text
       const { x, y } = text.position
       // 判断是否在可视区域内

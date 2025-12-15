@@ -283,7 +283,7 @@ const size = ref(3)
 
 // 监听触摸事件
 const record = ref([]) // [{point:[12,34] , line:{type:straight/curve,position:{}} , mark:{} , style:{color,size}} , text:'']
-let startX, startY, endX, endY
+let startX, startY
 
 let isClick = true
 // 临时数据
@@ -392,19 +392,20 @@ const touchmove = (event) => {
 
   isClick = false
   // 判断是否是点击
-  if (Math.abs(startX - x) < 3 * ratio && Math.abs(startY - y) < 3 * ratio) {
+  if (Math.abs(startX - x) < 10 * ratio && Math.abs(startY - y) < 10 * ratio) {
     isClick = true
     return
   }
 
-  // drawnLineAll(record.value)
   switch (mode.value) {
     case '智能曲线':
       // 只执行一次
       if (isFirst) {
         if (options.count === 1) {
           record.value.push({
-            point: [startPosition],
+            point: pointActives.value[`${startPosition.row}-${startPosition.column}`]
+              ? []
+              : [startPosition],
             style: { color: color.value, size: size.value, ...options.numberStyle }
           })
         } else {
@@ -420,15 +421,21 @@ const touchmove = (event) => {
           const recordList = []
           const colorStartIndex = colors.indexOf(color.value)
           for (let index = 0; index < options.count; index++) {
-            recordList.push({
-              point: [tmpStartPositions[index]],
-              style: {
-                color:
-                  options.colorType === 'single' ? color.value : colors[colorStartIndex + index],
-                size: size.value,
-                ...options.numberStyle
-              }
-            })
+            if (
+              !pointActives.value[
+                `${tmpStartPositions[index].row}-${tmpStartPositions[index].column}`
+              ]
+            ) {
+              recordList.push({
+                point: [tmpStartPositions[index]],
+                style: {
+                  color:
+                    options.colorType === 'single' ? color.value : colors[colorStartIndex + index],
+                  size: size.value,
+                  ...options.numberStyle
+                }
+              })
+            }
           }
           record.value.push(recordList)
         }
@@ -615,11 +622,25 @@ const touchend = async (event) => {
     } else {
       const position = getPointPosition(startPosition.x, startPosition.y)
       if (position && position.x && position.column >= styleConfig.value.numberStartIndex) {
-        record.value.push({
-          point: [position],
-          style: { color: color.value, ...options.numberStyle }
-        })
-        openPopup(position.row, position.column)
+        if (
+          pointActives.value[`${position.row}-${position.column}`] ||
+          marks.value[`${position.row}-${position.column}`]
+        ) {
+          // 删除记录
+          record.value.push({
+            delete: { position }
+          })
+        } else if (marks.value[`${position.row}-all`]) {
+          record.value.push({
+            delete: { position: { row: position.row, column: 'all' } }
+          })
+        } else {
+          record.value.push({
+            point: [position],
+            style: { color: color.value, ...options.numberStyle }
+          })
+          openPopup(position.row, position.column)
+        }
       }
     }
   } else {
@@ -909,11 +930,12 @@ watch([() => options.fontFamily, () => options.fontSizeRatio], () => {
 })
 
 const openPopup = (row, column) => {
-  // 结束位置为空白区域，同时为数字列、结束位置没有标记、允许数字选择器、运行的样式主题
+  // 结束位置为空白区域，同时为数字列、结束位置没有标记、允许数字选择器、允许的样式主题
   if (
     row > data.value.length - 1 &&
     column >= styleConfig.value.numberStartIndex &&
     !marks.value[`${row}-${column}`] &&
+    !marks.value[`${row}-all`] &&
     options.numberPicker &&
     options.theme !== '其他'
   ) {
@@ -927,15 +949,15 @@ const openPopup = (row, column) => {
 // 修改曲线
 let curvePosition
 const curveTouchstart = () => {
-  const [startPosition, endPosition] = record.value[record.value.length - 1].point
+  const { startX, startY, endX, endY } = record.value[record.value.length - 1].line.position
 
   curvePosition = {
-    startX: startPosition.x,
-    startY: startPosition.y,
-    centerX: startPosition.x / 2 + endPosition.x / 2,
-    centerY: startPosition.y / 2 + endPosition.y / 2,
-    endX: endPosition.x,
-    endY: endPosition.y
+    startX,
+    startY,
+    centerX: startX / 2 + endX / 2,
+    centerY: startY / 2 + endY / 2,
+    endX,
+    endY
   }
 }
 const curveTouchmove = (event) => {
@@ -976,20 +998,32 @@ const curveTouchend = () => {
 
 // 激活列表
 const pointActives = computed(() => {
+  const deletes = []
+  record.value.forEach((item) => {
+    if (item.delete) {
+      deletes.push(`${item.delete.position.row}-${item.delete.position.column}`)
+    }
+  })
+
   const result = {}
+  const addResult = (item) => {
+    if (!item?.point) return
+    item.point.forEach(({ row, column }) => {
+      if (deletes.includes(`${row}-${column}`)) {
+        deletes.splice(deletes.indexOf(`${row}-${column}`), 1)
+        return
+      }
+
+      result[`${row}-${column}`] = item.style
+    })
+  }
   record.value.forEach((item) => {
     if (Array.isArray(item) && item.length > 0) {
       item.forEach((item) => {
-        if (!item?.point) return
-        item.point.forEach(({ row, column }) => {
-          result[`${row}-${column}`] = item.style
-        })
+        addResult(item)
       })
     } else {
-      if (!item?.point) return
-      item.point.forEach(({ row, column }) => {
-        result[`${row}-${column}`] = item.style
-      })
+      addResult(item)
     }
   })
   return result
@@ -1005,8 +1039,21 @@ const revoke = () => {
 }
 // 清除
 const trash = () => {
-  iscurveHandleShow.value = false
-  record.value.splice(0, record.value.length)
+  if (record.value.length !== 0) {
+    uni.showModal({
+      title: '提示',
+      content: '确定要清空吗？',
+      success: (res) => {
+        if (res.confirm) {
+          iscurveHandleShow.value = false
+          record.value.splice(0, record.value.length)
+        }
+      }
+    })
+  } else {
+    iscurveHandleShow.value = false
+    record.value.splice(0, record.value.length)
+  }
 }
 
 // 保存图片
@@ -1116,7 +1163,8 @@ onReady(async () => {
     imageCtx,
     data,
     options,
-    canvasSize
+    canvasSize,
+    marks
   )
 
   drawnLineAll = draw.draw.bind(draw)
@@ -1129,14 +1177,32 @@ onReady(async () => {
 
 // 标记列表
 const marks = computed(() => {
-  const result = {}
+  const deletes = []
+  record.value.forEach((item) => {
+    if (item.delete) {
+      deletes.push(`${item.delete.position.row}-${item.delete.position.column}`)
+    }
+  })
 
+  const result = {}
   const getMarks = (item) => {
-    if (Array.isArray(item)) return
     const row = item.mark?.row
     const indexs = item.mark?.indexs
     if (row && indexs) {
+      if (item.mark.condition === '稳码') {
+        if (deletes.includes(`${row}-all`)) {
+          deletes.splice(deletes.indexOf(`${row}-all`), 1)
+          return
+        }
+        result[`${row}-all`] = { mark: item.mark, style: item.style }
+        return
+      }
+
       indexs.forEach((index) => {
+        if (deletes.includes(`${row}-${index}`)) {
+          deletes.splice(deletes.indexOf(`${row}-${index}`), 1)
+          return
+        }
         result[`${row}-${index}`] = { mark: item.mark, style: item.style }
       })
     }
@@ -1155,6 +1221,7 @@ const popupSubmit = (val) => {
   if (Array.isArray(item)) item = item[0]
   item.mark = val
   item.mark.row = item.point[item.point.length - 1].row
+  item.point.splice(1, 1)
 }
 
 // 滚动高度
