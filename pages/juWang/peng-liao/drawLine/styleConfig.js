@@ -17,7 +17,7 @@ const layouts = {
       right: 223 * ratio,
       border: 7 * ratio,
       width: 63 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     },
     {
@@ -117,7 +117,7 @@ const layouts = {
       right: 197 * ratio,
       border: 7 * ratio,
       width: 50 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 30 * ratio,
       markType: 'simple'
     },
     {

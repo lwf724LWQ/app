@@ -19,7 +19,9 @@
         <view class="issueno">{{ item.issueno }}</view>
         <view class="date">{{ getDate(item.opendate) }}</view>
       </view>
-      <view class="column-2">{{ item.number.reduce((a, b) => Number(a) + Number(b), 0) }}</view>
+      <view class="column-2">{{
+        item.number.slice(0, 4).reduce((a, b) => Number(a) + Number(b), 0)
+      }}</view>
       <view class="column-3">
         <view class="column-3-item" v-for="number in item.number.slice(0, 4)" :key="number">{{
           number

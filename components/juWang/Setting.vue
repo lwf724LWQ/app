@@ -42,13 +42,13 @@
               >标准</view
             >
             <view
-              :class="{ 'btn-active': options.fontSizeRatio === 1.2 }"
-              @click="options.fontSizeRatio = 1.2"
+              :class="{ 'btn-active': options.fontSizeRatio === 1.1 }"
+              @click="options.fontSizeRatio = 1.1"
               >大号</view
             >
             <view
-              :class="{ 'btn-active': options.fontSizeRatio === 1.4 }"
-              @click="options.fontSizeRatio = 1.4"
+              :class="{ 'btn-active': options.fontSizeRatio === 1.2 }"
+              @click="options.fontSizeRatio = 1.2"
               >超大号</view
             >
           </view>

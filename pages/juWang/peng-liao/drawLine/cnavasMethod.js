@@ -255,8 +255,8 @@ export class Draw {
         this.drawShapeContent,
         rowIndex,
         1,
-        numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
-        50 * ratio
+        numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0),
+        columns[1].fontSize
       )
       switch (type) {
         case '排列五':
@@ -383,11 +383,11 @@ export class Draw {
     const columnStyle = columns[columnIndex]
     // 绘制背景
     if (isSolid) {
-      const colors = ['#f0f0ec', '#fffaf6', color]
+      const colors = ['rgba(0, 0, 0, 0.07)', '#fffaf6', color]
       for (let index = 0; index < 3; index++) {
         const minSize = Math.min(columnStyle.width, rowHeight)
         const cloumnWidth = columnStyle.width
-        const padding = cloumnWidth * PADDING + index * 3 * ratio
+        const padding = cloumnWidth * PADDING + index * 4 * ratio
         const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
         const size = minSize - padding * 2
         const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
@@ -398,7 +398,7 @@ export class Draw {
     } else {
       const minSize = Math.min(columnStyle.width, rowHeight)
       const cloumnWidth = columnStyle.width
-      const padding = cloumnWidth * PADDING + 3 * ratio
+      const padding = cloumnWidth * PADDING + 8 * ratio
       const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
       const size = minSize - padding * 2
       const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
@@ -444,12 +444,11 @@ export class Draw {
           this.data.value[rowIndex] &&
           this.data.value[rowIndex].number
             .slice(0, 4)
-            .reduce((prev, cur) => Number(prev) + Number(cur), 0) % 10
+            .reduce((prev, cur) => Number(prev) + Number(cur), 0)
         )
       }
 
       let index = columnIndex - numberStartIndex - 1
-      // console.log(index, columnIndex, numberStartIndex)
 
       return this.data.value[rowIndex]?.number[index]
     }
