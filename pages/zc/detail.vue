@@ -14,7 +14,7 @@
       <dualAxis />
       <pointTable />
       <detailTable />
-      <detailTable />
+      <!-- <detailTable /> -->
     </scroll-view>
   </view>
 </template>

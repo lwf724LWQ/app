@@ -116,7 +116,7 @@ export default {
   align-items: center;
 
   background-color: #313131;
-  height: 300rpx;
+  height: 250rpx;
   color: #fff;
   font-size: 20rpx;
   .team {

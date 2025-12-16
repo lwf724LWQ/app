@@ -62,7 +62,7 @@
                 >{{ match.time }}</text
               >
               <text class="vs">未开</text>
-              <text class="team-name">预测1</text>
+              <text class="team-name"></text>
             </view>
 
             <view class="match-teams">
