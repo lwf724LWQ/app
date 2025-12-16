@@ -11,10 +11,10 @@
     </TopNavigationBar>
     <scroll-view class="scroll-view" scroll-y>
       <matchHead />
+      <dualAxis />
       <pointTable />
       <detailTable />
       <detailTable />
-      <dualAxis />
     </scroll-view>
   </view>
 </template>
