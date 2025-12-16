@@ -10,6 +10,7 @@
       </template>
     </TopNavigationBar>
     <scroll-view class="scroll-view" scroll-y>
+      <matchHead />
       <pointTable />
       <detailTable />
       <detailTable />
@@ -23,8 +24,15 @@ import TopNavigationBar from "../../components/TopNavigationBar.vue";
 import detailTable from "./components/detail-table.vue";
 import dualAxis from "./components/dual-axis.vue";
 import pointTable from "./components/point-table.vue";
+import matchHead from "./components/match-head.vue";
 export default {
-  components: { TopNavigationBar, detailTable, dualAxis, pointTable },
+  components: {
+    TopNavigationBar,
+    detailTable,
+    dualAxis,
+    pointTable,
+    matchHead,
+  },
 };
 </script>
 
