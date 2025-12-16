@@ -69,10 +69,10 @@ watch(currentIndex, (newVal) => {
   view {
     box-sizing: border-box;
   }
-  height: 80rpx;
+  height: 95rpx;
   // width: 260rpx;
   border-radius: 50rpx 0 0 50rpx;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: end;
@@ -86,12 +86,12 @@ watch(currentIndex, (newVal) => {
     width: 140rpx;
   }
   .icon {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.3);
     border-radius: 50%;
-    width: 70rpx;
+    width: 85rpx;
     padding: 10rpx;
     margin-right: 25rpx;
-    height: 70rpx;
+    height: 85rpx;
     margin-left: 5rpx;
     display: flex;
     align-items: center;
@@ -99,7 +99,7 @@ watch(currentIndex, (newVal) => {
   }
   .list {
     position: absolute;
-    bottom: 83rpx;
+    bottom: 100rpx;
     right: 25rpx;
     color: #fff;
     font-size: 25rpx;

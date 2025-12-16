@@ -269,8 +269,6 @@ const getData = async () => {
   //     item.number.push(1, item.refernumber)
   //   }
   // })
-
-  // await nextTick()
 }
 
 const curveHandleX = ref(0)
@@ -623,16 +621,20 @@ const touchend = async (event) => {
       const position = getPointPosition(startPosition.x, startPosition.y)
       if (position && position.x && position.column >= styleConfig.value.numberStartIndex) {
         if (
+          marks.value[`${position.row}-all`] &&
+          position.column >= styleConfig.value.numberStartIndex + 1 &&
+          position.column <= styleConfig.value.numberStartIndex + 4
+        ) {
+          record.value.push({
+            delete: { position: { row: position.row, column: 'all' } }
+          })
+        } else if (
           pointActives.value[`${position.row}-${position.column}`] ||
           marks.value[`${position.row}-${position.column}`]
         ) {
           // 删除记录
           record.value.push({
             delete: { position }
-          })
-        } else if (marks.value[`${position.row}-all`]) {
-          record.value.push({
-            delete: { position: { row: position.row, column: 'all' } }
           })
         } else {
           record.value.push({
@@ -851,7 +853,7 @@ const gestureStartCenterY = ref(0) // 手势操作开始中心位置
 const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight)
 const containerHeight = ref(0)
 
-const gesturestart = (event) => {
+const gesturestart = async (event) => {
   //禁用曲线控制按钮
   iscurveHandleShow.value = false
   containerHeight.value = initHeight.value
@@ -862,7 +864,7 @@ const gesturestart = (event) => {
   const y = (touch1.y + touch2.y) / 2
 
   isScroll.value = true // 开启滚动
-  // isApiScroll = true
+  await nextTick()
   scrollInitTop.value = y / scale.value - (y - scrolltop)
 
   gestureStartCenterY.value = y / scale.value
@@ -890,7 +892,7 @@ const gestureend = async (event) => {
   cnavasWidth.value = 750 / scale.value
 
   isScroll.value = true // 开启滚动
-  // isApiScroll = true
+  await nextTick()
   scrollInitTop.value =
     gestureStartCenterY.value * scale.value - (gestureStartCenterY.value - scrolltop)
 
@@ -935,7 +937,11 @@ const openPopup = (row, column) => {
     row > data.value.length - 1 &&
     column >= styleConfig.value.numberStartIndex &&
     !marks.value[`${row}-${column}`] &&
-    !marks.value[`${row}-all`] &&
+    !(
+      marks.value[`${row}-all`] &&
+      column >= styleConfig.value.numberStartIndex + 1 &&
+      column <= styleConfig.value.numberStartIndex + 4
+    ) &&
     options.numberPicker &&
     options.theme !== '其他'
   ) {
@@ -1084,7 +1090,9 @@ const saveImage = async () => {
       })
     },
     fail: (err) => {
-      uni.showToast()
+      uni.showToast({
+        title: '保存失败'
+      })
     }
   })
   // #endif
@@ -1221,7 +1229,7 @@ const popupSubmit = (val) => {
   if (Array.isArray(item)) item = item[0]
   item.mark = val
   item.mark.row = item.point[item.point.length - 1].row
-  item.point.splice(1, 1)
+  item.point.pop()
 }
 
 // 滚动高度
@@ -1231,19 +1239,6 @@ const isScroll = ref(true)
 
 const scroll = (event) => {
   scrolltop = event.detail.scrollTop
-
-  // 删除容器多余的高度
-  // if (isApiScroll) {
-  //   isApiScroll = false
-  //   return
-  // }
-  // console.log(event.detail.deltaY)
-
-  // const minHeight = initHeight.value * scale.value
-  // const height = containerHeight.value - event.detail.deltaY
-  // if (height < minHeight) {
-  //   containerHeight.value = minHeight
-  // }
 }
 
 // 绘制图形
@@ -1480,10 +1475,7 @@ page {
     .paint-canvas,
     .content-canvas,
     .active-canvas {
-      // position: absolute;
-      // top: -v-bind('TOP_BAR_HEIGHT + "px"');
       width: 100vw;
-      // height: calc(100% + v-bind('TOP_BAR_HEIGHT + "px"'));
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       /* #ifdef APP */
       top: calc(-130rpx - v-bind('safeArea.top + "px"'));
@@ -1529,6 +1521,7 @@ page {
       visibility: hidden;
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
+      transform: scale(0.1); // 0.1随便写，足够小即可
     }
 
     .curve-handle {

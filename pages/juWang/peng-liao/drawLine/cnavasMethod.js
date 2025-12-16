@@ -71,9 +71,7 @@ export class Draw {
 
     this.drawGrid() // 绘制网格
 
-    this.data.value.forEach((item, index) => {
-      this.drawContent(index, item)
-    })
+    this.drawContent()
     this.contentCtx.draw()
   }
   draw(record, pointActives) {
@@ -87,9 +85,7 @@ export class Draw {
     this.activeCtx.draw()
   }
   drawAllText(pointActives) {
-    this.data.value.forEach((item, index) => {
-      this.drawContent(index, item)
-    })
+    this.drawContent()
     this.drawActiveNumber(pointActives)
     this.drawMark(this.marks.value)
     this.contentCtx.draw()
@@ -103,9 +99,7 @@ export class Draw {
     // setTimeout(() => {
     this.drawGrid()
 
-    this.data.value.forEach((item, index) => {
-      this.drawContent(index, item)
-    })
+    this.drawContent()
     this.contentCtx.draw()
 
     this.draw(record, pointActives)
@@ -163,150 +157,163 @@ export class Draw {
     }
   }
   // 绘制内容
-  drawContent(rowIndex, data) {
-    const numbers = data.number
+  drawContent() {
+    this.data.value.forEach((data, rowIndex) => {
+      const numbers = data.number
 
-    const dayeColumn = () => {
-      let value, x, y, color, fontSize
+      const dayeColumn = () => {
+        let value, x, y, color, fontSize
 
-      fontSize = columns[0].fontSize
+        fontSize = columns[0].fontSize
 
-      value = data.issueno
-      x = columns[0].width / 2
-      y = (rowIndex + 1) * rowHeight - 70 * ratio
-      color = columns[0].color
-      this.drawShapeContent.drawText(
-        value,
-        x,
-        y,
-        color,
-        fontSize[0] * this.options.fontSizeRatio,
-        this.options.fontFamily,
-        'bold'
-      )
+        value = data.issueno
+        x = columns[0].width / 2
+        y = (rowIndex + 1) * rowHeight - 70 * ratio
+        color = columns[0].color
+        this.drawShapeContent.drawText(
+          value,
+          x,
+          y,
+          color,
+          fontSize[0] * this.options.fontSizeRatio,
+          this.options.fontFamily,
+          'bold'
+        )
 
-      value = getDate(data.opendate)
-      x = columns[0].width / 2
-      y = (rowIndex + 1) * rowHeight - 30 * ratio
-      color = columns[0].color
-      this.drawShapeContent.drawText(
-        value,
-        x,
-        y,
-        color,
-        fontSize[1] * this.options.fontSizeRatio,
-        this.options.fontFamily,
-        'bold'
-      )
-    }
-
-    if (theme === '其他') {
-      switch (type) {
-        case '排列五':
-          let text = numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10
-          this.drawCenterText(this.drawShapeContent, rowIndex, 0, text, columns[0].fontSize)
-          for (let index = 1; index < numbers.length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index,
-              numbers[index - 1],
-              columns[index].fontSize
-            )
-          }
-          this.drawCenterText(this.drawShapeContent, rowIndex, 5, numbers[4], columns[5].fontSize)
-          break
-        case '福彩3D':
-          this.drawCenterText(
-            this.drawShapeContent,
-            rowIndex,
-            0,
-            numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
-            50 * ratio
-          )
-          for (let index = 0; index < numbers.length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 1,
-              numbers[index],
-              60 * ratio
-            )
-          }
-          break
-        case '七星彩':
-          this.drawCenterText(
-            this.drawShapeContent,
-            rowIndex,
-            0,
-            numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
-            columns[0].fontSize
-          )
-          for (let index = 0; index < numbers.length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 1,
-              numbers[index],
-              columns[index + 1].fontSize
-            )
-          }
-          break
+        value = getDate(data.opendate)
+        x = columns[0].width / 2
+        y = (rowIndex + 1) * rowHeight - 30 * ratio
+        color = columns[0].color
+        this.drawShapeContent.drawText(
+          value,
+          x,
+          y,
+          color,
+          fontSize[1] * this.options.fontSizeRatio,
+          this.options.fontFamily,
+          'bold'
+        )
       }
-    } else {
-      dayeColumn()
 
+      if (theme === '其他') {
+        switch (type) {
+          case '排列五':
+            let text = numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10
+            this.drawCenterText(this.drawShapeContent, rowIndex, 0, text, columns[0].fontSize)
+            for (let index = 1; index < numbers.length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index,
+                numbers[index - 1],
+                columns[index].fontSize
+              )
+            }
+            this.drawCenterText(this.drawShapeContent, rowIndex, 5, numbers[4], columns[5].fontSize)
+            break
+          case '福彩3D':
+            this.drawCenterText(
+              this.drawShapeContent,
+              rowIndex,
+              0,
+              numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
+              50 * ratio
+            )
+            for (let index = 0; index < numbers.length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 1,
+                numbers[index],
+                60 * ratio
+              )
+            }
+            break
+          case '七星彩':
+            this.drawCenterText(
+              this.drawShapeContent,
+              rowIndex,
+              0,
+              numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
+              columns[0].fontSize
+            )
+            for (let index = 0; index < numbers.length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 1,
+                numbers[index],
+                columns[index + 1].fontSize
+              )
+            }
+            break
+        }
+      } else {
+        dayeColumn()
+
+        this.drawCenterText(
+          this.drawShapeContent,
+          rowIndex,
+          1,
+          numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0),
+          columns[1].fontSize
+        )
+        switch (type) {
+          case '排列五':
+            for (let index = 0; index < numbers.length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 2,
+                numbers[index],
+                columns[index + 2].fontSize
+              )
+            }
+            break
+          case '福彩3D':
+            for (let index = 0; index < numbers.length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 2,
+                numbers[index],
+                columns[index + 2].fontSize
+              )
+            }
+            break
+          case '七星彩':
+            for (let index = 0; index < numbers.slice(0, 4).length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 2,
+                numbers[index],
+                columns[index + 2].fontSize
+              )
+            }
+            for (let index = 0; index < numbers.slice(4, 7).length; index++) {
+              this.drawCenterText(
+                this.drawShapeContent,
+                rowIndex,
+                index + 6,
+                numbers[index + 4],
+                columns[index + 6].fontSize
+              )
+            }
+            break
+        }
+      }
+    })
+
+    if (theme !== '其他') {
       this.drawCenterText(
         this.drawShapeContent,
-        rowIndex,
-        1,
-        numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0),
-        columns[1].fontSize
+        this.data.value.length,
+        0,
+        Number(this.data.value[this.data.value.length - 1].issueno) + 1,
+        columns[0].fontSize[0],
+        columns[0].color
       )
-      switch (type) {
-        case '排列五':
-          for (let index = 0; index < numbers.length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 2,
-              numbers[index],
-              columns[index + 2].fontSize
-            )
-          }
-          break
-        case '福彩3D':
-          for (let index = 0; index < numbers.length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 2,
-              numbers[index],
-              columns[index + 2].fontSize
-            )
-          }
-          break
-        case '七星彩':
-          for (let index = 0; index < numbers.slice(0, 4).length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 2,
-              numbers[index],
-              columns[index + 2].fontSize
-            )
-          }
-          for (let index = 0; index < numbers.slice(4, 7).length; index++) {
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              index + 6,
-              numbers[index + 4],
-              columns[index + 6].fontSize
-            )
-          }
-          break
-      }
     }
   }
   //绘制居中文字
@@ -403,7 +410,8 @@ export class Draw {
     } else {
       const minSize = Math.min(columnStyle.width, rowHeight)
       const cloumnWidth = columnStyle.width
-      const padding = cloumnWidth * PADDING + 8 * ratio
+      const padding =
+        theme !== '其他' ? cloumnWidth * PADDING + 8 * ratio : cloumnWidth * PADDING + 4 * ratio
       const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
       const size = minSize - padding * 2
       const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
@@ -462,7 +470,7 @@ export class Draw {
     for (const key in marks) {
       const item = marks[key]
       const mark = item.mark
-      const [row, column] = key.split('-')
+      const [row, column] = key.split('-').map((item) => Number(item))
       let color = item.style.color
 
       const isSenior = mark.senior
@@ -477,7 +485,7 @@ export class Draw {
         const x = columns[startIndex].left + padding
         const y = row * rowHeight + padding
         const centerX = columns[startIndex].left / 2 + columns[endIndex].right / 2
-        const centerY = (Number(row) + 0.5) * rowHeight
+        const centerY = (row + 0.5) * rowHeight
         const width = columns[endIndex].right - columns[startIndex].left - padding * 2
         const height = rowHeight - padding * 2
 
@@ -486,7 +494,13 @@ export class Draw {
           this.drawShapeActive.drawSolidRect(x, y, width, height, color)
         } else {
           fontColor = color
-          this.drawShapeActive.drawSolidRect(x, y, width, height, columns[column].backgroundColor)
+          this.drawShapeActive.drawSolidRect(
+            x,
+            y,
+            width,
+            height,
+            columns[startIndex].backgroundColor
+          )
           this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio)
         }
         this.drawShapeActive.drawText(
@@ -494,7 +508,7 @@ export class Draw {
           centerX,
           centerY,
           fontColor,
-          width * 0.1,
+          width * 0.15,
           this.options.fontFamily,
           'bold'
         )
@@ -640,6 +654,7 @@ export class Draw {
     const promiseMap = sourseCtxes.map((ctx) => this.drawToCanvas(ctx, imageCtx, top))
     await Promise.all(promiseMap)
     this.drawHoverText(top)
+    this.drawWatermark()
     return new Promise((resolve, reject) => {
       uni.canvasToTempFilePath({
         canvasId: imageCtx.id,
@@ -681,6 +696,24 @@ export class Draw {
         )
       }
     })
+    this.imageCtx.draw(true)
+  }
+  // 添加水印
+  drawWatermark() {
+    const content = '七五仔'
+    const height = (this.data.value.length + 10) * rowHeight
+
+    this.imageCtx.font = `normal ${30 * ratio}px Arial`
+    this.imageCtx.fillStyle = 'rgba(0,0,0,0.1)'
+    for (let index = 0; index < height; index += 200) {
+      this.imageCtx.translate(0, index - 300)
+      for (let i = 0; i < 4; i++) {
+        this.imageCtx.rotate(-Math.PI / 4)
+        this.imageCtx.fillText(content, 40 * i, 120 * i)
+        this.imageCtx.rotate(Math.PI / 4)
+      }
+      this.imageCtx.translate(0, -(index - 300))
+    }
     this.imageCtx.draw(true)
   }
 }

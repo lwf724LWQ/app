@@ -17,7 +17,7 @@ const layouts = {
       right: 223 * ratio,
       border: 7 * ratio,
       width: 63 * ratio,
-      fontSize: 40 * ratio,
+      fontSize: 30 * ratio,
       markType: 'simple'
     },
     {
@@ -117,7 +117,7 @@ const layouts = {
       right: 197 * ratio,
       border: 7 * ratio,
       width: 50 * ratio,
-      fontSize: 30 * ratio,
+      fontSize: 25 * ratio,
       markType: 'simple'
     },
     {
@@ -157,7 +157,7 @@ const layouts = {
       right: 632 * ratio,
       border: 1 * ratio,
       width: 58 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     },
     {
@@ -165,7 +165,7 @@ const layouts = {
       right: 691 * ratio,
       border: 1 * ratio,
       width: 58 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     },
     {
@@ -173,7 +173,7 @@ const layouts = {
       right: 750 * ratio,
       border: 0,
       width: 58 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     }
   ],
@@ -270,7 +270,7 @@ const layouts = {
       right: 59.5 * ratio,
       border: 1 * ratio,
       width: 59.5 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 43 * ratio,
       markType: 'simple'
     },
     {
@@ -310,7 +310,7 @@ const layouts = {
       right: 481 * ratio,
       border: 0,
       width: 59.5 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     },
     {
@@ -318,7 +318,7 @@ const layouts = {
       right: 540.5 * ratio,
       border: 0,
       width: 59.5 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     },
     {
@@ -326,7 +326,7 @@ const layouts = {
       right: 600 * ratio,
       border: 1 * ratio,
       width: 59.5 * ratio,
-      fontSize: 50 * ratio,
+      fontSize: 40 * ratio,
       markType: 'simple'
     }
   ]

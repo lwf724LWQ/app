@@ -185,7 +185,7 @@ const getStyleConfig = () => {
 const formMode = ref('高级')
 const popup = ref(null)
 let index = ref(0)
-let columnIndex
+let formIndex, columnIndex
 const conditions = computed(() => {
   const result = []
   result.push('单', '双', '大', '小', 'X', ...(indexMap[index.value] || ''), '杀', '稳码')
@@ -197,15 +197,11 @@ let effectViewList = ['千 A', '百 B', '十 C', '个 D']
 if (props.type === '福彩3D') effectViewList = ['百 B', '十 C', '个 D']
 const msg = ref(null)
 
-// column：表格列数，columnIndex：表单预览列数
-const openSenior = (column) => {
+const openSenior = () => {
   popup.value.open('center')
-  const styleConfig = getStyleConfig()
-  columnIndex = column - 2
-  if (styleConfig.theme === '其他') columnIndex = column - 1
-  index.value = columnIndex
-  effectList.value = [columnIndex]
-  effectMap.杀 = [columnIndex]
+  index.value = formIndex
+  effectList.value = [formIndex]
+  effectMap.杀 = [formIndex]
 }
 
 const radioChange = (val) => {
@@ -244,7 +240,7 @@ const addNumberList = (val) => {
     // 选择数字
     numbers.value = []
     numbers.value.push(...numberMap[val])
-    effectList.value = [columnIndex]
+    effectList.value = [formIndex]
   } else {
     // 选择效果
     if (val === '杀' && numbers.value.length > 2) numbers.value = []
@@ -315,14 +311,11 @@ const seniorSubmit = () => {
     msg.value.send('至少选择一个号码')
     return
   }
-  const styleConfig = getStyleConfig()
-  let index = 2
-  if (styleConfig.theme === '其他') index = 1
   submit('submit', {
     condition: currentCondition.value,
     numbers: numbers.value,
     isSolid: isSolid.value,
-    indexs: effectList.value.map((item) => item + index),
+    indexs: effectList.value.map((item) => item + (columnIndex - formIndex)),
     senior: true
   })
   clearForm()
@@ -379,12 +372,14 @@ const close = () => {
   clearForm()
 }
 
+// column：表格列数，formIndex：表单预览列数
 const open = (column) => {
   columnIndex = column
-
   const styleConfig = getStyleConfig()
-
+  if (styleConfig.theme === '其他') formIndex = column - 1
+  else formIndex = column - 2
   const markType = styleConfig.columns[column].markType
+
   switch (markType) {
     case 'simple':
       openSimple()
