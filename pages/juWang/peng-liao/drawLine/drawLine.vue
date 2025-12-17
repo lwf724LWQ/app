@@ -49,6 +49,10 @@
       :scroll-y="isScroll"
       :scroll-top="scrollInitTop"
       v-if="data.length !== 0"
+      :data-theme="options.theme"
+      @touchstart="gesture.gesturestart"
+      @touchmove="gesture.gesturemove"
+      @touchend="gesture.gestureend"
     >
       <view class="container">
         <canvas class="image-canvas" hidpi canvas-id="imageCanvas" id="imageCanvas"></canvas>
@@ -293,13 +297,15 @@ const isTextInputShow = ref(false)
 const textareaPosition = ref({}) // textarea坐标
 const textareaValue = ref('')
 let tmpStartPositions = [] // 保存多个临时位置
+let isGesture = false // 是否是手势操作
 
 const touchstart = (event) => {
   if (Object.keys(event.touches).length >= 2 && options.theme === '其他') {
     gesturestart(event)
+    isGesture = true
     return
   } else {
-    gestureStartDistance = 0
+    isGesture = false
   }
 
   if (isLock.value) {
@@ -372,7 +378,7 @@ const colors = [
 let isFirst = true
 
 const touchmove = (event) => {
-  if (gestureStartDistance) {
+  if (isGesture) {
     gesturemove(event)
     event.preventDefault()
     return
@@ -548,7 +554,7 @@ const touchmove = (event) => {
 }
 
 const touchend = async (event) => {
-  if (gestureStartDistance) {
+  if (isGesture) {
     gestureend(event)
     return
   }
@@ -846,9 +852,6 @@ const touchend = async (event) => {
 
 // 手势缩放
 const scale = ref(1)
-// const scale = ref(0.8)
-let tmpScale
-let gestureStartDistance = 0 // 手势操作开始距离
 const gestureStartCenterY = ref(0) // 手势操作开始中心位置
 const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight)
 const containerHeight = ref(0)
@@ -859,8 +862,6 @@ const gesturestart = async (event) => {
   containerHeight.value = initHeight.value
 
   const { 0: touch1, 1: touch2 } = event.touches
-  gestureStartDistance = Math.sqrt((touch1.x - touch2.x) ** 2 + (touch1.y - touch2.y) ** 2)
-
   const y = (touch1.y + touch2.y) / 2
 
   isScroll.value = true // 开启滚动
@@ -868,26 +869,19 @@ const gesturestart = async (event) => {
   scrollInitTop.value = y / scale.value - (y - scrolltop)
 
   gestureStartCenterY.value = y / scale.value
-  tmpScale = scale.value
 }
 
 const gesturemove = (event) => {
-  const { 0: end1, 1: end2 } = event.touches
-  if (!end1 || !end2) return
-
   isScroll.value = false // 关闭滚动
-
-  const gestureEndDistance = Math.sqrt(Math.pow(end1.x - end2.x, 2) + Math.pow(end1.y - end2.y, 2))
-  const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
-  if (_scale < 0.6 || _scale > 2) return
-  scale.value = _scale
 }
 
 const cnavasWidth = ref(750)
 // const cnavasWidth = ref(750 / 0.8)
 
-const gestureend = async (event) => {
-  if (event.touches?.[0] || options.theme !== '其他') return
+const gestureend = async (event) => {}
+
+const updateScale = async (value) => {
+  scale.value = value
 
   cnavasWidth.value = 750 / scale.value
 
@@ -904,6 +898,7 @@ const gestureend = async (event) => {
 
   gestureStartCenterY.value = 0
 }
+
 watch(
   record,
   () => {
@@ -1401,6 +1396,63 @@ const changeMode = () => {
 }
 </script>
 
+<script>
+// renderjs中只能调用选项式api,创建一个选项式api的script进行中转
+export default {
+  methods: {
+    _updateScale(value) {
+      this.$.setupState.updateScale(value)
+    }
+  }
+}
+</script>
+<script lang="renderjs" module="gesture">
+let scale = 1, tmpScale, gestureStartDistance, theme, isGesture = false
+export default {
+  methods: {
+    gesturestart(event){
+      const _theme = event.currentTarget.dataset.theme
+
+      const { 0: touch1, 1: touch2 } = event.touches
+
+      if( !touch1 || !touch2 || _theme !== '其他') {
+        isGesture = false
+        return
+      }
+      else {
+        theme = _theme
+        isGesture = true
+      }
+
+      gestureStartDistance = Math.sqrt((touch1.pageX - touch2.pageX) ** 2 + (touch1.pageY - touch2.pageY) ** 2)
+      tmpScale = scale
+    },
+    gesturemove(event) {
+      if(!isGesture) return
+
+      const { 0: end1, 1: end2 } = event.touches
+      if(!end1 || !end2) return
+
+
+      const gestureEndDistance = Math.sqrt(Math.pow(end1.pageX - end2.pageX, 2) + Math.pow(end1.pageY - end2.pageY, 2))
+      const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
+      if (_scale < 0.6 || _scale > 2) return
+      scale = _scale
+
+      const scaleEls = ['.bg-canvas', '.base-canvas', '.paint-canvas', '.content-canvas', '.active-canvas']
+      scaleEls.forEach((item) => {
+        document.querySelector(item).style.transform = `scale(${scale})`
+      })
+    },
+    gestureend(event){
+      if(!isGesture || event.touches.length > 0) return
+
+      this.$ownerInstance.callMethod('_updateScale', scale)
+    }
+  },
+}
+</script>
+
 <style lang="scss" scoped>
 @use 'sass:math';
 /* #ifdef MP || APP*/
@@ -1484,7 +1536,7 @@ page {
       top: calc(-130rpx - v-bind('safeArea.top + menuButtonInfo + "px"'));
       /* #endif */
       z-index: 2;
-      transform: scale(v-bind('scale'));
+      // transform: scale(v-bind('scale'));
       transform-origin: 0 v-bind('gestureStartCenterY + "px"');
     }
     .bg-canvas,
@@ -1537,7 +1589,7 @@ page {
       /* #endif */
       left: v-bind('curveHandleX + "px"');
       text-align: center;
-      transform: translate(-50%, -50%) scale(v-bind('scale'));
+      transform: translate(-50%, -50%);
       pointer-events: v-bind('isLock ? "none" : "auto"');
     }
 
