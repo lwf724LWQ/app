@@ -1,4 +1,5 @@
 export const BASE_URL = 'http://caimi.s7.tunnelfrp.com';
+// export const BASE_URL = 'http://api.彩迷.com/api';
 
 import { useUserStore } from '../stores/userStore'
 let userStore;
@@ -177,6 +178,9 @@ function loginGuard(res){
 
 // 检查code
 function checkCode(res){
+	if (res.success) {
+		return true
+	}
 	if (res && res.code === 200){
 		return true
 	} else {

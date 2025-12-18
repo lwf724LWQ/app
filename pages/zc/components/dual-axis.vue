@@ -37,105 +37,13 @@ export default {
     //   type: String,
     //   default: "蒂华纳",
     // },
-    // data: {
-    //   type: Array,
-    //   default: () => [
-    //     {
-    //       id: 19,
-    //       left: 3,
-    //       right: 2,
-    //     },
-    //     {
-    //       id: 11,
-    //       left: 2,
-    //       right: 2,
-    //     },
-    //     {
-    //       id: 14,
-    //       left: 3,
-    //       right: 0,
-    //     },
-    //     {
-    //       id: 13,
-    //       left: 0,
-    //       right: 2,
-    //     },
-    //   ],
-    // },
+    data: {
+      type: Object,
+      default: () => {},
+    },
   },
   data() {
-    return {
-      data: {
-        awayTeamId: 0,
-        awayTeamShortName: "阿马多拉",
-        eachHomeAway: {
-          awayDrawMatchCnt: 3,
-          awayLossGoalMatchCnt: 4,
-          awayScoreRatio: "40",
-          awayWinGoalMatchCnt: 3,
-          homeDrawMatchCnt: 1,
-          homeLossGoalMatchCnt: 1,
-          homeScoreRatio: "83",
-          homeWinGoalMatchCnt: 8,
-          totalLegCnt: 10,
-        },
-        eachSameHomeAway: {
-          awayDrawMatchCnt: 4,
-          awayLossGoalMatchCnt: 4,
-          awayScoreRatio: "33",
-          awayWinGoalMatchCnt: 2,
-          homeDrawMatchCnt: 1,
-          homeLossGoalMatchCnt: 1,
-          homeScoreRatio: "83",
-          homeWinGoalMatchCnt: 8,
-          totalLegCnt: 10,
-        },
-        goalAvg: {
-          awayGoalAvgCnt: "1.6",
-          awayGoalAvgCntRatio: "47.1",
-          homeGoalAvgCnt: "1.8",
-          homeGoalAvgCntRatio: "52.9",
-          totalLegCnt: 10,
-        },
-        homeTeamId: 0,
-        homeTeamShortName: "波尔图",
-        last: {
-          awayDrawMatchCnt: 1,
-          awayLossGoalMatchCnt: 3,
-          awayScoreRatio: "27",
-          awayWinGoalMatchCnt: 1,
-          homeDrawMatchCnt: 1,
-          homeLossGoalMatchCnt: 1,
-          homeScoreRatio: "67",
-          homeWinGoalMatchCnt: 3,
-          totalLegCnt: 5,
-        },
-        lossGoalAvg: {
-          awayLossGoalAvgCnt: "1.8",
-          awayLossGoalAvgCntRatio: "72.0",
-          homeLossGoalAvgCnt: "0.7",
-          homeLossGoalAvgCntRatio: "28.0",
-          totalLegCnt: 10,
-        },
-        matchId: 2367538,
-        sameHomeAway: {
-          awayDrawMatchCnt: 1,
-          awayLossGoalMatchCnt: 2,
-          awayScoreRatio: "11",
-          awayWinGoalMatchCnt: 0,
-          homeDrawMatchCnt: 1,
-          homeLossGoalMatchCnt: 0,
-          homeScoreRatio: "78",
-          homeWinGoalMatchCnt: 2,
-          totalLegCnt: 3,
-        },
-        sportteryAwayTeamId: 261,
-        sportteryHomeTeamId: 937,
-        sportteryMatchId: 2036064,
-        uniformAwayTeamId: 35076,
-        uniformHomeTeamId: 141,
-      },
-    };
+    return {};
   },
   computed: {
     leftName() {
@@ -153,39 +61,38 @@ export default {
         { key: "eachSameHomeAway", name: "近10场战况" },
         { key: "eachSameHomeAway", name: "同主客战况" },
       ].forEach((item) => {
+        if (this.data[item.key]) {
+          arr.push({
+            left: `${this.data[item.key].homeWinGoalMatchCnt}胜/${
+              this.data[item.key].homeDrawMatchCnt
+            }平/${this.data[item.key].homeWinGoalMatchCnt}负`,
+            right: `${this.data[item.key].awayWinGoalMatchCnt}胜/${
+              this.data[item.key].awayDrawMatchCnt
+            }平/${this.data[item.key].awayWinGoalMatchCnt}负`,
+            homeScoreRatio: this.data[item.key].homeScoreRatio,
+            awayScoreRatio: this.data[item.key].awayScoreRatio,
+            center: item.name,
+          });
+        }
+      });
+      if (this.data.goalAvg) {
         arr.push({
-          left: `${this.data[item.key].homeWinGoalMatchCnt}胜/${
-            this.data[item.key].homeDrawMatchCnt
-          }平/${this.data[item.key].homeWinGoalMatchCnt}负`,
-          right: `${this.data[item.key].awayWinGoalMatchCnt}胜/${
-            this.data[item.key].awayDrawMatchCnt
-          }平/${this.data[item.key].awayWinGoalMatchCnt}负`,
-          homeScoreRatio: this.data[item.key].homeScoreRatio,
-          awayScoreRatio: this.data[item.key].awayScoreRatio,
-          center: item.name,
+          left: `${this.data.goalAvg.homeGoalAvgCnt}`,
+          right: `${this.data.goalAvg.awayGoalAvgCnt}`,
+          homeScoreRatio: this.data.goalAvg.homeGoalAvgCntRatio,
+          awayScoreRatio: this.data.goalAvg.awayGoalAvgCntRatio,
+          center: "场均进球",
         });
-      });
-
-      [
-        { key: "goalAvg", name: "场均进球" },
-        { key: "lossGoalAvg", name: "场均失球" },
-      ].forEach((item) => {});
-
-      arr.push({
-        left: `${this.data.goalAvg.homeGoalAvgCnt}`,
-        right: `${this.data.goalAvg.awayGoalAvgCnt}`,
-        homeScoreRatio: this.data.goalAvg.homeGoalAvgCntRatio,
-        awayScoreRatio: this.data.goalAvg.awayGoalAvgCntRatio,
-        center: "场均进球",
-      });
-      arr.push({
-        left: `${this.data.lossGoalAvg.homeLossGoalAvgCnt}`,
-        right: `${this.data.lossGoalAvg.awayLossGoalAvgCnt}`,
-        homeScoreRatio: this.data.lossGoalAvg.homeLossGoalAvgCntRatio,
-        awayScoreRatio: this.data.lossGoalAvg.awayLossGoalAvgCntRatio,
-        center: "场均进球",
-      });
-
+      }
+      if (this.data.lossGoalAvg) {
+        arr.push({
+          left: `${this.data.lossGoalAvg.homeLossGoalAvgCnt}`,
+          right: `${this.data.lossGoalAvg.awayLossGoalAvgCnt}`,
+          homeScoreRatio: this.data.lossGoalAvg.homeLossGoalAvgCntRatio,
+          awayScoreRatio: this.data.lossGoalAvg.awayLossGoalAvgCntRatio,
+          center: "场均进球",
+        });
+      }
       return arr;
     },
   },
