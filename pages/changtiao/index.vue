@@ -39,7 +39,7 @@
               v-for="(item, index) in changtiaoForLname"
               :key="item.id"
               class="custom-list-item"
-              @click="toDetail(item.lname, item.limg, item.issueno)"
+              @click="toDetail(changtiaoForLname, index, item.issueno)"
             >
               <view
                 class="custom-list-item-icon"
@@ -48,11 +48,7 @@
               >
               <view class="custom-list-item-id">第{{ item.issueno }}期</view>
               <view class="custom-list-item-num" :class="{ active: index < 5 }"
-                >{{
-                  item.number == "待开奖"
-                    ? "待开奖"
-                    : item.number.split(" ").join("")
-                }}<uni-icons type="right" size="18"
+                >{{ numbertext(item) }}<uni-icons type="right" size="18"
               /></view>
             </view>
           </view>
@@ -72,7 +68,7 @@
               class="qihao-item"
               v-for="(tag, i) in changtiaoForIsseno"
               :key="i"
-              @click="toDetail(tag.lname, tag.limg)"
+              @click="toDetail(changtiaoForIsseno, i)"
             >
               <view
                 class="qihao-item-name"
@@ -104,7 +100,6 @@ import {
   apiGetChangtiaoForlname,
 } from "@/api/apis.js";
 import { onLoad } from "@dcloudio/uni-app";
-import { now } from "moment";
 import tool from "@/utils/tool.js";
 enum pageName {
   qihao, // 期号展示
@@ -150,20 +145,32 @@ function getColor(name: string) {
   return changtiao.typeList.find((item) => item.name == name)?.color;
 }
 
+function numbertext(item) {
+  if (item.number instanceof Array) {
+    return item.number.split(" ").join("");
+  } else {
+    return item.number;
+  }
+}
+
 //去详情
 function toDetail(
-  title: string,
-  img: string,
+  list: any[],
+  index: string,
   issueno = nowIssueNo.value.issueno
 ) {
-  const param = tool.formatUrlParams({
-    title: title,
-    issueno,
-    img: img,
+  uni.previewImage({
+    current: index,
+    urls: list.map((item) => tool.oss.getFullUrl(item.limg)),
   });
-  uni.navigateTo({
-    url: "/pages/changtiao/detail?" + param,
-  });
+  // const param = tool.formatUrlParams({
+  //   title: title,
+  //   issueno,
+  //   img: img,
+  // });
+  // uni.navigateTo({
+  //   url: "/pages/changtiao/detail?" + param,
+  // });
 }
 
 const nowIssueNo: Ref<{ issueno: string; opendate: string; number: string }> =

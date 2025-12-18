@@ -210,14 +210,6 @@
         "navigationStyle": "custom"
       }
     },
-	{
-	  "path": "pages/changtiao/detail",
-	  "style": {
-	    "navigationBarTitleText": "",
-	    "enablePullDownRefresh": false,
-	    "navigationStyle": "custom"
-	  }
-	},
     {
       "path": "pages/yungui/index",
       "style": {
