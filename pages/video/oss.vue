@@ -143,7 +143,7 @@ onLoad((options) => {
     account: getAccount(),
   }).then((res) => {
     videoTitle.value = `${res.data.uname}于${getCurrentDate()}上传的视频`;
-    coverFile.value = `himg/${res.data.himg}`;
+    coverFile.value = res.data.himg ? `himg/${res.data.himg}` : 'himg/user.png';
   });
 });
 
