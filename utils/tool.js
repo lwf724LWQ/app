@@ -113,6 +113,17 @@ const tool = {
         //   },
         // })
       
+    },
+    // 获取oss文件的完整url
+    getFullUrl(url){
+      if (url.startsWith("http")) {
+        return url
+      }else{
+        if (!url.startsWith("/")) {
+          url = '/' + url
+        }
+        return "http://video.caimizm.com" + url
+      }
     }
   },
   checkAppUpdate() {

@@ -388,3 +388,27 @@ export function apiSubmitFeedback(data = {}) {
         data
     })
 }
+
+
+// 长条
+export function apiGetChangtiaoForisseno(issueno){
+	return request({
+		url: "/web/long_strip/select",
+		method: "GET",
+		data:{
+			issueno: issueno,
+		}
+	})
+}
+
+export function apiGetChangtiaoForlname(name){
+	return request({
+		url: "/web/long_strip/query",
+		method: "POST",
+		data: {
+			lname: name,
+			page: 1,
+			limit: 10
+		}
+	})
+}

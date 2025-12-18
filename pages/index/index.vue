@@ -87,7 +87,7 @@
 					<uni-icons type="compose" size="20" color="#4A90E2"></uni-icons>
 					<text>画规</text>
 				</view>
-				<view class="icon-item">
+				<view class="icon-item" @click="toChangtiao">
 					<image src="/static/icons/list.png" mode="aspectFit"></image>
 					<text>长条</text>
 				</view>
@@ -189,6 +189,11 @@ export default {
 			// uni.navigateTo({
 			// 	url: `/pages/juWang/drawLine/drawLine`
 			// });
+		},
+		toChangtiao(){
+			uni.navigateTo({
+				url: "/pages/changtiao/index"
+			})
 		},
 		goToLive() {
 			// #ifdef H5

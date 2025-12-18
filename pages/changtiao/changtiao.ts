@@ -1,0 +1,36 @@
+const typeList = [
+    { name: "局中局", id: 0, color: "#8B0000" },
+    { name: "黑耀", id: 1, color: "#000000" },
+    { name: "周三笑", id: 2, color: "#FFD700" },
+    { name: "888", id: 3, color: "#FF4500" },
+    { name: "排五精", id: 4, color: "#32CD32" },
+    { name: "福星高照", id: 5, color: "#FF69B4" },
+    { name: "兴旺长局", id: 6, color: "#8A2BE2" },
+    { name: "吉祥如意", id: 7, color: "#FF6347" },
+    { name: "菩提", id: 8, color: "#20B2AA" },
+    { name: "必赢", id: 9, color: "#DC143C" },
+    { name: "月贝凡", id: 10, color: "#4169E1" },
+    { name: "五行", id: 11, color: "#DAA520" },
+    { name: "天机", id: 12, color: "#9400D3" },
+    { name: "德贤", id: 13, color: "#008080" },
+    { name: "善缘", id: 14, color: "#3CB371" },
+    { name: "皇极", id: 15, color: "#BA55D3" },
+    { name: "定头神尾", id: 16, color: "#FF8C00" },
+    { name: "幸运星", id: 17, color: "#FF1493" },
+    { name: "头奖风暴", id: 18, color: "#1E90FF" },
+    { name: "鸿运", id: 19, color: "#FF0000" },
+    { name: "步步为营", id: 20, color: "#4682B4" },
+    { name: "位尊", id: 21, color: "#800080" },
+    { name: "守旺者", id: 22, color: "#2F4F4F" },
+    { name: "积善余庆", id: 23, color: "#006400" },
+    { name: "杜外", id: 24, color: "#BDB76B" },
+    { name: "福兮", id: 25, color: "#FFA500" },
+    { name: "和光", id: 26, color: "#9370DB" },
+    { name: "执古御今", id: 27, color: "#808000" },
+    { name: "微妙玄通", id: 28, color: "#483D8B" },
+    { name: "无中生有", id: 29, color: "#708090" }
+  ].map((tag) => ({...tag, value:tag.id, label: tag.name}))
+
+export default {
+    typeList,
+}

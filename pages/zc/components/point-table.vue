@@ -2,13 +2,7 @@
   <view class="detail-container">
     <!-- 标题 -->
     <view class="header">
-      <text class="title">赛前指数</text>
-      <view class="filter-buttons">
-        <view class="filter-btn">同主客</view>
-        <view class="filter-btn">同赛事</view>
-        <view class="filter-btn active">全场</view>
-        <view class="filter-btn">半场</view>
-      </view>
+      <text class="title">积分榜</text>
     </view>
 
     <!-- 比赛数据表格 -->

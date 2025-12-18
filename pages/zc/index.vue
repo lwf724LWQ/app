@@ -5,7 +5,7 @@
   >
     <view class="StatusBarPlaceholder"></view>
     <!-- 顶部导航栏 -->
-    <view class="header">
+    <!-- <view class="header">
       <view class="tabs">
         <view
           v-for="(tab, index) in categories"
@@ -17,10 +17,10 @@
           {{ tab }}
         </view>
       </view>
-    </view>
+    </view> -->
 
     <!-- 赛事状态标签 -->
-    <view class="status-tabs">
+    <!-- <view class="status-tabs">
       <view
         v-for="(status, index) in statuses"
         :key="index"
@@ -30,7 +30,7 @@
       >
         {{ status }}
       </view>
-    </view>
+    </view> -->
     <view class="date-tabs">
       <view class="date-item" v-for="date in dateList" :key="date">
         <view>
@@ -70,19 +70,7 @@
               <text class="vs">VS</text>
               <text class="team-name">{{ match.away }}</text>
             </view>
-
-            <!-- <view v-if="match.status === '即将开始'" class="upcoming-tag">
-              即将开始
-            </view> -->
           </view>
-
-          <!-- <view class="favorite-icon">
-            <uni-icons
-              :type="match.isFavorite ? 'star-filled' : 'star'"
-              size="20"
-              :color="match.isFavorite ? '#FFD700' : '#999'"
-            ></uni-icons>
-          </view> -->
         </view>
       </view>
     </scroll-view>
@@ -324,6 +312,7 @@ export default {
 .status-tabs {
   display: flex;
   min-height: 60rpx;
+  margin-top: 20rpx;
 
   border-bottom: 1px solid #888;
 }
