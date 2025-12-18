@@ -510,6 +510,8 @@ import { getToken } from "../../utils/request";
 import { useUserStore } from "../../stores/userStore";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import tool from "@/utils/tool.js";
+import forumToos from "../../components/post-card/forumToos";
+
 // 用户数据存储
 const userStore = useUserStore();
 
@@ -629,7 +631,7 @@ const tags = ref(["#全部", "#大师", "#靓规贴", "#过滤王", "#点赞最�
 // 彩票类别列表
 const lotteryTypes = ref([
   { id: 16, name: "排列三", code: "pl3", status: "待开奖", time: "今天 21:30" },
-  { id: 17, name: "排列五", code: "pl5", status: "待开奖", time: "今天 21:30" },
+  { id: 17, name: "排列五", code: "plw", status: "待开奖", time: "今天 21:30" },
   { id: 15, name: "七星彩", code: "qxc", status: "待开奖", time: "今天 21:30" },
   {
     id: 12,
@@ -1663,43 +1665,10 @@ const optimizeTouchEvents = () => {
 
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
-  try {
-    // 检查帖子ID是否有效
-    if (!post.id) {
-      uni.showToast({
-        title: "帖子数据异常，无法追帖",
-        icon: "none",
-      });
-      return;
-    }
-
-    // 检查是否是当前用户自己的帖子
-    const currentAccount = getAccount();
-    if (post.username === currentAccount) {
-      uni.showModal({
-        title: "追帖确认",
-        content: `确定要对帖子"第${post.period}期"进行追帖吗？`,
-        confirmText: "确定追帖",
-        cancelText: "取消",
-        success: (res) => {
-          if (res.confirm) {
-            // 跳转到追帖页面
-            navigateToAppendPost(post);
-          }
-        },
-      });
-    } else {
-      uni.showToast({
-        title: "只能追帖自己的帖子",
-        icon: "none",
-      });
-    }
-  } catch (error) {
-    uni.showToast({
-      title: "操作失败，请重试",
-      icon: "none",
-    });
-  }
+  post.account = post.username
+  post.issueno = post.period
+  post.tname = currentLotteryType.value.name
+  forumToos.handleAppendPost(post);
 };
 
 // 跳转到追帖页面
@@ -1736,6 +1705,7 @@ const navigateToAppendPost = (post) => {
       },
     });
   } catch (error) {
+    console.error(error);
     uni.showToast({
       title: "跳转失败",
       icon: "none",

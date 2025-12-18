@@ -130,8 +130,8 @@
           <uni-icons type="headphones" size="24" color="#222"></uni-icons>
           <text class="service-text">联系客服</text>
         </view> -->
-        <view class="service-item">
-          <uni-icons type="compose" size="24" color="#222" @click="toFeedBack"></uni-icons>
+        <view class="service-item" @click="toFeedBack">
+          <uni-icons type="compose" size="24" color="#222"></uni-icons>
           <text class="service-text">意见反馈</text>
         </view>
         <!-- #ifdef APP-PLUS -->
@@ -144,7 +144,7 @@
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
         </view> -->
-        <view class="service-item">
+        <view class="service-item" @click="showAboutAs">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
         </view>

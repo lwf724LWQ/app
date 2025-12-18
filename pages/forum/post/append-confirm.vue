@@ -124,6 +124,7 @@ import {
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import postTool from "./post-tool";
 import { onLoad } from "@dcloudio/uni-app";
+import moment from "moment";
 
 // 方案数据
 const schemes = ref([]);
@@ -243,7 +244,7 @@ const generateAppendContent = () => {
     content += postTool.generatePostContent(schemes.value);
   }
 
-  content += `追加时间: ${new Date().toLocaleString()}\n`;
+  content += `追加时间: ${moment().format("YYYY-MM-DD HH:mm:ss")}\n`;
 
   return content;
 };
@@ -257,7 +258,7 @@ const handlePublish = async () => {
 
     let content = postTool.generatePostContent(schemes.value);
     content += `期号: 第${getIssueNumber()}期\n`;
-    content += `发布时间: ${new Date().toLocaleString()}`;
+    content += `发布时间: ${moment().format("YYYY-MM-DD HH:mm:ss")}`;
     // 准备发帖数据
     const postData = {
       tname: lotteryType.value ? lotteryType.value.name : "预测方案", // 彩票名称

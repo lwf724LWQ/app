@@ -122,6 +122,7 @@ import { getAccount } from "@/utils/request.js";
 import tool from "@/utils/tool.js";
 import { onLoad } from "@dcloudio/uni-app";
 import postTool from "./post-tool";
+import moment from "moment";
 
 // 响应式数据
 const issueNumber = ref("");
@@ -282,7 +283,7 @@ const generatePostContent = () => {
   // 使用获取到的期号，即使是0也使用
   const validIssueNumber = issueNumber.value || "0";
   content += `期号: 第${validIssueNumber}期\n`;
-  content += `发布时间: ${new Date().toLocaleString()}`;
+  content += `发布时间: ${moment().format("YYYY-MM-DD HH:mm:ss")}`;
 
   return content;
 };
