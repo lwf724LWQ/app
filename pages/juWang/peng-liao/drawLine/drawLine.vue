@@ -118,7 +118,7 @@
             :style="{ backgroundColor: item.style.color }"
             @touchstart="textTouchstart"
             @touchmove="textTouchmove($event, item.index)"
-            @touchend="textTouchend($event, item.index)"
+            @touchend="textTouchend($event, index)"
             >拉</view
           >
         </view>
@@ -562,10 +562,9 @@ const touchend = async (event) => {
   if (isScroll.value) return
 
   let { x, y } = event.changedTouches[0]
-  if (mode.value !== '添加文字') {
-    x = x / scale.value
-    y = y / scale.value
-  }
+  x = x / scale.value
+  y = y / scale.value
+
   // 判断是否点击
   if (isClick) {
     // 添加文字
@@ -592,8 +591,8 @@ const touchend = async (event) => {
           meta.style.height = 'auto'
           nextTick(async () => {
             const { width, height } = await getRect(`#text-${textChangeIndex.value}`)
-            meta.text.width = width + 15 * ratio * 2
-            meta.text.height = height + 5 * ratio * 2
+            meta.text.width = (width + 15 * ratio * 2) / scale.value
+            meta.text.height = (height + 5 * ratio * 2) / scale.value
             textChangeIndex.value = null
             textareaValue.value = ''
           })
@@ -619,8 +618,8 @@ const touchend = async (event) => {
           const { width, height } = await getRect(`#text-${textList.value.length - 1}`)
           const item = record.value[record.value.length - 1]
           // 加上padding
-          item.text.width = width + 15 * ratio * 2
-          item.text.height = height + 5 * ratio * 2
+          item.text.width = (width + 15 * ratio * 2) / scale.value
+          item.text.height = (height + 5 * ratio * 2) / scale.value
         })
       }
     } else {
@@ -754,8 +753,8 @@ const touchend = async (event) => {
           endPosition.x &&
           endPosition.column >= styleConfig.value.numberStartIndex
         ) {
-          curveHandleX.value = (startPosition.x / 2 + endPosition.x / 2) * scale.value
-          curveHandleY.value = (startPosition.y / 2 + endPosition.y / 2) * scale.value
+          curveHandleX.value = startPosition.x / 2 + endPosition.x / 2
+          curveHandleY.value = startPosition.y / 2 + endPosition.y / 2
           iscurveHandleShow.value = true
         } else {
           iscurveHandleShow.value = false
@@ -966,10 +965,10 @@ const curveTouchmove = (event) => {
   const { pageX, pageY } = event.touches[0]
 
   const { startX, startY, centerX, centerY, endX, endY } = curvePosition
-  curveHandleY.value = pageY - TOP_BAR_HEIGHT + scrolltop - safeArea.top
-  curveHandleX.value = pageX
-  const y = (curveHandleY.value / scale.value - centerY) * 2 + centerY
-  const x = (curveHandleX.value / scale.value - centerX) * 2 + centerX
+  curveHandleY.value = (pageY - TOP_BAR_HEIGHT + scrolltop - safeArea.top) / scale.value
+  curveHandleX.value = pageX / scale.value
+  const y = (curveHandleY.value - centerY) * 2 + centerY
+  const x = (curveHandleX.value - centerX) * 2 + centerX
   drawMethod.drawnCurveLine(
     startX,
     startY - scrolltop / scale.value,
@@ -988,8 +987,8 @@ const curveTouchmove = (event) => {
 }
 const curveTouchend = () => {
   const { startX, startY, centerX, centerY, endX, endY } = curvePosition
-  const y = (curveHandleY.value / scale.value - centerY) * 2 + centerY
-  const x = (curveHandleX.value / scale.value - centerX) * 2 + centerX
+  const y = (curveHandleY.value - centerY) * 2 + centerY
+  const x = (curveHandleX.value - centerX) * 2 + centerX
 
   const line = record.value[record.value.length - 1].line
   line.type = 'curve'
@@ -1230,10 +1229,15 @@ const popupSubmit = (val) => {
 // 滚动高度
 let scrolltop = 0
 const isScroll = ref(true)
-// let isApiScroll = false // 是否是通过API调用滚动
-
+const scrollTopRef = ref(0)
+let timer
 const scroll = (event) => {
   scrolltop = event.detail.scrollTop
+
+  if (timer) clearTimeout(timer)
+  timer = setTimeout(() => {
+    scrollTopRef.value = scrolltop
+  }, 100)
 }
 
 // 绘制图形
@@ -1269,7 +1273,6 @@ let tmpTextWidth, tmpTextHeight
 
 const changeTextFontSize = (index) => {
   const item = record.value[index]
-  // const style = item.style
   const contentLength = item.text.content.length
 
   let row = 1
@@ -1303,6 +1306,7 @@ const textTouchstart = (e) => {
 }
 
 const textTouchmove = (e, index) => {
+  e.preventDefault()
   const { pageX, pageY } = e.touches[0]
 
   const changeWidth = pageX - textStartX
@@ -1317,10 +1321,12 @@ const textTouchmove = (e, index) => {
   changeTextFontSize(index)
 }
 const textTouchend = async (e, index) => {
-  const item = record.value[index]
+  const i = textList.value[index].index
+  const item = record.value[i]
+
   const { width, height } = await getRect(`#text-${index}`)
-  item.text.width = width + 15 * ratio * 2
-  item.text.height = height + 5 * ratio * 2
+  item.text.width = (width + 15 * ratio * 2) / scale.value
+  item.text.height = (height + 5 * ratio * 2) / scale.value
 
   isTextClick = true
 }
@@ -1343,13 +1349,14 @@ const textPositionStart = (e, index) => {
   tmpTextY = y
 }
 const textPositionMove = (e, index) => {
+  e.preventDefault()
   isTextClick = false
 
   const { pageX, pageY } = e.touches[0]
 
   const item = textList.value[index]
-  item.text.position.x = pageX - textStartX + tmpTextX
-  item.text.position.y = pageY - textStartY + tmpTextY
+  item.text.position.x = (pageX - textStartX) / scale.value + tmpTextX
+  item.text.position.y = (pageY - textStartY) / scale.value + tmpTextY
 }
 
 let textChangeIndex = ref(null)
@@ -1438,11 +1445,7 @@ export default {
       const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
       if (_scale < 0.6 || _scale > 2) return
       scale = _scale
-
-      const scaleEls = ['.bg-canvas', '.base-canvas', '.paint-canvas', '.content-canvas', '.active-canvas']
-      scaleEls.forEach((item) => {
-        document.querySelector(item).style.transform = `scale(${scale})`
-      })
+      document.querySelector('.container').style.transform = `scale(${scale})`
     },
     gestureend(event){
       if(!isGesture || event.touches.length > 0) return
@@ -1521,6 +1524,7 @@ page {
   .container {
     position: relative;
     height: v-bind('containerHeight + "rpx"');
+    transform-origin: 0 v-bind('gestureStartCenterY + "px"');
 
     .bg-canvas,
     .base-canvas,
@@ -1537,10 +1541,10 @@ page {
       /* #endif */
       z-index: 2;
       // transform: scale(v-bind('scale'));
-      transform-origin: 0 v-bind('gestureStartCenterY + "px"');
     }
     .bg-canvas,
     .base-canvas,
+    .paint-canvas,
     .content-canvas,
     .active-canvas {
       position: absolute;
@@ -1552,22 +1556,22 @@ page {
       width: v-bind('cnavasWidth + "rpx"');
     }
     .paint-canvas {
-      position: fixed;
+      // 动态计算top值，保证画布在可视区域
+      top: calc(v-bind('(scrollTopRef) / scale + "px"'));
       /* #ifdef H5 */
-      top: v-bind('TOP_BAR_HEIGHT + "px"');
-      height: calc((100vh - v-bind('TOP_BAR_HEIGHT + "px"')) / v-bind('scale'));
+      height: calc((v-bind('windowHeight - TOP_BAR_HEIGHT + "px"')) / v-bind('scale'));
       /* #endif */
       /* #ifdef APP */
-      top: v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"');
-      height: calc((100vh - v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"')) / v-bind('scale'));
-      /* #endif */
-      /* #ifdef MP */
-      top: v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"');
       height: calc(
-        (100vh - v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"')) / v-bind('scale')
+        (v-bind('windowHeight - TOP_BAR_HEIGHT - safeArea.top + "px"')) / v-bind('scale')
       );
       /* #endif */
-      left: 0;
+      /* #ifdef MP */
+      height: calc(
+        (v-bind('windowHeight - safeArea.top - menuButtonInfo - TOP_BAR_HEIGHT + "px"')) /
+          v-bind('scale')
+      );
+      /* #endif */
     }
     .image-canvas {
       visibility: hidden;
@@ -1581,12 +1585,7 @@ page {
       width: 35rpx;
       height: 35rpx;
       z-index: 4;
-      /* #ifdef H5 */
       top: v-bind('curveHandleY + "px"');
-      /* #endif */
-      /* #ifdef APP */
-      top: v-bind('curveHandleY + "px"');
-      /* #endif */
       left: v-bind('curveHandleX + "px"');
       text-align: center;
       transform: translate(-50%, -50%);
