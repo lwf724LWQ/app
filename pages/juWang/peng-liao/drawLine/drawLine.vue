@@ -72,7 +72,44 @@
           @touchmove="touchmove"
           @touchend="touchend"
         ></canvas>
-
+        <!-- 元素拖拽容器 -->
+        <movable-area class="movable-area">
+          <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
+          <movable-view
+            class="text"
+            direction="all"
+            v-for="(item, index) in textList"
+            :key="index"
+            @change="textPositionChange"
+            @touchstart="textPositionStart(index)"
+            :x="item.text.position.x"
+            :y="item.text.position.y"
+            :class="{ 'text-handle-show': index === textChangeIndex }"
+            :style="{
+              fontSize: item.style.fontSize + 'px',
+              lineHeight: item.style.fontSize + 'px',
+              borderColor: index === textChangeIndex ? item.style.color : ''
+            }"
+          >
+            <view class="text-container" :style="textStyle(index)">
+              <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
+            </view>
+            <view
+              class="text-btn-left"
+              :style="{ backgroundColor: item.style.color }"
+              @click="changeTextSolid(item.index)"
+              >透</view
+            >
+            <view
+              class="text-btn-right"
+              :style="{ backgroundColor: item.style.color }"
+              @touchstart="textTouchstart"
+              @touchmove.stop="textTouchmove($event, item.index)"
+              @touchend="textTouchend($event, index)"
+              >拉</view
+            >
+          </movable-view>
+        </movable-area>
         <uni-icons
           custom-prefix="iconfont"
           type="icon-shizi"
@@ -84,44 +121,6 @@
           @touchend="curveTouchend"
           v-show="iscurveHandleShow"
         ></uni-icons>
-        <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
-        <view
-          class="text"
-          :class="{ 'text-handle-show': index === textChangeIndex }"
-          v-for="(item, index) in textList"
-          :key="index"
-          :style="{
-            top: item.text.position.y - (TOP_BAR_HEIGHT + safeArea.top + menuButtonInfo) + 'px',
-            left: item.text.position.x + 'px',
-            fontSize: item.style.fontSize + 'px',
-            lineHeight: item.style.fontSize + 'px',
-            borderColor: index === textChangeIndex ? item.style.color : ''
-          }"
-        >
-          <view
-            class="text-container"
-            :style="textStyle(index)"
-            @touchstart="textPositionStart($event, index)"
-            @touchmove="textPositionMove($event, index)"
-            @touchend="textPositionEnd($event, index)"
-          >
-            <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
-          </view>
-          <view
-            class="text-btn-left"
-            :style="{ backgroundColor: item.style.color }"
-            @click="changeTextSolid(item.index)"
-            >透</view
-          >
-          <view
-            class="text-btn-right"
-            :style="{ backgroundColor: item.style.color }"
-            @touchstart="textTouchstart"
-            @touchmove="textTouchmove($event, item.index)"
-            @touchend="textTouchend($event, index)"
-            >拉</view
-          >
-        </view>
         <!-- 悬浮文字输入框 -->
         <textarea
           class="text-input"
@@ -575,8 +574,8 @@ const touchend = async (event) => {
           textChangeIndex.value = null
           return
         }
-        textPosition = { x, y: y + TOP_BAR_HEIGHT }
-        textareaPosition.value = { x, y: y + TOP_BAR_HEIGHT }
+        textPosition = { x, y }
+        textareaPosition.value = { x, y }
         isTextInputShow.value = true
       } else {
         isTextInputShow.value = false
@@ -1336,51 +1335,24 @@ const changeTextSolid = (index) => {
 }
 
 // 更新文字位置
-let tmpTextX, tmpTextY
-let isTextClick = true
-const textPositionStart = (e, index) => {
-  isScroll.value = false
-  const { pageX, pageY } = e.touches[0]
-  textStartX = pageX
-  textStartY = pageY
+let textPositionChangeTimer
+const textPositionChange = (e) => {
+  textPositionChangeTimer && clearTimeout(textPositionChangeTimer)
+  textPositionChangeTimer = setTimeout(() => {
+    const { x, y } = e.detail
 
-  const { x, y } = textList.value[index].text.position
-  tmpTextX = x
-  tmpTextY = y
+    const item = record.value[textList.value[textChangeIndex.value].index]
+    item.text.position.x = x
+    item.text.position.y = y
+  }, 100)
 }
-const textPositionMove = (e, index) => {
-  e.preventDefault()
-  isTextClick = false
 
-  const { pageX, pageY } = e.touches[0]
-
-  const item = textList.value[index]
-  item.text.position.x = (pageX - textStartX) / scale.value + tmpTextX
-  item.text.position.y = (pageY - textStartY) / scale.value + tmpTextY
+const textPositionStart = (index) => {
+  textChangeIndex.value = index
 }
 
 let textChangeIndex = ref(null)
 const cursor = ref(0)
-const textPositionEnd = (e, index) => {
-  if (isTextClick) {
-    // 显示边框
-    if (textChangeIndex.value === null) {
-      textChangeIndex.value = index
-      return
-    }
-    if (textChangeIndex.value !== index) {
-      textChangeIndex.value = index
-      return
-    }
-    isTextInputShow.value = true
-    textareaValue.value = record.value[textList.value[index].index].text.content
-    const { pageX: x, pageY: y } = e.changedTouches[0]
-    textareaPosition.value = { x, y: y + scrolltop }
-    cursor.value = record.value[index].text.content.length
-    return
-  }
-  isTextClick = true
-}
 
 // 锁定页面
 const isModeSelectShow = ref(true)
@@ -1530,7 +1502,8 @@ page {
     .base-canvas,
     .paint-canvas,
     .content-canvas,
-    .active-canvas {
+    .active-canvas,
+    .movable-area {
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       /* #ifdef APP */
@@ -1540,13 +1513,6 @@ page {
       top: calc(-130rpx - v-bind('safeArea.top + menuButtonInfo + "px"'));
       /* #endif */
       z-index: 2;
-      // transform: scale(v-bind('scale'));
-    }
-    .bg-canvas,
-    .base-canvas,
-    .paint-canvas,
-    .content-canvas,
-    .active-canvas {
       position: absolute;
       top: 0;
     }
@@ -1579,6 +1545,9 @@ page {
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       transform: scale(0.1); // 0.1随便写，足够小即可
     }
+    .movable-area {
+      pointer-events: none;
+    }
 
     .curve-handle {
       position: absolute;
@@ -1593,12 +1562,13 @@ page {
     }
 
     .text {
+      width: auto;
+      height: auto;
       padding: 9rpx;
-      position: absolute;
       border: 2px solid transparent;
       border-radius: 5rpx;
       z-index: 5;
-      // transform: scale(v-bind('scale'));
+      pointer-events: auto;
       .text-container {
         padding: 5rpx 15rpx;
         border-radius: 10rpx;
@@ -1641,11 +1611,7 @@ page {
       position: absolute;
       z-index: 5;
       left: v-bind('textareaPosition.x + "px"');
-      // top减去canvas的top
-      top: calc(
-        v-bind('textareaPosition.y - safeArea.top - menuButtonInfo + "px"') -
-          v-bind('TOP_BAR_HEIGHT + "px"')
-      );
+      top: v-bind('textareaPosition.y + "px"');
       background-color: rgba($color: #fff, $alpha: 0.8);
       transform: translate(-10%, -10%);
     }

@@ -20,7 +20,7 @@ export const useDrawLineSettingStore = defineStore('drawLineSetting', () => {
     // 屏幕常亮
     keepScreenOn: false,
     // 主题：护眼
-    theme: '其他',
+    theme: '护眼',
     // 显示期数
     showPeriod: 40,
     // 显示设置
