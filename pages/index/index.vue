@@ -133,7 +133,7 @@
 					<image src="/static/icons/collapse.png" mode="aspectFit"></image>
 					<text class="leng3">过滤王</text>
 				</view>
-				<view class="icon-item">
+				<view class="icon-item" @click="goToSearchuser">
 					<image src="/static/icons/search-bar.png" mode="aspectFit"></image>
 					<text>彩友搜索</text>
 				</view>
@@ -357,6 +357,11 @@ export default {
 			} catch (e) {
 				return '10.26 周日'
 			}
+		},
+		goToSearchuser() {
+		  uni.navigateTo({
+		    url: '/pages/index/searchUser'
+		  })
 		}
 	},
 	onShow() {
