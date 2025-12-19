@@ -190,10 +190,31 @@ export default {
 			// 	url: `/pages/juWang/drawLine/drawLine`
 			// });
 		},
+		isLogin(){
+			const userStore = useUserStore()
+			if(userStore.getUserInfo.account){
+				return true
+			}else{
+				uni.showModal({
+					title: '提示',
+					content: '该功能需要登录，是否前往',
+					success: async (res) => {
+						if (res.confirm) {
+							uni.navigateTo({ url: '/pages/login/login' })
+						}
+					},
+					showCancel: true,
+				})
+				return false
+			}
+		},
 		toChangtiao(){
-			uni.navigateTo({
-				url: "/pages/changtiao/index"
-			})
+			if(isLogin()){
+				uni.navigateTo({
+					url: "/pages/changtiao/index"
+				})
+			}
+			
 		},
 		goToLive() {
 			// #ifdef H5

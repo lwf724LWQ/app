@@ -42,6 +42,16 @@
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
+
+        /* 微信引导图片容器 */
+        .wechat-guide {
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+        }
+
+        .wechat-guide.show {
+            display: block;
+        }
     </style>
 </head>
 
@@ -103,7 +113,7 @@
             </div>
             <p class="text-sm leading-relaxed text-gray-700">
                 1. 全新设计的首页界面，操作更流畅。<br>
-                2. 新增“画规”支持。<br>
+                2. 新增"画规"支持。<br>
                 3. 修复了若干已知 Bug，提升稳定性。
             </p>
         </div>
@@ -215,12 +225,18 @@
     <div
         class="fixed bottom-0  left-0 right-0 bg-white border-t border-gray-100 px-5 py-3 pb-safe z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div id="download-container" class="mb-4">
-            <button id="download-btn" onclick="startDownload()"
+            <button id="download-btn" onclick="startDownload(event)"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/30 active-scale flex items-center justify-center transition-all duration-200">
                 <span id="btn-text">立即下载</span>
                 <span id="btn-size" class="text-blue-200 text-xs font-normal ml-2">(22MB)</span>
             </button>
         </div>
+    </div>
+
+    <!-- 微信浏览器引导 -->
+    <div id="wechatGuide" class="wechat-guide fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center"
+        style="display: none;">
+        <img src="/static/yindao.png" alt="微信打开引导" class="max-w-full max-h-full">
     </div>
 
     <script>
@@ -230,9 +246,32 @@
             footer.classList.add('pb-[env(safe-area-inset-bottom)]');
         }
 
-        function startDownload() {
-            window.open("http://video.caimizm.com/upload/fileK7pX8IB8hpTG.apk")
+        // 判断是否为微信浏览器
+        function isWechatBrowser() {
+            const ua = navigator.userAgent.toLowerCase();
+            return ua.includes('micromessenger');
         }
+
+        // 如果是微信浏览器，则显示引导图
+        if (isWechatBrowser()) {
+            document.getElementById('wechatGuide').classList.add('show');
+        }
+
+        function startDownload(event) {
+            // event.preventDefault();
+            // event.stopPropagation();
+            if (isWechatBrowser()) {
+                document.getElementById('wechatGuide').style.display = 'block';
+            } else {
+                document.getElementById('wechatGuide').style.display = 'none';
+                window.open("http://video.caimizm.com/upload/filenMXD2hpU12xI.apk")
+            }
+
+        }
+
+        document.getElementById('wechatGuide').addEventListener('click', function () {
+            document.getElementById('wechatGuide').style.display = 'none';
+        });
     </script>
 </body>
 
