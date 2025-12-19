@@ -27,7 +27,7 @@
         ></uni-icons>
         <view class="">分享</view>
       </view>
-      <view class="" @click="saveImage">
+      <view class="" v-permission:storage="saveImage">
         <uni-icons
           custom-prefix="iconfont"
           type="icon-baocun"
