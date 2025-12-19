@@ -303,6 +303,13 @@
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
       }
+	},
+	{
+		"path": "pages/share/share",
+		"style": {
+			"navigationBarTitleText": "",
+        "navigationStyle": "custom"
+		}
     },
     {
       "path": "pages/index/searchUser",
@@ -310,7 +317,7 @@
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
       }
-    }
+	}
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

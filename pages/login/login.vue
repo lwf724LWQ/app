@@ -2,7 +2,6 @@
   <view class="login-wrapper" v-show="loginShow">
     <!-- 状态栏 -->
 
-
     <!-- 头部区域 -->
     <view class="header">
       <view class="back-btn" @click="goBack">
@@ -28,8 +27,13 @@
           </view>
           <text class="country-code">+86</text>
           <view class="separator"></view>
-          <input type="text" placeholder="请输入手机号" placeholder-class="input-placeholder" v-model="account"
-            class="phone-input" />
+          <input
+            type="text"
+            placeholder="请输入手机号"
+            placeholder-class="input-placeholder"
+            v-model="account"
+            class="phone-input"
+          />
         </view>
       </view>
 
@@ -39,8 +43,13 @@
           <view class="input-icon lock-icon">
             <view class="lock-icon-svg"></view>
           </view>
-          <input :type="showPassword ? 'text' : 'password'" placeholder="请输入密码" placeholder-class="input-placeholder"
-            v-model="password" class="password-input" />
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="请输入密码"
+            placeholder-class="input-placeholder"
+            v-model="password"
+            class="password-input"
+          />
           <view class="eye-icon" @click="togglePasswordVisibility">
             <view class="eye-icon-svg" :class="showPassword ? 'eye-open' : ''">
               <view class="eye-ball"></view>
@@ -56,7 +65,12 @@
             <view class="code-icon-svg"></view>
           </view>
           <view class="code-container">
-            <VerificationCode ref="codeRef" placeholder="请输入验证码" @getCode="sendLoginCode" @input="handleCodeInput" />
+            <VerificationCode
+              ref="codeRef"
+              placeholder="请输入验证码"
+              @getCode="sendLoginCode"
+              @input="handleCodeInput"
+            />
           </view>
         </view>
       </view>
@@ -64,7 +78,9 @@
       <!-- 链接区域 -->
       <view class="links-section">
         <text class="register-link" @click="goToReg">还没账户?去注册</text>
-        <text class="forgot-link" @click="swLoginMode">{{ loginMode === 'sms-code' ? '使用密码登录' : '使用验证码登录' }}</text>
+        <text class="forgot-link" @click="swLoginMode">{{
+          loginMode === "sms-code" ? "使用密码登录" : "使用验证码登录"
+        }}</text>
         <text class="forgot-link" @click="goForgetPwdPage1">忘记密码</text>
       </view>
 
@@ -76,14 +92,22 @@
       <!-- 用户协议 -->
       <view class="agreement-section">
         <view class="checkbox-container">
-          <view class="checkbox" :class="{ checked: isAgreed }" @click="toggleAgreement">
+          <view
+            class="checkbox"
+            :class="{ checked: isAgreed }"
+            @click="toggleAgreement"
+          >
             <text class="checkmark" v-if="isAgreed">✓</text>
           </view>
           <text class="agreement-text">
             我已阅读并同意
-            <text class="link-text" @click="showUserAgreement">《用户协议》</text>
+            <text class="link-text" @click="showUserAgreement"
+              >《用户协议》</text
+            >
             和
-            <text class="link-text" @click="showPrivacyPolicy">《隐私授权》</text>
+            <text class="link-text" @click="showPrivacyPolicy"
+              >《隐私授权》</text
+            >
           </text>
         </view>
       </view>
@@ -103,166 +127,168 @@
           </view>
           <text class="btn-text">微信账号登录</text>
         </button>
-
-
       </view>
     </view>
-
+    <privacyPopup ref="privacyPopupRef" @agree="handleAgree" />
     <!-- 底部指示器 -->
     <view class="bottom-indicator"></view>
   </view>
 </template>
 
 <script lang="ts" setup>
-import { onLoad } from '@dcloudio/uni-app'
-import { ref, reactive, watch } from 'vue'
-import { apilogin } from '../../api/apis.js'
-import { apigetsts, apiUserimg, apiSendCode } from '../../api/apis.js';
-import { getToken } from '../../utils/request.js'; // 导入setToken和setAccount方法
-import tool from '../../utils/tool.js';
-import { useUserStore } from '../../stores/userStore'
-import VerificationCode from '../../components/VerificationCode.vue'
+import { onLoad } from "@dcloudio/uni-app";
+import { ref, reactive, watch } from "vue";
+import { apilogin } from "../../api/apis.js";
+import { apigetsts, apiUserimg, apiSendCode } from "../../api/apis.js";
+import { getToken } from "../../utils/request.js"; // 导入setToken和setAccount方法
+import tool from "../../utils/tool.js";
+import { useUserStore } from "../../stores/userStore";
+import VerificationCode from "../../components/VerificationCode.vue";
+import privacyPopup from "./component/privacyPopup.vue";
 
 // 声明uni类型
 declare const uni: any;
 
-const userStore = useUserStore()
-
+const userStore = useUserStore();
 
 //----------------------------------
+const privacyPopupRef = ref(null);
 
-const account = ref('');
-const password = ref('');
-const code = ref('');
+const account = ref("");
+const password = ref("");
+const code = ref("");
 const isAgreed = ref(false);
 const showPassword = ref(false);
 
 // 切换登录方式
-const loginMode = ref('password');
+const loginMode = ref("password");
 function swLoginMode() {
-  loginMode.value = loginMode.value === 'password' ? 'sms-code' : 'password';
+  loginMode.value = loginMode.value === "password" ? "sms-code" : "password";
 }
 // 输入验证码时更新值
 const handleCodeInput = (value) => {
   code.value = value;
 };
 
-const codeRef = ref(null);  // 验证码组件实例
+const codeRef = ref(null); // 验证码组件实例
 // 发送验证码
 const sendLoginCode = async () => {
   if (!account.value) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入手机号", icon: "none" });
+    return;
   }
 
   try {
-    const response = await apiSendCode({ phone: account.value })
+    const response = await apiSendCode({ phone: account.value });
     if (response.code === 200) {
-      codeRef.value.startCountdown()
-      uni.showToast({ title: '验证码已发送', icon: 'success' })
+      codeRef.value.startCountdown();
+      uni.showToast({ title: "验证码已发送", icon: "success" });
     } else {
-      uni.showToast({ title: response.errMsg || '发送失败', icon: 'none' })
+      uni.showToast({ title: response.errMsg || "发送失败", icon: "none" });
     }
   } catch (error) {
-    uni.showToast({ title: '发送验证码失败', icon: 'none' })
+    uni.showToast({ title: "发送验证码失败", icon: "none" });
   }
-}
+};
 
 const loginShow = ref(false);
-let pageOptions = {}
+let pageOptions = {};
 onLoad((options) => {
-  pageOptions = options
-  tool.checkAppUpdate()
+  pageOptions = options;
+  tool.checkAppUpdate();
   if (!getToken()) {
     loginShow.value = true;
-    return
+    return;
   }
   apiUserimg({})
     .then((res) => {
-      login()
+      login();
     })
     .catch((error) => {
       loginShow.value = true;
-
     })
     .finally(() => {
       // loginShow.value = true;
     });
-})
+});
 
 // 点击登录从这里拿到tocken信息
 const gologin = async () => {
   // 检查是否同意用户协议
   if (!isAgreed.value) {
-    uni.showToast({
-      title: '请先同意用户协议',
-      icon: 'none',
-      duration: 2000
-    })
-    return
+    // uni.showToast({
+    //   title: "请先同意用户协议",
+    //   icon: "none",
+    //   duration: 2000,
+    // });
+    privacyPopupRef.value.open();
+    return;
   }
 
   // 检查输入是否完整
-  if (account.value.trim() == '') {
+  if (account.value.trim() == "") {
     uni.showToast({
-      title: '请输入手机号',
-      icon: 'none',
-      duration: 2000
-    })
-    return
+      title: "请输入手机号",
+      icon: "none",
+      duration: 2000,
+    });
+    return;
   }
 
-  if (loginMode.value === 'password') {
-    if (password.value.trim() == '') {
+  if (loginMode.value === "password") {
+    if (password.value.trim() == "") {
       uni.showToast({
-        title: '请输入手机号',
-        icon: 'none',
-        duration: 2000
-      })
-      return
+        title: "请输入手机号",
+        icon: "none",
+        duration: 2000,
+      });
+      return;
     }
   } else {
-    if (code.value.trim() == '') {
+    if (code.value.trim() == "") {
       uni.showToast({
-        title: '请输入验证码',
-        icon: 'none',
-        duration: 2000
-      })
+        title: "请输入验证码",
+        icon: "none",
+        duration: 2000,
+      });
     }
   }
 
+  handleAgree();
+};
+const handleAgree = async () => {
   // 显示加载提示
   uni.showLoading({
-    title: '登录中...'
-  })
+    title: "登录中...",
+  });
 
   try {
     const loginData = {
-      type: loginMode.value === 'password' ? '0' : '1',
+      type: loginMode.value === "password" ? "0" : "1",
       account: account.value,
       password: password.value,
-      code: code.value
-    }
+      code: code.value,
+    };
     const success = await apilogin(loginData);
 
     // #ifdef APP-PLUS
-    uni.setStorageSync('account', account.value)
-    uni.setStorageSync('password', password.value)
+    uni.setStorageSync("account", account.value);
+    uni.setStorageSync("password", password.value);
     // #endif
     // 隐藏加载提示
-    uni.hideLoading()
+    uni.hideLoading();
 
     if (success) {
       // 打印登录返回的完整数据，用于调试
-      console.log('登录API返回的完整数据:', success);
+      console.log("登录API返回的完整数据:", success);
 
       // 判断tonkn 是否为空
       if (!success.data?.token) {
         uni.showModal({
-          title: '登录失败',
-          content: '未获取到token，请重试',
-          showCancel: false
-        })
+          title: "登录失败",
+          content: "未获取到token，请重试",
+          showCancel: false,
+        });
         return;
       }
 
@@ -271,136 +297,133 @@ const gologin = async () => {
 
       // 保存用户信息到本地存储
       const userInfo = {
-        nickname: loginData.uname || '用户',
+        nickname: loginData.uname || "用户",
         avatar: loginData.himg,
-        account: account.value
+        account: account.value,
       };
       userStore.updateUserInfo(userInfo, success.data.token);
-      console.log('登录成功，用户信息已保存:', userInfo);
+      console.log("登录成功，用户信息已保存:", userInfo);
 
       // 显示登录成功提示
       uni.showToast({
-        title: '登录成功',
-        icon: 'success',
-        duration: 1500
-      })
+        title: "登录成功",
+        icon: "success",
+        duration: 1500,
+      });
 
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
         // 跳转到用户页面
         if (pageOptions.redirect) {
-          uni.navigateBack({ url: pageOptions.redirect, animationType: "none" })
+          uni.navigateBack({
+            url: pageOptions.redirect,
+            animationType: "none",
+          });
         } else {
-          uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
+          uni.reLaunch({ url: "/pages/index/index", animationType: "none" });
         }
-      }, 1500)
-
+      }, 1500);
     } else {
       uni.showModal({
-        title: '登录失败',
-        content: '用户名或密码错误，请重试',
-        showCancel: false
-      })
+        title: "登录失败",
+        content: "用户名或密码错误，请重试",
+        showCancel: false,
+      });
     }
   } catch (error) {
     // 隐藏加载提示
-    uni.hideLoading()
+    uni.hideLoading();
 
     uni.showModal({
-      title: '登录失败',
-      content: error?.msg || '网络错误，请检查网络连接后重试',
-      showCancel: false
-    })
+      title: "登录失败",
+      content: error?.msg || "网络错误，请检查网络连接后重试",
+      showCancel: false,
+    });
   }
-}
+};
 
 //-------------------------------------------------------------
 //上传文件
 
-
-
-
 // 跳转到注册页面(uni.navigateTo跳转到指定页面)
 const goToReg = () => {
   uni.navigateTo({
-    url: '/pages/reg/reg',
-  })
-}
+    url: "/pages/reg/reg",
+  });
+};
 
 // 跳转到验证码登录页面(uni.navigateTo跳转到指定页面)
 const goToCodeLogin = () => {
   uni.navigateTo({
-    url: '/pages/code-login/code-login',
-  })
-}
+    url: "/pages/code-login/code-login",
+  });
+};
 
 // 跳转到验证码页面(uni.navigateTo跳转到指定页面)
 const goForgetPwdPage1 = () => {
   uni.navigateTo({
-    url: '/pages/code-login/code-login?type=forgetPwd',
-  })
-}
+    url: "/pages/code-login/code-login?type=forgetPwd",
+  });
+};
 
 // 跳转到首页
 const login = () => {
   if (pageOptions.redirect) {
-    uni.navigateBack({ url: pageOptions.redirect, animationType: "none" })
+    uni.navigateBack({ url: pageOptions.redirect, animationType: "none" });
   } else {
-    uni.reLaunch({ url: '/pages/index/index', animationType: "none" })
+    uni.reLaunch({ url: "/pages/index/index", animationType: "none" });
   }
-}
+};
 
 // 返回上一页
 const goBack = () => {
-  uni.navigateBack()
-}
+  uni.navigateBack();
+};
 
 // 切换密码显示/隐藏
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-  console.log('密码显示状态:', showPassword.value ? '显示' : '隐藏')
-}
+  showPassword.value = !showPassword.value;
+  console.log("密码显示状态:", showPassword.value ? "显示" : "隐藏");
+};
 
 // 切换用户协议同意状态
 const toggleAgreement = () => {
-  isAgreed.value = !isAgreed.value
-}
+  isAgreed.value = !isAgreed.value;
+};
 
 // 显示用户协议
 const showUserAgreement = () => {
   uni.navigateTo({
-    url: '/pages/login/agreement?type=UserAgreement',
-  })
-}
+    url: "/pages/login/agreement?type=UserAgreement",
+  });
+};
 
 // 显示隐私政策
 const showPrivacyPolicy = () => {
   uni.navigateTo({
-    url: '/pages/login/agreement?type=PrivacyPolicy',
-  })
-}
+    url: "/pages/login/agreement?type=PrivacyPolicy",
+  });
+};
 
 // 微信登录
 const wechatLogin = () => {
   // 检查是否同意用户协议
   if (!isAgreed.value) {
     uni.showToast({
-      title: '请先同意用户协议',
-      icon: 'none',
-      duration: 2000
-    })
-    return
+      title: "请先同意用户协议",
+      icon: "none",
+      duration: 2000,
+    });
+    return;
   }
 
   uni.showModal({
-    title: '微信登录',
-    content: '微信登录功能正在开发中，敬请期待',
+    title: "微信登录",
+    content: "微信登录功能正在开发中，敬请期待",
     showCancel: false,
-    confirmText: '知道了'
-  })
-}
-
-
+    confirmText: "知道了",
+  });
+};
 </script>
 
 <!-- placeholder-class这个属性如果使用了<style scoped>就不生效，所以我们可以单独再写一个style -->
@@ -462,7 +485,7 @@ const wechatLogin = () => {
 
     .back-icon {
       font-size: 32rpx;
-      color: #28B389;
+      color: #28b389;
       font-weight: bold;
     }
   }
@@ -470,7 +493,7 @@ const wechatLogin = () => {
   .header-wave {
     .wave-icon {
       font-size: 32rpx;
-      color: #28B389;
+      color: #28b389;
     }
   }
 }
@@ -514,30 +537,30 @@ const wechatLogin = () => {
         .phone-icon-svg {
           width: 32rpx;
           height: 48rpx;
-          border: 3rpx solid #28B389;
+          border: 3rpx solid #28b389;
           border-radius: 8rpx;
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 4rpx;
             left: 4rpx;
             right: 4rpx;
             bottom: 8rpx;
-            border: 2rpx solid #28B389;
+            border: 2rpx solid #28b389;
             border-radius: 4rpx;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 2rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 8rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
         }
@@ -548,27 +571,27 @@ const wechatLogin = () => {
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 20rpx;
             height: 16rpx;
-            border: 3rpx solid #28B389;
+            border: 3rpx solid #28b389;
             border-bottom: none;
             border-radius: 10rpx 10rpx 0 0;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             top: 12rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 24rpx;
             height: 20rpx;
-            border: 3rpx solid #28B389;
+            border: 3rpx solid #28b389;
             border-radius: 4rpx;
           }
         }
@@ -576,29 +599,29 @@ const wechatLogin = () => {
         .code-icon-svg {
           width: 32rpx;
           height: 32rpx;
-          border: 3rpx solid #28B389;
+          border: 3rpx solid #28b389;
           border-radius: 6rpx;
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 4rpx;
             left: 4rpx;
             width: 6rpx;
             height: 6rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 4rpx;
             right: 4rpx;
             width: 8rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
         }
@@ -653,10 +676,10 @@ const wechatLogin = () => {
           }
 
           &.eye-open {
-            border-color: #28B389;
+            border-color: #28b389;
 
             .eye-ball {
-              background: #28B389;
+              background: #28b389;
               width: 10rpx;
               height: 10rpx;
             }
@@ -674,7 +697,7 @@ const wechatLogin = () => {
 
     .register-link {
       font-size: 28rpx;
-      color: #28B389;
+      color: #28b389;
     }
 
     .forgot-link {
@@ -690,7 +713,7 @@ const wechatLogin = () => {
     .login-btn {
       width: 100%;
       height: 100rpx;
-      background: #28B389;
+      background: #28b389;
       border-radius: 20rpx;
       border: none;
       color: #fff;
@@ -722,8 +745,8 @@ const wechatLogin = () => {
         margin-top: 4rpx;
 
         &.checked {
-          background: #28B389;
-          border-color: #28B389;
+          background: #28b389;
+          border-color: #28b389;
 
           .checkmark {
             color: #fff;
@@ -740,7 +763,7 @@ const wechatLogin = () => {
         line-height: 1.5;
 
         .link-text {
-          color: #28B389;
+          color: #28b389;
         }
       }
     }
@@ -777,7 +800,7 @@ const wechatLogin = () => {
       height: 100rpx;
       background: #fff;
       border-radius: 50rpx;
-      border: 2rpx solid #E5E5E5;
+      border: 2rpx solid #e5e5e5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -794,27 +817,27 @@ const wechatLogin = () => {
             position: relative;
 
             &::before {
-              content: '';
+              content: "";
               position: absolute;
               top: 8rpx;
               left: 4rpx;
               width: 16rpx;
               height: 16rpx;
-              background: #07C160;
+              background: #07c160;
               border-radius: 50%;
-              border: 2rpx solid #07C160;
+              border: 2rpx solid #07c160;
             }
 
             &::after {
-              content: '';
+              content: "";
               position: absolute;
               top: 4rpx;
               right: 4rpx;
               width: 20rpx;
               height: 20rpx;
-              background: #07C160;
+              background: #07c160;
               border-radius: 50%;
-              border: 2rpx solid #07C160;
+              border: 2rpx solid #07c160;
             }
           }
         }

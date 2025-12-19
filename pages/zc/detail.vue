@@ -18,8 +18,8 @@
         :homeTeam="matchHeadData.homeTeamShortName"
         :matches="matchHistory.value.matchList"
       />
-      <!-- <pointTable />
-      <detailTable /> -->
+      <pointTable />
+      <!-- <detailTable /> -->
       <!-- <detailTable /> -->
     </scroll-view>
   </view>
@@ -39,6 +39,7 @@ import { reactive, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 const sportteryMatchId = ref(2036064);
 
+// 左右对称条状的数据
 const matchFeature = ref(mock.matchFeature);
 function loadMatchFeature() {
   zqApi
@@ -51,6 +52,7 @@ function loadMatchFeature() {
     });
 }
 
+// 顶部的数据
 const matchHeadData = ref(mock.matchHeadData);
 function loadtMatchHead() {
   zqApi
@@ -63,6 +65,7 @@ function loadtMatchHead() {
     });
 }
 
+// 历史交锋显示的数据
 const matchHistory = reactive({
   termLimits: 10,
   tournamentFlag: 0,
@@ -80,6 +83,41 @@ function loadHistory() {
     .then((res) => {
       matchHistory.value = res.value;
     });
+}
+
+// 积分榜的数据
+const matchTables = ref(mock.MatchTables)
+function loadMatchTables(){
+	
+}
+
+// 比赛近况
+const matchResult = reactive({
+  termLimits: 10, // 获取数量
+  tournamentFlag: 0, // 是否相同赛制 0 = 不分 , 1= 相同赛制
+  homeAwayFlag: 0, // 是否相同主客 0 = 不分 , 1= 相同主次
+  value: mock.MatchResult,
+});
+function loadMatchResult(){
+	
+}
+
+// 未来赛事
+const futureMatches = ref(mock.FutureMatches)
+function loadFutureMatches(){
+	
+}
+
+// 射手信息
+const matchPlayer = ref(mock.MatchPlayer)
+function loadMatchPlayer(){
+	
+}
+
+// 伤停一览
+const injurySuspension = ref(mock.InjurySuspension)
+function loadInjurySuspension(){
+	
 }
 
 onLoad(() => {

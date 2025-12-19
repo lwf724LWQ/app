@@ -144,6 +144,10 @@
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
         </view> -->
+        <view class="service-item" @click="toShare">
+          <uni-icons type="redo" size="24" color="#222"></uni-icons>
+          <text class="service-text">分享</text>
+        </view>
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
@@ -198,7 +202,9 @@ const handleAvatarError = (e) => {
     memberStore.profile.avatar = 'http://video.caimizm.com/himg/user.png'
   }
 }
-
+const toShare = () => {
+  uni.navigateTo({ url: '/pages/share/share' });
+}
 // 获取用户金币余额
 const getUserBalance = async () => {
   // 防止重复请求
