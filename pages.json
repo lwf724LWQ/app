@@ -303,7 +303,14 @@
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
       }
-    }
+	},
+	{
+		"path": "pages/share/share",
+		"style": {
+			"navigationBarTitleText": "",
+        "navigationStyle": "custom"
+		}
+	}
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
