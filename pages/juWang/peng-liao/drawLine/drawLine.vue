@@ -163,6 +163,30 @@
     <Setting class="setting" v-model="isSettingOpen" :record="record"></Setting>
 
     <Share ref="shareNode" :getImageUrl="getImageUrl"></Share>
+
+    <!-- 用户首次进入遮罩 -->
+    <view class="mask" v-if="!options.isFirst && data.length">
+      <view class="mask-top"></view>
+      <view class="mask-bottom">
+        <view class="mask-left">
+          <uni-icons type="arrow-up" size="70" color="#fff"></uni-icons>
+          <uni-icons
+            class="finger"
+            custom-prefix="iconfont"
+            type="icon-map-finger-full"
+            size="60"
+            color="#fff"
+          ></uni-icons>
+          <uni-icons type="arrow-down" size="70" color="#fff"></uni-icons>
+        </view>
+
+        <view class="mask-right">
+          <view class="mask-right-text">上下滚动</view>
+        </view>
+      </view>
+
+      <view class="mask-button" @click="drawLineSettingStore.changeIsFirst()">知道了</view>
+    </view>
   </view>
 </template>
 
@@ -170,7 +194,6 @@
 import { ref, nextTick, computed, watch } from "vue";
 import { onLoad, onReady, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
 import { getCurrentInstance } from "vue";
-import mock from "./mock.json";
 import Popup from "@/components/juWang/Popup.vue";
 import ColorSelect from "@/components/juWang/ColorSelect.vue";
 import ModeSelect from "@/components/juWang/ModeSelect.vue";
@@ -264,15 +287,6 @@ const getData = async () => {
   } finally {
     uni.hideLoading();
   }
-
-  // data.value = mock.data.records
-  // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
-  //   if (type.value === '七星彩') {
-  //     item.number = item.number.slice(0, 5)
-  //     item.number.push(1, item.refernumber)
-  //   }
-  // })
 };
 
 const curveHandleX = ref(0);
@@ -1645,6 +1659,75 @@ page {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+  }
+}
+
+.mask {
+  position: fixed;
+  top: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  color: #fff;
+  .mask-top {
+    height: v-bind('(TOP_BAR_HEIGHT + safeArea.top) + "px"');
+  }
+  .mask-bottom {
+    height: calc(100vh - v-bind('(TOP_BAR_HEIGHT + safeArea.top) + "px"'));
+    display: flex;
+    .mask-left {
+      width: v-bind('styleConfig.columns[0].width + "px"');
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      @keyframes move {
+        0% {
+          transform: translateY(-100rpx);
+        }
+        50% {
+          transform: translateY(100rpx);
+        }
+        100% {
+          transform: translateY(-100rpx);
+        }
+      }
+      .finger {
+        animation: move 1s linear infinite;
+      }
+    }
+    .mask-right {
+      flex: 1;
+      position: relative;
+      .mask-right-text {
+        writing-mode: vertical-rl;
+        position: absolute;
+        top: 50%;
+        left: 50rpx;
+        transform: translateY(-50%);
+        font-size: 50rpx;
+      }
+    }
+  }
+
+  .mask-top,
+  .mask-right {
+    background-color: rgba($color: #000000, $alpha: 0.5);
+  }
+  .mask-left,
+  .mask-left {
+    height: 100%;
+  }
+
+  .mask-button {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 200rpx;
+    border: 3rpx solid #fff;
+    padding: 20rpx 50rpx;
+    font-size: 30rpx;
+    line-height: 30rpx;
+    border-radius: 10rpx;
   }
 }
 </style>
