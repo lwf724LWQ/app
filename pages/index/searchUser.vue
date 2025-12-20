@@ -19,7 +19,9 @@
       </view>
     </template>
     <template v-slot:right>
-      <button class="search-button" type="primary" @click="searchUser">搜索</button>
+      <button class="search-button" type="primary" @click="searchUser(searchInputValue)">
+        搜索
+      </button>
     </template>
   </TopNavigationBar>
   <!-- 搜索历史记录 -->
@@ -31,11 +33,11 @@
     <view class="search-history-list">
       <view
         class="search-history-item"
-        v-for="value in searchHistory"
-        :key="value"
-        @click="onSearchHistoryClick(value)"
+        v-for="item in searchHistory"
+        :key="item"
+        @click="onSearchHistoryClick(item)"
       >
-        {{ value }}
+        {{ item }}
       </view>
     </view>
   </view>
@@ -68,6 +70,7 @@ const searchUser = async (keyword) => {
 };
 
 const addSearchHistory = (value) => {
+  debugger;
   if (!value || searchHistory.value.includes(value)) return;
   if (searchHistory.value.length >= 10) searchHistory.value.shift();
   searchHistory.value.push(value);
