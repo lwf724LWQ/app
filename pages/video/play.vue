@@ -113,7 +113,9 @@
           </view>
           <view class="header-actions">
             <!-- <button class="teacher-btn" @click="toUserSpace">讲师主页</button> -->
-            <button class="follow-btn" @click="followUser">+ 关注</button>
+            <button class="follow-btn" v-if="followStatus != 2" @click="followUser">
+              {{ followStatus == 0 ? "关注" : "取关" }}
+            </button>
           </view>
         </view>
 
@@ -152,9 +154,8 @@ import {
   apiGetVideo,
   apiWordQuery,
   apiGetVideoDetail,
-  userFollowApi,
   cancelUserFollowApi,
-  getUserFollowApi,
+  userFollowApi,
 } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
@@ -210,24 +211,7 @@ const getAvatarUrl = (himg) => {
   return `http://video.caimizm.com/himg/${himg}`;
 };
 
-const checkFollowStatus = async () => {
-//   debugger;
-//   const response = await getUserFollowApi({
-//     account: videoData.value.account,
-//   });
-//   if (response.code == 200) {
-//     if (response.data.length > 0) {
-//       return true;
-//     }
-//   }
-//   return false;
-};
-
-const followUser = () => {
-  // userFollowApi
-  // cancelUserFollowApi
-};
-
+const followStatus = ref(2);
 // 加载视频数据的统一方法
 const loadVideoData = async (videoId) => {
   if (!videoId) {
@@ -245,7 +229,8 @@ const loadVideoData = async (videoId) => {
 
     let currentVideo = {};
 
-    const item = response.data;
+    followStatus.value = response.data.flag;
+    const item = response.data.video;
     currentVideo = {
       id: item.id,
       title: item.title,
@@ -264,6 +249,13 @@ const loadVideoData = async (videoId) => {
     } else {
       hasPaid.value = true;
     }
+
+    // 如果是本人，则放行
+    if (followStatus.value == 2) {
+      hasPaid.value = true;
+      isPay = true;
+    }
+
     if (isPay && !videoData.value?.src?.indexOf("blob") == 0) {
       // 这里判断已经付费才加载视频
       currentVideo.src = await toBlobUrlVideo(currentVideo.src);
@@ -310,6 +302,8 @@ const loadVideoData = async (videoId) => {
  */
 const toBlobUrlVideo = (videoUrl) => {
   return new Promise((resolve, reject) => {
+    resolve(videoUrl);
+    return;
     // #ifndef H5
     resolve(videoUrl);
     return;
@@ -331,6 +325,35 @@ const toBlobUrlVideo = (videoUrl) => {
       });
   });
 };
+async function followUser() {
+  uni.showLoading({
+    title: "正在处理",
+  });
+  try {
+    if (followStatus.value == 0) {
+      await userFollowApi({
+        account2: videoData.value.account,
+      });
+      followStatus.value = 1;
+    } else if (followStatus.value == 1) {
+      await cancelUserFollowApi({
+        account2: videoData.value.account,
+      });
+      followStatus.value = 0;
+    }
+
+    uni.showToast({
+      title: "操作成功",
+      icon: "success",
+    });
+  } catch {
+    uni.showToast({
+      title: "操作失败",
+      icon: "success",
+    });
+  }
+  uni.hideLoading();
+}
 
 // 跳转到首页
 const toIndex = () => {
@@ -380,7 +403,6 @@ onLoad(async (options) => {
 onShow(async () => {
   // 重新检查付费状态
   await loadVideoData(videoId);
-  checkFollowStatus();
 });
 
 // 在onMounted中初始化视频上下文
