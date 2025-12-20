@@ -55,12 +55,12 @@ export default {
           icon: homeimg,
           selectedIcon: homeselectimg,
         },
-        {
-          text: "体彩",
-          path: "/pages/zc/index",
-          icon: zc,
-          selectedIcon: zcselectimg,
-        },
+        // {
+        //   text: "体彩",
+        //   path: "/pages/zc/index",
+        //   icon: zc,
+        //   selectedIcon: zcselectimg,
+        // },
         {
           text: "视频",
           path: "/pages/video/video",

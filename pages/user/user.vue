@@ -1,15 +1,25 @@
 <template>
-  <view class="userLayout" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
+  <view
+    class="userLayout"
+    :class="useOldManModeStore.enabled ? 'old-man-mode' : ''"
+  >
     <view class="userInfo" v-if="memberStore.profile">
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar">
-            <image :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'" mode="aspectFill"
-              @error="handleAvatarError"></image>
+            <image
+              :src="
+                memberStore.profile?.avatar ||
+                'http://video.caimizm.com/himg/user.png'
+              "
+              mode="aspectFill"
+              @error="handleAvatarError"
+            ></image>
           </view>
           <view class="user-details">
-            <text class="username">{{ memberStore.profile?.nickname || '欢迎您' }}</text>
-
+            <text class="username">{{
+              memberStore.profile?.nickname || "欢迎您"
+            }}</text>
           </view>
         </view>
         <view class="edit-btn" @click="goToEditProfile">
@@ -40,7 +50,10 @@
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar gray">
-            <image src="../../static/images/defaultAvatar.png" mode="aspectFill"></image>
+            <image
+              src="../../static/images/defaultAvatar.png"
+              mode="aspectFill"
+            ></image>
           </view>
           <view class="user-details">
             <text class="username">未登录</text>
@@ -75,15 +88,19 @@
       </view>
     </view>
 
-
-
     <!-- 数据展示区域 -->
     <view class="data-section">
       <view class="data-card" @click="toggleBalanceVisibility">
-        <text class="data-number">{{ isBalanceVisible ? '0.00' : '****' }}</text>
+        <text class="data-number">{{
+          isBalanceVisible ? "0.00" : "****"
+        }}</text>
         <text class="data-label">我的收益</text>
         <view class="eye-icon" @click="toggleBalanceVisibility">
-          <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+          <uni-icons
+            :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'"
+            size="16"
+            color="#999"
+          ></uni-icons>
         </view>
       </view>
       <view class="data-card">
@@ -94,7 +111,11 @@
         <text class="data-label">我的金币</text>
         <!--  -->
         <view class="eye-icon" @click="toggleBalanceVisibility">
-          <uni-icons :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'" size="16" color="#999"></uni-icons>
+          <uni-icons
+            :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'"
+            size="16"
+            color="#999"
+          ></uni-icons>
         </view>
       </view>
     </view>
@@ -148,17 +169,19 @@
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
           <text class="service-text">分享</text>
         </view>
-        <view class="service-item" @click="showAboutAs">
+        <!-- <view class="service-item" @click="showAboutAs">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
-        </view>
+        </view> -->
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
         </view>
         <view class="service-item" @click="toggleoldManMode">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
-          <text class="service-text">切换{{ useOldManModeStore.enabled ? '小字' : '大字' }}</text>
+          <text class="service-text"
+            >切换{{ useOldManModeStore.enabled ? "小字" : "大字" }}</text
+          >
         </view>
         <view class="service-item" @click="logout">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
@@ -173,226 +196,223 @@
 <script setup>
 import { ref, reactive, onMounted, inject } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { getNavBarHeight } from "@/utils/system.js"
+import { getNavBarHeight } from "@/utils/system.js";
 import { getToken, removeToken, getAccount } from "@/utils/request.js";
 import { apiGetUserBalance, apiUserimg } from "@/api/apis.js";
 import tool from "../../utils/tool";
-import { useUserStore } from '@/stores/userStore'
-import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
+import { useUserStore } from "@/stores/userStore";
+import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import { getUserFollowCountApi } from "@/api/apis";
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
 const memberStore = reactive({
-  profile: null
+  profile: null,
 });
 
 // 金币显示状态
-const isBalanceVisible = ref(false)
+const isBalanceVisible = ref(false);
 // 用户金币余额
-const userBalance = ref(0)
+const userBalance = ref(0);
 // 请求锁 - 防止重复请求
-const isLoadingBalance = ref(false)
-const isLoadingLogin = ref(false)
+const isLoadingBalance = ref(false);
+const isLoadingLogin = ref(false);
 
 // 处理头像加载错误
 const handleAvatarError = (e) => {
   // 头像加载失败时使用默认头像
   if (memberStore.profile) {
-    memberStore.profile.avatar = 'http://video.caimizm.com/himg/user.png'
+    memberStore.profile.avatar = "http://video.caimizm.com/himg/user.png";
   }
-}
+};
 const toShare = () => {
-  uni.navigateTo({ url: '/pages/share/share' });
-}
+  uni.navigateTo({ url: "/pages/share/share" });
+};
 // 获取用户金币余额
 const getUserBalance = async () => {
   // 防止重复请求
   if (isLoadingBalance.value) {
-    console.log('正在加载余额，跳过重复请求')
-    return
+    console.log("正在加载余额，跳过重复请求");
+    return;
   }
 
   try {
-    isLoadingBalance.value = true
-    const account = getAccount()
+    isLoadingBalance.value = true;
+    const account = getAccount();
 
     if (!account) {
-      userBalance.value = 0
-      return
+      userBalance.value = 0;
+      return;
     }
 
-    const response = await apiGetUserBalance({ account })
+    const response = await apiGetUserBalance({ account });
 
     if (response.code === 200) {
-      userBalance.value = response.data || 0
+      userBalance.value = response.data || 0;
     } else {
-      userBalance.value = 0
+      userBalance.value = 0;
     }
   } catch (error) {
-    console.error('获取余额失败:', error)
-    userBalance.value = 0
+    console.error("获取余额失败:", error);
+    userBalance.value = 0;
   } finally {
-    isLoadingBalance.value = false
+    isLoadingBalance.value = false;
   }
-}
+};
 
 async function getUserInfo() {
   try {
-    const savedUserInfo = userStore.getUserInfo
+    const savedUserInfo = userStore.getUserInfo;
     memberStore.profile = {
-      avatar: savedUserInfo.avatar || 'http://video.caimizm.com/himg/user.png',
-      nickname: savedUserInfo.nickname || '欢迎您'
+      avatar: savedUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
+      nickname: savedUserInfo.nickname || "欢迎您",
     };
 
-    const res = await apiUserimg({ account: savedUserInfo.account })
-    const avatar = `http://video.caimizm.com/himg/${res.data.himg}`
+    const res = await apiUserimg({ account: savedUserInfo.account });
+    const avatar = `http://video.caimizm.com/himg/${res.data.himg}`;
     userStore.updateUserInfo({
       nickname: res.data.uname,
       avatar: avatar,
-      account: res.data.account
-    })
+      account: res.data.account,
+    });
 
     memberStore.profile = {
-      avatar: avatar || 'http://video.caimizm.com/himg/user.png',
-      nickname: res.data.uname || '欢迎您'
+      avatar: avatar || "http://video.caimizm.com/himg/user.png",
+      nickname: res.data.uname || "欢迎您",
     };
-
   } catch (error) {
     uni.showToast({
-      title: "获取用户数据失败"
-    })
+      title: "获取用户数据失败",
+    });
   }
-
 }
 
 // 检查登录状态
 const checkLoginStatus = async () => {
   // 防止重复请求
   if (isLoadingLogin.value) {
-    console.log('正在检查登录状态，跳过重复请求')
-    return
+    console.log("正在检查登录状态，跳过重复请求");
+    return;
   }
 
   try {
-    isLoadingLogin.value = true
+    isLoadingLogin.value = true;
     const token = getToken();
     if (token) {
       // 获取用户余额
-      getUserBalance()
+      getUserBalance();
 
       // 获取用户数据
-      getUserInfo()
+      getUserInfo();
     } else {
       // 没有token表示未登录
       memberStore.profile = null;
-      userBalance.value = 0
+      userBalance.value = 0;
     }
   } finally {
-    isLoadingLogin.value = false
+    isLoadingLogin.value = false;
   }
-}
+};
 
 // 判断是否登录，否则弹框
 function requireLogin() {
-
-  console.log(123)
+  console.log(123);
   if (!memberStore.profile) {
     uni.showToast({
-      title: '请先登录',
-      icon: 'none',
-      duration: 2000
-    })
-    return false
+      title: "请先登录",
+      icon: "none",
+      duration: 2000,
+    });
+    return false;
   }
-  return true
+  return true;
 }
 
 // 退出登录
 const logout = () => {
   uni.showModal({
-    title: '确认退出',
-    content: '确定要退出登录吗？',
+    title: "确认退出",
+    content: "确定要退出登录吗？",
     success: (res) => {
       if (res.confirm) {
-        userStore.clearUserInfo()
+        userStore.clearUserInfo();
         // 更新登录状态
         checkLoginStatus();
         // 显示退出成功提示
         uni.showToast({
-          title: '已退出登录',
-          icon: 'success'
+          title: "已退出登录",
+          icon: "success",
         });
       }
-    }
+    },
   });
-}
+};
 const showAboutAs = () => {
   uni.navigateTo({
-    url: '/pages/login/agreement?type=AboutAs',
-  })
-}
+    url: "/pages/login/agreement?type=AboutAs",
+  });
+};
 // 跳转到帖子列表
 const goToPostlist = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/user/post-list' });
+    uni.navigateTo({ url: "/pages/user/post-list" });
   }
-}
+};
 
 // 跳转到关注列表
 const goToFollowlist = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/user/follow-list' });
+    uni.navigateTo({ url: "/pages/user/follow-list" });
   }
-}
+};
 const goToFanslist = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/user/fans-list' });
+    uni.navigateTo({ url: "/pages/user/fans-list" });
   }
-}
+};
 // 跳转到反馈页面
 const toFeedBack = () => {
   if (requireLogin()) {
     uni.navigateTo({ url: "/pages/user/feedbackPage" });
   }
-}
+};
 
 // 跳转到充值页面
 const goToRecharge = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/recharge/recharge' });
+    uni.navigateTo({ url: "/pages/recharge/recharge" });
   }
 };
 
 // 跳转到交易记录页面
 const goToTransaction = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/transaction/transaction' });
+    uni.navigateTo({ url: "/pages/transaction/transaction" });
   }
 };
 
 // 跳转到订单页面
 const goToOrders = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: '/pages/orders/orders' });
+    uni.navigateTo({ url: "/pages/orders/orders" });
   }
 };
 
 // 跳转到登录页面
 const goToLogin = () => {
-  uni.navigateTo({ url: '/pages/login/login' });
+  uni.navigateTo({ url: "/pages/login/login" });
 };
 
 // 跳转到编辑用户信息页面
 const goToEditProfile = () => {
   if (!memberStore.profile) {
     uni.showToast({
-      title: '请先登录',
-      icon: 'none'
+      title: "请先登录",
+      icon: "none",
     });
     return;
   }
-  uni.navigateTo({ url: '/pages/user/edit-profile' });
+  uni.navigateTo({ url: "/pages/user/edit-profile" });
 };
 
 // 切换金币显示状态
@@ -408,29 +428,29 @@ const toggleBalanceVisibility = (e) => {
 
 // 功能栏点击事件
 const handleFeatureClick = (featureName) => {
-  if (featureName === '充值') {
+  if (featureName === "充值") {
     uni.showToast({
       title: '请点击上方的"我的金币"进行充值',
-      icon: 'none',
+      icon: "none",
     });
   } else {
     uni.showToast({
       title: `点击了「${featureName}」`,
-      icon: 'none',
+      icon: "none",
     });
   }
 };
 
 // 菜单项点击事件
 const handleMenuClick = (item) => {
-  if (item.title === '设置') {
+  if (item.title === "设置") {
     // 设置菜单项直接调用退出登录功能
     logout();
   } else {
     // 其他菜单项显示提示
     uni.showToast({
       title: `点击了「${item.title}」`,
-      icon: 'none',
+      icon: "none",
     });
   }
 
@@ -446,36 +466,43 @@ onShow(() => {
   checkLoginStatus();
 });
 
-const useOldManModeStore = inject('useOldManModeStore')
+const useOldManModeStore = inject("useOldManModeStore");
 function toggleoldManMode() {
-  useOldManModeStore.toggleMode()
+  useOldManModeStore.toggleMode();
 }
 
 function checkUpdate() {
   tool.checkAppUpdate().then((msg) => {
     if (msg) {
       uni.showToast({
-        title: msg
-      })
+        title: msg,
+      });
     }
-  })
+  });
 }
 
-const followCount = ref(0)
-const fansCount = ref(0)
-const postCount = ref(0)
+const followCount = ref(0);
+const fansCount = ref(0);
+const postCount = ref(0);
 const getUserFollowCount = async () => {
-    const res = await getUserFollowCountApi({account:userStore.userInfo.account})
-    followCount.value = res.data.guanzhu
-    fansCount.value = res.data.fensi
-    postCount.value = res.data.fatie
-}
-getUserFollowCount()
+  const res = await getUserFollowCountApi({
+    account: userStore.userInfo.account,
+  });
+  followCount.value = res.data.guanzhu;
+  fansCount.value = res.data.fensi;
+  postCount.value = res.data.fatie;
+};
+getUserFollowCount();
 </script>
 
 <style lang="scss" scoped>
 .userLayout:not(.old-man-mode) {
-  background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
+  background: linear-gradient(
+    180deg,
+    #fffbcbf0 0%,
+    #f7f7f7 50%,
+    #f0ecec00 100%
+  );
   min-height: 100vh;
   overflow-y: auto;
   padding-top: var(--status-bar-height);
@@ -581,7 +608,6 @@ getUserFollowCount()
       filter: grayscale(100%);
     }
   }
-
 
   /* 邀请好友横幅 */
   .invite-banner {
@@ -864,10 +890,13 @@ getUserFollowCount()
   }
 }
 
-
-
 .userLayout.old-man-mode {
-  background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
+  background: linear-gradient(
+    180deg,
+    #fffbcbf0 0%,
+    #f7f7f7 50%,
+    #f0ecec00 100%
+  );
   min-height: 100vh;
   overflow-y: auto;
   padding-top: var(--status-bar-height);

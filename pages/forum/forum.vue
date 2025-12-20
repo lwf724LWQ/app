@@ -404,21 +404,21 @@
                 </view>
                 <text class="btn-text">规律帖(上传规律)</text>
               </view>
-              <view class="function-btn" @click="selectFunction('filter')">
+              <!-- <view class="function-btn" @click="selectFunction('filter')">
                 <view class="btn-icon filter-icon">
                   <uni-icons type="gear" size="24" color="#fff"></uni-icons>
                 </view>
                 <text class="btn-text">过滤王帖(免审)</text>
-              </view>
+              </view> -->
             </view>
-            <view class="button-row">
+            <!-- <view class="button-row">
               <view class="function-btn" @click="selectFunction('soup')">
                 <view class="btn-icon soup-icon">
                   <uni-icons type="coffee" size="24" color="#fff"></uni-icons>
                 </view>
                 <text class="btn-text">老母鸡汤</text>
               </view>
-            </view>
+            </view> -->
           </view>
         </view>
 
@@ -1665,9 +1665,9 @@ const optimizeTouchEvents = () => {
 
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
-  post.account = post.username
-  post.issueno = post.period
-  post.tname = currentLotteryType.value.name
+  post.account = post.username;
+  post.issueno = post.period;
+  post.tname = currentLotteryType.value.name;
   forumToos.handleAppendPost(post);
 };
 
