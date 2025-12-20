@@ -346,6 +346,7 @@ export default {
         // 保持默认数据，不显示错误提示
       } finally {
         this.isLoadingResults = false;
+        uni.stopPullDownRefresh();
       }
     },
     // 解析中奖号码（支持字符串和数组格式）
@@ -418,6 +419,9 @@ export default {
   },
   onLoad() {
     tool.checkAppUpdate();
+  },
+  onPullDownRefresh() {
+    this.loadLotteryResults();
   },
 };
 </script>

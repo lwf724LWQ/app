@@ -2,15 +2,15 @@
   <view class="forum-container">
     <!-- 主导航栏 -->
     <view class="main-navbar">
-      <view class="nav-left">
+      <!-- <view class="nav-left">
         <uni-icons type="list" size="20" color="#fff"></uni-icons>
         <text class="nav-text">说明</text>
-      </view>
+      </view> -->
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
-          <text class="period-text"
-            >{{ currentLotteryType.name }} {{ currentLotteryType.status }}</text
-          >
+          <text class="period-text">
+            {{ currentLotteryType.name }} {{ currentLotteryType.status }}
+          </text>
           <uni-icons
             type="arrowdown"
             size="16"
@@ -21,11 +21,7 @@
       </view>
 
       <!-- 期号下拉菜单遮罩 -->
-      <view
-        v-if="showPeriodDropdown"
-        class="dropdown-mask"
-        @click="closePeriodDropdown"
-      ></view>
+      <view v-if="showPeriodDropdown" class="dropdown-mask" @click="closePeriodDropdown"></view>
 
       <!-- 期号下拉菜单 -->
       <view v-if="showPeriodDropdown" class="period-dropdown" @click.stop>
@@ -43,23 +39,21 @@
             :key="lotteryType.id"
             @click="selectLotteryType(lotteryType)"
           >
-            <text class="period-item-text"
-              >{{ lotteryType.name }} {{ lotteryType.status }}</text
-            >
+            <text class="period-item-text">{{ lotteryType.name }} {{ lotteryType.status }}</text>
             <text class="period-item-time">{{ lotteryType.time }}</text>
           </view>
         </scroll-view>
       </view>
-      <view class="nav-right" @click="showPublishModal">
+      <!-- <view class="nav-right" @click="showPublishModal">
         <view class="post-icon">
           <uni-icons type="plus" size="20" color="#fff"></uni-icons>
         </view>
         <text class="nav-text">发帖</text>
-      </view>
+      </view> -->
     </view>
 
     <!-- 切换标签栏 -->
-    <view class="switch-tabs">
+    <!-- <view class="switch-tabs">
       <view
         class="tab-item"
         :class="{ active: activeTab === 'headlines' }"
@@ -81,14 +75,10 @@
       >
         <text class="tab-text">预测</text>
       </view>
-      <view
-        class="tab-item"
-        :class="{ active: activeTab === 'soup' }"
-        @click="switchTab('soup')"
-      >
+      <view class="tab-item" :class="{ active: activeTab === 'soup' }" @click="switchTab('soup')">
         <text class="tab-text">鸡汤</text>
       </view>
-    </view>
+    </view> -->
 
     <!-- 搜索栏 -->
     <view class="search-header">
@@ -113,10 +103,7 @@
     </view>
 
     <!-- 搜索建议下拉框 -->
-    <view
-      v-if="showSearchSuggestions && searchSuggestions.length > 0"
-      class="search-suggestions"
-    >
+    <view v-if="showSearchSuggestions && searchSuggestions.length > 0" class="search-suggestions">
       <view
         class="suggestion-item"
         v-for="(suggestion, index) in searchSuggestions"
@@ -156,11 +143,7 @@
       <!-- 头条内容 -->
       <view v-if="activeTab === 'headlines'" class="tab-content">
         <view class="headlines-list">
-          <view
-            class="headline-item"
-            v-for="(headline, index) in headlinesList"
-            :key="index"
-          >
+          <view class="headline-item" v-for="(headline, index) in headlinesList" :key="index">
             <view class="headline-header">
               <text class="headline-title">{{ headline.title }}</text>
               <text class="headline-time">{{ headline.time }}</text>
@@ -177,11 +160,7 @@
       <!-- 关注内容 -->
       <view v-if="activeTab === 'follow'" class="tab-content">
         <view class="follow-list">
-          <view
-            class="follow-item"
-            v-for="(follow, index) in followList"
-            :key="index"
-          >
+          <view class="follow-item" v-for="(follow, index) in followList" :key="index">
             <view class="follow-header">
               <image :src="follow.avatar" class="user-avatar"></image>
               <view class="user-info">
@@ -201,9 +180,7 @@
       <view v-if="activeTab === 'predict'" class="tab-content">
         <!-- 搜索状态提示 -->
         <view v-if="isSearching && searchKeyword" class="search-status">
-          <text class="search-status-text"
-            >搜索"{{ searchKeyword }}"的结果</text
-          >
+          <text class="search-status-text">搜索"{{ searchKeyword }}"的结果</text>
           <text class="search-count">共{{ filteredPredictList.length }}条</text>
         </view>
 
@@ -223,13 +200,9 @@
                   <text class="username">{{ item.username }}</text>
                 </view>
               </view>
-              <view class="more-options">
-                <uni-icons
-                  type="more-filled"
-                  size="20"
-                  color="#999"
-                ></uni-icons>
-              </view>
+              <!-- <view class="more-options">
+                <uni-icons type="more-filled" size="20" color="#999"></uni-icons>
+              </view> -->
             </view>
 
             <!-- 期号和时间 -->
@@ -289,22 +262,17 @@
                   size="18"
                   :color="item.isLiked ? '#ff4757' : '#999'"
                 ></uni-icons>
-                <text class="count" :class="{ liked: item.isLiked }">{{
-                  item.likes
-                }}</text>
+                <text class="count" :class="{ liked: item.isLiked }">{{ item.likes }}</text>
               </view>
-              <view class="action-item">
+              <!-- <view class="action-item">
                 <uni-icons type="redo" size="18" color="#999"></uni-icons>
                 <text class="count">{{ item.shares }}</text>
               </view>
               <view class="action-item">
                 <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
                 <text class="count">{{ item.comments }}</text>
-              </view>
-              <view
-                class="action-item append-btn"
-                @click="handleAppendPost(item)"
-              >
+              </view> -->
+              <view class="action-item append-btn" @click="handleAppendPost(item)">
                 <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
                 <text class="count">追帖</text>
               </view>
@@ -321,11 +289,7 @@
       <!-- 鸡汤内容 -->
       <view v-if="activeTab === 'soup'" class="tab-content">
         <view class="soup-list">
-          <view
-            class="soup-item"
-            v-for="(soup, index) in soupList"
-            :key="index"
-          >
+          <view class="soup-item" v-for="(soup, index) in soupList" :key="index">
             <view class="soup-header">
               <image :src="soup.avatar" class="user-avatar"></image>
               <view class="user-info">
@@ -423,9 +387,7 @@
         </view>
 
         <view class="modal-footer">
-          <button class="close-btn-modal" @click="hidePublishModal">
-            关闭
-          </button>
+          <button class="close-btn-modal" @click="hidePublishModal">关闭</button>
         </view>
       </view>
     </uni-popup>
@@ -438,19 +400,14 @@
     ></view>
 
     <!-- 筛选弹窗 -->
-    <view
-      v-if="showFilterDialog"
-      class="filter-dialog-mask"
-      @click="hideFilterModal"
-    >
+    <view v-if="showFilterDialog" class="filter-dialog-mask" @click="hideFilterModal">
       <view class="filter-dialog" @click.stop>
         <!-- 弹窗头部 -->
         <view class="filter-header">
           <text class="filter-title">心水预测</text>
-          <text class="filter-period"
-            >第{{ currentLotteryType.name }}期
-            {{ currentLotteryType.status }}</text
-          >
+          <text class="filter-period">
+            第{{ currentLotteryType.name }}期 {{ currentLotteryType.status }}
+          </text>
         </view>
 
         <!-- 心水预测筛选 -->
@@ -488,9 +445,7 @@
         <!-- 搜索按钮 -->
         <view class="filter-footer">
           <view class="filter-buttons">
-            <button class="clear-filter-btn" @click="clearFilterSelection">
-              清空
-            </button>
+            <button class="clear-filter-btn" @click="clearFilterSelection">清空</button>
             <button class="search-btn" @click="performSearch">
               {{ getSearchButtonText() }}
             </button>
@@ -650,8 +605,7 @@ const headlinesList = ref([
   {
     id: 1,
     title: "2024年彩票行业最新政策解读",
-    content:
-      "国家彩票管理中心发布最新政策，对彩票销售和兑奖流程进行了优化调整...",
+    content: "国家彩票管理中心发布最新政策，对彩票销售和兑奖流程进行了优化调整...",
     time: "2小时前",
     views: 1256,
     likes: 89,
@@ -737,8 +691,7 @@ const soupList = ref([
     username: "励志达人",
     avatar: "/static/images/defaultAvatar.png",
     time: "6小时前",
-    content:
-      "人生就像选号，没有标准答案，但有无数种可能。勇敢尝试，坚持梦想，你就是自己的幸运星。",
+    content: "人生就像选号，没有标准答案，但有无数种可能。勇敢尝试，坚持梦想，你就是自己的幸运星。",
     likes: 89,
     comments: 34,
   },
@@ -828,23 +781,15 @@ const loadLotteryDataByType = async (lotteryType) => {
     const response = await apiGetIssueNo({ tname: lotteryType.name });
     uni.hideLoading();
 
-    if (
-      response.code === 200 &&
-      response.data !== null &&
-      response.data !== undefined
-    ) {
+    if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
       let issueStatus = "待开奖";
       let issueTime = "今天 21:30";
 
-      if (
-        typeof response.data === "number" ||
-        typeof response.data === "string"
-      ) {
+      if (typeof response.data === "number" || typeof response.data === "string") {
         issueNumber = response.data.toString();
       } else if (typeof response.data === "object") {
-        issueNumber =
-          response.data.issueno || response.data.number || response.data.id;
+        issueNumber = response.data.issueno || response.data.number || response.data.id;
         issueStatus = response.data.status || "待开奖";
         issueTime = response.data.time || "今天 21:30";
       }
@@ -860,9 +805,7 @@ const loadLotteryDataByType = async (lotteryType) => {
       }
 
       // 更新到lotteryTypes数组中对应的项
-      const index = lotteryTypes.value.findIndex(
-        (type) => type.code === lotteryType.code
-      );
+      const index = lotteryTypes.value.findIndex((type) => type.code === lotteryType.code);
       if (index !== -1) {
         lotteryTypes.value[index].status = issueStatus;
         lotteryTypes.value[index].time = issueTime;
@@ -909,9 +852,7 @@ const onRefresh = async () => {
 
 // 根据彩票类型加载数据（兼容旧接口，通过code查找）
 const loadLotteryData = async (lotteryCode) => {
-  const lotteryType = lotteryTypes.value.find(
-    (type) => type.code === lotteryCode
-  );
+  const lotteryType = lotteryTypes.value.find((type) => type.code === lotteryCode);
   if (!lotteryType) {
     return;
   }
@@ -1235,10 +1176,7 @@ const performFilterSearch = (filters) => {
       const predictionFilter = selectedPredictionFilter.value.toLowerCase();
 
       // 在帖子内容中搜索匹配的筛选条件
-      if (
-        post.content &&
-        post.content.toLowerCase().includes(predictionFilter)
-      ) {
+      if (post.content && post.content.toLowerCase().includes(predictionFilter)) {
         matches = true;
       }
 
@@ -1251,51 +1189,27 @@ const performFilterSearch = (filters) => {
         matches = true;
       }
 
-      if (
-        predictionFilter === "芝麻" &&
-        post.content &&
-        post.content.includes("芝麻")
-      ) {
+      if (predictionFilter === "芝麻" && post.content && post.content.includes("芝麻")) {
         matches = true;
       }
 
-      if (
-        predictionFilter === "中肚" &&
-        post.content &&
-        post.content.includes("中肚")
-      ) {
+      if (predictionFilter === "中肚" && post.content && post.content.includes("中肚")) {
         matches = true;
       }
 
-      if (
-        predictionFilter.includes("定") &&
-        post.content &&
-        post.content.includes("定")
-      ) {
+      if (predictionFilter.includes("定") && post.content && post.content.includes("定")) {
         matches = true;
       }
 
-      if (
-        predictionFilter.includes("杀") &&
-        post.content &&
-        post.content.includes("杀")
-      ) {
+      if (predictionFilter.includes("杀") && post.content && post.content.includes("杀")) {
         matches = true;
       }
 
-      if (
-        predictionFilter.includes("合") &&
-        post.content &&
-        post.content.includes("合")
-      ) {
+      if (predictionFilter.includes("合") && post.content && post.content.includes("合")) {
         matches = true;
       }
 
-      if (
-        predictionFilter.includes("过滤王") &&
-        post.content &&
-        post.content.includes("过滤王")
-      ) {
+      if (predictionFilter.includes("过滤王") && post.content && post.content.includes("过滤王")) {
         matches = true;
       }
     }
@@ -1304,19 +1218,11 @@ const performFilterSearch = (filters) => {
     if (selectedOtherFilter.value) {
       const otherFilter = selectedOtherFilter.value.toLowerCase();
 
-      if (
-        otherFilter === "大师帖子" &&
-        post.content &&
-        post.content.includes("大师")
-      ) {
+      if (otherFilter === "大师帖子" && post.content && post.content.includes("大师")) {
         matches = true;
       }
 
-      if (
-        otherFilter === "靓规贴子" &&
-        post.content &&
-        post.content.includes("靓规")
-      ) {
+      if (otherFilter === "靓规贴子" && post.content && post.content.includes("靓规")) {
         matches = true;
       }
 
@@ -1366,8 +1272,7 @@ const loadPredictPosts = async () => {
 
   // 构建查询参数
   const tname = currentLotteryType.value?.name;
-  const issueno =
-    currentIssueInfo.value?.number || currentIssueInfo.value?.id || "--";
+  const issueno = currentIssueInfo.value?.number || currentIssueInfo.value?.id || "--";
 
   // 如果参数不完整，不执行请求
   if (!tname || !issueno) {
@@ -1400,11 +1305,7 @@ const loadPredictPosts = async () => {
     let allPosts = [];
 
     if (response.code === 200) {
-      if (
-        response.data &&
-        response.data.records &&
-        Array.isArray(response.data.records)
-      ) {
+      if (response.data && response.data.records && Array.isArray(response.data.records)) {
         allPosts = [...response.data.records];
       }
     }
@@ -1622,17 +1523,13 @@ const handleLike = async (post) => {
 // 更新列表中的帖子数据
 const updatePostInList = (updatedPost) => {
   // 更新原始列表
-  const originalIndex = predictList.value.findIndex(
-    (p) => p.id === updatedPost.id
-  );
+  const originalIndex = predictList.value.findIndex((p) => p.id === updatedPost.id);
   if (originalIndex !== -1) {
     predictList.value[originalIndex] = { ...updatedPost };
   }
 
   // 更新筛选列表
-  const filteredIndex = filteredPredictList.value.findIndex(
-    (p) => p.id === updatedPost.id
-  );
+  const filteredIndex = filteredPredictList.value.findIndex((p) => p.id === updatedPost.id);
   if (filteredIndex !== -1) {
     filteredPredictList.value[filteredIndex] = { ...updatedPost };
   }
