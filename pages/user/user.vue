@@ -1,25 +1,17 @@
 <template>
-  <view
-    class="userLayout"
-    :class="useOldManModeStore.enabled ? 'old-man-mode' : ''"
-  >
+  <view class="userLayout" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <view class="userInfo" v-if="memberStore.profile">
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar">
             <image
-              :src="
-                memberStore.profile?.avatar ||
-                'http://video.caimizm.com/himg/user.png'
-              "
+              :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'"
               mode="aspectFill"
               @error="handleAvatarError"
             ></image>
           </view>
           <view class="user-details">
-            <text class="username">{{
-              memberStore.profile?.nickname || "欢迎您"
-            }}</text>
+            <text class="username">{{ memberStore.profile?.nickname || "欢迎您" }}</text>
           </view>
         </view>
         <view class="edit-btn" @click="goToEditProfile">
@@ -50,10 +42,7 @@
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar gray">
-            <image
-              src="../../static/images/defaultAvatar.png"
-              mode="aspectFill"
-            ></image>
+            <image src="../../static/images/defaultAvatar.png" mode="aspectFill"></image>
           </view>
           <view class="user-details">
             <text class="username">未登录</text>
@@ -91,9 +80,7 @@
     <!-- 数据展示区域 -->
     <view class="data-section">
       <view class="data-card" @click="toggleBalanceVisibility">
-        <text class="data-number">{{
-          isBalanceVisible ? "0.00" : "****"
-        }}</text>
+        <text class="data-number">{{ isBalanceVisible ? "0.00" : "****" }}</text>
         <text class="data-label">我的收益</text>
         <view class="eye-icon" @click="toggleBalanceVisibility">
           <uni-icons
@@ -179,9 +166,7 @@
         </view>
         <view class="service-item" @click="toggleoldManMode">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
-          <text class="service-text"
-            >切换{{ useOldManModeStore.enabled ? "小字" : "大字" }}</text
-          >
+          <text class="service-text">切换{{ useOldManModeStore.enabled ? "小字" : "大字" }}</text>
         </view>
         <view class="service-item" @click="logout">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
@@ -497,12 +482,7 @@ getUserFollowCount();
 
 <style lang="scss" scoped>
 .userLayout:not(.old-man-mode) {
-  background: linear-gradient(
-    180deg,
-    #fffbcbf0 0%,
-    #f7f7f7 50%,
-    #f0ecec00 100%
-  );
+  background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
   padding-top: var(--status-bar-height);
@@ -891,12 +871,7 @@ getUserFollowCount();
 }
 
 .userLayout.old-man-mode {
-  background: linear-gradient(
-    180deg,
-    #fffbcbf0 0%,
-    #f7f7f7 50%,
-    #f0ecec00 100%
-  );
+  background: linear-gradient(180deg, #fffbcbf0 0%, #f7f7f7 50%, #f0ecec00 100%);
   min-height: 100vh;
   overflow-y: auto;
   padding-top: var(--status-bar-height);
