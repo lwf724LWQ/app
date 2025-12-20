@@ -6,7 +6,7 @@
     :class="{
       'type-1': type === '排列五',
       'type-2': type === '福彩3D',
-      'type-3': type === '七星彩'
+      'type-3': type === '七星彩',
     }"
   >
     <view
@@ -19,17 +19,37 @@
         <view class="issueno">{{ item.issueno }}</view>
         <view class="date">{{ getDate(item.opendate) }}</view>
       </view>
-      <view class="column-2">{{
-        item.number.slice(0, 4).reduce((a, b) => Number(a) + Number(b), 0)
-      }}</view>
-      <view class="column-3">
-        <view class="column-3-item" v-for="number in item.number.slice(0, 4)" :key="number">{{
-          number
-        }}</view>
+      <view class="column-2">
+        {{ item.number.slice(0, 4).reduce((a, b) => Number(a) + Number(b), 0) }}
       </view>
-      <view class="column-4" v-for="value in item.number.slice(4, 8)" :key="value">{{
-        value
-      }}</view>
+      <view class="column-3">
+        <view
+          class="column-3-item"
+          v-for="(number, index) in item.number.slice(0, 4)"
+          :key="number"
+          :class="{
+            active:
+              (number == selectNumber && selectColumn == index + 2) ||
+              (number == selectNumber && selectColumn == 'all'),
+          }"
+          @click="addSelectNumber(number, index + 2)"
+        >
+          {{ number }}
+        </view>
+      </view>
+      <view
+        class="column-4"
+        v-for="(number, index) in item.number.slice(4, 8)"
+        :key="number"
+        :class="{
+          active:
+            (number == selectNumber && selectColumn == index + 6) ||
+            (number == selectNumber && selectColumn == 'all'),
+        }"
+        @click="addSelectNumber(number, index + 6)"
+      >
+        {{ number }}
+      </view>
     </view>
     <view class="row" v-for="val in 4" :key="val">
       <view class="column-1">
@@ -59,68 +79,81 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
-import { apiTicketQuery } from '@/api/apis.js'
-import mock from '/pages/juWang/peng-liao/drawLine/mock.json'
-import { onLoad } from '@dcloudio/uni-app'
+import { ref, nextTick } from "vue";
+import { apiTicketQuery } from "@/api/apis.js";
+import { onLoad } from "@dcloudio/uni-app";
 
-const data = ref([])
+const data = ref([]);
 const getData = async () => {
   try {
-    uni.showLoading({ title: '加载中...' })
-    const res = await apiTicketQuery({ tname: type.value, page: '1', limit: 40 })
+    uni.showLoading({ title: "加载中..." });
+    const res = await apiTicketQuery({ tname: type.value, page: "1", limit: 40 });
 
-    data.value = res.data.records.reverse()
+    data.value = res.data.records.reverse();
     data.value.forEach((item) => {
-      item.number = item.number?.split(' ')
-      if (type.value === '七星彩') item.number.push(item.refernumber)
-    })
+      item.number = item.number?.split(" ");
+      if (type.value === "七星彩") item.number.push(item.refernumber);
+    });
   } finally {
-    uni.hideLoading()
+    uni.hideLoading();
   }
-
-  // data.value = mock.data.records
-  // data.value.forEach((item) => {
-  //   item.number = item.number.split(' ').slice(0, 5)
-  // })
-}
+};
 
 // 格式化日期
 const getDate = (date) => {
-  const week = ['日', '一', '二', '三', '四', '五', '六']
-  const day = new Date(date).getDay()
-  return date.replace(/-/g, '/').slice(-5) + ' ' + week[day]
-}
+  const week = ["日", "一", "二", "三", "四", "五", "六"];
+  const day = new Date(date).getDay();
+  return date.replace(/-/g, "/").slice(-5) + " " + week[day];
+};
 
-const type = ref('')
-const period = ref('')
-const scrollTop = ref(0)
+const type = ref("");
+const period = ref("");
+const scrollTop = ref(0);
 onLoad(async (options) => {
-  if (!options) return
-  type.value = options.type
-  period.value = options.period
-  await getData()
-  await nextTick()
-  scrollTop.value = 9999
-})
+  if (!options) return;
+  type.value = options.type;
+  period.value = options.period;
+  await getData();
+  await nextTick();
+  scrollTop.value = 9999;
+});
 
 const back = () => {
-  uni.navigateBack()
-}
+  uni.navigateBack();
+};
 const goDrawLine = () => {
-  uni.navigateTo({ url: '/pages/juWang/peng-liao/drawLine/drawLine?type=' + type.value })
-}
+  uni.navigateTo({ url: "/pages/juWang/peng-liao/drawLine/drawLine?type=" + type.value });
+};
 
-const top = uni.getSystemInfoSync().safeAreaInsets.top
+const top = uni.getSystemInfoSync().safeAreaInsets.top;
 
 // #ifdef MP
-const menuButtonInfo = uni.getMenuButtonBoundingClientRect()
+const menuButtonInfo = uni.getMenuButtonBoundingClientRect();
 // #endif
+
+// 选中数字
+const selectNumber = ref(null);
+const selectColumn = ref(null);
+const addSelectNumber = (number, cloumn) => {
+  if (selectColumn.value === "all" && selectNumber.value == number) {
+    selectNumber.value = null;
+    selectColumn.value = null;
+  } else if (selectNumber.value == number) {
+    selectColumn.value = "all";
+  } else {
+    selectNumber.value = number;
+    selectColumn.value = cloumn;
+  }
+};
 </script>
 
 <style lang="scss" scoped>
 .text-active {
   color: #fe3a49;
+}
+.active {
+  color: #fe3a49;
+  background-color: rgba($color: #fe3a49, $alpha: 0.2);
 }
 $border-color: #f9a29f;
 .table {
