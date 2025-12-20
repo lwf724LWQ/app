@@ -18,7 +18,7 @@
         :homeTeam="matchHeadData.homeTeamShortName"
         :matches="matchHistory.value.matchList"
       />
-      <pointTable />
+      <pointTable :data="matchTables" />
       <!-- <detailTable /> -->
       <!-- <detailTable /> -->
     </scroll-view>

@@ -30,8 +30,7 @@
             : '/static/images/defaultAvatar.png'
         "
         mode="aspectFill"
-      >
-      </image>
+      ></image>
 
       <view class="user-info">
         <view class="user-name">{{ item.uname }}</view>
@@ -42,7 +41,7 @@
         :type="item.flag ? 'default' : 'primary'"
         @click="followHandle(item.flag, item.account, item.uname)"
       >
-        {{ item.flag ? '已关注' : '关注' }}
+        {{ item.flag ? "已关注" : "关注" }}
       </button>
     </view>
 
@@ -55,71 +54,71 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
-import { cancelUserFollowApi, userFollowApi } from '@/api/apis'
-import { useUserStore } from '@/stores/userStore'
-import { ref } from 'vue'
+import { inject } from "vue";
+import { cancelUserFollowApi, userFollowApi } from "@/api/apis";
+import { useUserStore } from "@/stores/userStore";
+import { ref } from "vue";
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
-const useOldManModeStore = inject('useOldManModeStore')
+const useOldManModeStore = inject("useOldManModeStore");
 // 定义组件属性
 const props = defineProps({
   followList: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   refreshing: {
     type: Boolean,
-    default: false
+    default: false,
   },
   emptyText: {
     type: String,
-    default: '暂无数据'
-  }
-})
+    default: "暂无数据",
+  },
+});
 
 // 定义组件事件
-const emit = defineEmits(['refresh', 'userClick'])
+const emit = defineEmits(["refresh", "userClick"]);
 
 // 下拉刷新处理函数
 const onRefresh = () => {
-  emit('refresh')
-}
+  emit("refresh");
+};
 
 // 跳转到用户详情页
 const goToUserDetail = (userId) => {
-  emit('userClick', userId)
-}
+  emit("userClick", userId);
+};
 
 // 搜索用户
-const searchInputValue = ref('')
+const searchInputValue = ref("");
 const searchUser = () => {
-  emit('searchUser', searchInputValue.value)
-}
+  emit("searchUser", searchInputValue.value);
+};
 
 // 取消关注
 const followHandle = async (flag, account2, uname) => {
   if (flag) {
     uni.showModal({
-      title: '提示',
+      title: "提示",
       content: `确定取消关注用户${uname}吗？`,
       success: async (res) => {
         if (res.confirm) {
-          const res = await cancelUserFollowApi({ account: userStore.userInfo.account, account2 })
+          const res = await cancelUserFollowApi({ account: userStore.userInfo.account, account2 });
           uni.showToast({
             title: res.msg,
-            icon: 'success'
-          })
-          emit('changeFollowStatus', account2)
+            icon: "success",
+          });
+          emit("changeFollowStatus", account2);
         }
-      }
-    })
+      },
+    });
   } else {
-    const res = await userFollowApi({ account: userStore.userInfo.account, account2 })
-    emit('changeFollowStatus', account2)
+    const res = await userFollowApi({ account: userStore.userInfo.account, account2 });
+    emit("changeFollowStatus", account2);
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
