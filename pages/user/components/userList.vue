@@ -1,12 +1,4 @@
 <template>
-  <!-- 搜索用户 -->
-  <view class="search-user">
-    <view class="search-input">
-      <input placeholder="搜索用户" @confirm="searchUser" v-model.trim="searchInputValue" />
-    </view>
-    <button class="search-button" type="primary" @click="searchUser">搜索</button>
-  </view>
-
   <scroll-view
     class="follow-list"
     :class="{ oldManMode: useOldManModeStore.enabled }"
@@ -14,7 +6,7 @@
     :refresher-enabled="true"
     :refresher-triggered="refreshing"
     @refresherrefresh="onRefresh"
-    @scrolltolower="onRefresh"
+    @scrolltolower="onScrolltolower"
   >
     <view
       class="follow-item"
@@ -30,8 +22,7 @@
             : '/static/images/defaultAvatar.png'
         "
         mode="aspectFill"
-      >
-      </image>
+      ></image>
 
       <view class="user-info">
         <view class="user-name">{{ item.uname }}</view>
@@ -42,7 +33,7 @@
         :type="item.flag ? 'default' : 'primary'"
         @click="followHandle(item.flag, item.account, item.uname)"
       >
-        {{ item.flag ? '已关注' : '关注' }}
+        {{ item.flag ? "已关注" : "关注" }}
       </button>
     </view>
 
@@ -55,71 +46,68 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
-import { cancelUserFollowApi, userFollowApi } from '@/api/apis'
-import { useUserStore } from '@/stores/userStore'
-import { ref } from 'vue'
+import { inject } from "vue";
+import { cancelUserFollowApi, userFollowApi } from "@/api/apis";
+import { useUserStore } from "@/stores/userStore";
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
-const useOldManModeStore = inject('useOldManModeStore')
+const useOldManModeStore = inject("useOldManModeStore");
 // 定义组件属性
 const props = defineProps({
   followList: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   refreshing: {
     type: Boolean,
-    default: false
+    default: false,
   },
   emptyText: {
     type: String,
-    default: '暂无数据'
-  }
-})
+    default: "暂无数据",
+  },
+});
 
 // 定义组件事件
-const emit = defineEmits(['refresh', 'userClick'])
+const emit = defineEmits(["refresh", "userClick"]);
 
 // 下拉刷新处理函数
 const onRefresh = () => {
-  emit('refresh')
-}
+  emit("refresh");
+};
+
+const onScrolltolower = () => {
+  emit("reachBottom");
+};
 
 // 跳转到用户详情页
 const goToUserDetail = (userId) => {
-  emit('userClick', userId)
-}
-
-// 搜索用户
-const searchInputValue = ref('')
-const searchUser = () => {
-  emit('searchUser', searchInputValue.value)
-}
+  emit("userClick", userId);
+};
 
 // 取消关注
 const followHandle = async (flag, account2, uname) => {
   if (flag) {
     uni.showModal({
-      title: '提示',
+      title: "提示",
       content: `确定取消关注用户${uname}吗？`,
       success: async (res) => {
         if (res.confirm) {
-          const res = await cancelUserFollowApi({ account: userStore.userInfo.account, account2 })
+          const res = await cancelUserFollowApi({ account2 });
           uni.showToast({
             title: res.msg,
-            icon: 'success'
-          })
-          emit('changeFollowStatus', account2)
+            icon: "success",
+          });
+          emit("changeFollowStatus", account2);
         }
-      }
-    })
+      },
+    });
   } else {
-    const res = await userFollowApi({ account: userStore.userInfo.account, account2 })
-    emit('changeFollowStatus', account2)
+    await userFollowApi({ account2 });
+    emit("changeFollowStatus", account2);
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -143,38 +131,12 @@ const followHandle = async (flag, account2, uname) => {
   overflow: hidden;
 }
 
-.search-user {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 20rpx 0;
-  border-bottom: 1px solid #eee;
-  .search-input {
-    width: 500rpx;
-    height: 60rpx;
-    border-radius: 60rpx;
-    background-color: #eee;
-    display: flex;
-    align-items: center;
-    padding: 0 20rpx;
-  }
-  .search-button {
-    width: 120rpx;
-    height: 70rpx;
-    line-height: 70rpx;
-    font-size: 30rpx;
-    margin: 0;
-  }
-}
-
 .follow-item {
   display: flex;
   align-items: center;
-  padding: 30rpx;
+  padding: 20rpx;
   background-color: #fff;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #eee;
   .follow-button {
     width: 150rpx;
     height: 60rpx;
