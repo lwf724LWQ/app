@@ -257,13 +257,6 @@
       }
     },
     {
-      "path": "pages/user/fans-list",
-      "style": {
-        "navigationBarTitleText": "粉丝列表",
-        "navigationStyle": "custom"
-      }
-    },
-    {
       "path": "pages/user/post-list",
       "style": {
         "navigationBarTitleText": "帖子列表",
@@ -304,13 +297,13 @@
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
       }
-	},
-	{
-		"path": "pages/share/share",
-		"style": {
-			"navigationBarTitleText": "",
+    },
+    {
+      "path": "pages/share/share",
+      "style": {
+        "navigationBarTitleText": "",
         "navigationStyle": "custom"
-		}
+      }
     },
     {
       "path": "pages/index/searchUser",
@@ -318,7 +311,7 @@
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
       }
-	}
+    }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

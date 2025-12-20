@@ -301,7 +301,6 @@ const checkLoginStatus = async () => {
 
 // 判断是否登录，否则弹框
 function requireLogin() {
-  console.log(123);
   if (!memberStore.profile) {
     uni.showToast({
       title: "请先登录",
@@ -347,12 +346,12 @@ const goToPostlist = () => {
 // 跳转到关注列表
 const goToFollowlist = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: "/pages/user/follow-list" });
+    uni.navigateTo({ url: "/pages/user/follow-list?type=follow" });
   }
 };
 const goToFanslist = () => {
   if (requireLogin()) {
-    uni.navigateTo({ url: "/pages/user/fans-list" });
+    uni.navigateTo({ url: "/pages/user/follow-list?type=fans" });
   }
 };
 // 跳转到反馈页面
@@ -449,6 +448,7 @@ const handleMenuClick = (item) => {
 onShow(() => {
   // 只刷新登录状态，避免重复请求余额
   checkLoginStatus();
+  getUserFollowCount();
 });
 
 const useOldManModeStore = inject("useOldManModeStore");
@@ -470,14 +470,11 @@ const followCount = ref(0);
 const fansCount = ref(0);
 const postCount = ref(0);
 const getUserFollowCount = async () => {
-  const res = await getUserFollowCountApi({
-    account: userStore.userInfo.account,
-  });
+  const res = await getUserFollowCountApi();
   followCount.value = res.data.guanzhu;
   fansCount.value = res.data.fensi;
   postCount.value = res.data.fatie;
 };
-getUserFollowCount();
 </script>
 
 <style lang="scss" scoped>
