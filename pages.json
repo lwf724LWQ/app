@@ -310,6 +310,13 @@
 			"navigationBarTitleText": "",
         "navigationStyle": "custom"
 		}
+    },
+    {
+      "path": "pages/index/searchUser",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
 	}
   ],
   "globalStyle": {
@@ -322,7 +329,7 @@
   "tabBar": {
     "color": "#9799a5",
     "selectedColor": "#28B389",
-	"height":"0px",
+    "height": "0px",
     "list": [
       {
         "text": "推荐",

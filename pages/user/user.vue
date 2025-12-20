@@ -19,15 +19,15 @@
       <view class="user-stats">
         <view class="stat-item" @click="goToFollowlist">
           <text class="stat-label">关注</text>
-          <text class="stat-value">128</text>
+          <text class="stat-value">{{ followCount }}</text>
         </view>
         <view class="stat-item" @click="goToFanslist">
           <text class="stat-label">粉丝</text>
-          <text class="stat-value">256</text>
+          <text class="stat-value">{{ fansCount }}</text>
         </view>
         <view class="stat-item" @click="goToPostlist">
           <text class="stat-label">帖子</text>
-          <text class="stat-value">89</text>
+          <text class="stat-value">{{ postCount }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-label">评分</text>
@@ -179,6 +179,8 @@ import { apiGetUserBalance, apiUserimg } from "@/api/apis.js";
 import tool from "../../utils/tool";
 import { useUserStore } from '@/stores/userStore'
 import bottomBar from '../../components/bottom-bar/bottom-bar.vue';
+import { getUserFollowCountApi } from "@/api/apis";
+
 const userStore = useUserStore()
 
 const memberStore = reactive({
@@ -458,6 +460,17 @@ function checkUpdate() {
     }
   })
 }
+
+const followCount = ref(0)
+const fansCount = ref(0)
+const postCount = ref(0)
+const getUserFollowCount = async () => {
+    const res = await getUserFollowCountApi({account:userStore.userInfo.account})
+    followCount.value = res.data.guanzhu
+    fansCount.value = res.data.fensi
+    postCount.value = res.data.fatie
+}
+getUserFollowCount()
 </script>
 
 <style lang="scss" scoped>

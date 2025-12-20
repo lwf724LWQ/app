@@ -27,7 +27,7 @@
         ></uni-icons>
         <view class="">分享</view>
       </view>
-      <view class="" @click="saveImage">
+      <view class="" v-permission:storage="saveImage">
         <uni-icons
           custom-prefix="iconfont"
           type="icon-baocun"
@@ -72,7 +72,44 @@
           @touchmove="touchmove"
           @touchend="touchend"
         ></canvas>
-
+        <!-- 元素拖拽容器 -->
+        <movable-area class="movable-area">
+          <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
+          <movable-view
+            class="text"
+            direction="all"
+            v-for="(item, index) in textList"
+            :key="index"
+            @change="textPositionChange"
+            @touchstart="textPositionStart(index)"
+            :x="item.text.position.x"
+            :y="item.text.position.y"
+            :class="{ 'text-handle-show': index === textChangeIndex }"
+            :style="{
+              fontSize: item.style.fontSize + 'px',
+              lineHeight: item.style.fontSize + 'px',
+              borderColor: index === textChangeIndex ? item.style.color : ''
+            }"
+          >
+            <view class="text-container" :style="textStyle(index)">
+              <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
+            </view>
+            <view
+              class="text-btn-left"
+              :style="{ backgroundColor: item.style.color }"
+              @click="changeTextSolid(item.index)"
+              >透</view
+            >
+            <view
+              class="text-btn-right"
+              :style="{ backgroundColor: item.style.color }"
+              @touchstart="textTouchstart"
+              @touchmove.stop="textTouchmove($event, item.index)"
+              @touchend="textTouchend($event, index)"
+              >拉</view
+            >
+          </movable-view>
+        </movable-area>
         <uni-icons
           custom-prefix="iconfont"
           type="icon-shizi"
@@ -84,44 +121,6 @@
           @touchend="curveTouchend"
           v-show="iscurveHandleShow"
         ></uni-icons>
-        <!-- 悬浮文字，top减去容器到顶部的距离（canvas top） -->
-        <view
-          class="text"
-          :class="{ 'text-handle-show': index === textChangeIndex }"
-          v-for="(item, index) in textList"
-          :key="index"
-          :style="{
-            top: item.text.position.y - (TOP_BAR_HEIGHT + safeArea.top + menuButtonInfo) + 'px',
-            left: item.text.position.x + 'px',
-            fontSize: item.style.fontSize + 'px',
-            lineHeight: item.style.fontSize + 'px',
-            borderColor: index === textChangeIndex ? item.style.color : ''
-          }"
-        >
-          <view
-            class="text-container"
-            :style="textStyle(index)"
-            @touchstart="textPositionStart($event, index)"
-            @touchmove="textPositionMove($event, index)"
-            @touchend="textPositionEnd($event, index)"
-          >
-            <view class="text-content" :id="`text-${index}`">{{ item.text.content }}</view>
-          </view>
-          <view
-            class="text-btn-left"
-            :style="{ backgroundColor: item.style.color }"
-            @click="changeTextSolid(item.index)"
-            >透</view
-          >
-          <view
-            class="text-btn-right"
-            :style="{ backgroundColor: item.style.color }"
-            @touchstart="textTouchstart"
-            @touchmove="textTouchmove($event, item.index)"
-            @touchend="textTouchend($event, item.index)"
-            >拉</view
-          >
-        </view>
         <!-- 悬浮文字输入框 -->
         <textarea
           class="text-input"
@@ -562,10 +561,9 @@ const touchend = async (event) => {
   if (isScroll.value) return
 
   let { x, y } = event.changedTouches[0]
-  if (mode.value !== '添加文字') {
-    x = x / scale.value
-    y = y / scale.value
-  }
+  x = x / scale.value
+  y = y / scale.value
+
   // 判断是否点击
   if (isClick) {
     // 添加文字
@@ -576,8 +574,8 @@ const touchend = async (event) => {
           textChangeIndex.value = null
           return
         }
-        textPosition = { x, y: y + TOP_BAR_HEIGHT }
-        textareaPosition.value = { x, y: y + TOP_BAR_HEIGHT }
+        textPosition = { x, y }
+        textareaPosition.value = { x, y }
         isTextInputShow.value = true
       } else {
         isTextInputShow.value = false
@@ -592,8 +590,8 @@ const touchend = async (event) => {
           meta.style.height = 'auto'
           nextTick(async () => {
             const { width, height } = await getRect(`#text-${textChangeIndex.value}`)
-            meta.text.width = width + 15 * ratio * 2
-            meta.text.height = height + 5 * ratio * 2
+            meta.text.width = (width + 15 * ratio * 2) / scale.value
+            meta.text.height = (height + 5 * ratio * 2) / scale.value
             textChangeIndex.value = null
             textareaValue.value = ''
           })
@@ -619,8 +617,8 @@ const touchend = async (event) => {
           const { width, height } = await getRect(`#text-${textList.value.length - 1}`)
           const item = record.value[record.value.length - 1]
           // 加上padding
-          item.text.width = width + 15 * ratio * 2
-          item.text.height = height + 5 * ratio * 2
+          item.text.width = (width + 15 * ratio * 2) / scale.value
+          item.text.height = (height + 5 * ratio * 2) / scale.value
         })
       }
     } else {
@@ -754,8 +752,8 @@ const touchend = async (event) => {
           endPosition.x &&
           endPosition.column >= styleConfig.value.numberStartIndex
         ) {
-          curveHandleX.value = (startPosition.x / 2 + endPosition.x / 2) * scale.value
-          curveHandleY.value = (startPosition.y / 2 + endPosition.y / 2) * scale.value
+          curveHandleX.value = startPosition.x / 2 + endPosition.x / 2
+          curveHandleY.value = startPosition.y / 2 + endPosition.y / 2
           iscurveHandleShow.value = true
         } else {
           iscurveHandleShow.value = false
@@ -966,10 +964,10 @@ const curveTouchmove = (event) => {
   const { pageX, pageY } = event.touches[0]
 
   const { startX, startY, centerX, centerY, endX, endY } = curvePosition
-  curveHandleY.value = pageY - TOP_BAR_HEIGHT + scrolltop - safeArea.top
-  curveHandleX.value = pageX
-  const y = (curveHandleY.value / scale.value - centerY) * 2 + centerY
-  const x = (curveHandleX.value / scale.value - centerX) * 2 + centerX
+  curveHandleY.value = (pageY - TOP_BAR_HEIGHT + scrolltop - safeArea.top) / scale.value
+  curveHandleX.value = pageX / scale.value
+  const y = (curveHandleY.value - centerY) * 2 + centerY
+  const x = (curveHandleX.value - centerX) * 2 + centerX
   drawMethod.drawnCurveLine(
     startX,
     startY - scrolltop / scale.value,
@@ -988,8 +986,8 @@ const curveTouchmove = (event) => {
 }
 const curveTouchend = () => {
   const { startX, startY, centerX, centerY, endX, endY } = curvePosition
-  const y = (curveHandleY.value / scale.value - centerY) * 2 + centerY
-  const x = (curveHandleX.value / scale.value - centerX) * 2 + centerX
+  const y = (curveHandleY.value - centerY) * 2 + centerY
+  const x = (curveHandleX.value - centerX) * 2 + centerX
 
   const line = record.value[record.value.length - 1].line
   line.type = 'curve'
@@ -1230,10 +1228,15 @@ const popupSubmit = (val) => {
 // 滚动高度
 let scrolltop = 0
 const isScroll = ref(true)
-// let isApiScroll = false // 是否是通过API调用滚动
-
+const scrollTopRef = ref(0)
+let timer
 const scroll = (event) => {
   scrolltop = event.detail.scrollTop
+
+  if (timer) clearTimeout(timer)
+  timer = setTimeout(() => {
+    scrollTopRef.value = scrolltop
+  }, 100)
 }
 
 // 绘制图形
@@ -1269,7 +1272,6 @@ let tmpTextWidth, tmpTextHeight
 
 const changeTextFontSize = (index) => {
   const item = record.value[index]
-  // const style = item.style
   const contentLength = item.text.content.length
 
   let row = 1
@@ -1303,6 +1305,7 @@ const textTouchstart = (e) => {
 }
 
 const textTouchmove = (e, index) => {
+  e.preventDefault()
   const { pageX, pageY } = e.touches[0]
 
   const changeWidth = pageX - textStartX
@@ -1317,10 +1320,12 @@ const textTouchmove = (e, index) => {
   changeTextFontSize(index)
 }
 const textTouchend = async (e, index) => {
-  const item = record.value[index]
+  const i = textList.value[index].index
+  const item = record.value[i]
+
   const { width, height } = await getRect(`#text-${index}`)
-  item.text.width = width + 15 * ratio * 2
-  item.text.height = height + 5 * ratio * 2
+  item.text.width = (width + 15 * ratio * 2) / scale.value
+  item.text.height = (height + 5 * ratio * 2) / scale.value
 
   isTextClick = true
 }
@@ -1330,50 +1335,24 @@ const changeTextSolid = (index) => {
 }
 
 // 更新文字位置
-let tmpTextX, tmpTextY
-let isTextClick = true
-const textPositionStart = (e, index) => {
-  isScroll.value = false
-  const { pageX, pageY } = e.touches[0]
-  textStartX = pageX
-  textStartY = pageY
+let textPositionChangeTimer
+const textPositionChange = (e) => {
+  textPositionChangeTimer && clearTimeout(textPositionChangeTimer)
+  textPositionChangeTimer = setTimeout(() => {
+    const { x, y } = e.detail
 
-  const { x, y } = textList.value[index].text.position
-  tmpTextX = x
-  tmpTextY = y
+    const item = record.value[textList.value[textChangeIndex.value].index]
+    item.text.position.x = x
+    item.text.position.y = y
+  }, 100)
 }
-const textPositionMove = (e, index) => {
-  isTextClick = false
 
-  const { pageX, pageY } = e.touches[0]
-
-  const item = textList.value[index]
-  item.text.position.x = pageX - textStartX + tmpTextX
-  item.text.position.y = pageY - textStartY + tmpTextY
+const textPositionStart = (index) => {
+  textChangeIndex.value = index
 }
 
 let textChangeIndex = ref(null)
 const cursor = ref(0)
-const textPositionEnd = (e, index) => {
-  if (isTextClick) {
-    // 显示边框
-    if (textChangeIndex.value === null) {
-      textChangeIndex.value = index
-      return
-    }
-    if (textChangeIndex.value !== index) {
-      textChangeIndex.value = index
-      return
-    }
-    isTextInputShow.value = true
-    textareaValue.value = record.value[textList.value[index].index].text.content
-    const { pageX: x, pageY: y } = e.changedTouches[0]
-    textareaPosition.value = { x, y: y + scrolltop }
-    cursor.value = record.value[index].text.content.length
-    return
-  }
-  isTextClick = true
-}
 
 // 锁定页面
 const isModeSelectShow = ref(true)
@@ -1438,11 +1417,7 @@ export default {
       const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
       if (_scale < 0.6 || _scale > 2) return
       scale = _scale
-
-      const scaleEls = ['.bg-canvas', '.base-canvas', '.paint-canvas', '.content-canvas', '.active-canvas']
-      scaleEls.forEach((item) => {
-        document.querySelector(item).style.transform = `scale(${scale})`
-      })
+      document.querySelector('.container').style.transform = `scale(${scale})`
     },
     gestureend(event){
       if(!isGesture || event.touches.length > 0) return
@@ -1521,12 +1496,14 @@ page {
   .container {
     position: relative;
     height: v-bind('containerHeight + "rpx"');
+    transform-origin: 0 v-bind('gestureStartCenterY + "px"');
 
     .bg-canvas,
     .base-canvas,
     .paint-canvas,
     .content-canvas,
-    .active-canvas {
+    .active-canvas,
+    .movable-area {
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       /* #ifdef APP */
@@ -1536,13 +1513,6 @@ page {
       top: calc(-130rpx - v-bind('safeArea.top + menuButtonInfo + "px"'));
       /* #endif */
       z-index: 2;
-      // transform: scale(v-bind('scale'));
-      transform-origin: 0 v-bind('gestureStartCenterY + "px"');
-    }
-    .bg-canvas,
-    .base-canvas,
-    .content-canvas,
-    .active-canvas {
       position: absolute;
       top: 0;
     }
@@ -1552,22 +1522,22 @@ page {
       width: v-bind('cnavasWidth + "rpx"');
     }
     .paint-canvas {
-      position: fixed;
+      // 动态计算top值，保证画布在可视区域
+      top: calc(v-bind('(scrollTopRef) / scale + "px"'));
       /* #ifdef H5 */
-      top: v-bind('TOP_BAR_HEIGHT + "px"');
-      height: calc((100vh - v-bind('TOP_BAR_HEIGHT + "px"')) / v-bind('scale'));
+      height: calc((v-bind('windowHeight - TOP_BAR_HEIGHT + "px"')) / v-bind('scale'));
       /* #endif */
       /* #ifdef APP */
-      top: v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"');
-      height: calc((100vh - v-bind('TOP_BAR_HEIGHT + safeArea.top + "px"')) / v-bind('scale'));
-      /* #endif */
-      /* #ifdef MP */
-      top: v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"');
       height: calc(
-        (100vh - v-bind('safeArea.top + menuButtonInfo + TOP_BAR_HEIGHT + "px"')) / v-bind('scale')
+        (v-bind('windowHeight - TOP_BAR_HEIGHT - safeArea.top + "px"')) / v-bind('scale')
       );
       /* #endif */
-      left: 0;
+      /* #ifdef MP */
+      height: calc(
+        (v-bind('windowHeight - safeArea.top - menuButtonInfo - TOP_BAR_HEIGHT + "px"')) /
+          v-bind('scale')
+      );
+      /* #endif */
     }
     .image-canvas {
       visibility: hidden;
@@ -1575,18 +1545,16 @@ page {
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       transform: scale(0.1); // 0.1随便写，足够小即可
     }
+    .movable-area {
+      pointer-events: none;
+    }
 
     .curve-handle {
       position: absolute;
       width: 35rpx;
       height: 35rpx;
       z-index: 4;
-      /* #ifdef H5 */
       top: v-bind('curveHandleY + "px"');
-      /* #endif */
-      /* #ifdef APP */
-      top: v-bind('curveHandleY + "px"');
-      /* #endif */
       left: v-bind('curveHandleX + "px"');
       text-align: center;
       transform: translate(-50%, -50%);
@@ -1594,12 +1562,13 @@ page {
     }
 
     .text {
+      width: auto;
+      height: auto;
       padding: 9rpx;
-      position: absolute;
       border: 2px solid transparent;
       border-radius: 5rpx;
       z-index: 5;
-      // transform: scale(v-bind('scale'));
+      pointer-events: auto;
       .text-container {
         padding: 5rpx 15rpx;
         border-radius: 10rpx;
@@ -1642,11 +1611,7 @@ page {
       position: absolute;
       z-index: 5;
       left: v-bind('textareaPosition.x + "px"');
-      // top减去canvas的top
-      top: calc(
-        v-bind('textareaPosition.y - safeArea.top - menuButtonInfo + "px"') -
-          v-bind('TOP_BAR_HEIGHT + "px"')
-      );
+      top: v-bind('textareaPosition.y + "px"');
       background-color: rgba($color: #fff, $alpha: 0.8);
       transform: translate(-10%, -10%);
     }

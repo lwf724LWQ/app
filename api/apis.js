@@ -389,6 +389,56 @@ export function apiSubmitFeedback(data = {}) {
     })
 }
 
+// 用户关注列表
+export function getUserFollowApi(data = {}) {
+  return request({
+    url: "/web/follow/query",
+    method: "GET",
+    data
+  })
+}
+
+// 取消用户关注
+export function cancelUserFollowApi(data = {}) {
+  return request({
+    url: "/web/follow/delete",
+    method: "GET",
+    data
+  })
+}
+// 用户关注
+export function userFollowApi(data = {}) {
+  return request({
+    url: "/web/follow/insert",
+    method: "POST",
+    data
+  })
+}
+// 查询用户关注、粉丝总数
+export function getUserFollowCountApi(data = {}) {
+  return request({
+    url: "/web/follow/count",
+    method: "GET",
+    data
+  })
+}
+// 粉丝列表
+export function getUserFansApi(data = {}) {
+  return request({
+    url: "/web/fans/query",
+    method: "GET",
+    data
+  })
+}
+// 搜索用户
+export function searchUserApi(data = {}) {
+  return request({
+    url: "/web/user/find_by_uname",
+    method: "GET",
+    data
+  })
+}
+
 
 // 长条
 export function apiGetChangtiaoForisseno(issueno){

@@ -35,7 +35,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getCompressImage } from '@/pages/juWang/peng-liao/drawLine/utils'
 
 const share = ref(null)
 
