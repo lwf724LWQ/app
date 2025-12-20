@@ -10,8 +10,10 @@
             v-model.trim="searchInputValue"
           />
         </view>
-        <button class="search-button" type="primary" @click="searchUser">搜索</button>
       </view>
+    </template>
+    <template v-slot:right>
+      <button class="search-button" type="primary" @click="searchUser">搜索</button>
     </template>
   </TopNavigationBar>
   <!-- 搜索历史记录 -->
@@ -22,17 +24,17 @@
 </template>
 
 <script setup>
-import TopNavigationBar from '@/components/TopNavigationBar.vue'
-import { searchUserApi } from '@/api/apis'
-import { ref } from 'vue'
+import TopNavigationBar from "@/components/TopNavigationBar.vue";
+import { searchUserApi } from "@/api/apis";
+import { ref } from "vue";
 
-const searchInputValue = ref('')
-const userList = ref([])
+const searchInputValue = ref("");
+const userList = ref([]);
 const searchUser = async () => {
-  if (!searchInputValue.value) return
-  const res = await searchUserApi({ uname: searchInputValue.value })
-  userList.value = res.data
-}
+  if (!searchInputValue.value) return;
+  const res = await searchUserApi({ uname: searchInputValue.value });
+  userList.value = res.data;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -44,23 +46,25 @@ const searchUser = async () => {
   padding: 20rpx 0;
   border-bottom: 1px solid #eee;
   .search-input {
-    width: 350rpx;
+    width: 100%;
     height: 60rpx;
     border-radius: 60rpx;
     background-color: #eee;
     display: flex;
     align-items: center;
     padding: 0 20rpx;
-  }
-  .search-button {
-    width: 120rpx;
-    height: 60rpx;
-    line-height: 60rpx;
-    font-size: 30rpx;
-    margin: 0;
+    font-size: 24rpx;
   }
 }
-
+.search-button {
+  width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 30rpx;
+  margin: 0;
+  padding: 0;
+  margin-left: 10rpx;
+}
 .search-history {
   display: flex;
   justify-content: space-between;

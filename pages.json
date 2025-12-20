@@ -327,8 +327,8 @@
     "bounce": "none"
   },
   "tabBar": {
-    "color": "#9799a5",
-    "selectedColor": "#28B389",
+    "color": "#666666",
+    "selectedColor": "#f70000",
     "height": "0px",
     "list": [
       {

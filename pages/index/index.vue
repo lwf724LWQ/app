@@ -1,8 +1,5 @@
 <template>
-  <view
-    class="lottery-container"
-    :class="useOldManModeStore.enabled ? 'old-man-mode' : ''"
-  >
+  <view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 顶部广告轮播图 -->
     <swiper
       class="ad-swiper"
@@ -15,10 +12,7 @@
     >
       <swiper-item>
         <view class="swiper-item">
-          <image
-            src="/static/4eec3b5b6deb298f7b35663a70d256bd.png"
-            mode="aspectFill"
-          ></image>
+          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
         </view>
       </swiper-item>
       <swiper-item>
@@ -37,15 +31,9 @@
             <view class="lottery-date">{{ fc3dDate }}</view>
           </view>
           <view class="winning-numbers-fc3d">
-            <view
-              class="number-wrapper"
-              v-for="(num, index) in fc3dNumbers"
-              :key="index"
-            >
+            <view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
               <view class="number-item-fc3d">{{ num }}</view>
-              <view class="number-label">{{
-                String.fromCharCode(65 + index)
-              }}</view>
+              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
             </view>
           </view>
         </view>
@@ -57,21 +45,13 @@
       <view class="lottery-results-plw">
         <view class="result-item-plw">
           <view class="result-header-plw">
-            <view class="lottery-title-plw"
-              >排列三 排列五 第{{ plwPeriod }}期</view
-            >
+            <view class="lottery-title-plw">排列三 排列五 第{{ plwPeriod }}期</view>
             <view class="lottery-date">{{ plwDate }}</view>
           </view>
           <view class="winning-numbers-plw">
-            <view
-              class="number-wrapper"
-              v-for="(num, index) in plwNumbers"
-              :key="index"
-            >
+            <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
               <view class="number-item-plw">{{ num }}</view>
-              <view class="number-label">{{
-                String.fromCharCode(65 + index)
-              }}</view>
+              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
             </view>
           </view>
         </view>
@@ -87,19 +67,14 @@
             <view class="lottery-date">{{ qxcDate }}</view>
           </view>
           <view class="winning-numbers-qxc">
-            <view
-              class="number-wrapper"
-              v-for="(num, index) in qxcNumbers"
-              :key="index"
-            >
+            <view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
               <view
                 class="number-item-qxc"
                 :class="{ 'qxc-special': index === qxcNumbers.length - 1 }"
-                >{{ num }}</view
               >
-              <view class="number-label">{{
-                String.fromCharCode(65 + index)
-              }}</view>
+                {{ num }}
+              </view>
+              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
             </view>
           </view>
         </view>
@@ -123,7 +98,8 @@
           <text>画规</text>
         </view>
         <view class="icon-item" @click="toChangtiao">
-          <image src="/static/icons/list.png" mode="aspectFit"></image>
+          <!-- <image src="/static/icons/list.png" mode="aspectFit"></image> -->
+          <uni-icons type="bars" size="20" color="#4A90E2"></uni-icons>
           <text>长条</text>
         </view>
         <!-- <view class="icon-item">
@@ -164,12 +140,13 @@
           <uni-icons type="chat" size="20" color="#4A90E2"></uni-icons>
           <text>解梦</text>
         </view>
-        <view class="icon-item">
+        <!-- <view class="icon-item">
           <image src="/static/icons/collapse.png" mode="aspectFit"></image>
           <text class="leng3">过滤王</text>
-        </view>
+        </view> -->
         <view class="icon-item" @click="goToSearchuser">
-          <image src="/static/icons/search-bar.png" mode="aspectFit"></image>
+          <!-- <image src="/static/icons/search-bar.png" mode="aspectFit"></image> -->
+          <uni-icons type="search" size="20" color="#4A90E2"></uni-icons>
           <text>彩友搜索</text>
         </view>
         <!-- <view class="icon-item icon-item-message">
@@ -421,15 +398,7 @@ export default {
         const date = new Date(dateStr);
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const day = String(date.getDate()).padStart(2, "0");
-        const weekdays = [
-          "周日",
-          "周一",
-          "周二",
-          "周三",
-          "周四",
-          "周五",
-          "周六",
-        ];
+        const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
         const weekday = weekdays[date.getDay()];
 
         return `${month}.${day} ${weekday}`;
