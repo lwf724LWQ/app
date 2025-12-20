@@ -1,1389 +1,1449 @@
 <template>
-	<view class="container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-		<view class="wrapper">
-			<view class="navbar">
-				<!-- 返回按钮 -->
-				<view class="navbar-left" @click="goBack">
-					<uni-icons type="left" size="30"></uni-icons>
-				</view>
-				<!-- 标题 -->
-				<view class="navbar-title">{{ videoData.title }}</view>
-			</view>
-			<!-- 视频播放器容器 -->
-			<view class="video-container">
-				<!-- <video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" -->
-				<video v-if="videoData.id && hasPaid" v-show="!showFormImage" :src="videoData.src" :show-play-btn="true"
-					:controls="true" :autoplay="false" :show-fullscreen-btn="true" object-fit="cover"
-					class="video-player" :class="{ 'video-full-screen': isFullScreen }" id="videoPlayer"
-					@play="onVideoPlay" @pause="onVideoPause" @ended="onVideoEnded"></video>
-				<view v-else-if="videoData.id"></view>
-				<view v-else class="video-placeholder">
-					<text class="placeholder-text">视频加载中...</text>
-				</view>
+  <view class="container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
+    <view class="wrapper">
+      <view class="navbar">
+        <!-- 返回按钮 -->
+        <view class="navbar-left" @click="goBack">
+          <uni-icons type="left" size="30"></uni-icons>
+        </view>
+        <!-- 标题 -->
+        <view class="navbar-title">{{ videoData.title }}</view>
+      </view>
+      <!-- 视频播放器容器 -->
+      <view class="video-container">
+        <!-- <video v-if="videoData.src" :src="videoData.src" :controls="isPlaying" :autoplay="false" -->
+        <video
+          v-if="videoData.id && hasPaid"
+          v-show="!showFormImage"
+          :src="videoData.src"
+          :show-play-btn="true"
+          :controls="true"
+          :autoplay="false"
+          :show-fullscreen-btn="true"
+          object-fit="cover"
+          class="video-player"
+          :class="{ 'video-full-screen': isFullScreen }"
+          id="videoPlayer"
+          @play="onVideoPlay"
+          @pause="onVideoPause"
+          @ended="onVideoEnded"
+        ></video>
+        <view v-else-if="videoData.id"></view>
+        <view v-else class="video-placeholder">
+          <text class="placeholder-text">视频加载中...</text>
+        </view>
 
-				<!-- 播放按钮遮罩层 -->
-				<view class="play-overlay" v-if="showPlayButton && !hasPaid" @click="playVideo">
-					<view class="play-button">
-						<uni-icons type="videocam" size="60" color="#fff"></uni-icons>
-					</view>
-				</view>
+        <!-- 播放按钮遮罩层 -->
+        <view class="play-overlay" v-if="showPlayButton && !hasPaid" @click="playVideo">
+          <view class="play-button">
+            <uni-icons type="videocam" size="60" color="#fff"></uni-icons>
+          </view>
+        </view>
 
-				<!-- 购买按钮（如果有价格） -->
-				<view class="buy-overlay" v-if="!hasPaid && videoData.price && videoData.price > 0"
-					@click="handleBuyClick">
-					<view class="buy-button">
-						<view class="buy-text">¥{{ videoData.price }}购买</view>
-					</view>
-				</view>
-			</view>
+        <!-- 购买按钮（如果有价格） -->
+        <view
+          class="buy-overlay"
+          v-if="!hasPaid && videoData.price && videoData.price > 0"
+          @click="handleBuyClick"
+        >
+          <view class="buy-button">
+            <view class="buy-text">¥{{ videoData.price }}购买</view>
+          </view>
+        </view>
+      </view>
 
-			<!-- 表单图片显示遮罩层（独立层级） -->
-			<cover-view class="form-image-overlay" v-show="showFormImage" @click="closeFormImage">
-				<cover-view class="form-image-container" @click.stop>
-					<cover-view class="form-image-header">
-						<cover-view class="form-image-title">开奖号码记录</cover-view>
-						<cover-view class="form-image-close" @click="closeFormImage">
-							X
-							<!-- <uni-icons type="close" size="24" color="#666"></uni-icons> -->
-						</cover-view>
-					</cover-view>
-					<cover-image :src="formImageUrl" class="form-image" mode="aspectFit" @error="handleFormImageError"
-						@load="handleFormImageLoad"></cover-image>
-					<!-- #ifdef H5 -->
-					<cover-view class="save-image-button" @click="saveImg">长按图片保存</cover-view>
-					<!-- #endif -->
-					<!-- #ifdef APP-PLUS -->
-					<cover-view class="save-image-button" @click="saveImg">保存到相册</cover-view>
-					<!-- #endif-->
-				</cover-view>
-			</cover-view>
+      <!-- 表单图片显示遮罩层（独立层级） -->
+      <cover-view class="form-image-overlay" v-show="showFormImage" @click="closeFormImage">
+        <cover-view class="form-image-container" @click.stop>
+          <cover-view class="form-image-header">
+            <cover-view class="form-image-title">开奖号码记录</cover-view>
+            <cover-view class="form-image-close" @click="closeFormImage">
+              X
+              <!-- <uni-icons type="close" size="24" color="#666"></uni-icons> -->
+            </cover-view>
+          </cover-view>
+          <cover-image
+            :src="formImageUrl"
+            class="form-image"
+            mode="aspectFit"
+            @error="handleFormImageError"
+            @load="handleFormImageLoad"
+          ></cover-image>
+          <!-- #ifdef H5 -->
+          <cover-view class="save-image-button" @click="saveImg">长按图片保存</cover-view>
+          <!-- #endif -->
+          <!-- #ifdef APP-PLUS -->
+          <cover-view class="save-image-button" @click="saveImg">保存到相册</cover-view>
+          <!-- #endif-->
+        </cover-view>
+      </cover-view>
 
-			<!-- 打赏和点赞区域 -->
-			<view class="interaction-bar">
-				<view class="reward-interaction" @click="goToRewardPage">
-					<uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
-					<text class="interaction-text">打赏 0</text>
-				</view>
-				<view class="like-interaction" :class="videoData.isLiked ? 'liked' : ''" @click="toggleLike">
-					<uni-icons :type="videoData.isLiked ? 'heart-filled' : 'heart'" size="20"
-						:color="videoData.isLiked ? '#ff4757' : '#FF9500'"></uni-icons>
-					<text class="interaction-text">点赞 {{ videoData.likeCount }}</text>
-				</view>
-			</view>
+      <!-- 打赏和点赞区域 -->
+      <view class="interaction-bar">
+        <view class="reward-interaction" @click="goToRewardPage">
+          <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
+          <text class="interaction-text">打赏 0</text>
+        </view>
+        <view
+          class="like-interaction"
+          :class="videoData.isLiked ? 'liked' : ''"
+          @click="toggleLike"
+        >
+          <uni-icons
+            :type="videoData.isLiked ? 'heart-filled' : 'heart'"
+            size="20"
+            :color="videoData.isLiked ? '#ff4757' : '#FF9500'"
+          ></uni-icons>
+          <text class="interaction-text">点赞 {{ videoData.likeCount }}</text>
+        </view>
+      </view>
 
-			<!-- 作者和视频信息 -->
-			<view class="video-info-card">
-				<view class="info-header">
-					<image v-if="userInfo.himg || userInfo.uname" :src="getAvatarUrl(userInfo.himg)"
-						@click="toUserSpace" class="author-avatar"></image>
-					<view class="author-info">
-						<text class="author-name">{{ userInfo.uname }}出品</text>
-						<text class="video-count">视频</text>
-					</view>
-					<view class="header-actions">
-						<button class="teacher-btn" @click="toUserSpace">讲师主页</button>
-						<button class="follow-btn">+ 关注</button>
-					</view>
-				</view>
+      <!-- 作者和视频信息 -->
+      <view class="video-info-card">
+        <view class="info-header">
+          <image
+            v-if="userInfo.himg || userInfo.uname"
+            :src="getAvatarUrl(userInfo.himg)"
+            @click="toUserSpace"
+            class="author-avatar"
+          ></image>
+          <view class="author-info">
+            <text class="author-name">{{ userInfo.uname }}出品</text>
+            <text class="video-count">视频</text>
+          </view>
+          <view class="header-actions">
+            <button class="teacher-btn" @click="toUserSpace">讲师主页</button>
+            <button class="follow-btn" v-if="followStatus != 2" @click="followUser">
+              {{ followStatus == 0 ? "关注" : "取关" }}
+            </button>
+          </view>
+        </view>
 
-				<view class="video-title-section">
-					<view class="price-tag" v-if="videoData.price && videoData.price > 0">
-						<text>¥{{ videoData.price }}</text>
-					</view>
-					<text class="video-title-text">{{ videoData.title }}</text>
-				</view>
-			</view>
+        <view class="video-title-section">
+          <view class="price-tag" v-if="videoData.price && videoData.price > 0">
+            <text>¥{{ videoData.price }}</text>
+          </view>
+          <text class="video-title-text">{{ videoData.title }}</text>
+        </view>
+      </view>
 
-			<!-- 底部按钮 -->
-			<view class="bottom-bar">
-				<view class="bottom-left">
-					<view class="icon-item" @click="toIndex">
-						<uni-icons type="home" size="24" color="#FFD700"></uni-icons>
-						<text class="icon-label">首页</text>
-					</view>
-
-				</view>
-				<button class="bottom-buy-btn" @click="handleBuyClick">
-					{{ buttonText }}
-				</button>
-			</view>
-		</view>
-	</view>
+      <!-- 底部按钮 -->
+      <view class="bottom-bar">
+        <view class="bottom-left">
+          <view class="icon-item" @click="toIndex">
+            <uni-icons type="home" size="24" color="#FFD700"></uni-icons>
+            <text class="icon-label">首页</text>
+          </view>
+        </view>
+        <button class="bottom-buy-btn" @click="handleBuyClick">
+          {{ buttonText }}
+        </button>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, inject } from "vue";
+import { onLoad, onShow } from "@dcloudio/uni-app";
 import {
-	ref,
-	computed,
-	onMounted,
-	inject
-} from 'vue';
-import {
-	onLoad,
-	onShow
-} from '@dcloudio/uni-app';
-import {
-	apiGetLikelist,
-	apiGetIsLike,
-	apiCheckVideoPayment,
-	apiUserimg,
-	apiGetVideo,
-	apiWordQuery,
-	apiGetVideoDetail
-} from '@/api/apis';
-import {
-	getToken,
-	getAccount
-} from '@/utils/request.js';
-import {
-	useVideoStore
-} from '@/stores/video.js'
+  apiGetLikelist,
+  apiGetIsLike,
+  apiCheckVideoPayment,
+  apiUserimg,
+  apiGetVideo,
+  apiWordQuery,
+  apiGetVideoDetail,
+  cancelUserFollowApi,
+  userFollowApi,
+} from "@/api/apis";
+import { getToken, getAccount } from "@/utils/request.js";
+import { useVideoStore } from "@/stores/video.js";
 
-const useOldManModeStore = inject("useOldManModeStore")
+const useOldManModeStore = inject("useOldManModeStore");
 
 // 初始化仓库
-const videoStore = useVideoStore()
+const videoStore = useVideoStore();
 
 // 视频数据
 const videoData = ref({
-	id: '',
-	title: '',
-	src: '',
-	account: '',
-	likeCount: 0,
-	isLiked: false
+  id: "",
+  title: "",
+  src: "",
+  account: "",
+  likeCount: 0,
+  isLiked: false,
 });
 
-let videoId = ""
+let videoId = "";
 
 // 添加响应式数据
-const showPlayButton = ref(true) // 控制播放按钮显示
-const isPlaying = ref(false) // 视频播放状态
-const videoContext = ref(null) // 视频上下文
-const hasPaid = ref(false) // 是否已付费
+const showPlayButton = ref(true); // 控制播放按钮显示
+const isPlaying = ref(false); // 视频播放状态
+const videoContext = ref(null); // 视频上下文
+const hasPaid = ref(false); // 是否已付费
 
 // 计算是否为免费视频
 const isFreeVideo = computed(() => {
-	return !videoData.value.flag || videoData.value.price === 0
-})
+  return !videoData.value.flag || videoData.value.price === 0;
+});
 
 // 计算按钮显示文本
 const buttonText = computed(() => {
-	if (isFreeVideo.value || hasPaid.value) {
-		return '开始学习'
-	}
-	return '点击购买'
-})
+  if (isFreeVideo.value || hasPaid.value) {
+    return "开始学习";
+  }
+  return "点击购买";
+});
 //用户头像，名字接口数据接收
 const userInfo = ref({
-	uname: '',
-	himg: ''
+  uname: "",
+  himg: "",
 });
 
 // 表单图片相关数据
-const showFormImage = ref(false) // 控制表单图片显示
-const formImageUrl = ref('') // 表单图片URL
+const showFormImage = ref(false); // 控制表单图片显示
+const formImageUrl = ref(""); // 表单图片URL
 
 // 获取头像的方法
 const getAvatarUrl = (himg) => {
-	if (!himg) return '/static/images/defaultAvatar.png'; // 如果没有头像，返回默认头像
-	return `http://video.caimizm.com/himg/${himg}`;
+  if (!himg) return "/static/images/defaultAvatar.png"; // 如果没有头像，返回默认头像
+  return `http://video.caimizm.com/himg/${himg}`;
 };
 
+const followStatus = ref(2);
 // 加载视频数据的统一方法
 const loadVideoData = async (videoId) => {
-	if (!videoId) {
-		uni.redirectTo({ url: '/pages/index/index' })
-	}
-	try {
-		uni.showLoading({ title: '加载中...' })
-		const [likeList, response] = await Promise.all([apiGetLikelist(getAccount()), apiGetVideoDetail({ videoId: videoId })])
+  if (!videoId) {
+    uni.redirectTo({ url: "/pages/index/index" });
+  }
+  try {
+    uni.showLoading({ title: "加载中..." });
+    const [likeList, response] = await Promise.all([
+      apiGetLikelist(getAccount()),
+      apiGetVideoDetail({ videoId: videoId }),
+    ]);
 
-		// 判断是否有点赞过
-		const isLiked = likeList.data.find(item => item.videoId == videoId)
+    // 判断是否有点赞过
+    const isLiked = likeList.data.find((item) => item.videoId == videoId);
 
-		let currentVideo = {}
+    let currentVideo = {};
 
-		const item = response.data
-		currentVideo = {
-			id: item.id,
-			title: item.title,
-			src: `http://video.caimizm.com/${item.url}`,
-			account: item.account,
-			likeCount: item.likeCount || 0,
-			isLiked: isLiked,
-			flag: item.price > 0 ? item.flag : false, // 是否为收费视频
-			price: item.price,
-			imgurl: `http://video.caimizm.com/${item.vimg}`
-		}
-		let isPay = true
-		// 检查付费状态（仅对付费视频）
-		if (item.flag) {
-			isPay = await checkPaymentStatus()
-		} else {
-			hasPaid.value = true
-		}
-		if (isPay && !videoData.value?.src?.indexOf("blob") == 0) {
-			// 这里判断已经付费才加载视频
-			currentVideo.src = await toBlobUrlVideo(currentVideo.src)
-		} else if (!videoData.value?.src?.indexOf("blob") == 0) {
-			currentVideo.src = videoData.value.src
-		}
+    followStatus.value = response.data.flag;
+    const item = response.data.video;
+    currentVideo = {
+      id: item.id,
+      title: item.title,
+      src: `http://video.caimizm.com/${item.url}`,
+      account: item.account,
+      likeCount: item.likeCount || 0,
+      isLiked: isLiked,
+      flag: item.price > 0 ? item.flag : false, // 是否为收费视频
+      price: item.price,
+      imgurl: `http://video.caimizm.com/${item.vimg}`,
+    };
+    let isPay = true;
+    // 检查付费状态（仅对付费视频）
+    if (item.flag) {
+      isPay = await checkPaymentStatus();
+    } else {
+      hasPaid.value = true;
+    }
 
-		// 使用获取到的视频数据
-		if (currentVideo && currentVideo.id === videoId) {
-			videoData.value = {
-				id: currentVideo.id,
-				title: currentVideo.title,
-				src: currentVideo.src,
-				account: currentVideo.account,
-				likeCount: currentVideo.likeCount || 0,
-				isLiked: currentVideo.isLiked || false,
-				flag: currentVideo.flag,
-				price: currentVideo.price,
-			}
-			// 调用apiUserimg获取用户信息
-			if (currentVideo.account) {
-				await getUserInfo(currentVideo.account)
-			}
+    // 如果是本人，则放行
+    if (followStatus.value == 2) {
+      hasPaid.value = true;
+      isPay = true;
+    }
 
-			// 初始化视频上下文（如果视频数据已加载）
-			if (videoData.value.src && !videoContext.value) {
-				videoContext.value = uni.createVideoContext('videoPlayer')
-			}
-		}
-	} catch (error) {
-		console.error(error)
-		uni.showToast({
-			title: '加载视频失败',
-			icon: 'none'
-		})
-	} finally {
-		uni.hideLoading()
-	}
-}
+    if (isPay && !videoData.value?.src?.indexOf("blob") == 0) {
+      // 这里判断已经付费才加载视频
+      currentVideo.src = await toBlobUrlVideo(currentVideo.src);
+    } else if (!videoData.value?.src?.indexOf("blob") == 0) {
+      currentVideo.src = videoData.value.src;
+    }
+
+    // 使用获取到的视频数据
+    if (currentVideo && currentVideo.id === videoId) {
+      videoData.value = {
+        id: currentVideo.id,
+        title: currentVideo.title,
+        src: currentVideo.src,
+        account: currentVideo.account,
+        likeCount: currentVideo.likeCount || 0,
+        isLiked: currentVideo.isLiked || false,
+        flag: currentVideo.flag,
+        price: currentVideo.price,
+      };
+      // 调用apiUserimg获取用户信息
+      if (currentVideo.account) {
+        await getUserInfo(currentVideo.account);
+      }
+
+      // 初始化视频上下文（如果视频数据已加载）
+      if (videoData.value.src && !videoContext.value) {
+        videoContext.value = uni.createVideoContext("videoPlayer");
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    uni.showToast({
+      title: "加载视频失败",
+      icon: "none",
+    });
+  } finally {
+    uni.hideLoading();
+  }
+};
 // 将视频转为blob
 /**
  * @param {string} videoUrl 视频URL
  * @returns {Promise<Blob>} 转换后的Blob对象
  */
 const toBlobUrlVideo = (videoUrl) => {
-	return new Promise((resolve, reject) => {
-		// #ifndef H5
-		resolve(videoUrl)
-		return
-		// #endif
-		// resolve(videoUrl)
-		// return
-		fetch(videoUrl, {
-			method: "GET",
-			headers: { "accept-encoding": "identity;q=1, *;q=0" }
-		})
-			.then((response) => response.blob())
-			.then((blob) => {
-				// 创建一个URL对象，将Blob对象转换为URL
-				const url = URL.createObjectURL(blob)
-				resolve(url)
-			})
-			.catch((error) => {
-				reject(error)
-			})
-	})
+  return new Promise((resolve, reject) => {
+    resolve(videoUrl);
+    return;
+    // #ifndef H5
+    resolve(videoUrl);
+    return;
+    // #endif
+    // resolve(videoUrl)
+    // return
+    fetch(videoUrl, {
+      method: "GET",
+      headers: { "accept-encoding": "identity;q=1, *;q=0" },
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        // 创建一个URL对象，将Blob对象转换为URL
+        const url = URL.createObjectURL(blob);
+        resolve(url);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+async function followUser() {
+  uni.showLoading({
+    title: "正在处理",
+  });
+  try {
+    if (followStatus.value == 0) {
+      await userFollowApi({
+        account2: videoData.value.account,
+      });
+      followStatus.value = 1;
+    } else if (followStatus.value == 1) {
+      await cancelUserFollowApi({
+        account2: videoData.value.account,
+      });
+      followStatus.value = 0;
+    }
+
+    uni.showToast({
+      title: "操作成功",
+      icon: "success",
+    });
+  } catch {
+    uni.showToast({
+      title: "操作失败",
+      icon: "success",
+    });
+  }
+  uni.hideLoading();
 }
 
 // 跳转到首页
 const toIndex = () => {
-	uni.switchTab({ url: '/pages/index/index' })
-}
+  uni.switchTab({ url: "/pages/index/index" });
+};
 
 // 检查付费状态
 /**
  * @returns Boolean 是否已付费
  */
 const checkPaymentStatus = async () => {
+  // 检查是否登录
+  const token = getToken();
+  if (!token) {
+    hasPaid.value = false;
+    return true;
+  }
 
-	// 检查是否登录
-	const token = getToken()
-	if (!token) {
-		hasPaid.value = false
-		return true
-	}
+  try {
+    const paymentCheck = await apiCheckVideoPayment({
+      videoId: videoId,
+      account: getAccount(),
+    });
 
-	try {
-		const paymentCheck = await apiCheckVideoPayment({
-			videoId: videoId,
-			account: getAccount()
-		})
-
-		if (paymentCheck.data) {
-			hasPaid.value = true
-		} else {
-			hasPaid.value = false
-		}
-		return hasPaid.value
-	} catch (error) {
-		hasPaid.value = false
-		uni.showToast({
-			title: '检查付费状态失败',
-			icon: 'none'
-		})
-	}
-	return false
-}
-const pageOptions = {}
+    if (paymentCheck.data) {
+      hasPaid.value = true;
+    } else {
+      hasPaid.value = false;
+    }
+    return hasPaid.value;
+  } catch (error) {
+    hasPaid.value = false;
+    uni.showToast({
+      title: "检查付费状态失败",
+      icon: "none",
+    });
+  }
+  return false;
+};
+const pageOptions = {};
 // 获取路由参数
 onLoad(async (options) => {
-	videoId = options.id
-})
+  videoId = options.id;
+});
 
 // 页面显示时重新加载数据（刷新时触发）
 onShow(async () => {
-	// 重新检查付费状态
-	await loadVideoData(videoId)
-})
+  // 重新检查付费状态
+  await loadVideoData(videoId);
+});
 
 // 在onMounted中初始化视频上下文
 onMounted(() => {
-	// 延迟初始化，确保视频元素已渲染
-	setTimeout(() => {
-		if (videoData.value.src && !videoContext.value) {
-			videoContext.value = uni.createVideoContext('videoPlayer')
-		}
-	}, 100)
-})
+  // 延迟初始化，确保视频元素已渲染
+  setTimeout(() => {
+    if (videoData.value.src && !videoContext.value) {
+      videoContext.value = uni.createVideoContext("videoPlayer");
+    }
+  }, 100);
+});
 
 //导航栏
 const goBack = () => {
-	uni.navigateBack({
-		delta: 1
-	});
+  uni.navigateBack({
+    delta: 1,
+  });
 };
 
 // 获取用户信息
 const getUserInfo = async (account) => {
-	try {
-		// 准备请求参数
-		const params = {
-			account: account
-		};
+  try {
+    // 准备请求参数
+    const params = {
+      account: account,
+    };
 
-		const headers = {};
-		const token = getToken();
-		if (token) {
-			headers['Authorization'] = token;
-		}
+    const headers = {};
+    const token = getToken();
+    if (token) {
+      headers["Authorization"] = token;
+    }
 
-		// 调用apiUserimg接口
-		const response = await apiUserimg(params, headers);
+    // 调用apiUserimg接口
+    const response = await apiUserimg(params, headers);
 
-		if (response.code === 200) {
-			// 更新用户信息
-			userInfo.value = {
-				uname: response.data.uname,
-				himg: response.data.himg
-			};
-		} else {
-			// 使用默认信息
-			userInfo.value = {
-				uname: account,
-				himg: ''
-			};
-		}
-	} catch (error) {
-		// 使用默认信息
-		userInfo.value = {
-			uname: account,
-			himg: ''
-		};
-	}
+    if (response.code === 200) {
+      // 更新用户信息
+      userInfo.value = {
+        uname: response.data.uname,
+        himg: response.data.himg,
+      };
+    } else {
+      // 使用默认信息
+      userInfo.value = {
+        uname: account,
+        himg: "",
+      };
+    }
+  } catch (error) {
+    // 使用默认信息
+    userInfo.value = {
+      uname: account,
+      himg: "",
+    };
+  }
 };
 
 // 播放视频方法
 const playVideo = async () => {
-	// 检查是否登录
-	const token = getToken();
-	if (!token) {
-		uni.showToast({
-			title: '请先登录',
-			icon: 'none'
-		});
-		setTimeout(() => {
-			uni.navigateTo({
-				url: '/pages/login/login'
-			});
-		}, 1500);
-		return;
-	}
-	// 免费视频或已付费视频，直接播放
-	if (isFreeVideo.value || hasPaid.value) {
-		if (!videoContext.value && videoData.value.src) {
-			videoContext.value = uni.createVideoContext('videoPlayer')
-		}
-		if (videoContext.value) {
-			videoContext.value.play()
-			isPlaying.value = true
-			showPlayButton.value = false
-		}
-		return;
-	}
+  // 检查是否登录
+  const token = getToken();
+  if (!token) {
+    uni.showToast({
+      title: "请先登录",
+      icon: "none",
+    });
+    setTimeout(() => {
+      uni.navigateTo({
+        url: "/pages/login/login",
+      });
+    }, 1500);
+    return;
+  }
+  // 免费视频或已付费视频，直接播放
+  if (isFreeVideo.value || hasPaid.value) {
+    if (!videoContext.value && videoData.value.src) {
+      videoContext.value = uni.createVideoContext("videoPlayer");
+    }
+    if (videoContext.value) {
+      videoContext.value.play();
+      isPlaying.value = true;
+      showPlayButton.value = false;
+    }
+    return;
+  }
 
-	// 付费视频且未付费，需要检查或支付
-	// 如果 hasPaid 还未确定，先检查一次
-	if (!hasPaid.value) {
-		await checkPaymentStatus()
-		// 如果检查后发现已付费，直接播放
-		if (hasPaid.value) {
-			if (!videoContext.value && videoData.value.src) {
-				videoContext.value = uni.createVideoContext('videoPlayer')
-			}
-			if (videoContext.value) {
-				videoContext.value.play()
-				isPlaying.value = true
-				showPlayButton.value = false
-			}
-			return
-		}
-	}
+  // 付费视频且未付费，需要检查或支付
+  // 如果 hasPaid 还未确定，先检查一次
+  if (!hasPaid.value) {
+    await checkPaymentStatus();
+    // 如果检查后发现已付费，直接播放
+    if (hasPaid.value) {
+      if (!videoContext.value && videoData.value.src) {
+        videoContext.value = uni.createVideoContext("videoPlayer");
+      }
+      if (videoContext.value) {
+        videoContext.value.play();
+        isPlaying.value = true;
+        showPlayButton.value = false;
+      }
+      return;
+    }
+  }
 
-	// 用户未付费，显示付费提示
-	uni.showModal({
-		title: '付费视频',
-		content: `观看此视频需要支付${videoData.value.price}金币`,
-		confirmText: '立即支付',
-		cancelText: '取消',
-		success: async (res) => {
-			if (res.confirm) {
-				// 跳转到支付页面
-				await payForVideo();
-			}
-		}
-	});
+  // 用户未付费，显示付费提示
+  uni.showModal({
+    title: "付费视频",
+    content: `观看此视频需要支付${videoData.value.price}金币`,
+    confirmText: "立即支付",
+    cancelText: "取消",
+    success: async (res) => {
+      if (res.confirm) {
+        // 跳转到支付页面
+        await payForVideo();
+      }
+    },
+  });
 };
 
 const payForVideo = async () => {
-	// 准备支付数据
-	const paymentData = {
-		info: `视频: ${videoData.value.title}`,
-		amount: videoData.value.price,
-		type: 3, // 视频付费类型
-		account: getAccount(),
-		payType: 0, // 默认微信支付
-		channel: 0, // 微信小程序
-		videoId: videoData.value.id // 添加视频ID参数
-	};
+  // 准备支付数据
+  const paymentData = {
+    info: `视频: ${videoData.value.title}`,
+    amount: videoData.value.price,
+    type: 3, // 视频付费类型
+    account: getAccount(),
+    payType: 0, // 默认微信支付
+    channel: 0, // 微信小程序
+    videoId: videoData.value.id, // 添加视频ID参数
+  };
 
-	// 跳转到支付页面
-	uni.navigateTo({
-		url: `/pages/video/payment?${objectToQueryString(paymentData)}`
-	});
+  // 跳转到支付页面
+  uni.navigateTo({
+    url: `/pages/video/payment?${objectToQueryString(paymentData)}`,
+  });
 };
 
 // 将对象转换为查询字符串
 const objectToQueryString = (obj) => {
-	return Object.keys(obj).map(key => {
-		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-	}).join('&');
+  return Object.keys(obj)
+    .map((key) => {
+      return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+    })
+    .join("&");
 };
 
 // 视频开始播放事件
 const onVideoPlay = () => {
-	isPlaying.value = true
-	showPlayButton.value = false
-}
+  isPlaying.value = true;
+  showPlayButton.value = false;
+};
 
 // 视频暂停事件
 const onVideoPause = () => {
-	isPlaying.value = false
-	showPlayButton.value = true
-}
+  isPlaying.value = false;
+  showPlayButton.value = true;
+};
 
 // 视频播放结束事件
 const onVideoEnded = async () => {
-	console.log('视频播放结束，开始获取表单图片')
-	isPlaying.value = false
-	showPlayButton.value = false
+  console.log("视频播放结束，开始获取表单图片");
+  isPlaying.value = false;
+  showPlayButton.value = false;
 
-
-	// 获取表单图片
-	await fetchFormImage()
-}
+  // 获取表单图片
+  await fetchFormImage();
+};
 
 // 获取表单图片
 const fetchFormImage = async () => {
-	if (!videoData.value.id) {
-		console.log('获取表单图片失败：视频ID为空')
-		return
-	}
-	// 判断是否为收费视频
-	if (videoData.value.flag === false) {
-		return
-	}
+  if (!videoData.value.id) {
+    console.log("获取表单图片失败：视频ID为空");
+    return;
+  }
+  // 判断是否为收费视频
+  if (videoData.value.flag === false) {
+    return;
+  }
 
-	uni.showLoading({
-		title: '正在获取表单图片...',
-		mask: true
-	})
-	const videoId = videoData.value.id
-	try {
-		console.log('开始获取表单图片，视频ID:', videoId)
-		const response = await apiWordQuery({ videoId: videoId })
-		console.log('表单图片API响应:', response)
+  uni.showLoading({
+    title: "正在获取表单图片...",
+    mask: true,
+  });
+  const videoId = videoData.value.id;
+  try {
+    console.log("开始获取表单图片，视频ID:", videoId);
+    const response = await apiWordQuery({ videoId: videoId });
+    console.log("表单图片API响应:", response);
 
-		formImageUrl.value = `http://video.caimizm.com/${response.msg}`
-		showFormImage.value = true
-	} catch (error) {
-		console.error('获取表单图片异常:', error)
-		// uni.showToast({
-		// 	title: '获取预测图片失败',
-		// 	icon: 'none',
-		// 	duration: 2000
-		// })
-	}
-	uni.hideLoading()
-}
+    formImageUrl.value = `http://video.caimizm.com/${response.msg}`;
+    showFormImage.value = true;
+  } catch (error) {
+    console.error("获取表单图片异常:", error);
+    // uni.showToast({
+    // 	title: '获取预测图片失败',
+    // 	icon: 'none',
+    // 	duration: 2000
+    // })
+  }
+  uni.hideLoading();
+};
 
 function saveImg() {
-	uni.saveImageToPhotosAlbum({
-		filePath: formImageUrl.value,
-		success: function (res) {
-			uni.showToast({
-				title: '保存成功',
-				icon: 'success',
-				duration: 2000
-			})
-		},
-		fail: function (err) {
-			console.log(err.errMsg)
-			uni.showToast({
-				title: '保存失败',
-				icon: 'none',
-				duration: 2000
-			})
-		}
-	})
+  uni.saveImageToPhotosAlbum({
+    filePath: formImageUrl.value,
+    success: function (res) {
+      uni.showToast({
+        title: "保存成功",
+        icon: "success",
+        duration: 2000,
+      });
+    },
+    fail: function (err) {
+      console.log(err.errMsg);
+      uni.showToast({
+        title: "保存失败",
+        icon: "none",
+        duration: 2000,
+      });
+    },
+  });
 }
 
 // 关闭表单图片
 const closeFormImage = () => {
-	showFormImage.value = false
-	showPlayButton.value = true
-}
+  showFormImage.value = false;
+  showPlayButton.value = true;
+};
 
 // 处理表单图片加载错误
 const handleFormImageError = (e) => {
-	console.error('表单图片加载失败:', e)
-	console.error('图片URL:', formImageUrl.value)
-	uni.showToast({
-		title: '图片加载失败',
-		icon: 'none',
-		duration: 2000
-	})
-}
+  console.error("表单图片加载失败:", e);
+  console.error("图片URL:", formImageUrl.value);
+  uni.showToast({
+    title: "图片加载失败",
+    icon: "none",
+    duration: 2000,
+  });
+};
 
 // 处理表单图片加载成功
 const handleFormImageLoad = (e) => {
-	console.log('表单图片加载成功:', formImageUrl.value)
-}
+  console.log("表单图片加载成功:", formImageUrl.value);
+};
 
 // 处理购买按钮点击
 const handleBuyClick = async () => {
-	// 免费视频或已付费视频，直接播放
-	if (isFreeVideo.value || hasPaid.value) {
-		if (!videoContext.value && videoData.value.src) {
-			videoContext.value = uni.createVideoContext('videoPlayer')
-		}
-		if (videoContext.value) {
-			videoContext.value.play()
-			isPlaying.value = true
-			showPlayButton.value = false
-		}
-	} else {
-		// 付费视频且未付费，跳转到支付
-		await payForVideo()
-	}
-}
+  // 免费视频或已付费视频，直接播放
+  if (isFreeVideo.value || hasPaid.value) {
+    if (!videoContext.value && videoData.value.src) {
+      videoContext.value = uni.createVideoContext("videoPlayer");
+    }
+    if (videoContext.value) {
+      videoContext.value.play();
+      isPlaying.value = true;
+      showPlayButton.value = false;
+    }
+  } else {
+    // 付费视频且未付费，跳转到支付
+    await payForVideo();
+  }
+};
 
 // 跳转到打赏页面
 const goToRewardPage = () => {
-	// 检查登录状态
-	const token = getToken();
-	if (!token) {
-		uni.showToast({
-			title: '请先登录',
-			icon: 'none'
-		});
-		setTimeout(() => {
-			uni.navigateTo({
-				url: '/pages/login/login'
-			});
-		}, 1500);
-		return;
-	}
+  // 检查登录状态
+  const token = getToken();
+  if (!token) {
+    uni.showToast({
+      title: "请先登录",
+      icon: "none",
+    });
+    setTimeout(() => {
+      uni.navigateTo({
+        url: "/pages/login/login",
+      });
+    }, 1500);
+    return;
+  }
 
-	// 跳转到打赏页面，传递视频信息
-	uni.navigateTo({
-		url: `/pages/video/reward?videoId=${videoData.value.id}&author=${encodeURIComponent(videoData.value.account)}&title=${encodeURIComponent(videoData.value.title)}&authorAvatar=${encodeURIComponent(userInfo.value.himg)}&authorName=${encodeURIComponent(userInfo.value.uname)}`
-	});
+  // 跳转到打赏页面，传递视频信息
+  uni.navigateTo({
+    url: `/pages/video/reward?videoId=${videoData.value.id}&author=${encodeURIComponent(
+      videoData.value.account
+    )}&title=${encodeURIComponent(videoData.value.title)}&authorAvatar=${encodeURIComponent(
+      userInfo.value.himg
+    )}&authorName=${encodeURIComponent(userInfo.value.uname)}`,
+  });
 };
 
 // 点赞功能
 const toggleLike = async () => {
-	try {
-		// 保存原始状态，以便在请求失败时恢复
-		const originalIsLiked = videoData.value.isLiked;
-		const originalLikeCount = videoData.value.likeCount;
+  try {
+    // 保存原始状态，以便在请求失败时恢复
+    const originalIsLiked = videoData.value.isLiked;
+    const originalLikeCount = videoData.value.likeCount;
 
-		// 立即更新UI，提供更好的用户体验
-		videoData.value.isLiked = !videoData.value.isLiked;
-		videoData.value.likeCount = videoData.value.isLiked ?
-			videoData.value.likeCount + 1 :
-			videoData.value.likeCount - 1;
+    // 立即更新UI，提供更好的用户体验
+    videoData.value.isLiked = !videoData.value.isLiked;
+    videoData.value.likeCount = videoData.value.isLiked
+      ? videoData.value.likeCount + 1
+      : videoData.value.likeCount - 1;
 
-		// 调用点赞API
-		const response = await apiGetIsLike({
-			id: videoData.value.id,
-			account: getAccount(),
-			isLiked: videoData.value.isLiked
-		});
-		const msg = response.msg
-		if (["点赞成功"].includes(msg)) {
+    // 调用点赞API
+    const response = await apiGetIsLike({
+      id: videoData.value.id,
+      account: getAccount(),
+      isLiked: videoData.value.isLiked,
+    });
+    const msg = response.msg;
+    if (["点赞成功"].includes(msg)) {
+    } else if (["您已点赞过该视频"].includes(msg)) {
+      isLiked.value = true;
+      videoData.value.isLiked = originalIsLiked;
+      videoData.value.likeCount = originalLikeCount;
+    }
+    uni.showToast({ title: msg });
+    // console.log(response)
 
-		} else if (["您已点赞过该视频"].includes(msg)) {
-			isLiked.value = true
-			videoData.value.isLiked = originalIsLiked;
-			videoData.value.likeCount = originalLikeCount;
-		}
-		uni.showToast({ title: msg })
-		// console.log(response)
+    // 获取点赞列表（可选）
+  } catch (error) {
+    // 恢复原始状态
+    videoData.value.isLiked = originalIsLiked;
+    videoData.value.likeCount = originalLikeCount;
 
-		// 获取点赞列表（可选）
-
-	} catch (error) {
-		// 恢复原始状态
-		videoData.value.isLiked = originalIsLiked;
-		videoData.value.likeCount = originalLikeCount;
-
-		uni.showToast({
-			title: '操作失败，请重试',
-			icon: 'none'
-		});
-	}
+    uni.showToast({
+      title: "操作失败，请重试",
+      icon: "none",
+    });
+  }
 };
 
 function toUserSpace() {
-	// uni.navigateTo({
-	// 	url: '/pages/user/space?id='
-	// });
+  // uni.navigateTo({
+  // 	url: '/pages/user/space?id='
+  // });
 }
 </script>
 
 <style lang="scss" scoped>
 .container.old-man-mode {
-	background-color: #f5f5f5;
-	font-weight: bold;
-	padding-top: var(--status-bar-height);
+  background-color: #f5f5f5;
+  font-weight: bold;
+  padding-top: var(--status-bar-height);
 
+  .wrapper {
+    height: 100vh;
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+    padding-bottom: 120rpx;
+  }
 
-	.wrapper {
-		height: 100vh;
-		box-sizing: border-box;
-		background-color: #f5f5f5;
-		padding-bottom: 120rpx;
-	}
+  .navbar {
+    height: 44px;
+    background-color: #1677ff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    margin-bottom: 3rpx;
+    position: relative;
+    z-index: 10;
+  }
 
-	.navbar {
-		height: 44px;
-		background-color: #1677ff;
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 16px;
-		margin-bottom: 3rpx;
-		position: relative;
-		z-index: 10;
-	}
+  .navbar-left {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 11;
+  }
 
-	.navbar-left {
-		width: 44px;
-		height: 44px;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		z-index: 11;
-	}
+  .navbar-left .uni-icons {
+    color: #fff !important;
+    font-size: 22px !important;
+  }
 
-	.navbar-left .uni-icons {
-		color: #fff !important;
-		font-size: 22px !important;
-	}
+  .navbar-title {
+    width: 500rpx;
+    font-size: 48rpx;
+    font-weight: 500;
+    text-align: center;
+    position: absolute;
+    left: calc(50% - 250rpx);
+    pointer-events: none;
 
-	.navbar-title {
-		width: 500rpx;
-		font-size: 48rpx;
-		font-weight: 500;
-		text-align: center;
-		position: absolute;
-		left: calc(50% - 250rpx);
-		pointer-events: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
+  /* 视频容器样式 */
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 600rpx;
+    border-radius: 0;
+    overflow: hidden;
+    background-color: #000;
+  }
 
+  .video-player {
+    width: 100%;
+    height: 100%;
+  }
 
+  .video-full-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 80rpx;
+  }
 
-	/* 视频容器样式 */
-	.video-container {
-		position: relative;
-		width: 100%;
-		height: 600rpx;
-		border-radius: 0;
-		overflow: hidden;
-		background-color: #000;
-	}
+  /* 播放按钮遮罩层 */
+  .play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
 
-	.video-player {
-		width: 100%;
-		height: 100%;
-	}
+  .play-button {
+    width: 80rpx;
+    height: 80rpx;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  }
 
-	.video-full-screen {
-		position: absolute;
-		top: 0;
-		left: 0;
-		bottom: 80rpx
-	}
+  .play-button:active {
+    transform: scale(0.9);
+  }
 
-	/* 播放按钮遮罩层 */
-	.play-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.3);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 10;
-	}
+  /* 购买按钮遮罩 */
+  .buy-overlay {
+    position: absolute;
+    bottom: 30rpx;
+    right: 30rpx;
+    z-index: 11;
+  }
 
-	.play-button {
-		width: 80rpx;
-		height: 80rpx;
-		background-color: rgba(0, 0, 0, 0.5);
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: transform 0.3s ease;
-	}
+  .buy-button {
+    background-color: #ff9500;
+    padding: 12rpx 24rpx;
+    border-radius: 8rpx;
+  }
 
-	.play-button:active {
-		transform: scale(0.9);
-	}
+  .buy-text {
+    color: #fff;
+    font-size: 26rpx;
+    font-weight: 600;
+  }
 
-	/* 购买按钮遮罩 */
-	.buy-overlay {
-		position: absolute;
-		bottom: 30rpx;
-		right: 30rpx;
-		z-index: 11;
-	}
+  /* 打赏和点赞交互栏 */
+  .interaction-bar {
+    display: flex;
+    padding: 20rpx 0;
+    background-color: #fff;
+    gap: 40rpx;
+    justify-content: center;
+  }
 
-	.buy-button {
-		background-color: #FF9500;
-		padding: 12rpx 24rpx;
-		border-radius: 8rpx;
-	}
+  .reward-interaction,
+  .like-interaction {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+  }
 
-	.buy-text {
-		color: #fff;
-		font-size: 26rpx;
-		font-weight: 600;
-	}
+  .interaction-text {
+    color: #ff9500;
+    font-size: 26rpx;
+  }
 
-	/* 打赏和点赞交互栏 */
-	.interaction-bar {
-		display: flex;
-		padding: 20rpx 0;
-		background-color: #fff;
-		gap: 40rpx;
-		justify-content: center;
-	}
+  .like-interaction.liked .interaction-text {
+    color: #ff4757;
+  }
 
-	.reward-interaction,
-	.like-interaction {
-		display: flex;
-		align-items: center;
-		gap: 8rpx;
-	}
+  /* 视频信息卡片 */
+  .video-info-card {
+    background-color: #fff;
+    padding: 30rpx;
+  }
 
-	.interaction-text {
-		color: #FF9500;
-		font-size: 26rpx;
-	}
+  .info-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30rpx;
+  }
 
-	.like-interaction.liked .interaction-text {
-		color: #ff4757;
-	}
+  .author-avatar {
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 50%;
+    margin-right: 20rpx;
+  }
 
-	/* 视频信息卡片 */
-	.video-info-card {
-		background-color: #fff;
-		padding: 30rpx;
-	}
+  .author-info {
+    flex: 1;
+  }
 
-	.info-header {
-		display: flex;
-		align-items: center;
-		margin-bottom: 30rpx;
-	}
+  .author-name {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #333;
+    display: block;
+  }
 
-	.author-avatar {
-		width: 60rpx;
-		height: 60rpx;
-		border-radius: 50%;
-		margin-right: 20rpx;
-	}
+  .video-count {
+    font-size: 24rpx;
+    color: #999;
+  }
 
-	.author-info {
-		flex: 1;
-	}
+  .header-actions {
+    display: flex;
+    gap: 20rpx;
+  }
 
-	.author-name {
-		font-size: 28rpx;
-		font-weight: 600;
-		color: #333;
-		display: block;
-	}
+  .teacher-btn,
+  .follow-btn {
+    padding: 8rpx 16rpx;
+    font-size: 24rpx;
+    border-radius: 8rpx;
+  }
 
-	.video-count {
-		font-size: 24rpx;
-		color: #999;
-	}
+  .teacher-btn {
+    background-color: transparent;
+    border: 1rpx solid #000;
+    color: #000;
+    font-size: 40rpx;
+    font-weight: bold;
+  }
 
-	.header-actions {
-		display: flex;
-		gap: 20rpx;
-	}
+  .follow-btn {
+    color: #000;
+    font-size: 40rpx;
+    font-weight: bold;
+    border: none;
+  }
 
-	.teacher-btn,
-	.follow-btn {
-		padding: 8rpx 16rpx;
-		font-size: 24rpx;
-		border-radius: 8rpx;
-	}
+  /* 视频标题区域 */
+  .video-title-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 20rpx;
+  }
 
-	.teacher-btn {
-		background-color: transparent;
-		border: 1rpx solid #000;
-		color: #000;
-		font-size: 40rpx;
-		font-weight: bold;
-	}
+  .price-tag {
+    background-color: #ff4757;
+    padding: 6rpx 12rpx;
+    border-radius: 4rpx;
+    color: #fff;
+    font-size: 24rpx;
+    font-weight: 600;
+  }
 
-	.follow-btn {
-		color: #000;
-		font-size: 40rpx;
-		font-weight: bold;
-		border: none;
-	}
+  .video-title-text {
+    flex: 1;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.5;
+  }
 
-	/* 视频标题区域 */
-	.video-title-section {
-		display: flex;
-		align-items: flex-start;
-		gap: 20rpx;
-	}
+  /* 底部购买栏 */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background-color: #fff;
+    padding: 20rpx;
+    box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+  }
 
-	.price-tag {
-		background-color: #ff4757;
-		padding: 6rpx 12rpx;
-		border-radius: 4rpx;
-		color: #fff;
-		font-size: 24rpx;
-		font-weight: 600;
-	}
+  .bottom-left {
+    display: flex;
+    gap: 40rpx;
+  }
 
-	.video-title-text {
-		flex: 1;
-		font-size: 30rpx;
-		font-weight: 600;
-		color: #333;
-		line-height: 1.5;
-	}
+  .icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4rpx;
+  }
 
-	/* 底部购买栏 */
-	.bottom-bar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		display: flex;
-		background-color: #fff;
-		padding: 20rpx;
-		box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
-	}
+  .icon-label {
+    font-size: 40rpx;
+    font-size: bold;
+    color: #000;
+  }
 
-	.bottom-left {
-		display: flex;
-		gap: 40rpx;
-	}
+  .bottom-buy-btn {
+    flex: 1;
+    background-color: #ff9500;
+    color: #fff;
+    border: none;
+    border-radius: 50rpx;
+    font-size: 42rpx;
+    font-weight: 600;
+    margin-left: 40rpx;
+  }
 
-	.icon-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4rpx;
-	}
+  /* 视频加载占位符 */
+  .video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background-color: #000;
+    box-sizing: border-box;
+    padding-bottom: 30rpx;
+  }
 
-	.icon-label {
-		font-size: 40rpx;
-		font-size: bold;
-		color: #000;
-	}
+  .placeholder-text {
+    color: #fff;
+    font-size: 28rpx;
+  }
 
-	.bottom-buy-btn {
-		flex: 1;
-		background-color: #FF9500;
-		color: #fff;
-		border: none;
-		border-radius: 50rpx;
-		font-size: 42rpx;
-		font-weight: 600;
-		margin-left: 40rpx;
-	}
+  /* 表单图片显示 */
+  .form-image-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
 
-	/* 视频加载占位符 */
-	.video-placeholder {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: flex-end;
-		justify-content: center;
-		background-color: #000;
-		box-sizing: border-box;
-		padding-bottom: 30rpx;
-	}
+  .form-image-container {
+    width: 90%;
+    max-width: 600rpx;
+    background-color: #fff;
+    border-radius: 20rpx;
+    overflow: hidden;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-	.placeholder-text {
-		color: #fff;
-		font-size: 28rpx;
-	}
+  .form-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
 
-	/* 表单图片显示 */
-	.form-image-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.8);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 9999;
-	}
+  .form-image-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+  }
 
-	.form-image-container {
-		width: 90%;
-		max-width: 600rpx;
-		background-color: #fff;
-		border-radius: 20rpx;
-		overflow: hidden;
-		max-height: 80vh;
-		display: flex;
-		flex-direction: column;
-	}
+  .save-image-button {
+    width: 100%;
+    height: 48rpx;
+    line-height: 48rpx;
+    padding: 20rpx;
+    border-radius: 10rpx;
+    font-size: 38rpx;
+    text-align: center;
+    background-color: #ff623a;
+  }
 
-	.form-image-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 30rpx;
-		border-bottom: 1rpx solid #f0f0f0;
-	}
+  .form-image-close {
+    width: 48rpx;
+    height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-	.form-image-title {
-		font-size: 32rpx;
-		font-weight: 600;
-		color: #333;
-	}
+  .form-image {
+    width: 100%;
+    height: 70vh;
+  }
 
-	.save-image-button {
-		width: 100%;
-		height: 48rpx;
-		line-height: 48rpx;
-		padding: 20rpx;
-		border-radius: 10rpx;
-		font-size: 38rpx;
-		text-align: center;
-		background-color: #ff623a;
-	}
-
-	.form-image-close {
-		width: 48rpx;
-		height: 48rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.form-image {
-		width: 100%;
-		height: 70vh;
-	}
-
-	.form-image-loading {
-		padding: 60rpx;
-		text-align: center;
-		color: #666;
-		font-size: 28rpx;
-	}
+  .form-image-loading {
+    padding: 60rpx;
+    text-align: center;
+    color: #666;
+    font-size: 28rpx;
+  }
 }
 
-
 .container:not(.old-man-mode) {
+  background-color: #f5f5f5;
 
-	background-color: #f5f5f5;
+  .wrapper {
+    height: 100vh;
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+    padding-bottom: 120rpx;
+  }
 
-	.wrapper {
-		height: 100vh;
-		box-sizing: border-box;
-		background-color: #f5f5f5;
-		padding-bottom: 120rpx;
-	}
+  .navbar {
+    height: 44px;
+    background-color: #ffffff;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    margin-bottom: 3rpx;
+    position: relative;
+    z-index: 10;
+    padding-top: var(--status-bar-height);
+  }
 
-	.navbar {
-		height: 44px;
-		background-color: #ffffff;
-		color: #111;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 16px;
-		margin-bottom: 3rpx;
-		position: relative;
-		z-index: 10;
-		padding-top: var(--status-bar-height);
-	}
+  .navbar-left {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 11;
+  }
 
-	.navbar-left {
-		width: 44px;
-		height: 44px;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		z-index: 11;
-	}
+  .navbar-left .uni-icons {
+    color: #111 !important;
+    font-size: 22px !important;
+  }
 
-	.navbar-left .uni-icons {
-		color: #111 !important;
-		font-size: 22px !important;
-	}
+  .navbar-title {
+    width: 500rpx;
+    font-size: 28rpx;
+    font-weight: 500;
+    text-align: center;
+    position: absolute;
+    left: calc(50% - 250rpx);
+    pointer-events: none;
 
-	.navbar-title {
-		width: 500rpx;
-		font-size: 28rpx;
-		font-weight: 500;
-		text-align: center;
-		position: absolute;
-		left: calc(50% - 250rpx);
-		pointer-events: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
+  /* 视频容器样式 */
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 600rpx;
+    border-radius: 0;
+    overflow: hidden;
+    background-color: #000;
+  }
 
+  .video-player {
+    width: 100%;
+    height: 100%;
+  }
 
-	/* 视频容器样式 */
-	.video-container {
-		position: relative;
-		width: 100%;
-		height: 600rpx;
-		border-radius: 0;
-		overflow: hidden;
-		background-color: #000;
-	}
+  /* 播放按钮遮罩层 */
+  .play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
 
-	.video-player {
-		width: 100%;
-		height: 100%;
-	}
+  .play-button {
+    width: 80rpx;
+    height: 80rpx;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+  }
 
-	/* 播放按钮遮罩层 */
-	.play-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.3);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 10;
-	}
+  .play-button:active {
+    transform: scale(0.9);
+  }
 
-	.play-button {
-		width: 80rpx;
-		height: 80rpx;
-		background-color: rgba(0, 0, 0, 0.5);
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: transform 0.3s ease;
-	}
+  /* 购买按钮遮罩 */
+  .buy-overlay {
+    position: absolute;
+    bottom: 30rpx;
+    right: 30rpx;
+    z-index: 11;
+  }
 
-	.play-button:active {
-		transform: scale(0.9);
-	}
+  .buy-button {
+    background-color: #ff9500;
+    padding: 12rpx 24rpx;
+    border-radius: 8rpx;
+  }
 
-	/* 购买按钮遮罩 */
-	.buy-overlay {
-		position: absolute;
-		bottom: 30rpx;
-		right: 30rpx;
-		z-index: 11;
-	}
+  .buy-text {
+    color: #fff;
+    font-size: 26rpx;
+    font-weight: 600;
+  }
 
-	.buy-button {
-		background-color: #FF9500;
-		padding: 12rpx 24rpx;
-		border-radius: 8rpx;
-	}
+  /* 打赏和点赞交互栏 */
+  .interaction-bar {
+    display: flex;
+    padding: 20rpx 0;
+    background-color: #fff;
+    gap: 40rpx;
+    justify-content: center;
+  }
 
-	.buy-text {
-		color: #fff;
-		font-size: 26rpx;
-		font-weight: 600;
-	}
+  .reward-interaction,
+  .like-interaction {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+  }
 
-	/* 打赏和点赞交互栏 */
-	.interaction-bar {
-		display: flex;
-		padding: 20rpx 0;
-		background-color: #fff;
-		gap: 40rpx;
-		justify-content: center;
-	}
+  .interaction-text {
+    color: #ff9500;
+    font-size: 26rpx;
+  }
 
-	.reward-interaction,
-	.like-interaction {
-		display: flex;
-		align-items: center;
-		gap: 8rpx;
-	}
+  .like-interaction.liked .interaction-text {
+    color: #ff4757;
+  }
 
-	.interaction-text {
-		color: #FF9500;
-		font-size: 26rpx;
-	}
+  /* 视频信息卡片 */
+  .video-info-card {
+    background-color: #fff;
+    padding: 30rpx;
+  }
 
-	.like-interaction.liked .interaction-text {
-		color: #ff4757;
-	}
+  .info-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30rpx;
+  }
 
-	/* 视频信息卡片 */
-	.video-info-card {
-		background-color: #fff;
-		padding: 30rpx;
-	}
+  .author-avatar {
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 50%;
+    margin-right: 20rpx;
+  }
 
-	.info-header {
-		display: flex;
-		align-items: center;
-		margin-bottom: 30rpx;
-	}
+  .author-info {
+    flex: 1;
+  }
 
-	.author-avatar {
-		width: 60rpx;
-		height: 60rpx;
-		border-radius: 50%;
-		margin-right: 20rpx;
-	}
+  .author-name {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #333;
+    display: block;
+  }
 
-	.author-info {
-		flex: 1;
-	}
+  .video-count {
+    font-size: 24rpx;
+    color: #999;
+  }
 
-	.author-name {
-		font-size: 28rpx;
-		font-weight: 600;
-		color: #333;
-		display: block;
-	}
+  .header-actions {
+    display: flex;
+    gap: 20rpx;
+  }
 
-	.video-count {
-		font-size: 24rpx;
-		color: #999;
-	}
+  .teacher-btn,
+  .follow-btn {
+    padding: 8rpx 16rpx;
+    font-size: 24rpx;
+    border-radius: 10px;
+  }
 
-	.header-actions {
-		display: flex;
-		gap: 20rpx;
-	}
+  .teacher-btn {
+    background-color: transparent;
+    border: 1rpx solid #ff9500;
+    color: #ff9500;
+  }
 
-	.teacher-btn,
-	.follow-btn {
-		padding: 8rpx 16rpx;
-		font-size: 24rpx;
-		border-radius: 10px;
-	}
+  .follow-btn {
+    background-color: #ff9500;
+    color: #fff;
+    border: none;
+  }
 
-	.teacher-btn {
-		background-color: transparent;
-		border: 1rpx solid #FF9500;
-		color: #FF9500;
-	}
+  /* 视频标题区域 */
+  .video-title-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 20rpx;
+  }
 
-	.follow-btn {
-		background-color: #FF9500;
-		color: #fff;
-		border: none;
-	}
+  .price-tag {
+    background-color: #ff4757;
+    padding: 6rpx 12rpx;
+    border-radius: 4rpx;
+    color: #fff;
+    font-size: 24rpx;
+    font-weight: 600;
+  }
 
-	/* 视频标题区域 */
-	.video-title-section {
-		display: flex;
-		align-items: flex-start;
-		gap: 20rpx;
-	}
+  .video-title-text {
+    flex: 1;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.5;
+  }
 
-	.price-tag {
-		background-color: #ff4757;
-		padding: 6rpx 12rpx;
-		border-radius: 4rpx;
-		color: #fff;
-		font-size: 24rpx;
-		font-weight: 600;
-	}
+  /* 底部购买栏 */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background-color: #fff;
+    padding: 20rpx;
+    box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
+  }
 
-	.video-title-text {
-		flex: 1;
-		font-size: 30rpx;
-		font-weight: 600;
-		color: #333;
-		line-height: 1.5;
-	}
+  .bottom-left {
+    display: flex;
+    gap: 40rpx;
+  }
 
-	/* 底部购买栏 */
-	.bottom-bar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		display: flex;
-		background-color: #fff;
-		padding: 20rpx;
-		box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
-	}
+  .icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4rpx;
+  }
 
-	.bottom-left {
-		display: flex;
-		gap: 40rpx;
-	}
+  .icon-label {
+    font-size: 20rpx;
+    color: #666;
+  }
 
-	.icon-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4rpx;
-	}
+  .bottom-buy-btn {
+    flex: 1;
+    background-color: #ff9500;
+    color: #fff;
+    border: none;
+    border-radius: 50rpx;
+    font-size: 32rpx;
+    font-weight: 600;
+    margin-left: 40rpx;
+  }
 
-	.icon-label {
-		font-size: 20rpx;
-		color: #666;
-	}
+  /* 视频加载占位符 */
+  .video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+  }
 
-	.bottom-buy-btn {
-		flex: 1;
-		background-color: #FF9500;
-		color: #fff;
-		border: none;
-		border-radius: 50rpx;
-		font-size: 32rpx;
-		font-weight: 600;
-		margin-left: 40rpx;
-	}
+  .placeholder-text {
+    color: #fff;
+    font-size: 28rpx;
+  }
 
-	/* 视频加载占位符 */
-	.video-placeholder {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: #000;
-	}
+  /* 表单图片显示 */
+  .form-image-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
 
-	.placeholder-text {
-		color: #fff;
-		font-size: 28rpx;
-	}
+  .form-image-container {
+    width: 90%;
+    max-width: 600rpx;
+    background-color: #fff;
+    border-radius: 20rpx;
+    overflow: hidden;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-	/* 表单图片显示 */
-	.form-image-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.8);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 9999;
-	}
+  .form-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
 
-	.form-image-container {
-		width: 90%;
-		max-width: 600rpx;
-		background-color: #fff;
-		border-radius: 20rpx;
-		overflow: hidden;
-		max-height: 80vh;
-		display: flex;
-		flex-direction: column;
-	}
+  .form-image-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+  }
 
-	.form-image-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 30rpx;
-		border-bottom: 1rpx solid #f0f0f0;
-	}
+  .form-image-close {
+    width: 48rpx;
+    height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-	.form-image-title {
-		font-size: 32rpx;
-		font-weight: 600;
-		color: #333;
-	}
+  .form-image {
+    width: 100%;
+    max-height: 70vh;
+  }
 
-	.form-image-close {
-		width: 48rpx;
-		height: 48rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.form-image {
-		width: 100%;
-		max-height: 70vh;
-	}
-
-	.form-image-loading {
-		padding: 60rpx;
-		text-align: center;
-		color: #666;
-		font-size: 28rpx;
-	}
+  .form-image-loading {
+    padding: 60rpx;
+    text-align: center;
+    color: #666;
+    font-size: 28rpx;
+  }
 }
 </style>
