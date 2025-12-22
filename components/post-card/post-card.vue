@@ -1,5 +1,5 @@
 <template>
-  <view class="post-item" @click="goToPostDetail">
+  <view class="post-item">
     <!-- 帖子头部 -->
     <view class="post-header">
       <view class="user-info">
@@ -10,20 +10,20 @@
       </view>
     </view>
     <!-- 标题 -->
-    <view class="post-title"
-      >{{ post.tname }} 第{{ post.issueno }}期
+    <view class="post-title">
+      {{ post.tname }} 第{{ post.issueno }}期
       <!-- <text class="is-apply-text" :class="{ activat: !post.flag }">{{
         post.flag ? "已过审" : "未过审"
       }}</text> -->
     </view>
 
     <!-- 发布时间 -->
-    <view class="post-time">{{ formatTime(post.createTime) }}</view>
+    <view class="post-time">{{ formatTime(post.create_time) }}</view>
 
     <!-- 内容 -->
-    <view class="post-content"
-      ><text>{{ post.content }}</text></view
-    >
+    <view class="post-content">
+      <text>{{ post.content }}</text>
+    </view>
 
     <!-- 图片 -->
     <view v-if="postImage && postImage.length > 0" class="post-images">
@@ -39,19 +39,9 @@
 
     <!-- 帖子底部操作 -->
     <view class="post-footer">
-      <view
-        class="action-item"
-        :class="{ 'liked-disabled': isLiked }"
-        @click="handleLike(item)"
-      >
-        <uni-icons
-          type="hand-up"
-          size="18"
-          :color="isLiked ? '#ff4757' : '#999'"
-        ></uni-icons>
-        <text class="count" :class="{ liked: isLiked }">{{
-          post.likeCount
-        }}</text>
+      <view class="action-item" :class="{ 'liked-disabled': isLiked }" @click="handleLike(item)">
+        <uni-icons type="hand-up" size="18" :color="isLiked ? '#ff4757' : '#999'"></uni-icons>
+        <text class="count" :class="{ liked: dianzan }">{{ post.like_count }}</text>
       </view>
       <!-- <view class="action-item">
         <uni-icons type="redo" size="18" color="#999"></uni-icons>
@@ -72,6 +62,8 @@
 import { computed, ref, watch } from "vue";
 import forumToos from "./forumToos";
 import { useUserListStore } from "@/stores/userListStore";
+import { apiPostLike } from "@/api/apis";
+import { getAccount } from "../../utils/request";
 const props = defineProps({
   post: {
     type: Object,
@@ -95,7 +87,7 @@ const postImage = computed(() => {
   return props.post.pimg ? props.post.pimg.split(",") : "";
 });
 const isLiked = computed(() => {
-  return false;
+  return props.post.dianzan;
 });
 // 跳转到用户详情页
 const goToUserDetail = (userId) => {
@@ -142,7 +134,20 @@ const handleAppendPost = () => {
 // 处理点赞按钮点击
 const handleLike = () => {
   const post = props.post;
-  console.log("点赞", post);
+  // console.log("点赞", post);
+  if (post.dianzan != 1) {
+    apiPostLike({
+      postId: post.id,
+      account: getAccount(), // 使用当前登录用户账号
+    }).then(() => {
+      uni.showToast({
+        title: "点赞成功",
+        icon: "success",
+      });
+      props.post.dianzan = 1;
+      props.post.like_count = props.post.like_count + 1;
+    });
+  }
 };
 </script>
 <style scoped lang="scss">
