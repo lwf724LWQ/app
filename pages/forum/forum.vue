@@ -909,14 +909,23 @@ const toggleAgreementManually = () => {
 };
 
 // 选择功能类型
-const selectFunction = (type) => {
+const selectFunction = async (type) => {
   // 所有功能都需要先同意协议
   if (!agreedToTerms.value) {
-    uni.showToast({
-      title: "请先同意管理规范",
-      icon: "none",
+    // uni.showToast({
+    //   title: "请先同意管理规范",
+    //   icon: "none",
+    // });
+    const res = await uni.showModal({
+      title: "提示",
+      content: "是否同意并遵守《彩友圈管理规范》",
+      showCancel: true,
+      confirmText: "同意",
+      cancelText: "取消",
     });
-    return;
+    if (!res.confirm) {
+      return;
+    }
   }
 
   selectedFunction.value = type;

@@ -42,7 +42,8 @@ const share = ref(null);
 
 // 'link' 'rqcode'
 const shareType = ref("link");
-const open = (shareType) => {
+const open = (type) => {
+	shareType.value = type
   share.value.open();
 };
 defineExpose({
@@ -54,7 +55,7 @@ function getConfig() {
     return {
       provider: "weixin",
       type: 0,
-      href: "http://uniapp.dcloud.io/",
+      href: "http://caimizm.com/",
       title: "五七仔下载链接",
       summary: "",
       imageUrl: logo,
@@ -63,7 +64,7 @@ function getConfig() {
     return {
       provider: "weixin",
       type: 2,
-      imageUrl: dowRqcode,
+      imageUrl: "/static/dowRqcode.png",
     };
   }
   
@@ -80,7 +81,7 @@ const shareWx = async () => {
         icon: "success",
       });
     },
-    fail(err) {},
+    fail(err) {console.log(err)},
     complete() {
       share.value.close();
     },
@@ -90,7 +91,6 @@ const shareWx = async () => {
 
 const shareWxpyq = async () => {
   // #ifdef APP
-  const imageUrl = await props.getImageUrl;
 
   uni.share({
     ...getConfig(),
