@@ -456,3 +456,13 @@ export function apiFind_post_by_account(tname, issueno) {
     },
   });
 }
+
+
+//查询个人发帖列表
+export function apiSelect_by_account(data) {
+  return request({
+    url: "/web/post/select_by_account",
+    method: "POST",
+    data,
+  });
+}

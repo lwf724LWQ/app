@@ -24,8 +24,8 @@ export const useUserListStore = defineStore('userList', () => {
   // 存储正在进行的请求Promise
   const pendingRequests = ref<Record<string, Promise<UserInfo>>>({})
   
-  // 过期时间（10分钟 = 600000毫秒）
-  const EXPIRE_TIME = 10 * 60 * 1000
+  // 过期时间（1分钟 = 60000毫秒）
+  const EXPIRE_TIME = 1 * 60 * 1000
 
   /**
    * 获取用户信息
@@ -85,7 +85,7 @@ export const useUserListStore = defineStore('userList', () => {
     return {
       account,
       username: res.data.uname,
-      avatar: `http://video.caimizm.com/himg/${res.data.himg}`
+      avatar: res.data.himg ? `http://video.caimizm.com/himg/${res.data.himg}` : 'http://video.caimizm.com/himg/user.png'
     }
   }
 

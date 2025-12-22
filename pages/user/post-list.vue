@@ -21,8 +21,9 @@
             :key="item"
             :class="{ activat: currentTname == item }"
             @click="switchTab(item)"
-            >{{ item }}</view
           >
+            {{ item }}
+          </view>
         </view>
         <!-- <view class="tab-bar" v-show="currentTname !== '全部'">
                     <view class="item" v-for="item in ruleList" :key="item" :class="{ activat: currentRule == item }"
@@ -47,7 +48,7 @@
 import { onLoad } from "@dcloudio/uni-app";
 import { ref, nextTick } from "vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
-import { apiPostListQuery } from "@/api/apis.js";
+import { apiSelect_by_account } from "@/api/apis.js";
 import { getAccount } from "../../utils/request";
 import postCard from "../../components/post-card/post-card.vue";
 
@@ -77,7 +78,6 @@ function queryList(pageNo, pageSize) {
   const params = {
     page: pageNo,
     limit: pageSize,
-    account: getAccount(),
     tname: currentTname.value,
     // random: this.tabIndex === 1
   };
@@ -87,9 +87,9 @@ function queryList(pageNo, pageSize) {
     params.tname = params.tname + "-规律预测";
   }
 
-  apiPostListQuery(params)
+  apiSelect_by_account(params)
     .then((res) => {
-      pagingRef.value.complete(res.data.records);
+      pagingRef.value.complete(res.data.list);
     })
     .catch((res) => {
       this.$refs.paging.complete(false);
