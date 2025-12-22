@@ -12,7 +12,7 @@ const handleAppendPost = (post) => {
         })
         return
       }
-  
+      
       // 检查是否是当前用户自己的帖子
       const currentAccount = getAccount()
       if (post.account === currentAccount) {
