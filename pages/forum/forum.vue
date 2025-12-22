@@ -318,8 +318,7 @@
 
     <!-- 发布按钮 -->
     <view class="publish-btn" @click="showPublishModal">
-      发帖
-      <uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
+      <uni-icons type="plusempty" size="30" color="#fff"></uni-icons>
     </view>
 
     <!-- 发布弹出层 -->
@@ -1703,6 +1702,7 @@ textarea {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
 }
 
 /* 主导航栏 */
@@ -2416,22 +2416,18 @@ textarea {
   gap: 10rpx;
   right: 30rpx;
   bottom: calc(120rpx + var(--window-bottom));
-  width: 190rpx;
-  height: 60rpx;
-  line-height: 60rpx;
+  width: 80rpx;
+  height: 80rpx;
   text-align: center;
   color: #fff;
   font-size: 40rpx;
   font-weight: bold;
   background-color: #b3d35a;
-  border-radius: 10px;
+  border-radius: 50%;
   padding: 10rpx;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
-  z-index: 2;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
-  transition: transform 0.2s ease;
+  z-index: 999;
 }
 
 .publish-btn:active {

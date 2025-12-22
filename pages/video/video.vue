@@ -79,8 +79,8 @@
 
     <!-- 发布按钮 -->
     <view class="publish-btn" @click="gotoOss()">
-      投稿
-      <uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
+      <!-- 投稿 -->
+      <uni-icons type="plusempty" size="30" color="#fff"></uni-icons>
     </view>
     <bottomBar current-path="/pages/video/video" />
   </view>
@@ -794,15 +794,14 @@ onMounted(async () => {
   gap: 10rpx;
   right: 30rpx;
   bottom: calc(120rpx + var(--window-bottom));
-  width: 190rpx;
-  height: 60rpx;
-  line-height: 60rpx;
+  width: 80rpx;
   text-align: center;
+  height: 80rpx;
   color: #fff;
   font-size: 40rpx;
   font-weight: bold;
   background-color: #b3d35a;
-  border-radius: 10px;
+  border-radius: 50%;
   padding: 10rpx;
   // display: flex;
   // align-items: center;
