@@ -1,5 +1,5 @@
 import { getAccount } from "@/utils/request";
-import { apiPostListQuery, apiGetIssueNo } from "@/api/apis.js";
+import { apiFind_post_by_account, apiGetIssueNo } from "@/api/apis.js";
 // 获取分行显示的方案数据
 const getSchemeDisplayData = (scheme) => {
 return Object.entries(scheme)
@@ -37,14 +37,12 @@ const generatePostContent = (schemes) => {
 // 获取当期自己发布的最新的帖子
 const getTodayNewPost = async (lotteryType)=>{
     const issuenoRes = await apiGetIssueNo({ tname: lotteryType });
-    const res = await apiPostListQuery({
-      page: 1,
-      limit: 1,
-      issueno: issuenoRes.data.issueno,
-      account: getAccount(),
-      tname: lotteryType,
-    });
-    return res.data.records[0]
+    const res = await apiFind_post_by_account(
+      lotteryType,
+      issuenoRes.data.issueno,
+      
+    );
+    return res.data
 }
 
 const loadSchemesData = () =>{

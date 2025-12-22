@@ -25,11 +25,7 @@
               <text class="issue-number">第{{ issueNumber }}期</text>
 
               <!-- 方案详情 -->
-              <view
-                v-for="(scheme, index) in schemes"
-                :key="index"
-                class="scheme-item"
-              >
+              <view v-for="(scheme, index) in schemes" :key="index" class="scheme-item">
                 <text class="scheme-name">[{{ scheme[0] }}]</text>
 
                 <text
@@ -38,21 +34,15 @@
                   :key="index"
                 >
                   <text>{{ info[0] }}：</text>
-                  <text
-                    >{{ postTool.numberFormat(info[1].numbers, info[0]) }}
-                  </text>
-                  <text v-if="info[1].mainAttack">
-                    主攻{{ info[1].mainAttack }}
-                  </text>
+                  <text>{{ postTool.numberFormat(info[1].numbers, info[0]) }}</text>
+                  <text v-if="info[1].mainAttack">主攻{{ info[1].mainAttack }}</text>
                 </text>
               </view>
             </view>
           </view>
           <!-- 未设置方案时的提示 -->
           <view v-else class="scheme-placeholder">
-            <text class="placeholder-text"
-              >还没有添加方案噢,点击可添加方案
-            </text>
+            <text class="placeholder-text">还没有添加方案噢,点击可添加方案</text>
           </view>
         </view>
       </view>
@@ -63,16 +53,8 @@
         <view class="image-upload-container">
           <!-- 已选择的图片 -->
           <view v-if="selectedImages.length > 0" class="selected-images">
-            <view
-              v-for="(image, index) in selectedImages"
-              :key="index"
-              class="image-item"
-            >
-              <image
-                :src="image"
-                class="uploaded-image"
-                mode="aspectFit"
-              ></image>
+            <view v-for="(image, index) in selectedImages" :key="index" class="image-item">
+              <image :src="image" class="uploaded-image" mode="aspectFit"></image>
               <view class="image-delete" @click="removeImage(index)">
                 <uni-icons type="close" size="16" color="#fff"></uni-icons>
               </view>
@@ -80,11 +62,7 @@
           </view>
 
           <!-- 添加图片按钮 -->
-          <view
-            v-if="selectedImages.length < 6"
-            class="add-image-btn"
-            @click="selectImage"
-          >
+          <view v-if="selectedImages.length < 6" class="add-image-btn" @click="selectImage">
             <uni-icons type="camera" size="40" color="#ccc"></uni-icons>
             <text class="add-text">添加图片</text>
             <text class="count-text">{{ selectedImages.length }}/6</text>
@@ -94,19 +72,13 @@
 
       <!-- 免责声明 -->
       <view class="disclaimer">
-        <text class="disclaimer-text"
-          >注: 帖子一旦发布, 将不能进行修改或删除操作</text
-        >
+        <text class="disclaimer-text">注: 帖子一旦发布, 将不能进行修改或删除操作</text>
       </view>
 
       <!-- 底部按钮区域 -->
       <view class="bottom-buttons">
         <button class="modify-btn" @click="goToSchemePage">修改</button>
-        <button
-          class="publish-btn"
-          :class="{ disabled: !canPublish }"
-          @click="handlePublish"
-        >
+        <button class="publish-btn" :class="{ disabled: !canPublish }" @click="handlePublish">
           发布
         </button>
       </view>
@@ -236,12 +208,10 @@ const selectImage = async () => {
       isUploadingImage.value = true;
 
       // 批量上传图片
-      const uploadPromises = chooseResult.tempFilePaths.map(
-        async (tempFilePath, index) => {
-          const url = await tool.oss.uploadImgForTempPath(tempFilePath, "pimg");
-          return { tempFilePath, url: `http://video.caimizm.com/${url}` };
-        }
-      );
+      const uploadPromises = chooseResult.tempFilePaths.map(async (tempFilePath, index) => {
+        const url = await tool.oss.uploadImgForTempPath(tempFilePath, "pimg");
+        return { tempFilePath, url: `http://video.caimizm.com/${url}` };
+      });
 
       // 等待所有图片上传完成
       const uploadResults = await Promise.all(uploadPromises);
@@ -326,7 +296,7 @@ const handlePublish = async () => {
       content: generatePostContent(), // 发帖内容
       account: getAccount() || "", // 账号
       pimg: uploadedImageUrls.value.join(","), // 多张图片URL用逗号分隔
-      flag: false, // 需要审核
+      flag: true, // 需要审核
     };
     // 检查必要参数
     if (!postData.account) {
@@ -337,11 +307,7 @@ const handlePublish = async () => {
       return;
     }
 
-    if (
-      postData.issueno === null ||
-      postData.issueno === undefined ||
-      postData.issueno === ""
-    ) {
+    if (postData.issueno === null || postData.issueno === undefined || postData.issueno === "") {
       uni.showToast({
         title: "期号信息缺失",
         icon: "none",

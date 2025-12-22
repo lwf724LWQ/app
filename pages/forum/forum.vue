@@ -139,6 +139,7 @@
       :refresher-enabled="true"
       :refresher-triggered="refreshing"
       @refresherrefresh="onRefresh"
+      @scrolltolower="nextPage"
     >
       <!-- 头条内容 -->
       <view v-if="activeTab === 'headlines'" class="tab-content">
@@ -458,7 +459,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { apiGetIssueNo, apiPostListQuery, apiPostLike } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
@@ -716,6 +717,12 @@ onMounted(() => {
   isPageInitialized.value = true;
 });
 
+function onRefresh() {
+  if (refreshing.value) return;
+  refreshing.value = true;
+  loadLotteryData(currentLotteryType.value.code);
+}
+
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab;
@@ -839,15 +846,6 @@ const loadLotteryDataByType = async (lotteryType) => {
   } finally {
     isLoadingLottery.value = false;
   }
-};
-
-const refreshing = ref(false);
-const onRefresh = async () => {
-  refreshing.value = true;
-  try {
-    await loadPredictPosts();
-  } catch (error) {}
-  refreshing.value = false;
 };
 
 // 根据彩票类型加载数据（兼容旧接口，通过code查找）
@@ -1263,6 +1261,7 @@ const getSearchButtonText = () => {
   return filters.join("+");
 };
 
+const refreshing = ref(false);
 // 加载预测帖子数据
 const loadPredictPosts = async () => {
   // 先检查是否正在加载，避免重复请求
@@ -1286,49 +1285,40 @@ const loadPredictPosts = async () => {
   if (currentQueryKey.value === queryKey) {
     return;
   }
-
+  // debugger;
   try {
     isLoadingPosts.value = true;
+    // refreshing.value = true;
     currentQueryKey.value = queryKey;
 
     // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
       tname: tname, // 查询预测帖
       issueno: issueno,
-      page: "1",
-      limit: "20",
+      page: parseInt(pageData.value.page),
+      limit: parseInt(pageData.value.limit),
     };
+    const account = getAccount();
+    if (account) {
+      queryData.account = account;
+    }
 
     // 查询预测帖
     const response = await apiPostListQuery(queryData);
 
     let allPosts = [];
 
+    pageData.value.total = response.data.list.total;
+
     if (response.code === 200) {
-      if (response.data && response.data.records && Array.isArray(response.data.records)) {
-        allPosts = [...response.data.records];
+      if (response.data) {
+        allPosts = [...response.data.list];
       }
     }
 
-    // 查询规律帖 - 使用规律帖的tname格式
-    const patternQueryData = {
-      tname: `${tname}-规律预测`, // 查询规律帖
-      issueno: issueno,
-      page: "1",
-      limit: "20",
-    };
-
-    // const patternResponse = await apiPostListQuery(patternQueryData)
-
-    // if (patternResponse.code === 200) {
-    //   if (patternResponse.data && patternResponse.data.records && Array.isArray(patternResponse.data.records)) {
-    //     allPosts = [...allPosts, ...patternResponse.data.records]
-    //   }
-    // }
-
     // 处理所有帖子数据
     if (allPosts.length > 0) {
-      predictList.value = allPosts
+      const addlist = allPosts
         .map((post) => {
           const postId = post.id;
 
@@ -1349,11 +1339,12 @@ const loadPredictPosts = async () => {
           let userAvatar = "http://video.caimizm.com/himg/user.png";
 
           // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
-          userAvatar = getUserAvatar(post.account);
+          userAvatar = post.himg ? tool.oss.getFullUrl("/himg/" + post.himg) : userAvatar;
 
           return {
             id: postId,
-            username: post.account || "匿名用户",
+            account: post.account,
+            username: post.uname || "匿名用户",
             avatar: userAvatar, // 使用处理后的头像
             time: formatTime(post.createTime),
             status: "预测中",
@@ -1368,16 +1359,48 @@ const loadPredictPosts = async () => {
           };
         })
         .filter((post) => post !== null);
+
+      if (queryData.page == 1) {
+        predictList.value = addlist;
+      } else {
+        predictList.value = [...predictList.value, ...addlist];
+      }
     } else {
       predictList.value = [];
     }
   } catch (error) {
     predictList.value = [];
   } finally {
-    isLoadingPosts.value = false;
-    currentQueryKey.value = null;
   }
+  isLoadingPosts.value = false;
+  currentQueryKey.value = null;
+  refreshing.value = false;
 };
+
+// 加载分页
+const isLoadNextPage = ref(false);
+const pageData = ref({
+  page: "1",
+  limit: "20",
+  total: 0,
+  maxPage: 1,
+});
+const isMaxPage = computed(() => {
+  return parseInt(pageData.value.page) >= parseInt(pageData.value.maxPage);
+});
+async function nextPage(res) {
+  if (isLoadNextPage.value) return;
+  if (isMaxPage.value) return;
+  if (pageData.value.total < pageData.value.page * pageData.value.limit) return;
+  debugger;
+  pageData.value.page = parseInt(pageData.value.page) + 1;
+
+  isLoadNextPage.value = true;
+  try {
+    await loadPredictPosts();
+  } catch (error) {}
+  isLoadNextPage.value = false;
+}
 
 // 获取本地存储的点赞状态和数字
 const getLikedStatus = (postId) => {
@@ -1562,7 +1585,6 @@ const optimizeTouchEvents = () => {
 
 // 处理追帖按钮点击
 const handleAppendPost = (post) => {
-  post.account = post.username;
   post.issueno = post.period;
   post.tname = currentLotteryType.value.name;
   forumToos.handleAppendPost(post);
@@ -2523,7 +2545,8 @@ textarea {
 }
 
 .agreement-text {
-  font-size: 26rpx;
+  font-size: 34rpx;
+  font-weight: bold;
   color: #ff4757;
 }
 

@@ -445,3 +445,14 @@ export function apiGetChangtiaoForlname(name) {
     },
   });
 }
+
+//查询个人当前期号发帖
+export function apiFind_post_by_account(tname, issueno) {
+  return request({
+    url: "/web/post/find_by_account",
+    method: "GET",
+    data: {
+      tname,issueno
+    },
+  });
+}
