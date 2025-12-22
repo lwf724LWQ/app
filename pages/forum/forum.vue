@@ -1330,10 +1330,10 @@ const loadPredictPosts = async () => {
           // 检查当前用户是否点赞过这个帖子
           const currentAccount = getAccount();
           const userLikedKey = `${postId}_${currentAccount}`;
-          const isLiked = getLikedStatus(userLikedKey);
+          // const isLiked = getLikedStatus(userLikedKey);
 
           // 使用服务器返回的点赞数
-          const serverLikeCount = post.likeCount || 0;
+          const serverLikeCount = post.like_count || 0;
 
           // 处理用户头像
           let userAvatar = "http://video.caimizm.com/himg/user.png";
@@ -1354,7 +1354,7 @@ const loadPredictPosts = async () => {
             likes: serverLikeCount, // 使用服务器返回的点赞数
             comments: post.comment || 0,
             shares: 0,
-            isLiked: isLiked, // 检查当前用户是否点赞过
+            isLiked: post.dianzan, // 检查当前用户是否点赞过
             isLiking: false, // 点赞中状态
           };
         })
@@ -1481,11 +1481,7 @@ const handleLike = async (post) => {
     }
 
     // 检查当前用户是否已经点赞过这个帖子
-    const currentAccount = getAccount();
-    const userLikedKey = `${post.id}_${currentAccount}`;
-    const hasUserLiked = getLikedStatus(userLikedKey);
-
-    if (hasUserLiked) {
+    if (post.isLiked == 1) {
       uni.showToast({
         title: "你已经点赞过了",
         icon: "none",
@@ -1507,7 +1503,7 @@ const handleLike = async (post) => {
     // 调用点赞接口
     const likeData = {
       postId: post.id,
-      account: currentAccount, // 使用当前登录用户账号
+      account: getAccount(), // 使用当前登录用户账号
     };
 
     const response = await apiPostLike(likeData);
@@ -1518,7 +1514,7 @@ const handleLike = async (post) => {
       post.likes += 1;
 
       // 保存当前用户对这个帖子的点赞状态
-      saveLikedStatus(userLikedKey, true);
+      // saveLikedStatus(userLikedKey, true);
 
       uni.showToast({
         title: response.msg || "点赞成功",
