@@ -116,7 +116,7 @@
     </view>
 
     <!-- 分类标签栏 -->
-    <view class="category-tags">
+    <!-- <view class="category-tags">
       <scroll-view scroll-x class="category-scroll">
         <view class="tag-list">
           <view
@@ -130,7 +130,7 @@
           </view>
         </view>
       </scroll-view>
-    </view>
+    </view> -->
 
     <!-- 论坛内容 -->
     <scroll-view
@@ -2432,7 +2432,7 @@ textarea {
   padding: 10rpx;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
-  z-index: 999;
+  z-index: 2;
   /* 优化触摸性能 */
   touch-action: manipulation;
   transition: transform 0.2s ease;
