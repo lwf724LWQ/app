@@ -1,168 +1,41 @@
 <template>
   <view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-    <!-- 顶部广告轮播图 -->
-    <swiper
-      class="ad-swiper"
-      indicator-dots="true"
-      autoplay="true"
-      interval="3000"
-      duration="500"
-      circular="true"
-      easing-function="default"
-    >
-      <swiper-item>
-        <view class="swiper-item">
-          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="swiper-item">
-          <image src="/static/aoRed.jpg" mode="aspectFill"></image>
-        </view>
-      </swiper-item>
-    </swiper>
-
-    <!-- 开奖结果区域 - 福彩3D -->
-    <navigator :url="`/pages/table/table?type=福彩3D&period=${fc3dPeriod}`">
-      <view class="lottery-results-fc3d">
-        <view class="result-item-fc3d">
-          <view class="result-header-fc3d">
-            <view class="lottery-title-fc3d">福彩3D 第{{ fc3dPeriod }}期</view>
-            <view class="lottery-date">{{ fc3dDate }}</view>
-          </view>
-          <view class="winning-numbers-fc3d">
-            <view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
-              <view class="number-item-fc3d">{{ num }}</view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
     <!-- 开奖结果区域 - 排列五 -->
     <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
       <view class="lottery-results-plw">
         <view class="result-item-plw">
           <view class="result-header-plw">
-            <view class="lottery-title-plw">排列三 排列五 第{{ plwPeriod }}期</view>
+            <view class="lottery-title-plw">第{{ plwPeriod }}期</view>
             <view class="lottery-date">{{ plwDate }}</view>
           </view>
           <view class="winning-numbers-plw">
             <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
               <view class="number-item-plw">{{ num }}</view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
             </view>
           </view>
         </view>
       </view>
     </navigator>
-
-    <!-- 开奖结果区域 - 七星彩 -->
-    <navigator :url="`/pages/table/table?type=七星彩&period=${qxcPeriod}`">
-      <view class="lottery-results-qxc">
-        <view class="result-item-qxc">
-          <view class="result-header-qxc">
-            <view class="lottery-title-qxc">七星彩 第{{ qxcPeriod }}期</view>
-            <view class="lottery-date">{{ qxcDate }}</view>
-          </view>
-          <view class="winning-numbers-qxc">
-            <view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
-              <view
-                class="number-item-qxc"
-                :class="{ 'qxc-special': index === qxcNumbers.length - 1 }"
-              >
-                {{ num }}
-              </view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
-    <!-- 通知横幅 -->
-    <view class="notice-banner">
-      <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
-      <text class="notice-text">【2025 国庆总结通知】</text>
-      <text class="notice-new">NEW</text>
-      <uni-icons type="right" size="28" color="#999"></uni-icons>
-    </view>
 
     <!-- 功能图标区 - 15个图标网格 -->
     <view class="function-area">
+      <view class="function-title">应用工具</view>
       <view class="function-grid">
         <!-- 第一行 -->
         <view class="icon-item" @click="drawGui">
-          <uni-icons type="compose" size="20" color="#4A90E2"></uni-icons>
+          <uni-icons type="compose" size="30" color="#f00"></uni-icons>
           <text>画规</text>
         </view>
         <view class="icon-item" @click="toChangtiao">
-          <!-- <image src="/static/icons/list.png" mode="aspectFit"></image> -->
-          <uni-icons type="bars" size="20" color="#4A90E2"></uni-icons>
+          <uni-icons type="bars" size="30" color="#f00"></uni-icons>
           <text>长条</text>
         </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/font.png" mode="aspectFit"></image>
-          <text>云规</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/card.png" mode="aspectFit"></image>
-          <text>统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/button.png" mode="aspectFit"></image>
-          <text class="leng3">智能规</text>
-        </view> -->
-        <!-- 第二行 -->
-        <view class="icon-item" @click="goToLive">
-          <uni-icons type="videocam" size="20" color="#4A90E2"></uni-icons>
-          <text>开奖直播</text>
-        </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/badge.png" mode="aspectFit"></image>
-          <text>大师榜单</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/card.png" mode="aspectFit"></image>
-          <text>大师统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/fav.png" mode="aspectFit"></image>
-          <text>奖表统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/search-bar.png" mode="aspectFit"></image>
-          <text>奖表查询</text>
-        </view> -->
-        <!-- 第三行 -->
         <view class="icon-item" @click="goToDreamInterpretation">
-          <uni-icons type="chat" size="20" color="#4A90E2"></uni-icons>
+          <uni-icons type="chat" size="30" color="#f00"></uni-icons>
           <text>解梦</text>
         </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/collapse.png" mode="aspectFit"></image>
-          <text class="leng3">过滤王</text>
-        </view> -->
-        <view class="icon-item" @click="goToSearchuser">
-          <!-- <image src="/static/icons/search-bar.png" mode="aspectFit"></image> -->
-          <uni-icons type="search" size="20" color="#4A90E2"></uni-icons>
-          <text>彩友搜索</text>
-        </view>
-        <!-- <view class="icon-item icon-item-message">
-          <image src="/static/icons/color.png" mode="aspectFit"></image>
-          <text>我的消息</text>
-          <view class="message-badge">1</view>
-        </view> -->
-        <!-- <view class="icon-item">
-          <image src="/static/icons/grid.png" mode="aspectFit"></image>
-          <text>全部</text>
-        </view> -->
       </view>
     </view>
-
-    <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
-    <bottomBar current-path="/pages/index/index" />
   </view>
 </template>
 
@@ -202,6 +75,7 @@ export default {
       // });
     },
     isLogin() {
+      return true;
       const userStore = useUserStore();
       if (userStore.getUserInfo.account) {
         return true;
@@ -240,23 +114,9 @@ export default {
       // #endif
     },
     goToDreamInterpretation() {
-      const userStore = useUserStore();
-      if (userStore.getUserInfo.account) {
-        uni.navigateTo({
-          url: "/pages/dream-interpretation/dream-interpretation",
-        });
-      } else {
-        uni.showModal({
-          title: "提示",
-          content: "该功能需要登录，是否前往",
-          success: async (res) => {
-            if (res.confirm) {
-              uni.navigateTo({ url: "/pages/login/login" });
-            }
-          },
-          showCancel: true,
-        });
-      }
+      uni.navigateTo({
+        url: "/pages/dream-interpretation/dream-interpretation",
+      });
     },
     // 加载开奖结果
     async loadLotteryResults() {
@@ -432,7 +292,7 @@ export default {
   flex-direction: column;
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding-top: var(--status-bar-height);
+  padding-top: calc(var(--status-bar-height) + 40rpx);
 
   /* 轮播图样式 */
   .ad-swiper {
@@ -522,13 +382,13 @@ export default {
   }
 
   .lottery-title-plw {
-    font-size: 28rpx;
+    font-size: 32rpx;
     font-weight: bold;
     color: #333;
   }
 
   .lottery-date {
-    font-size: 24rpx;
+    font-size: 32rpx;
     color: #666;
   }
 
@@ -546,14 +406,14 @@ export default {
   }
 
   .number-item-plw {
-    width: 60rpx;
-    height: 60rpx;
+    width: 80rpx;
+    height: 80rpx;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #e74c3c;
     border-radius: 50%;
-    font-size: 32rpx;
+    font-size: 42rpx;
     font-weight: bold;
     color: #fff;
     margin-bottom: 8rpx;
@@ -654,11 +514,16 @@ export default {
   .function-area {
     padding: 20rpx;
     background-color: #f5f5f5;
+    box-sizing: border-box;
+  }
+  .function-title {
+    padding: 20rpx 0;
+    font-weight: bold;
   }
 
   .function-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 20rpx 10rpx;
     background-color: #fff;
     padding: 30rpx;
@@ -686,7 +551,8 @@ export default {
   }
 
   .icon-item text {
-    font-size: 20rpx;
+    margin-top: 10rpx;
+    font-size: 29rpx;
     color: #666;
   }
 

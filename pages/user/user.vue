@@ -1,138 +1,8 @@
 <template>
   <view class="userLayout" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-    <view class="userInfo" v-if="memberStore.profile">
-      <view class="user-header">
-        <view class="avatar-section">
-          <view class="avatar">
-            <image
-              :src="memberStore.profile?.avatar || 'http://video.caimizm.com/himg/user.png'"
-              mode="aspectFill"
-              @error="handleAvatarError"
-            ></image>
-          </view>
-          <view class="user-details">
-            <text class="username">{{ memberStore.profile?.nickname || "欢迎您" }}</text>
-          </view>
-        </view>
-        <view class="edit-btn" @click="goToEditProfile">
-          <text class="edit-text">点击编辑资料</text>
-        </view>
-      </view>
-      <view class="user-stats">
-        <view class="stat-item" @click="goToFollowlist">
-          <text class="stat-label">关注</text>
-          <text class="stat-value">{{ followCount }}</text>
-        </view>
-        <view class="stat-item" @click="goToFanslist">
-          <text class="stat-label">粉丝</text>
-          <text class="stat-value">{{ fansCount }}</text>
-        </view>
-        <view class="stat-item" @click="goToPostlist">
-          <text class="stat-label">帖子</text>
-          <text class="stat-value">{{ postCount }}</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-label">评分</text>
-          <text class="stat-value">100</text>
-        </view>
-      </view>
-    </view>
-    <!-- 情况2：未登录 -->
-    <view class="userInfo" v-if="!memberStore.profile">
-      <view class="user-header">
-        <view class="avatar-section">
-          <view class="avatar gray">
-            <image src="../../static/images/defaultAvatar.png" mode="aspectFill"></image>
-          </view>
-          <view class="user-details">
-            <text class="username">未登录</text>
-            <view class="login-btn">
-              <navigator url="/pages/login/login" hover-class="none">
-                <text class="login-text">点击登录</text>
-              </navigator>
-            </view>
-          </view>
-        </view>
-        <view class="edit-btn" @click="goToLogin">
-          <text class="edit-text">点击登录</text>
-        </view>
-      </view>
-      <view class="user-stats">
-        <view class="stat-item" @click="goToFollowlist">
-          <text class="stat-label">关注</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item" @click="goToFanslist">
-          <text class="stat-label">粉丝</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item" @click="goToPostlist">
-          <text class="stat-label">帖子</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-label">评分</text>
-          <text class="stat-value">100</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 数据展示区域 -->
-    <view class="data-section">
-      <view class="data-card" @click="toggleBalanceVisibility">
-        <text class="data-number">{{ isBalanceVisible ? "0.00" : "****" }}</text>
-        <text class="data-label">我的收益</text>
-        <view class="eye-icon" @click="toggleBalanceVisibility">
-          <uni-icons
-            :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'"
-            size="16"
-            color="#999"
-          ></uni-icons>
-        </view>
-      </view>
-      <view class="data-card">
-        <text class="data-number">
-          <text v-if="isBalanceVisible">{{ userBalance }}</text>
-          <text v-else>****</text>
-        </text>
-        <text class="data-label">我的金币</text>
-        <!--  -->
-        <view class="eye-icon" @click="toggleBalanceVisibility">
-          <uni-icons
-            :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'"
-            size="16"
-            color="#999"
-          ></uni-icons>
-        </view>
-      </view>
-    </view>
-
-    <!-- 我的充值区域 -->
-    <view class="recharge-section">
-      <view class="section-title"></view>
-      <view class="recharge-items">
-        <view class="recharge-item" @click="goToRecharge">
-          <view class="recharge-icon purple">💳</view>
-          <text class="recharge-text">充值</text>
-        </view>
-        <view class="recharge-item" @click="goToOrders">
-          <view class="recharge-icon blue">📋</view>
-          <text class="recharge-text">我的订单</text>
-        </view>
-        <view class="recharge-item" @click="goToTransaction">
-          <view class="recharge-icon yellow">¥</view>
-          <text class="recharge-text">消费明细</text>
-        </view>
-        <!-- <view class="recharge-item">
-          <view class="recharge-icon red">🎁</view>
-          <text class="recharge-text">收藏</text>
-        </view> -->
-      </view>
-    </view>
-
     <!-- 其他服务区域 -->
     <view class="services-section">
-      <view class="section-title">其它服务</view>
+      <view class="section-title">其它</view>
       <view class="services-grid">
         <!-- <view class="service-item">
           <uni-icons type="headphones" size="24" color="#222"></uni-icons>
@@ -154,27 +24,26 @@
         </view> -->
         <view class="service-item" @click="toShare">
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
-          <text class="service-text">分享</text>
+          <text class="service-text">分享APP</text>
         </view>
-        <!-- <view class="service-item" @click="showAboutAs">
+        <view class="service-item" @click="toPrivacyPolicy">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
-          <text class="service-text">常见问题</text>
-        </view> -->
+          <text class="service-text">隐私政策</text>
+        </view>
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
         </view>
-        <view class="service-item" @click="toggleoldManMode">
+        <!-- <view class="service-item" @click="toggleoldManMode">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
           <text class="service-text">切换{{ useOldManModeStore.enabled ? "小字" : "大字" }}</text>
-        </view>
-        <view class="service-item" @click="logout">
+        </view> -->
+        <!-- <view class="service-item" @click="logout">
           <uni-icons type="settings" size="24" color="#222"></uni-icons>
           <text class="service-text">退出登录</text>
-        </view>
+        </view> -->
       </view>
     </view>
-    <bottomBar current-path="/pages/user/user" />
   </view>
 </template>
 
@@ -312,6 +181,12 @@ function requireLogin() {
   return true;
 }
 
+function toPrivacyPolicy() {
+  uni.navigateTo({
+    url: "/pages/login/agreement?type=PrivacyPolicy",
+  });
+}
+
 // 退出登录
 const logout = () => {
   uni.showModal({
@@ -356,9 +231,7 @@ const goToFanslist = () => {
 };
 // 跳转到反馈页面
 const toFeedBack = () => {
-  if (requireLogin()) {
     uni.navigateTo({ url: "/pages/user/feedbackPage" });
-  }
 };
 
 // 跳转到充值页面
