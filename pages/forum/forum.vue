@@ -368,7 +368,7 @@ const showPeriodDropdown = ref(false);
 const publishPopup = ref(null);
 
 // 协议同意状态
-const agreedToTerms = ref(false);
+const agreedToTerms = ref(uni.getStorageSync("postAgreement") || false);
 
 // 选中的功能类型
 const selectedFunction = ref("");
@@ -679,8 +679,9 @@ const selectFunction = async (type) => {
     if (!res.confirm) {
       return;
     }
+    toggleAgreementManually();
   }
-
+  uni.setStorageSync("postAgreement", true);
   selectedFunction.value = type;
 
   const urlParams = tool.formatUrlParams({
