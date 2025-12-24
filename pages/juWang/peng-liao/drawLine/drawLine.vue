@@ -281,7 +281,7 @@ const getData = async () => {
 
     data.value = res.data.records.reverse();
     data.value.forEach((item) => {
-      item.number = item.number?.split(" ");
+      item.number = item.number.trim()?.split(" ");
       if (type.value === "七星彩") item.number.push(item.refernumber);
     });
   } finally {
