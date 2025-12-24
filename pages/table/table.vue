@@ -91,8 +91,8 @@ const getData = async () => {
 
     data.value = res.data.records.reverse();
     data.value.forEach((item) => {
-      item.number = item.number.trim()?.split(" ");
-      if (type.value === "七星彩") item.number.push(item.refernumber);
+      item.number = item.number?.split(" ");
+      if (type.value === "七星彩") item.number.push(Number(item.refernumber) % 10);
     });
   } finally {
     uni.hideLoading();

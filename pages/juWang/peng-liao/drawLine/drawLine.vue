@@ -281,8 +281,8 @@ const getData = async () => {
 
     data.value = res.data.records.reverse();
     data.value.forEach((item) => {
-      item.number = item.number.trim()?.split(" ");
-      if (type.value === "七星彩") item.number.push(item.refernumber);
+      item.number = item.number?.split(" ");
+      if (type.value === "七星彩") item.number.push(Number(item.refernumber) % 10);
     });
   } finally {
     uni.hideLoading();
@@ -866,13 +866,13 @@ const touchend = async (event) => {
 // 手势缩放
 const scale = ref(1);
 const gestureStartCenterY = ref(0); // 手势操作开始中心位置
-const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight);
-const containerHeight = ref(0);
+// const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight);
+// const containerHeight = ref(0);
 
 const gesturestart = async (event) => {
   //禁用曲线控制按钮
   iscurveHandleShow.value = false;
-  containerHeight.value = initHeight.value;
+  // containerHeight.value = initHeight.value;
 
   const { 0: touch1, 1: touch2 } = event.touches;
   const y = (touch1.y + touch2.y) / 2;
@@ -891,7 +891,15 @@ const gesturemove = (event) => {
 const cnavasWidth = ref(750);
 // const cnavasWidth = ref(750 / 0.8)
 
-const gestureend = async (event) => {};
+const gestureend = (event) => {
+  // event.touches.length表示当前触摸屏幕的手指数量
+  if (event.touches.length === 1) return;
+
+  setTimeout(async () => {
+    const el = await getRect(".container");
+    updateScale(el.dataset.scale);
+  }, 17);
+};
 
 const updateScale = async (value) => {
   scale.value = value;
@@ -902,12 +910,6 @@ const updateScale = async (value) => {
   await nextTick();
   scrollInitTop.value =
     gestureStartCenterY.value * scale.value - (gestureStartCenterY.value - scrolltop);
-
-  // 删除容器多余的高度
-  let bottom = initHeight.value - gestureStartCenterY.value / ratio;
-  if (bottom > windowHeight / ratio) bottom = windowHeight / ratio;
-  const height = bottom + (gestureStartCenterY.value / ratio) * scale.value;
-  containerHeight.value = height;
 
   gestureStartCenterY.value = 0;
 };
@@ -1394,13 +1396,13 @@ const changeMode = () => {
 
 <script>
 // renderjs中只能调用选项式api,创建一个选项式api的script进行中转
-export default {
-  methods: {
-    _updateScale(value) {
-      this.$.setupState.updateScale(value);
-    },
-  },
-};
+// export default {
+//   methods: {
+//     _updateScale(value) {
+//       this.$.setupState.updateScale(value);
+//     },
+//   },
+// };
 </script>
 <script lang="renderjs" module="gesture">
 let scale = 1, tmpScale, gestureStartDistance, theme, isGesture = false
@@ -1437,9 +1439,9 @@ export default {
       document.querySelector('.container').style.transform = `scale(${scale})`
     },
     gestureend(event){
-      if(!isGesture || event.touches.length > 0) return
+      if(!isGesture || event.touches.length !==1 ) return
 
-      this.$ownerInstance.callMethod('_updateScale', scale)
+      document.querySelector('.container').dataset.scale = scale
     }
   },
 }
@@ -1512,7 +1514,7 @@ page {
   height: calc(100% - v-bind('TOP_BAR_HEIGHT + "px"'));
   .container {
     position: relative;
-    height: v-bind('containerHeight + "rpx"');
+    // height: v-bind('containerHeight + "rpx"');
     transform-origin: 0 v-bind('gestureStartCenterY + "px"');
 
     .bg-canvas,
@@ -1523,13 +1525,6 @@ page {
     .movable-area {
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
-      /* #ifdef APP */
-      top: calc(-130rpx - v-bind('safeArea.top + "px"'));
-      /* #endif */
-      /* #ifdef MP */
-      top: calc(-130rpx - v-bind('safeArea.top + menuButtonInfo + "px"'));
-      /* #endif */
-      z-index: 2;
       position: absolute;
       top: 0;
     }
@@ -1676,7 +1671,7 @@ page {
     height: calc(100vh - v-bind('(TOP_BAR_HEIGHT + safeArea.top) + "px"'));
     display: flex;
     .mask-left {
-      width: v-bind('styleConfig.columns[0].width + "px"');
+      width: v-bind('styleConfig?.columns?.[0].width + "px"');
       display: flex;
       flex-direction: column;
       justify-content: space-around;
