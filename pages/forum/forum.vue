@@ -116,7 +116,7 @@
     </view>
 
     <!-- 关注用户列表 -->
-    <followUserList v-show="activeTab === 'follow'" />
+    <followUserList v-show="activeTab === 'follow'" ref="followUserListRef" />
 
     <!-- 分类标签栏 -->
     <!-- <view class="category-tags">
@@ -313,6 +313,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import { apiGetIssueNo, apiPostListQuery, apiPostLike } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
@@ -484,6 +485,10 @@ onMounted(() => {
   optimizeTouchEvents();
   loadLotteryData(currentLotteryType.value.code);
   isPageInitialized.value = true;
+});
+const followUserListRef = ref(null);
+onShow(() => {
+  followUserListRef.value.reload();
 });
 
 function onRefresh() {
@@ -1099,6 +1104,7 @@ const loadPredictPosts = async () => {
 
           return {
             id: postId,
+            tname: post.tname,
             account: post.account,
             username: post.uname || "匿名用户",
             avatar: userAvatar, // 使用处理后的头像

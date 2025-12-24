@@ -16,12 +16,21 @@
 <script>
 import { getUserFollowApi } from "@/api/apis";
 import tool from "@/utils/tool";
+import { getAccount } from "../../../utils/request";
 export default {
   data() {
     return { page: 1, list: [] };
   },
   methods: {
+    reload() {
+      this.page = 1;
+      this.getUserFollow();
+    },
     async getUserFollow() {
+      if (!getAccount()) {
+        this.list = [];
+        return;
+      }
       const page = this.page;
       const res = await getUserFollowApi({ page, limit: 20 });
       res.data.forEach((item) => {

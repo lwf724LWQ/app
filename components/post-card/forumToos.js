@@ -15,6 +15,30 @@ const handleAppendPost = (post) => {
       
       // 检查是否是当前用户自己的帖子
       const currentAccount = getAccount()
+      if (!currentAccount) {
+        uni.showModal({
+          title: "未登录",
+          content: '请先登录',
+          confirmText: '去登录',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到登录页面
+              uni.navigateTo({
+                url: '/pages/login/login',
+                success: () => {
+                },
+                fail: () => {
+                  uni.showToast({
+                    title: '跳转失败',
+                  })
+                }
+              })
+            }
+          }
+        })
+        return
+      }
       if (post.account === currentAccount) {
         uni.showModal({
           title: '追帖确认',

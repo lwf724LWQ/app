@@ -118,7 +118,6 @@ export default {
     // 处理追帖按钮点击
     handleAppendPost(post) {
       post.issueno = post.period;
-      post.tname = currentLotteryType.value.name;
       forumToos.handleAppendPost(post);
     },
     async handleLike(post) {
