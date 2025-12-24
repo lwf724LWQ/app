@@ -92,7 +92,7 @@ const getData = async () => {
     data.value = res.data.records.reverse();
     data.value.forEach((item) => {
       item.number = item.number?.split(" ");
-      if (type.value === "七星彩") item.number.push(item.refernumber);
+      if (type.value === "七星彩") item.number.push(Number(item.refernumber) % 10);
     });
   } finally {
     uni.hideLoading();
@@ -161,7 +161,7 @@ $border-color: #f9a29f;
   color: #83c283;
   height: calc(100vh - v-bind('top + "px"'));
   padding-top: v-bind('top + "px"');
-  > .row:nth-child(4n) {
+  .row:nth-child(4n) {
     border-top: 5rpx solid $border-color;
   }
   .row {
