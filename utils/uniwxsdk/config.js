@@ -1,6 +1,8 @@
 export default {
     isReady: false,
-    appid: "wxd145b4a6dc948d7f",
+	isDebug: true,
+    appid: "wxcc8965020c482056",
+    appSignature: "2a9f09c3aaa2b1c25c71911fdd057226",
     appPEMKey: `-----BEGIN PRIVATE KEY-----
 MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCm2mb6q8gMKH/3
 CNTbpJAIrbqiBiQGEOtjGcBrDYltsGynWgNscqT7WvfzU14FQbYcQUC5T4Wvva7m

@@ -73,10 +73,15 @@ async function signWithRSA(data, privateKeyPEM) {
     }
 }
 
+
+function md5(str){
+    return cryptoJs.MD5(str).toString().toUpperCase()
+}
+
 function log(...arg){
     if(config.isDebug){
         console.log(...arg)
     }
 }
 
-export default { generateRandomString, sha1, signWithRSA, base64Encode, log }
+export default { generateRandomString, sha1, signWithRSA, base64Encode, log, md5 }
