@@ -107,14 +107,7 @@
 
       <!-- 支付按钮 -->
       <view class="payment-section">
-        <button
-          class="payment-btn"
-          :class="{ disabled: !canPay }"
-          @click.stop="handlePayment"
-          :disabled="!canPay"
-        >
-          支付 ¥{{ paymentAmount }}元
-        </button>
+        <button class="payment-btn" @click.stop="handlePayment">支付 ¥{{ paymentAmount }}元</button>
       </view>
     </scroll-view>
 
@@ -163,7 +156,7 @@ const currentUser = ref("vfmumq");
 const userBalance = ref(0);
 const selectedAmount = ref(10);
 const customAmount = ref("");
-const agreedToTerms = ref(false);
+const agreedToTerms = ref(uni.getStorageSync("paymentAgreement") || false);
 
 // 二维码相关数据
 const showQRModal = ref(false);
@@ -226,9 +219,19 @@ const viewTransactionRecord = () => {
   uni.navigateTo({ url: "/pages/transaction/transaction" });
 };
 
-const handlePayment = () => {
-  if (!canPay.value) return;
-
+const handlePayment = async () => {
+  if (!canPay.value) {
+    const res = await uni.showModal({
+      title: "提示",
+      content: "请阅读《充值服务协议》",
+      showCancel: true,
+      confirmText: "同意",
+    });
+    if (!res.confirm) {
+      return;
+    }
+  }
+  uni.setStorageSync("paymentAgreement", true);
   uni.showModal({
     title: "确认支付",
     content: `确认支付 ¥${paymentAmount.value}元 购买 ${paymentAmount.value}个金币？`,

@@ -205,7 +205,7 @@ const tool = {
       // #endif
 
       // #ifdef APP-PLUS
-      uni;
+      
       // #endif
     });
   },
