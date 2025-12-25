@@ -27,10 +27,10 @@ export default {
                 provider: 'wxpay',
                 orderInfo: orderInfo,
                 success: function (res) {
-                    
+                    console.log(res)
                 },
                 fail: function (res) {
-                    
+                    console.log(res)
                 }
             })
         })

@@ -2,7 +2,7 @@
     "name" : "五七仔",
     "appid" : "__UNI__FA93A0C",
     "description" : "五七仔",
-    "versionName" : "1.0.106",
+    "versionName" : "1.1.0",
     "versionCode" : 1094,
     "transformPx" : false,
     /* 5+App特有相关 */
@@ -22,7 +22,8 @@
             "Payment" : {},
             "Camera" : {},
             "VideoPlayer" : {},
-            "Share" : {}
+            "Share" : {},
+            "OAuth" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -66,7 +67,12 @@
                         "UniversalLinks" : ""
                     }
                 },
-                "oauth" : {}
+                "oauth" : {
+                    "weixin" : {
+                        "appid" : "wxcc8965020c482056",
+                        "UniversalLinks" : ""
+                    }
+                }
             },
             "splashscreen" : {
                 "useOriginalMsgbox" : true
