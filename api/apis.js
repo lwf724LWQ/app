@@ -452,11 +452,11 @@ export function apiFind_post_by_account(tname, issueno) {
     url: "/web/post/find_by_account",
     method: "GET",
     data: {
-      tname,issueno
+      tname,
+      issueno,
     },
   });
 }
-
 
 //查询个人发帖列表
 export function apiSelect_by_account(data) {
@@ -466,3 +466,12 @@ export function apiSelect_by_account(data) {
     data,
   });
 }
+
+//查询个人视频列表
+export const getUserVideoListApi = (data) => {
+  return request({
+    url: "/web/video/find_by_account",
+    method: "GET",
+    data,
+  });
+};

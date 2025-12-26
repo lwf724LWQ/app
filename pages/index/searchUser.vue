@@ -45,6 +45,7 @@
     :follow-list="userList"
     v-else
     @changeFollowStatus="onChangeFollowStatus"
+    @user-click="goToUserDetail"
   ></UserList>
 </template>
 
@@ -53,10 +54,8 @@ import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import { searchUserApi } from "@/api/apis";
 import { ref, watch } from "vue";
 import UserList from "@/pages/user/components/userList.vue";
-import { useUserStore } from "@/stores/userStore";
 
-const userStore = useUserStore();
-
+// 搜索用户
 const searchInputValue = ref("");
 const userList = ref([]);
 const searchHistory = ref(uni.getStorageSync("searchHistory") || []);
@@ -73,7 +72,7 @@ const searchUser = async (keyword) => {
     uni.hideLoading();
   }
 };
-
+// 添加搜索历史记录
 const addSearchHistory = (value) => {
   if (!value || searchHistory.value.includes(value)) return;
   if (searchHistory.value.length >= 10) searchHistory.value.shift();
@@ -84,7 +83,7 @@ const onSearchHistoryClick = (value) => {
   searchInputValue.value = value;
   searchUser(value);
 };
-
+// 存储历史记录到本地
 watch(
   searchHistory,
   () => {
@@ -98,8 +97,10 @@ watch(
   }
 );
 
+// 当搜索框为空时，清空用户列表
 watch(searchInputValue, (val) => !val && (userList.value = []));
 
+// 用户改变关注状态
 const onChangeFollowStatus = (account) => {
   userList.value.forEach((item) => {
     if (item.account === account) {
@@ -108,9 +109,17 @@ const onChangeFollowStatus = (account) => {
   });
 };
 
+// 清除搜索历史记录
 const onClearSearchHistory = () => {
   searchHistory.value = [];
   uni.removeStorageSync("searchHistory");
+};
+
+// 跳转到用户详情页
+const goToUserDetail = (account, isFollow) => {
+  uni.navigateTo({
+    url: `/pages/user/space?account=${account}&follow=${isFollow}`,
+  });
 };
 </script>
 
