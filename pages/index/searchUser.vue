@@ -64,9 +64,16 @@ const userList = ref([]);
 const searchHistory = ref(uni.getStorageSync("searchHistory") || []);
 const searchUser = async (keyword) => {
   if (!keyword) return;
-  const res = await searchUserApi({ uname: keyword });
-  userList.value = res.data;
-  addSearchHistory(keyword);
+  try {
+    uni.showLoading({
+      title: "加载中",
+    });
+    const res = await searchUserApi({ uname: keyword });
+    userList.value = res.data;
+    addSearchHistory(keyword);
+  } finally {
+    uni.hideLoading();
+  }
 };
 
 const addSearchHistory = (value) => {

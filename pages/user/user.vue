@@ -44,6 +44,13 @@
         </view> -->
       </view>
     </view>
+    <view class="footer">
+      <view>Copyright©2025</view>
+      <view>APP:五七仔</view>
+      <view>备案号：粤ICP备2024303153号-3A</view>
+      <view>广州梓梅网络科技有限公司 版权所有</view>
+    </view>
+    <bottomBar current-path="/pages/user/user" />
   </view>
 </template>
 
@@ -231,7 +238,7 @@ const goToFanslist = () => {
 };
 // 跳转到反馈页面
 const toFeedBack = () => {
-    uni.navigateTo({ url: "/pages/user/feedbackPage" });
+  uni.navigateTo({ url: "/pages/user/feedbackPage" });
 };
 
 // 跳转到充值页面
@@ -1129,6 +1136,15 @@ const getUserFollowCount = async () => {
         }
       }
     }
+  }
+}
+.footer {
+  color: #474747;
+  width: 100%;
+  > view {
+    text-align: center;
+    margin-bottom: 15rpx;
+    font-size: 22rpx;
   }
 }
 </style>
