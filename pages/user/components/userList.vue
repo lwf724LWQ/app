@@ -12,7 +12,7 @@
       class="follow-item"
       v-for="(item, index) in followList"
       :key="index"
-      @click="goToUserDetail(item.id)"
+      @click="goToUserDetail(item.account, item.flag)"
     >
       <image
         class="avatar"
@@ -82,8 +82,8 @@ const onScrolltolower = () => {
 };
 
 // 跳转到用户详情页
-const goToUserDetail = (userId) => {
-  emit("userClick", userId);
+const goToUserDetail = (userId, followFlag) => {
+  emit("userClick", userId, followFlag);
 };
 
 // 取消关注

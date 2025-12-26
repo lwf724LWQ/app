@@ -83,9 +83,11 @@ const onReachBottom = async () => {
 };
 
 // 跳转到用户详情页
-const goToUserDetail = (userId) => {
+const goToUserDetail = (account, isFollow) => {
   // 跳转逻辑
-  console.log("跳转到用户详情页", userId);
+  uni.navigateTo({
+    url: `/pages/user/space?account=${account}&follow=${isFollow}`,
+  });
 };
 
 // 筛选用户
