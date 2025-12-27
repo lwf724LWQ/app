@@ -13,16 +13,16 @@
     <!-- 切换标签栏（参考 forum.vue 风格） -->
     <view class="switch-tabs">
       <view class="tab-item" :class="{ active: currentTab === 'fc' }" @click="switchTabByIndex(3)">
-        <text class="tab-text">福彩3D</text>
+        <text class="tab-text">娱乐</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'pls' }" @click="switchTabByIndex(1)">
-        <text class="tab-text">排列三</text>
+        <text class="tab-text">生活</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'plw' }" @click="switchTabByIndex(0)">
-        <text class="tab-text">排列五</text>
+        <text class="tab-text">教育</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'qxc' }" @click="switchTabByIndex(2)">
-        <text class="tab-text">七星彩</text>
+        <text class="tab-text">其他</text>
       </view>
     </view>
     <view v-if="videoList.length === 0">

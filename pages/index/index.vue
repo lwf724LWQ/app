@@ -1,41 +1,6 @@
 <template>
   <view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-    <!-- 开奖结果区域 - 排列五 -->
-    <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
-      <view class="lottery-results-plw">
-        <view class="result-item-plw">
-          <view class="result-header-plw">
-            <view class="lottery-title-plw">第{{ plwPeriod }}期</view>
-            <view class="lottery-date">{{ plwDate }}</view>
-          </view>
-          <view class="winning-numbers-plw">
-            <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
-              <view class="number-item-plw">{{ num }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
-    <!-- 功能图标区 - 15个图标网格 -->
-    <view class="function-area">
-      <view class="function-title">应用工具</view>
-      <view class="function-grid">
-        <!-- 第一行 -->
-        <view class="icon-item" @click="drawGui">
-          <uni-icons type="compose" size="30" color="#f00"></uni-icons>
-          <text>画规</text>
-        </view>
-        <view class="icon-item" @click="toChangtiao">
-          <uni-icons type="bars" size="30" color="#f00"></uni-icons>
-          <text>长条</text>
-        </view>
-        <view class="icon-item" @click="goToDreamInterpretation">
-          <uni-icons type="chat" size="30" color="#f00"></uni-icons>
-          <text>解梦</text>
-        </view>
-      </view>
-    </view>
+    <image src="/static/a.webp"></image>
   </view>
 </template>
 
