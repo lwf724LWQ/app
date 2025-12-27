@@ -116,7 +116,10 @@
     </view>
 
     <!-- 关注用户列表 -->
-    <followUserList v-show="activeTab === 'follow'" ref="followUserListRef" />
+    <template v-if="activeTab === 'follow'">
+      <view class="followUserListTitle">关注用户</view>
+      <followUserList ref="followUserListRef" />
+    </template>
 
     <!-- 分类标签栏 -->
     <!-- <view class="category-tags">
@@ -488,7 +491,7 @@ onMounted(() => {
 });
 const followUserListRef = ref(null);
 onShow(() => {
-  followUserListRef.value.reload();
+  followUserListRef.value?.reload();
 });
 
 function onRefresh() {
@@ -2197,5 +2200,11 @@ textarea {
 
 .search-btn:active {
   background-color: #e63946;
+}
+
+.followUserListTitle {
+  padding: 20rpx 20rpx 0 20rpx;
+  font-size: 32rpx;
+  font-weight: bold;
 }
 </style>

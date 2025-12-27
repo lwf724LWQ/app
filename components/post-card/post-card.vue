@@ -51,7 +51,7 @@
         <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
         <text class="count">{{ post.comment }}</text>
       </view> -->
-      <view class="action-item append-btn" @click="handleAppendPost">
+      <view class="action-item append-btn" @click="handleAppendPost" v-if="isSelfAccountPost">
         <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
         <text class="count">追帖</text>
       </view>
@@ -88,6 +88,9 @@ const postImage = computed(() => {
 });
 const isLiked = computed(() => {
   return props.post.dianzan;
+});
+const isSelfAccountPost = computed(() => {
+  return props.post.account === getAccount();
 });
 // 跳转到用户详情页
 const goToUserDetail = (userId) => {
