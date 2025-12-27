@@ -16,15 +16,13 @@
       </view>
     </view> -->
     <!-- #ifdef APP-PLUS -->
-    <view class="card">
+    <view class="card" v-if="false">
       <view class="card-header">
         <view class="card-title">
           <uni-icons class="card-icon" type="link"></uni-icons>
           <text class="title-text">二维码下载</text>
         </view>
-        <view class="card-description"
-          >分享二维码到微信，好友扫描二维码即可下载</view
-        >
+        <view class="card-description">分享二维码到微信，好友扫描二维码即可下载</view>
       </view>
       <view class="card-footer">
         <view class="share-button" @click="share('rqcode')">分享二维码</view>
@@ -38,8 +36,8 @@
           <uni-icons class="card-icon" type="link"></uni-icons>
           <text class="title-text">官网下载</text>
         </view>
-        <view class="card-description"
-          >在手机浏览器，输入官网地址，即可下载。
+        <view class="card-description">
+          在手机浏览器，输入官网地址，即可下载。
           <uni-link
             class="link"
             href="http://www.caimizm.com/"
@@ -49,7 +47,7 @@
       </view>
       <view class="card-footer">
         <!-- #ifdef APP-PLUS -->
-        <view class="share-button" @click="share('link')">分享链接</view>
+        <view class="share-button" @click="share('link')" v-if="false">分享链接</view>
         <!-- #endif -->
         <view class="copy-button" @click="copyLink()">复制地址</view>
       </view>

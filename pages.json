@@ -4,7 +4,8 @@
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "首页",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
       }
     },
     {
@@ -320,12 +321,14 @@
     "bounce": "none"
   },
   "tabBar": {
-    "color": "#9799a5",
-    "selectedColor": "#28B389",
+    "color": "#666666",
+    "selectedColor": "#f70000",
     "list": [
       {
         "text": "推荐",
-        "pagePath": "pages/index/index"
+        "pagePath": "pages/index/index",
+        "iconPath": "/static/images/tabBar/home.png",
+        "selectedIconPath": "/static/images/tabBar/home-h.png"
       },
       {
         "text": "视频",

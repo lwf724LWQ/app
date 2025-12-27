@@ -16,10 +16,12 @@
             @click="searchInputValue = ''"
           ></uni-icons>
         </view>
-        <button class="search-button" type="primary" @click="searchUser(searchInputValue)">
-          搜索
-        </button>
       </view>
+    </template>
+    <template v-slot:right>
+      <button class="search-button" type="primary" @click="searchUser(searchInputValue)">
+        搜索
+      </button>
     </template>
   </TopNavigationBar>
   <!-- 搜索历史记录 -->
@@ -31,11 +33,11 @@
     <view class="search-history-list">
       <view
         class="search-history-item"
-        v-for="value in searchHistory"
-        :key="value"
-        @click="onSearchHistoryClick(value)"
+        v-for="item in searchHistory"
+        :key="item"
+        @click="onSearchHistoryClick(item)"
       >
-        {{ value }}
+        {{ item }}
       </view>
     </view>
   </view>
@@ -74,6 +76,7 @@ const searchUser = async (keyword) => {
 };
 // 添加搜索历史记录
 const addSearchHistory = (value) => {
+  debugger;
   if (!value || searchHistory.value.includes(value)) return;
   if (searchHistory.value.length >= 10) searchHistory.value.shift();
   searchHistory.value.push(value);
@@ -132,23 +135,25 @@ const goToUserDetail = (account, isFollow) => {
   padding: 20rpx 0;
   border-bottom: 1px solid #eee;
   .search-input {
-    width: 350rpx;
+    width: 100%;
     height: 60rpx;
     border-radius: 60rpx;
     background-color: #eee;
     display: flex;
     align-items: center;
     padding: 0 20rpx;
-  }
-  .search-button {
-    width: 120rpx;
-    height: 60rpx;
-    line-height: 60rpx;
-    font-size: 30rpx;
-    margin: 0;
+    font-size: 24rpx;
   }
 }
-
+.search-button {
+  width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 30rpx;
+  margin: 0;
+  padding: 0;
+  margin-left: 10rpx;
+}
 .search-history {
   .search-history-title {
     display: flex;

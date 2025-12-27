@@ -6,7 +6,7 @@ import type { InjectionKey } from 'vue'
 export const useOldManModeStore = defineStore('oldManMode', () => {
   // 从本地存储获取初始值
   const storagValue = uni.getStorageSync('oldManMode')
-  const enabled = ref<boolean>(typeof storagValue === 'boolean' ? storagValue : true)
+  const enabled = ref<boolean>(typeof storagValue === 'boolean' ? storagValue : false)
   
   // 切换模式
   function toggleMode(): void {
