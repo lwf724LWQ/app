@@ -322,15 +322,10 @@
   "tabBar": {
     "color": "#9799a5",
     "selectedColor": "#28B389",
-    "height": "0px",
     "list": [
       {
         "text": "推荐",
         "pagePath": "pages/index/index"
-      },
-      {
-        "text": "体彩",
-        "pagePath": "pages/zc/index"
       },
       {
         "text": "视频",
