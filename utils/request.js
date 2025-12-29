@@ -1,4 +1,10 @@
-export const BASE_URL = "http://caimi.s7.tunnelfrp.com";
+export let BASE_URL;
+if (process.env.NODE_ENV === "development") {
+  BASE_URL = "http://caimi.s7.tunnelfrp.com";
+}else if (process.env.NODE_ENV === "production") {
+  BASE_URL = "http://web.caimizm.com";
+}
+
 // export const BASE_URL = 'http://api.彩迷.com/api';
 
 import { useUserStore } from "../stores/userStore";
