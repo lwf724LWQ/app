@@ -19,11 +19,11 @@
         <view class="segmented">
           <view class="title">已发布</view>
           <view>
-            <uni-segmented-control
+            <!-- <uni-segmented-control
               :current="current"
-              :values="['视频', '帖子']"
+              :values="['帖子']"
               @clickItem="onClickItem"
-            ></uni-segmented-control>
+            ></uni-segmented-control> -->
           </view>
         </view>
         <view class="user-post">

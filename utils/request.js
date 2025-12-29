@@ -1,4 +1,4 @@
-export const BASE_URL = "http://caimi.s7.tunnelfrp.com";
+export const BASE_URL = "http://web.caimizm.com";
 // export const BASE_URL = 'http://api.彩迷.com/api';
 
 import { useUserStore } from "../stores/userStore";
