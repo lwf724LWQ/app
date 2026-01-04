@@ -20,9 +20,11 @@
         <view class="avatar-container" @click="handleAvatarClick">
           <image :src="userInfo.avatar" mode="aspectFill" class="avatar-image" @error="handleImageError"></image>
           <view class="avatar-overlay">
-            <uni-icons type="camera" size="24" color="#fff"></uni-icons>
             <text class="avatar-text">点击上传头像</text>
           </view>
+		  <view class="avatar-overlay-for-ios">
+			  <!-- 兼容ios -->
+		  </view>
         </view>
       </view>
       <!-- <view class="avatar-section">
@@ -355,6 +357,16 @@ onMounted(() => {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index:1;
+}
+
+.avatar-overlay-for-ios{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index:2;
 }
 
 .avatar-container:active .avatar-overlay {
