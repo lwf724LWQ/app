@@ -13,6 +13,7 @@
     "weixin-js-sdk": "^1.6.5"
   },
   "devDependencies": {
+    "vconsole": "^3.15.1",
     "vite-plugin-top-level-await": "^1.6.0"
   }
 }

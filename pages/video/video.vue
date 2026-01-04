@@ -16,10 +16,10 @@
         <text class="tab-text">娱乐</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'pls' }" @click="switchTabByIndex(1)">
-        <text class="tab-text">生活</text>
+        <text class="tab-text">教育</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'plw' }" @click="switchTabByIndex(0)">
-        <text class="tab-text">教育</text>
+        <text class="tab-text">生活</text>
       </view>
       <view class="tab-item" :class="{ active: currentTab === 'qxc' }" @click="switchTabByIndex(2)">
         <text class="tab-text">其他</text>

@@ -50,7 +50,9 @@
             },
             /* ios打包配置 */
             "ios" : {
-                "dSYMs" : false
+                "dSYMs" : false,
+                "urltypes" : "zimei_wuqizai",
+                "idfa" : true
             },
             /* SDK配置 */
             "sdkConfigs" : {
