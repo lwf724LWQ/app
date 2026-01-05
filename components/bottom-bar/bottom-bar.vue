@@ -69,13 +69,13 @@ export default {
         //   icon: zc,
         //   selectedIcon: zcselectimg,
         // },
-        {
-          text: "视频",
-          path: "/pages/video/video",
-          uniicon: "videocam",
-          icon: videoimg,
-          selectedIcon: videoselectimg,
-        },
+        // {
+        //   text: "视频",
+        //   path: "/pages/video/video",
+        //   uniicon: "videocam",
+        //   icon: videoimg,
+        //   selectedIcon: videoselectimg,
+        // },
         {
           text: "彩友圈",
           path: "/pages/forum/forum",
@@ -104,7 +104,7 @@ export default {
     },
   },
   created() {
-    // uni.hideTabBar();
+    uni.hideTabBar();
   },
 };
 </script>
