@@ -165,7 +165,7 @@
           <text class="service-text">关于我们</text>
         </view>
         <view class="service-item" @click="toggleoldManMode">
-          <uni-icons type="settings" size="24" color="#222"></uni-icons>
+          <uni-icons type="eye" size="24" color="#222"></uni-icons>
           <text class="service-text">切换{{ useOldManModeStore.enabled ? "小字" : "大字" }}</text>
         </view>
         <view class="service-item" @click="logout">

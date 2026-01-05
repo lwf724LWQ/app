@@ -9,7 +9,14 @@
         :key="index"
         @click="switchTab(item.path)"
       >
+        <uni-icons
+          v-if="item.uniicon"
+          :type="item.uniicon"
+          :size="useOldManModeStore.enabled ? '34' : '22'"
+          :color="currentPath === item.path ? '#f70000' : '#666666'"
+        ></uni-icons>
         <image
+          v-else
           :src="currentPath === item.path ? item.selectedIcon : item.icon"
           class="tab-icon"
         ></image>
@@ -52,6 +59,7 @@ export default {
         {
           text: "首页",
           path: "/pages/index/index",
+          uniicon: "home",
           icon: homeimg,
           selectedIcon: homeselectimg,
         },
@@ -64,18 +72,21 @@ export default {
         {
           text: "视频",
           path: "/pages/video/video",
+          uniicon: "videocam",
           icon: videoimg,
           selectedIcon: videoselectimg,
         },
         {
           text: "彩友圈",
           path: "/pages/forum/forum",
+          uniicon: "pyq",
           icon: classifyimg,
           selectedIcon: classifyselectimg,
         },
         {
           text: "我的",
           path: "/pages/user/user",
+          uniicon: "person",
           icon: userimg,
           selectedIcon: userselectimg,
         },

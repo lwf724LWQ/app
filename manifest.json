@@ -2,8 +2,8 @@
     "name" : "五七仔",
     "appid" : "__UNI__FA93A0C",
     "description" : "五七仔",
-    "versionName" : "1.1.2",
-    "versionCode" : 11002,
+    "versionName" : "1.2.967",
+    "versionCode" : 12966,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -46,7 +46,8 @@
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
                     "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
                 ],
-                "targetSdkVersion" : 30
+                "targetSdkVersion" : 30,
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ]
             },
             /* ios打包配置 */
             "ios" : {
@@ -55,7 +56,11 @@
                 "idfa" : false,
                 "capabilities" : {
                     "entitlements" : {
-                        "com.apple.developer.associated-domains" : [ "https://demo.xn--tctu50co66a.top/", "https://caimizm.com/" ]
+                        "com.apple.developer.associated-domains" : [
+                            "applinks:demo.xn--tctu50co66a.top",
+                            "applinks:caimizm.com",
+                            "applinks:demo.寄烧鸡.top"
+                        ]
                     }
                 }
             },

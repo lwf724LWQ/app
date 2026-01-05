@@ -86,7 +86,7 @@
       <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
       <text class="notice-text">【2025 国庆总结通知】</text>
       <text class="notice-new">NEW</text>
-      <uni-icons type="right" size="28" color="#999"></uni-icons>
+      <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
     </view>
 
     <!-- 功能图标区 - 15个图标网格 -->
@@ -98,7 +98,7 @@
           <text>画规</text>
         </view>
         <view class="icon-item" @click="toChangtiao">
-          <image src="/static/icons/list.png" mode="aspectFit"></image>
+          <uni-icons type="bars" size="20" color="#4A90E2"></uni-icons>
           <text>长条</text>
         </view>
         <!-- <view class="icon-item">
@@ -144,7 +144,7 @@
           <text class="leng3">过滤王</text>
         </view> -->
         <view class="icon-item" @click="goToSearchuser">
-          <image src="/static/icons/search-bar.png" mode="aspectFit"></image>
+          <uni-icons type="search" size="20" color="#4A90E2"></uni-icons>
           <text>彩友搜索</text>
         </view>
         <!-- <view class="icon-item icon-item-message">
