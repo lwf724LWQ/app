@@ -90,8 +90,6 @@ import { getToken, getAccount } from "@/utils/request.js";
 import { apiUpdateUserProfile, getCOSSecretKey } from "@/api/apis.js";
 import tool from "../../utils/tool.js";
 import { useUserStore } from "@/stores/userStore";
-import VConsole from "vconsole";
-new VConsole();
 const userStore = useUserStore();
 // 用户信息
 const userInfo = reactive({

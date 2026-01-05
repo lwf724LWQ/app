@@ -1,6 +1,6 @@
 <!-- components/BottomTabBar.vue -->
 <template>
-  <view :class="{ oldManMode: useOldManModeStore.enabled }" v-if="false">
+  <view :class="{ oldManMode: useOldManModeStore.enabled }">
     <view class="tab-bar-reserved-grid"></view>
     <view class="tab-bar">
       <view
