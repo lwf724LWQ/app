@@ -16,10 +16,10 @@
           v-if="videoData.id && hasPaid"
           v-show="!showFormImage"
           :src="videoData.src"
-          :show-play-btn="true"
-          :controls="true"
-          :autoplay="false"
-          :show-fullscreen-btn="true"
+          show-play-btn="true"
+          controls="true"
+          autoplay="false"
+          show-fullscreen-btn="true"
           object-fit="cover"
           class="video-player"
           :class="{ 'video-full-screen': isFullScreen }"
@@ -27,6 +27,7 @@
           @play="onVideoPlay"
           @pause="onVideoPause"
           @ended="onVideoEnded"
+		  x5-video-player-type="h5"
         ></video>
         <view v-else-if="videoData.id"></view>
         <view v-else class="video-placeholder">
@@ -1164,7 +1165,7 @@ function toUserSpace() {
   .video-container {
     position: relative;
     width: 100%;
-    height: 600rpx;
+    // height: 600rpx;
     border-radius: 0;
     overflow: hidden;
     background-color: #000;
@@ -1172,7 +1173,7 @@ function toUserSpace() {
 
   .video-player {
     width: 100%;
-    height: 100%;
+    height: 300px;
   }
 
   /* 播放按钮遮罩层 */

@@ -6,6 +6,10 @@
             "packageName" : "com.app.caimi",
             "playground" : "custom",
             "type" : "uni-app:app-android"
+        },
+        {
+            "playground" : "custom",
+            "type" : "uni-app:app-ios"
         }
     ]
 }

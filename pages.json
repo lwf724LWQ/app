@@ -317,6 +317,7 @@
     "navigationBarTitleText": "咸虾米壁纸",
     "navigationBarBackgroundColor": "#fff",
     "backgroundColor": "#F8F8F8",
+	"pageOrientation": "auto",
     "bounce": "none"
   },
   "tabBar": {

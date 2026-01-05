@@ -10,7 +10,7 @@
         "usingComponents" : true,
         "nvueStyleCompiler" : "uni-app",
         "compilerVersion" : 3,
-        "screenOrientation" : [ "landscape-primary", "portrait-secondary" ],
+        "screenOrientation" : [ "portrait-primary", "landscape-primary", "portrait-secondary" ],
         "splashscreen" : {
             "alwaysShowBeforeRender" : true,
             "waiting" : true,
@@ -50,7 +50,14 @@
             },
             /* ios打包配置 */
             "ios" : {
-                "dSYMs" : false
+                "dSYMs" : false,
+                "urltypes" : "zimei_wuqizai",
+                "idfa" : false,
+                "capabilities" : {
+                    "entitlements" : {
+                        "com.apple.developer.associated-domains" : [ "https://demo.xn--tctu50co66a.top/", "https://caimizm.com/" ]
+                    }
+                }
             },
             /* SDK配置 */
             "sdkConfigs" : {
@@ -58,19 +65,19 @@
                     "weixin" : {
                         "__platform__" : [ "android" ],
                         "appid" : "wxcc8965020c482056",
-                        "UniversalLinks" : ""
+                        "UniversalLinks" : "https://caimizm.com/"
                     }
                 },
                 "share" : {
                     "weixin" : {
                         "appid" : "wxcc8965020c482056",
-                        "UniversalLinks" : ""
+                        "UniversalLinks" : "https://caimizm.com/"
                     }
                 },
                 "oauth" : {
                     "weixin" : {
                         "appid" : "wxcc8965020c482056",
-                        "UniversalLinks" : ""
+                        "UniversalLinks" : "https://caimizm.com/"
                     }
                 }
             },
@@ -141,3 +148,5 @@
     },
     "vueVersion" : "3"
 }
+/* 模块配置 */
+

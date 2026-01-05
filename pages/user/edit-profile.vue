@@ -46,13 +46,25 @@
       <view class="form-section">
         <view class="form-item">
           <text class="form-label">昵称</text>
-          <input type="text" v-model="userInfo.nickname" placeholder="请输入昵称" class="form-input" maxlength="20" />
+          <input
+            type="text"
+            v-model="userInfo.nickname"
+            placeholder="请输入昵称"
+            class="form-input"
+            maxlength="20"
+          />
         </view>
 
         <view class="form-item">
           <text class="form-label">手机号</text>
-          <input type="text" v-model="userInfo.phone" placeholder="手机号" class="form-input disabled" maxlength="11"
-            disabled />
+          <input
+            type="text"
+            v-model="userInfo.phone"
+            placeholder="手机号"
+            class="form-input disabled"
+            maxlength="11"
+            disabled
+          />
         </view>
       </view>
 
@@ -60,9 +72,8 @@
       <view class="save-section">
         <button class="save-btn" @click="saveProfile" :disabled="isSaving">
           <uni-icons v-if="isSaving" type="spinner-cycle" size="16" color="#fff"></uni-icons>
-          <text v-else class="save-btn-text">{{ isSaving ? '保存中...' : '保存修改' }}</text>
+          <text v-else class="save-btn-text">{{ isSaving ? "保存中..." : "保存修改" }}</text>
         </button>
-
       </view>
     </view>
   </view>
@@ -78,187 +89,182 @@ import { useUserStore } from '@/stores/userStore'
 const userStore = useUserStore()
 // 用户信息
 const userInfo = reactive({
-  avatar: 'http://video.caimizm.com/himg/user.png',
-  nickname: '',
-  phone: ''
-})
+  avatar: "http://video.caimizm.com/himg/user.png",
+  nickname: "",
+  phone: "",
+});
 
 // 保存状态
-const isSaving = ref(false)
+const isSaving = ref(false);
 
 // 返回上一页
 const goBack = () => {
-  uni.navigateBack()
-}
+  uni.navigateBack();
+};
 
 // 处理图片加载错误
 const handleImageError = () => {
-  userInfo.avatar = 'http://video.caimizm.com/himg/user.png'
-}
+  userInfo.avatar = "http://video.caimizm.com/himg/user.png";
+};
 
 // 处理头像点击事件
 const handleAvatarClick = async () => {
   // 选择图片
   const chooseResult = await uni.chooseImage({
     count: 1,
-    sizeType: ['compressed'],
-    sourceType: ['album', 'camera']
-  })
-
+    sizeType: ["compressed"],
+    sourceType: ["album", "camera"],
+  });
 
   if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
-    const tempFilePath = chooseResult.tempFilePaths[0]
-    userInfo.avatar = tempFilePath
+    const tempFilePath = chooseResult.tempFilePaths[0];
+    userInfo.avatar = tempFilePath;
   }
-  return
+  return;
   // 显示上传进度
   uni.showLoading({
-    title: '上传头像中...'
-  })
-
-
-}
-
+    title: "上传头像中...",
+  });
+};
 
 async function uploadAvatar(tempFilePath, folder = "img") {
   // 在H5环境中，需要将临时路径转换为File对象
-  let fileToUpload
+  let fileToUpload;
 
   // #ifdef H5
   // H5环境
-  const response = await fetch(tempFilePath)
-  const blob = await response.blob()
-  fileToUpload = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+  const response = await fetch(tempFilePath);
+  const blob = await response.blob();
+  fileToUpload = new File([blob], "avatar.jpg", { type: "image/jpeg" });
   // #endif
   // #ifndef H5
   // 小程序 APP环境
-  fileToUpload = tempFilePath
+  fileToUpload = tempFilePath;
   // #endif
 
   // 上传到OSS
   const uploadRes = await tool.oss.upload(fileToUpload, {
     folder: folder,
-  })
+  });
   // console.log(uploadRes)
-  return uploadRes.name
+  return uploadRes.name;
 }
-
 
 // 验证表单
 const validateForm = () => {
   if (!userInfo.nickname.trim()) {
     uni.showToast({
-      title: '请输入昵称',
-      icon: 'none'
-    })
-    return false
+      title: "请输入昵称",
+      icon: "none",
+    });
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 // 保存用户信息
 const saveProfile = async () => {
   if (!validateForm()) {
-    return
+    return;
   }
 
   if (isSaving.value) {
-    return
+    return;
   }
 
   try {
-    isSaving.value = true
-    const originDataInfo = userStore.getUserInfo
+    isSaving.value = true;
+    const originDataInfo = userStore.getUserInfo;
 
     uni.showLoading({
-      title: '保存中...'
-    })
+      title: "保存中...",
+    });
 
     // 准备保存的数据，根据API文档要求
     const saveData = {
       account: userInfo.phone, // 手机号作为account字段
-      uname: userInfo.nickname // 昵称字段名改为 uname
-    }
+      uname: userInfo.nickname, // 昵称字段名改为 uname
+    };
 
     // 如果头像已更新，只传递文件名给后端
     if (originDataInfo.avatar != userInfo.avatar) {
       try {
-        const avatarUrl = await tool.oss.uploadImgForTempPath(userInfo.avatar, "himg")
-        saveData.himg = avatarUrl.replace("himg/", "")
-
+        const avatarUrl = await tool.oss.uploadImgForTempPath(userInfo.avatar, "himg");
+        saveData.himg = avatarUrl.replace("himg/", "");
       } catch (error) {
-        console.error(error)
+        console.error(error);
         uni.showToast({
-          title: '上传头像失败，请重试',
-          icon: 'none'
-        })
-        uni.hideLoading()
-        return
+          title: "上传头像失败，请重试",
+          icon: "none",
+        });
+        uni.hideLoading();
+        return;
       }
     }
 
     // 调用保存用户信息的API
-    const response = await apiUpdateUserProfile(saveData)
-    const avatarUrl = saveData.himg ? `http://video.caimizm.com/himg/${saveData.himg}` : originDataInfo.avatar
+    const response = await apiUpdateUserProfile(saveData);
+    const avatarUrl = saveData.himg
+      ? `http://video.caimizm.com/himg/${saveData.himg}`
+      : originDataInfo.avatar;
     userStore.updateUserInfo({
       nickname: saveData.uname,
       avatar: avatarUrl,
-      account: saveData.account
-    })
+      account: saveData.account,
+    });
 
-    uni.hideLoading()
+    uni.hideLoading();
 
     if (response.code !== 200) {
-      throw new Error(response.msg || '保存失败')
+      throw new Error(response.msg || "保存失败");
     }
 
     uni.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
+      title: "保存成功",
+      icon: "success",
+    });
 
     // 延迟返回上一页
     setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
-
+      uni.navigateBack();
+    }, 1500);
   } catch (error) {
-    uni.hideLoading()
-    console.error('保存失败:', error)
+    uni.hideLoading();
+    console.error("保存失败:", error);
     uni.showToast({
-      title: '保存失败，请重试',
-      icon: 'none'
-    })
+      title: "保存失败，请重试",
+      icon: "none",
+    });
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
 
 // 加载用户信息（从登录时保存的数据中获取）
 const loadUserInfo = async () => {
-  const token = getToken()
+  const token = getToken();
 
   if (!token) {
     uni.showToast({
-      title: '请先登录',
-      icon: 'none'
-    })
+      title: "请先登录",
+      icon: "none",
+    });
     setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
-    return
+      uni.navigateBack();
+    }, 1500);
+    return;
   }
-  const storeUserInfo = userStore.getUserInfo
+  const storeUserInfo = userStore.getUserInfo;
 
-  userInfo.nickname = storeUserInfo.nickname
-  userInfo.phone = storeUserInfo.account
-  userInfo.avatar = storeUserInfo.avatar
-}
+  userInfo.nickname = storeUserInfo.nickname;
+  userInfo.phone = storeUserInfo.account;
+  userInfo.avatar = storeUserInfo.avatar;
+};
 
 onMounted(() => {
-  loadUserInfo()
-})
+  loadUserInfo();
+});
 </script>
 
 <style scoped>
@@ -275,7 +281,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 88rpx;
-  background-color: #28B389;
+  background-color: #28b389;
   z-index: 999;
   padding-top: var(--status-bar-height);
 }
@@ -379,7 +385,6 @@ onMounted(() => {
   margin-top: 8rpx;
 }
 
-
 /* 表单区域 */
 .form-section {
   background-color: #fff;
@@ -418,7 +423,7 @@ onMounted(() => {
 }
 
 .form-input:focus {
-  border-color: #28B389;
+  border-color: #28b389;
   background-color: #fff;
 }
 
@@ -447,7 +452,7 @@ onMounted(() => {
 }
 
 .form-textarea:focus {
-  border-color: #28B389;
+  border-color: #28b389;
   background-color: #fff;
 }
 
@@ -459,7 +464,7 @@ onMounted(() => {
 .save-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #28B389 0%, #20a085 100%);
+  background: linear-gradient(135deg, #28b389 0%, #20a085 100%);
   color: #fff;
   border-radius: 25rpx;
   font-size: 32rpx;

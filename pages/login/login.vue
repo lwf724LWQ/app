@@ -113,21 +113,21 @@
       </view>
 
       <!-- 第三方登录分隔线 -->
-      <view class="divider">
+<!--      <view class="divider">
         <view class="divider-line"></view>
         <text class="divider-text">第三方账号登录</text>
         <view class="divider-line"></view>
-      </view>
+      </view> -->
 
       <!-- 第三方登录按钮 -->
-      <view class="third-party-login">
+      <!-- <view class="third-party-login">
         <button class="wechat-btn" @click="wechatLogin">
           <view class="btn-icon wechat-icon">
             <view class="wechat-icon-svg"></view>
           </view>
           <text class="btn-text">微信账号登录</text>
         </button>
-      </view>
+      </view> -->
     </view>
     <privacyPopup ref="privacyPopupRef" @agree="handleAgree" />
     <!-- 底部指示器 -->
