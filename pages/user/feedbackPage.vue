@@ -92,20 +92,20 @@ interface FeedbackForm {
 const useOldManModeStore = inject(oldManModeStoreKey);
 const userStore = useUserStore();
 
-// if (!userStore.getUserInfo?.account) {
-//   uni.showModal({
-//     title: "未登录账号，请先登录。",
-//     showCancel: true,
-//     success: function () {
-//       uni.navigateTo({
-//         url: "/pages/login/login",
-//       });
-//     },
-//     fail(result) {
-//       uni.navigateBack();
-//     },
-//   });
-// }
+if (!userStore.getUserInfo?.account) {
+  uni.showModal({
+    title: "未登录账号，请先登录。",
+    showCancel: true,
+    success: function () {
+      uni.navigateTo({
+        url: "/pages/login/login",
+      });
+    },
+    fail(result) {
+      uni.navigateBack();
+    },
+  });
+}
 
 const feedbackForm = reactive<FeedbackForm>({
   account: userStore.getUserInfo?.account || "",
@@ -135,7 +135,7 @@ const submitFeedback = async () => {
 
   console.log("提交的反馈信息:", feedbackForm);
   try {
-    // await apiSubmitFeedback(feedbackForm);
+    await apiSubmitFeedback(feedbackForm);
 
     uni.showToast({
       title: "感谢您的反馈！我们将会尽快处理您的意见。",
