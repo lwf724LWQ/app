@@ -52,7 +52,11 @@ export const myDirective = {
   install(Vue) {
     Vue.directive('permission', {
       mounted(el, binding) {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', () => {			
+		const systemInfo = uni.getSystemInfoSync();
+		const isIOS = systemInfo.platform === 'ios' || systemInfo.osName === 'ios';
+		
+		return binding.value()
           // #ifdef APP
           const permissionMeta = permissionMap[binding.arg]
           let compat = plus.android.importClass('androidx.core.content.ContextCompat')
