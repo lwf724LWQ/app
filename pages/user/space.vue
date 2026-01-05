@@ -17,7 +17,7 @@
           </button>
         </view>
         <view class="segmented">
-          <view class="title">已发布</view>
+          <!-- <view class="title">已发布</view> -->
           <view>
             <!-- <uni-segmented-control
               :current="current"
@@ -27,13 +27,13 @@
           </view>
         </view>
         <view class="user-post">
-          <view v-if="current === 0">
+          <!-- <view v-if="current === 0">
             <videoCard v-for="video in videoList" :key="video.id" :video="video"></videoCard>
             <view class="no-post" v-if="!videoList.length">未发布视频</view>
-          </view>
-          <view v-else>
+          </view> -->
+          <view>
             <postCard v-for="post in postList" :key="post.id" :post="post"></postCard>
-            <view class="no-post" v-if="!videoList.length">未发布视频</view>
+            <view class="no-post" v-if="!videoList.length">未发布帖子</view>
           </view>
         </view>
       </view>
@@ -67,7 +67,8 @@ onLoad((options) => {
   account = options.account;
   followStatus.value = Number(options.follow);
   getUserInfo(account);
-  getVideo();
+  // getVideo();
+  getPost();
 });
 
 // tab切换
