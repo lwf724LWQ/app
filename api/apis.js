@@ -475,3 +475,11 @@ export const getUserVideoListApi = (data) => {
     data,
   });
 };
+
+// 用户注销
+export const getUserDelete = () => {
+  return request({
+    url: "/web/user/delete",
+    method: "GET",
+  });
+};

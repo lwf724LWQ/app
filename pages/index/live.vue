@@ -41,31 +41,31 @@
             class="result-info-numbers-number"
             v-for="(number, index) in item.number"
             :key="index"
-            >{{ number }}</view
           >
+            {{ number }}
+          </view>
         </view>
       </view>
     </view>
   </view>
 </template>
 
-<script lang='ts' setup>
+<script lang="ts" setup>
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import { ref, onUnmounted, Ref, onMounted, computed, nextTick } from "vue";
 import moment from "moment";
 import { apiFindResult } from "@/api/apis.js";
 import { onShow } from "@dcloudio/uni-app";
 
-const livePath = ref(
-  "https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8"
-);
+const livePath = ref("https://livevideopull.lottery.gov.cn/live/lottery_PAL.m3u8");
 // const livePath = ref('http://tvpull.dxhmt.cn:9081/tv/10425-1.m3u8')
-
-// 声明倒计时变量
-const countdownTime: Ref<number> = ref(10);
 
 // 直播提前预热时间
 const livePreheatingTime = 15 * 60 * 1000;
+
+// 声明倒计时变量
+const countdownTime: Ref<number> = ref(livePreheatingTime + 1);
+
 // 开奖时间
 const targetDate = new Date("2024-01-01 21:15:00");
 const liveEndDate = new Date("2024-01-01 22:00:00");

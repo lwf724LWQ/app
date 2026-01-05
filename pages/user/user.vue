@@ -27,10 +27,10 @@
           <text class="stat-label">粉丝</text>
           <text class="stat-value">{{ fansCount }}</text>
         </view>
-        <view class="stat-item" @click="goToPostlist">
+        <!-- <view class="stat-item" @click="goToPostlist">
           <text class="stat-label">帖子</text>
           <text class="stat-value">{{ postCount }}</text>
-        </view>
+        </view> -->
         <view class="stat-item">
           <text class="stat-label">评分</text>
           <text class="stat-value">100</text>
@@ -66,10 +66,10 @@
           <text class="stat-label">粉丝</text>
           <text class="stat-value">0</text>
         </view>
-        <view class="stat-item" @click="goToPostlist">
+        <!-- <view class="stat-item" @click="goToPostlist">
           <text class="stat-label">帖子</text>
           <text class="stat-value">0</text>
-        </view>
+        </view> -->
         <view class="stat-item">
           <text class="stat-label">评分</text>
           <text class="stat-value">100</text>
@@ -123,10 +123,7 @@
           <view class="recharge-icon yellow">¥</view>
           <text class="recharge-text">消费明细</text>
         </view>
-        <view class="recharge-item">
-          <view class="recharge-icon red">🎁</view>
-          <text class="recharge-text">收藏</text>
-        </view>
+        
       </view>
     </view>
 
@@ -152,14 +149,18 @@
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
         </view> -->
+        <view class="service-item" @click="toPrivacyPolicy">
+          <uni-icons type="help" size="24" color="#222"></uni-icons>
+          <text class="service-text">隐私政策</text>
+        </view>
         <view class="service-item" @click="toShare">
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
           <text class="service-text">分享</text>
         </view>
-        <!-- <view class="service-item" @click="showAboutAs">
+        <view class="service-item" @click="closeAccount">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
-          <text class="service-text">常见问题</text>
-        </view> -->
+          <text class="service-text">注销用户</text>
+        </view>
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
@@ -180,6 +181,7 @@
       <view>备案号：粤ICP备2024303153号-3A</view>
       <view>广州梓梅网络科技有限公司 版权所有</view>
     </view>
+    <userCloseConfirmation ref="userCloseConfirmationRef" />
     <bottomBar current-path="/pages/user/user" />
   </view>
 </template>
@@ -194,6 +196,7 @@ import tool from "../../utils/tool";
 import { useUserStore } from "@/stores/userStore";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import { getUserFollowCountApi } from "@/api/apis";
+import userCloseConfirmation from "./components/user-close-confirmation.vue";
 
 const userStore = useUserStore();
 
@@ -481,6 +484,27 @@ const getUserFollowCount = async () => {
   fansCount.value = res.data.fensi;
   postCount.value = res.data.fatie;
 };
+
+const userCloseConfirmationRef = ref(null);
+function closeAccount() {
+  if (requireLogin()) {
+    uni.showModal({
+      title: "注销账号",
+      content: "注销账号后，将无法登录，请确认是否注销？",
+      success: (res) => {
+        if (res.confirm) {
+          userCloseConfirmationRef.value.open(getAccount());
+        }
+      },
+    });
+  }
+}
+
+function toPrivacyPolicy() {
+  uni.navigateTo({
+    url: "/pages/login/agreement?type=PrivacyPolicy",
+  });
+}
 </script>
 
 <style lang="scss" scoped>

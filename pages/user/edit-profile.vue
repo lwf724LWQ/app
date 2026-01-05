@@ -17,14 +17,19 @@
     <view class="main-content">
       <!-- 头像显示区域 -->
       <view class="avatar-section">
-        <view class="avatar-container" @click="handleAvatarClick">
-          <image :src="userInfo.avatar" mode="aspectFill" class="avatar-image" @error="handleImageError"></image>
+        <view class="avatar-container">
+          <image
+            :src="userInfo.avatar"
+            mode="aspectFill"
+            class="avatar-image"
+            @error="handleImageError"
+          ></image>
           <view class="avatar-overlay">
             <text class="avatar-text">点击上传头像</text>
           </view>
-		  <view class="avatar-overlay-for-ios">
-			  <!-- 兼容ios -->
-		  </view>
+          <view class="avatar-overlay-for-ios" @click="handleAvatarClick">
+            <!-- 兼容ios处理 -->
+          </view>
         </view>
       </view>
       <!-- <view class="avatar-section">
@@ -80,13 +85,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { getToken, getAccount } from '@/utils/request.js'
-import { apiUpdateUserProfile, getCOSSecretKey } from '@/api/apis.js'
-import tool from "../../utils/tool.js"
-import { useUserStore } from '@/stores/userStore'
-
-const userStore = useUserStore()
+import { ref, reactive, onMounted } from "vue";
+import { getToken, getAccount } from "@/utils/request.js";
+import { apiUpdateUserProfile, getCOSSecretKey } from "@/api/apis.js";
+import tool from "../../utils/tool.js";
+import { useUserStore } from "@/stores/userStore";
+import VConsole from "vconsole";
+new VConsole();
+const userStore = useUserStore();
 // 用户信息
 const userInfo = reactive({
   avatar: "http://video.caimizm.com/himg/user.png",
@@ -109,6 +115,7 @@ const handleImageError = () => {
 
 // 处理头像点击事件
 const handleAvatarClick = async () => {
+  console.log(213);
   // 选择图片
   const chooseResult = await uni.chooseImage({
     count: 1,
@@ -363,16 +370,18 @@ onMounted(() => {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
-  z-index:1;
+  z-index: 1;
 }
 
-.avatar-overlay-for-ios{
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index:2;
+.avatar-overlay-for-ios {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+  opacity: 1;
 }
 
 .avatar-container:active .avatar-overlay {

@@ -113,7 +113,7 @@
             <text class="video-count">视频</text>
           </view>
           <view class="header-actions">
-            <button class="teacher-btn" @click="toUserSpace">讲师主页</button>
+            <!-- <button class="teacher-btn" @click="toUserSpace">讲师主页</button> -->
             <button class="follow-btn" v-if="followStatus != 2" @click="followUser">
               {{ followStatus == 0 ? "关注" : "取关" }}
             </button>
@@ -129,7 +129,7 @@
       </view>
 
       <!-- 底部按钮 -->
-      <view class="bottom-bar">
+      <!-- <view class="bottom-bar">
         <view class="bottom-left">
           <view class="icon-item" @click="toIndex">
             <uni-icons type="home" size="24" color="#FFD700"></uni-icons>
@@ -139,7 +139,7 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
-      </view>
+      </view> -->
     </view>
   </view>
 </template>

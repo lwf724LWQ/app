@@ -19,7 +19,7 @@
       <!-- 视频元数据（底部信息栏） -->
       <view class="video-meta">
         <!-- 左侧：视频类型标签 -->
-        <text class="video-type">{{ video.tname }}</text>
+        <!-- <text class="video-type">{{ video.tname }}</text> -->
 
         <!-- 右侧：时间与互动数据 -->
         <view class="meta-right">
