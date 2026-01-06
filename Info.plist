@@ -9,4 +9,10 @@
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
   </dict>
+  <dict>
+  	<key>com.apple.developer.associated-domains</key>
+  	<array>
+  		<string>applinks:caimizm.com</string>
+  	</array>
+  </dict>
 </plist>

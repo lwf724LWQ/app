@@ -333,7 +333,6 @@
     "color": "#666666",
     "selectedColor": "#f70000",
 	  "iconWidth":"20px",
-    "height": "0px",
     "list": [
       {
         "text": "推荐",
@@ -343,7 +342,7 @@
       },
       {
         "text": "视频",
-        "pagePath": "pages/forum/forum",
+        "pagePath": "pages/video/video",
         "iconPath": "/static/images/tabBar/video.png",
         "selectedIconPath": "/static/images/tabBar/video-h.png"
       },

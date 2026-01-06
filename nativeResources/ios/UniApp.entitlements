@@ -4,9 +4,7 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:demo.xn--tctu50co66a.top</string>
 		<string>applinks:caimizm.com</string>
-		<string>applinks:demo.寄烧鸡.top</string>
 	</array>
 </dict>
 </plist>
