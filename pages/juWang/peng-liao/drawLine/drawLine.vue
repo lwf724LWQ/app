@@ -58,11 +58,23 @@
         <canvas class="image-canvas" hidpi canvas-id="imageCanvas" id="imageCanvas"></canvas>
 
         <!-- 背景canvas -->
-        <canvas class="bg-canvas" hidpi canvas-id="bgCanvas" id="bgCanvas"></canvas>
+        <canvas
+          class="bg-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="bgCanvas"
+          id="bgCanvas"
+        ></canvas>
         <!-- 绘制图形 -->
         <canvas class="base-canvas" hidpi canvas-id="baseCanvas" id="baseCanvas"></canvas>
         <canvas class="paint-canvas" hidpi canvas-id="paintCanvas" id="paintCanvas"></canvas>
-        <canvas class="content-canvas" hidpi canvas-id="contentCanvas" id="contentCanvas"></canvas>
+        <canvas
+          class="content-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="contentCanvas"
+          id="contentCanvas"
+        ></canvas>
         <canvas
           class="active-canvas"
           hidpi
@@ -350,7 +362,10 @@ const touchstart = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
-      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) return;
+      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) {
+        startPosition = { x: 0, y: 0 };
+        return;
+      }
 
       startPosition = getPointPosition(x, y);
       break;
@@ -1162,6 +1177,7 @@ let draw;
 let drawnLineAll;
 let drawMethod;
 const styleConfig = ref({ topBar: {} });
+const canvasReady = ref(false);
 onReady(async () => {
   drawLineSettingStore.setStyleConfig(type.value, options.theme);
   styleConfig.value = drawLineSettingStore.styleConfig;
@@ -1174,6 +1190,8 @@ onReady(async () => {
   const imageCtx = uni.createCanvasContext("imageCanvas");
   drawMethod = new DrawShape(paintCtx);
   await getData();
+  canvasReady.value = true;
+  await nextTick();
   const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
 
   draw = new Draw(
