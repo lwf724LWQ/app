@@ -350,6 +350,8 @@ const touchstart = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
+      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) return;
+
       startPosition = getPointPosition(x, y);
       break;
     case "自由线":
@@ -417,6 +419,8 @@ const touchmove = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
+      if (!startPosition.x && !startPosition.y) return;
+
       // 只执行一次
       if (isFirst) {
         if (options.count === 1) {
@@ -637,7 +641,7 @@ const touchend = async (event) => {
         });
       }
     } else {
-      const position = getPointPosition(startPosition.x, startPosition.y);
+      const position = getPointPosition(x, y);
       if (position && position.x && position.column >= styleConfig.value.numberStartIndex) {
         if (
           marks.value[`${position.row}-all`] &&
@@ -667,6 +671,8 @@ const touchend = async (event) => {
   } else {
     switch (mode.value) {
       case "智能曲线":
+        if (!startPosition.x && !startPosition.y) return;
+
         const lastRecord = record.value[record.value.length - 1];
 
         let endPosition;
@@ -861,18 +867,16 @@ const touchend = async (event) => {
 
   isClick = true;
   isFirst = true;
+  startPosition = { x: 0, y: 0 };
 };
 
 // 手势缩放
 const scale = ref(1);
 const gestureStartCenterY = ref(0); // 手势操作开始中心位置
-// const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight);
-// const containerHeight = ref(0);
 
 const gesturestart = async (event) => {
   //禁用曲线控制按钮
   iscurveHandleShow.value = false;
-  // containerHeight.value = initHeight.value;
 
   const { 0: touch1, 1: touch2 } = event.touches;
   const y = (touch1.y + touch2.y) / 2;
@@ -889,16 +893,14 @@ const gesturemove = (event) => {
 };
 
 const cnavasWidth = ref(750);
-// const cnavasWidth = ref(750 / 0.8)
 
-const gestureend = (event) => {
+const gestureend = async (event) => {
   // event.touches.length表示当前触摸屏幕的手指数量
   if (event.touches.length === 1) return;
 
-  setTimeout(async () => {
-    const el = await getRect(".container");
-    updateScale(el.dataset.scale);
-  }, 17);
+  scrollTopRef.value = 0;
+  const el = await getRect(".container");
+  updateScale(el.dataset.scale);
 };
 
 const updateScale = async (value) => {
