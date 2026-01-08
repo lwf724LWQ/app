@@ -147,6 +147,7 @@
 import { ref, computed, onMounted, onUnmounted, inject } from "vue";
 import { getToken, getAccount } from "@/utils/request.js";
 import { apiUserRecharge, apiGetUserBalance, apiGetOrderPayStatus } from "@/api/apis.js";
+import payConfig from "@/utils/uniwxsdk/config.js";
 
 // 老人模式
 const useOldManModeStore = inject("useOldManModeStore");
@@ -248,13 +249,22 @@ const processPayment = async () => {
   uni.showLoading({
     title: "处理中...",
   });
+  // #ifdef APP-PLUS
+  wxAppPay();
+  // #endif
+  // #ifdef H5
+  wxCodePay();
+  // #endif
+};
 
+const wxCodePay = async () => {
   try {
     // 准备充值数据（根据API文档调整）
     const rechargeData = {
       info: `用户充值${paymentAmount.value}元`, // 订单信息（可选）
+      name: `用户充值${paymentAmount.value}元`, // 订单信息（可选）
       amount: paymentAmount.value.toString(), // 订单金额（必需）
-      type: 0, // 订单类型：0充值（可选）
+      type: 4, // 订单类型：0充值（可选）
       account: getAccount() || currentUser.value, // 账号（可选）
       payType: 0, // 支付方式：0微信（可选）
       channel: 0, // 下单渠道：0电脑端（可选）
@@ -337,6 +347,55 @@ const processPayment = async () => {
       icon: "none",
     });
   }
+};
+
+const wxAppPay = async () => {
+  const rechargeData = {
+    info: `用户充值${paymentAmount.value}元`, // 订单信息（可选）
+    amount: paymentAmount.value.toString(), // 订单金额（必需）
+    type: 4, // 订单类型：0充值（可选） 4微信app支付
+    account: getAccount() || currentUser.value, // 账号（可选）
+    payType: 0, // 支付方式：0微信（可选）
+    channel: 0, // 下单渠道：0电脑端（可选）
+    name: `用户充值${paymentAmount.value}元`,
+  };
+  console.log(rechargeData);
+  // 调用充值接口
+  const response = await apiUserRecharge(rechargeData);
+  console.log(response);
+  try{
+    uni.requestPayment({
+      provider: "wxpay",
+      orderInfo: {
+        appid: "wxcc8965020c482056",
+        partnerid: response.data.merchantId,
+        prepayid: response.data.prepayId,
+        noncestr: response.data.nonceStr,
+        timestamp: response.data.timeStamp,
+		package:"Sign=WXPay",
+        sign: response.data.sign,
+      },
+      success: function (res) {
+        uni.hideLoading();
+        currentOrderNo.value = response.data.orderNo;
+        // 开始检查支付状态
+        startPaymentCheck();
+      },
+      fail: function (res) {
+        uni.hideLoading();
+		console.log(res)
+        uni.showToast({
+          title: "支付失败",
+          icon: JSON.stringify(res),
+        });
+      },
+    });
+	console.log("2");
+  } catch (error) {
+	  console.log("4");
+    console.log(error);
+  }
+  console.log("3");
 };
 
 // 获取用户信息
@@ -514,6 +573,10 @@ const handlePaymentSuccess = async () => {
 
 // 开始检查支付状态
 const startPaymentCheck = () => {
+	uni.showLoading({
+		title: "检查支付状态中!"
+		
+	})
   // 清除之前的定时器
   if (paymentCheckTimer.value) {
     clearInterval(paymentCheckTimer.value);
@@ -530,10 +593,11 @@ const startPaymentCheck = () => {
       checkCount++;
 
       // 调用API检查支付状态
+	  console.log("订单号：",currentOrderNo.value)
       const paymentStatusResponse = await apiGetOrderPayStatus({
         orderNo: currentOrderNo.value,
       });
-
+	console.log(paymentStatusResponse)
       if (paymentStatusResponse.code === 200) {
         // 检查支付状态
         const paymentStatus = paymentStatusResponse.data;
@@ -542,6 +606,7 @@ const startPaymentCheck = () => {
           // 支付成功
           stopPaymentCheck();
           await handlePaymentSuccess();
+
           return;
         } else if (
           paymentStatus === "failed" ||
@@ -612,6 +677,7 @@ const startPaymentCheck = () => {
         return;
       }
     } catch (error) {
+		console.log(error)
       // 如果检查次数达到上限，停止检查
       if (checkCount >= maxChecks) {
         stopPaymentCheck();
@@ -622,12 +688,14 @@ const startPaymentCheck = () => {
         });
         closeQRModal();
       }
+      uni.hideLoading();
     }
-  }, 10000); // 改为每10秒检查一次
+  }, 1000); // 改为每10秒检查一次
 };
 
 // 停止检查支付状态
 const stopPaymentCheck = () => {
+	uni.hideLoading()
   if (paymentCheckTimer.value) {
     clearInterval(paymentCheckTimer.value);
     paymentCheckTimer.value = null;

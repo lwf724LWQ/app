@@ -68,7 +68,7 @@
             "sdkConfigs" : {
                 "payment" : {
                     "weixin" : {
-                        "__platform__" : [ "android" ],
+                        "__platform__" : [ "ios", "android" ],
                         "appid" : "wxcc8965020c482056",
                         "UniversalLinks" : "https://caimizm.com/"
                     }
