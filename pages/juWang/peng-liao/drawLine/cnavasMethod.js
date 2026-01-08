@@ -1,40 +1,40 @@
-import { DrawShape } from './drawMethod'
-import { getDate } from './utils'
-import { useDrawLineSettingStore } from '@/stores/drawLine'
+import { DrawShape } from "./drawMethod";
+import { getDate } from "./utils";
+import { useDrawLineSettingStore } from "@/stores/drawLine";
 
-const systemInfo = uni.getSystemInfoSync()
-let ratio = systemInfo.screenWidth / 750
-const windowHeight = systemInfo.windowHeight
-const safeAreaTop = systemInfo.safeAreaInsets.top
+const systemInfo = uni.getSystemInfoSync();
+let ratio = systemInfo.screenWidth / 750;
+const windowHeight = systemInfo.windowHeight;
+const safeAreaTop = systemInfo.safeAreaInsets.top;
 
-const PADDING = 0.01
+const PADDING = 0.01;
 
-let borderColor, columns, type, theme, numberStartIndex, rowHeight
+let borderColor, columns, type, theme, numberStartIndex, rowHeight;
 
 const getStyleConfig = () => {
-  const drawLineSettingStore = useDrawLineSettingStore()
-  columns = drawLineSettingStore.styleConfig.columns
-  borderColor = drawLineSettingStore.styleConfig.borderColor
-  type = drawLineSettingStore.styleConfig.type
-  theme = drawLineSettingStore.styleConfig.theme
-  numberStartIndex = drawLineSettingStore.styleConfig.numberStartIndex
-  rowHeight = drawLineSettingStore.options.rowHeight * ratio
-}
+  const drawLineSettingStore = useDrawLineSettingStore();
+  columns = drawLineSettingStore.styleConfig.columns;
+  borderColor = drawLineSettingStore.styleConfig.borderColor;
+  type = drawLineSettingStore.styleConfig.type;
+  theme = drawLineSettingStore.styleConfig.theme;
+  numberStartIndex = drawLineSettingStore.styleConfig.numberStartIndex;
+  rowHeight = drawLineSettingStore.options.rowHeight * ratio;
+};
 
 // 获取行和列
 export const getRowAndColumn = (x, y) => {
   const column = columns.findIndex(
     (column) => column.left <= x && column.right + column.border >= x
-  )
-  const row = Math.floor(y / rowHeight)
-  return { row, column }
-}
+  );
+  const row = Math.floor(y / rowHeight);
+  return { row, column };
+};
 export const getPointPosition = (x, y) => {
-  const { row, column } = getRowAndColumn(x, y)
-  const startX = columns[column]?.left + columns[column]?.width / 2
-  const startY = row * rowHeight + rowHeight / 2
-  return { x: Math.trunc(startX), y: Math.trunc(startY), row, column }
-}
+  const { row, column } = getRowAndColumn(x, y);
+  const startX = columns[column]?.left + columns[column]?.width / 2;
+  const startY = row * rowHeight + rowHeight / 2;
+  return { x: Math.trunc(startX), y: Math.trunc(startY), row, column };
+};
 
 export class Draw {
   constructor(
@@ -49,79 +49,79 @@ export class Draw {
     canvasSize,
     marks
   ) {
-    this.bgCtx = bgCtx
-    this.baseCtx = baseCtx
-    this.paintCtx = paintCtx
-    this.contentCtx = contentCtx
-    this.activeCtx = activeCtx
-    this.imageCtx = imageCtx
-    this.data = data
-    this.options = options
-    this.canvasSize = canvasSize
-    this.marks = marks
+    this.bgCtx = bgCtx;
+    this.baseCtx = baseCtx;
+    this.paintCtx = paintCtx;
+    this.contentCtx = contentCtx;
+    this.activeCtx = activeCtx;
+    this.imageCtx = imageCtx;
+    this.data = data;
+    this.options = options;
+    this.canvasSize = canvasSize;
+    this.marks = marks;
 
-    this.drawShapeBg = new DrawShape(bgCtx)
-    this.drawShapeBase = new DrawShape(baseCtx)
-    this.drawShapePain = new DrawShape(paintCtx)
-    this.drawShapeContent = new DrawShape(contentCtx)
-    this.drawShapeActive = new DrawShape(activeCtx)
-    this.drawShapeImage = new DrawShape(imageCtx)
+    this.drawShapeBg = new DrawShape(bgCtx);
+    this.drawShapeBase = new DrawShape(baseCtx);
+    this.drawShapePain = new DrawShape(paintCtx);
+    this.drawShapeContent = new DrawShape(contentCtx);
+    this.drawShapeActive = new DrawShape(activeCtx);
+    this.drawShapeImage = new DrawShape(imageCtx);
 
-    getStyleConfig()
+    getStyleConfig();
 
-    this.drawGrid() // 绘制网格
+    this.drawGrid(); // 绘制网格
 
-    this.drawContent()
-    this.contentCtx.draw()
+    this.drawContent();
+    this.contentCtx.draw();
   }
   draw(record, pointActives) {
-    this.record = record
-    this.drawLine(record)
+    this.record = record;
+    this.drawLine(record);
 
-    this.drawActiveNumber(pointActives)
+    this.drawActiveNumber(pointActives);
 
-    this.drawMark(this.marks.value)
-    this.baseCtx.draw()
-    this.activeCtx.draw()
+    this.drawMark(this.marks.value);
+    this.baseCtx.draw();
+    this.activeCtx.draw();
   }
   drawAllText(pointActives) {
-    this.drawContent()
-    this.drawActiveNumber(pointActives)
-    this.drawMark(this.marks.value)
-    this.contentCtx.draw()
-    this.activeCtx.draw()
+    this.drawContent();
+    this.drawActiveNumber(pointActives);
+    this.drawMark(this.marks.value);
+    this.contentCtx.draw();
+    this.activeCtx.draw();
   }
   // 重新绘制所有画布
   async redraw(record, pointActives) {
-    this.record = record
-    getStyleConfig()
+    this.record = record;
+    getStyleConfig();
 
     // setTimeout(() => {
-    this.drawGrid()
+    this.drawGrid();
 
-    this.drawContent()
-    this.contentCtx.draw()
+    this.drawContent();
+    this.contentCtx.draw();
 
-    this.draw(record, pointActives)
+    this.draw(record, pointActives);
     // }, 0)
   }
   // 绘制网格
   drawGrid() {
-    this.drawGridBackground()
-    this.drawGridRow()
-    this.drawGridColumn()
-    this.bgCtx.draw()
+    this.drawGridBackground();
+    this.drawGridRow();
+    this.drawGridColumn();
+    this.bgCtx.draw();
   }
   // 绘制网格行
   drawGridRow() {
     for (let index = 0; index < this.data.value.length + this.options.bottomRow; index++) {
-      let width
-      if (theme !== '其他') {
-        if (index % 4 == 0) width = 4 * ratio
-        else width = 2 * ratio
+      let width;
+      if (theme !== "其他") {
+        if (index % 4 == 0) width = 4 * ratio;
+        else width = 2 * ratio;
       } else {
-        if (index % 4 == 0) width = 1 * ratio
-        else continue
+        if (index % 4 == 0) width = 1 * ratio;
+        else continue;
       }
       this.drawShapeBg.drawnStraightLine(
         0,
@@ -130,46 +130,46 @@ export class Draw {
         index * rowHeight,
         borderColor,
         width
-      )
+      );
     }
   }
   // 绘制网格列
   drawGridColumn() {
     for (let index = 0; index < columns.length; index++) {
-      const column = columns[index]
-      if (column.border === 0) continue
-      const x = columns[index].right + columns[index].border / 2
-      const y = 0
-      const endY = (this.data.value.length + this.options.bottomRow) * rowHeight
-      this.drawShapeBg.drawnStraightLine(x, y, x, endY, borderColor, column.border)
+      const column = columns[index];
+      if (column.border === 0) continue;
+      const x = columns[index].right + columns[index].border / 2;
+      const y = 0;
+      const endY = (this.data.value.length + this.options.bottomRow) * rowHeight;
+      this.drawShapeBg.drawnStraightLine(x, y, x, endY, borderColor, column.border);
     }
   }
   // 绘制网格背景
   drawGridBackground() {
     for (let index = 0; index < columns.length; index++) {
-      const column = columns[index]
-      const x = columns[index]?.left || 0
-      const y = 0
-      const width = column.width
-      const height = (this.data.value.length + this.options.bottomRow) * rowHeight
-      let color = column.backgroundColor
-      this.drawShapeBg.drawSolidRect(x, y, width, height, color)
+      const column = columns[index];
+      const x = columns[index]?.left || 0;
+      const y = 0;
+      const width = column.width;
+      const height = (this.data.value.length + this.options.bottomRow) * rowHeight;
+      let color = column.backgroundColor;
+      this.drawShapeBg.drawSolidRect(x, y, width, height, color);
     }
   }
   // 绘制内容
   drawContent() {
     this.data.value.forEach((data, rowIndex) => {
-      const numbers = data.number
+      const numbers = data.number;
 
       const dayeColumn = () => {
-        let value, x, y, color, fontSize
+        let value, x, y, color, fontSize;
 
-        fontSize = columns[0].fontSize
+        fontSize = columns[0].fontSize;
 
-        value = data.issueno
-        x = columns[0].width / 2
-        y = (rowIndex + 1) * rowHeight - 70 * ratio
-        color = columns[0].color
+        value = data.issueno;
+        x = columns[0].width / 2;
+        y = (rowIndex + 1) * rowHeight - 70 * ratio;
+        color = columns[0].color;
         this.drawShapeContent.drawText(
           value,
           x,
@@ -177,13 +177,13 @@ export class Draw {
           color,
           fontSize[0] * this.options.fontSizeRatio,
           this.options.fontFamily,
-          'bold'
-        )
+          "bold"
+        );
 
-        value = getDate(data.opendate)
-        x = columns[0].width / 2
-        y = (rowIndex + 1) * rowHeight - 30 * ratio
-        color = columns[0].color
+        value = getDate(data.opendate);
+        x = columns[0].width / 2;
+        y = (rowIndex + 1) * rowHeight - 30 * ratio;
+        color = columns[0].color;
         this.drawShapeContent.drawText(
           value,
           x,
@@ -191,15 +191,16 @@ export class Draw {
           color,
           fontSize[1] * this.options.fontSizeRatio,
           this.options.fontFamily,
-          'bold'
-        )
-      }
+          "bold"
+        );
+      };
 
-      if (theme === '其他') {
+      if (theme === "其他") {
         switch (type) {
-          case '排列五':
-            let text = numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10
-            this.drawCenterText(this.drawShapeContent, rowIndex, 0, text, columns[0].fontSize)
+          case "排列五":
+            let text =
+              numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10;
+            this.drawCenterText(this.drawShapeContent, rowIndex, 0, text, columns[0].fontSize);
             for (let index = 1; index < numbers.length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -207,18 +208,24 @@ export class Draw {
                 index,
                 numbers[index - 1],
                 columns[index].fontSize
-              )
+              );
             }
-            this.drawCenterText(this.drawShapeContent, rowIndex, 5, numbers[4], columns[5].fontSize)
-            break
-          case '福彩3D':
+            this.drawCenterText(
+              this.drawShapeContent,
+              rowIndex,
+              5,
+              numbers[4],
+              columns[5].fontSize
+            );
+            break;
+          case "福彩3D":
             this.drawCenterText(
               this.drawShapeContent,
               rowIndex,
               0,
               numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
               50 * ratio
-            )
+            );
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -226,17 +233,17 @@ export class Draw {
                 index + 1,
                 numbers[index],
                 60 * ratio
-              )
+              );
             }
-            break
-          case '七星彩':
+            break;
+          case "七星彩":
             this.drawCenterText(
               this.drawShapeContent,
               rowIndex,
               0,
               numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
               columns[0].fontSize
-            )
+            );
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -244,12 +251,12 @@ export class Draw {
                 index + 1,
                 numbers[index],
                 columns[index + 1].fontSize
-              )
+              );
             }
-            break
+            break;
         }
       } else {
-        dayeColumn()
+        dayeColumn();
 
         this.drawCenterText(
           this.drawShapeContent,
@@ -257,9 +264,9 @@ export class Draw {
           1,
           numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0),
           columns[1].fontSize
-        )
+        );
         switch (type) {
-          case '排列五':
+          case "排列五":
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -267,10 +274,10 @@ export class Draw {
                 index + 2,
                 numbers[index],
                 columns[index + 2].fontSize
-              )
+              );
             }
-            break
-          case '福彩3D':
+            break;
+          case "福彩3D":
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -278,10 +285,10 @@ export class Draw {
                 index + 2,
                 numbers[index],
                 columns[index + 2].fontSize
-              )
+              );
             }
-            break
-          case '七星彩':
+            break;
+          case "七星彩":
             for (let index = 0; index < numbers.slice(0, 4).length; index++) {
               this.drawCenterText(
                 this.drawShapeContent,
@@ -289,7 +296,7 @@ export class Draw {
                 index + 2,
                 numbers[index],
                 columns[index + 2].fontSize
-              )
+              );
             }
             for (let index = 0; index < numbers.slice(4, 7).length; index++) {
               this.drawCenterText(
@@ -298,14 +305,14 @@ export class Draw {
                 index + 6,
                 numbers[index + 4],
                 columns[index + 6].fontSize
-              )
+              );
             }
-            break
+            break;
         }
       }
-    })
+    });
 
-    if (theme !== '其他') {
+    if (theme !== "其他") {
       this.drawCenterText(
         this.drawShapeContent,
         this.data.value.length,
@@ -313,13 +320,13 @@ export class Draw {
         Number(this.data.value[this.data.value.length - 1].issueno) + 1,
         columns[0].fontSize[0],
         columns[0].color
-      )
+      );
     }
   }
   //绘制居中文字
   drawCenterText(drawShape, rowIndex, columnIndex, text, fontSize, color) {
-    const x = columns[columnIndex].left + columns[columnIndex].width / 2
-    const y = (rowIndex + 0.5) * rowHeight
+    const x = columns[columnIndex].left + columns[columnIndex].width / 2;
+    const y = (rowIndex + 0.5) * rowHeight;
 
     drawShape.drawText(
       text,
@@ -328,129 +335,139 @@ export class Draw {
       color || columns[columnIndex].color,
       fontSize * this.options.fontSizeRatio,
       this.options.fontFamily,
-      'bold'
-    )
+      "bold"
+    );
   }
   drawLine(record) {
-    if (!record || record.length <= 0) return
+    if (!record || record.length <= 0) return;
     const draw = (item) => {
-      if (!item?.line) return
-      const type = item.line.type
-      const color = item.style.color
-      const size = item.style.size
+      if (!item?.line) return;
+      const type = item.line.type;
+      const color = item.style.color;
+      const size = item.style.size;
 
-      if (type === 'straight') {
-        const { startX, startY, endX, endY } = item.line.position
-        this.drawShapeBase.drawnStraightLine(startX, startY, endX, endY, color, size)
+      if (type === "straight") {
+        const { startX, startY, endX, endY } = item.line.position;
+        this.drawShapeBase.drawnStraightLine(startX, startY, endX, endY, color, size);
       }
-      if (type === 'curve') {
-        const { startX, startY, centerX, centerY, endX, endY } = item.line.position
-        this.drawShapeBase.drawnCurveLine(startX, startY, centerX, centerY, endX, endY, color, size)
+      if (type === "curve") {
+        const { startX, startY, centerX, centerY, endX, endY } = item.line.position;
+        this.drawShapeBase.drawnCurveLine(
+          startX,
+          startY,
+          centerX,
+          centerY,
+          endX,
+          endY,
+          color,
+          size
+        );
       }
-      if (type === 'track') {
-        const track = item.line.position
-        this.drawShapeBase.drawnTrack(track, color, size)
+      if (type === "track") {
+        const track = item.line.position;
+        this.drawShapeBase.drawnTrack(track, color, size);
       }
-      if (type === 'solidRect') {
-        const { x, y, width, height } = item.line.position
-        this.drawShapeBase.drawSolidRect(x, y, width, height, color)
+      if (type === "solidRect") {
+        const { x, y, width, height } = item.line.position;
+        this.drawShapeBase.drawSolidRect(x, y, width, height, color);
       }
-      if (type === 'hollowRect') {
-        const { x, y, width, height } = item.line.position
-        this.drawShapeBase.drawHollowRect(x, y, width, height, color, size)
+      if (type === "hollowRect") {
+        const { x, y, width, height } = item.line.position;
+        this.drawShapeBase.drawHollowRect(x, y, width, height, color, size);
       }
-      if (type === 'solidCircle') {
-        const { startX, startY, endX, endY } = item.line.position
-        this.drawShapeBase.drawSolidCircle(startX, startY, endX, endY, color, size)
+      if (type === "solidCircle") {
+        const { startX, startY, endX, endY } = item.line.position;
+        this.drawShapeBase.drawSolidCircle(startX, startY, endX, endY, color, size);
       }
-      if (type === 'hollowCircle') {
-        const { startX, startY, endX, endY } = item.line.position
-        this.drawShapeBase.drawHollowCircle(startX, startY, endX, endY, color, size)
+      if (type === "hollowCircle") {
+        const { startX, startY, endX, endY } = item.line.position;
+        this.drawShapeBase.drawHollowCircle(startX, startY, endX, endY, color, size);
       }
-    }
+    };
     record.forEach((item) => {
       if (Array.isArray(item)) {
         item.forEach((recordItem) => {
-          draw(recordItem)
-        })
+          draw(recordItem);
+        });
       } else {
-        draw(item)
+        draw(item);
       }
-    })
+    });
   }
   // 渲染激活数字
   drawActiveNumber(pointActives) {
-    if (!pointActives || pointActives.length <= 0) return
+    if (!pointActives || pointActives.length <= 0) return;
 
     for (const pointKey in pointActives) {
-      const { color, isSolid, isRound } = pointActives[pointKey]
-      let [rowIndex, columnIndex] = pointKey.split('-')
-      rowIndex = Number(rowIndex)
-      columnIndex = Number(columnIndex)
-      const text = this.getNumber(rowIndex, columnIndex)
-      this.drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text)
+      const { color, isSolid, isRound } = pointActives[pointKey];
+      let [rowIndex, columnIndex] = pointKey.split("-");
+      rowIndex = Number(rowIndex);
+      columnIndex = Number(columnIndex);
+      const text = this.getNumber(rowIndex, columnIndex);
+      this.drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text);
     }
   }
   drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text) {
-    const columnStyle = columns[columnIndex]
+    const columnStyle = columns[columnIndex];
     // 绘制背景
     if (isSolid) {
-      const colors = ['rgba(0, 0, 0, 0.07)', '#fffaf6', color]
+      const colors = ["rgba(0, 0, 0, 0.07)", "#fffaf6", color];
       for (let index = 0; index < 3; index++) {
-        const minSize = Math.min(columnStyle.width, rowHeight)
-        const cloumnWidth = columnStyle.width
-        const padding = cloumnWidth * PADDING + index * 4 * ratio
-        const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
-        const size = minSize - padding * 2
-        const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
+        const minSize = Math.min(columnStyle.width, rowHeight);
+        const cloumnWidth = columnStyle.width;
+        const padding = cloumnWidth * PADDING + index * 4 * ratio;
+        const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding;
+        const size = minSize - padding * 2;
+        const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding;
 
-        if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index])
-        else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index])
+        if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index]);
+        else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index]);
       }
     } else {
-      const minSize = Math.min(columnStyle.width, rowHeight)
-      const cloumnWidth = columnStyle.width
+      const minSize = Math.min(columnStyle.width, rowHeight);
+      const cloumnWidth = columnStyle.width;
       const padding =
-        theme !== '其他' ? cloumnWidth * PADDING + 8 * ratio : cloumnWidth * PADDING + 4 * ratio
-      const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding
-      const size = minSize - padding * 2
-      const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding
+        theme !== "其他" ? cloumnWidth * PADDING + 8 * ratio : cloumnWidth * PADDING + 4 * ratio;
+      const x = columnStyle.left + (columnStyle.width - minSize) / 2 + padding;
+      const size = minSize - padding * 2;
+      const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding;
 
       if (isRound) {
-        if (theme !== '其他') this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, '#fff')
-        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio)
+        if (theme !== "其他")
+          this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, "#fff");
+        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio);
       } else {
-        if (theme !== '其他') this.drawShapeActive.drawSolidRect(x, y, size, size, '#fff')
-        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 5 * ratio)
+        if (theme !== "其他") this.drawShapeActive.drawSolidRect(x, y, size, size, "#fff");
+        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 5 * ratio);
       }
     }
 
     // 绘制文字
-    if (text === undefined) return
-    let fontSize = columnStyle.fontSize
-    if (text.length >= 3) fontSize = fontSize * 0.8
+    if (text === undefined) return;
+    let fontSize = columnStyle.fontSize;
+    if (text.length >= 3) fontSize = fontSize * 0.8;
     this.drawCenterText(
       this.drawShapeActive,
       rowIndex,
       columnIndex,
       text,
       fontSize,
-      isSolid ? '#fff' : color
-    )
+      isSolid ? "#fff" : color
+    );
   }
   getNumber(rowIndex, columnIndex) {
-    if (theme === '其他') {
+    if (theme === "其他") {
       if (columnIndex === 0) {
         return (
           this.data.value[rowIndex] &&
           this.data.value[rowIndex].number
             .slice(0, 4)
             .reduce((prev, cur) => Number(prev) + Number(cur), 0) % 10
-        )
+        );
       }
 
-      let index = columnIndex - numberStartIndex - 1
-      return this.data.value[rowIndex]?.number[index]
+      let index = columnIndex - numberStartIndex - 1;
+      return this.data.value[rowIndex]?.number[index];
     } else {
       if (columnIndex === 1) {
         return (
@@ -458,104 +475,104 @@ export class Draw {
           this.data.value[rowIndex].number
             .slice(0, 4)
             .reduce((prev, cur) => Number(prev) + Number(cur), 0)
-        )
+        );
       }
 
-      let index = columnIndex - numberStartIndex - 1
+      let index = columnIndex - numberStartIndex - 1;
 
-      return this.data.value[rowIndex]?.number[index]
+      return this.data.value[rowIndex]?.number[index];
     }
   }
   drawMark(marks) {
     for (const key in marks) {
-      const item = marks[key]
-      const mark = item.mark
-      const [row, column] = key.split('-').map((item) => Number(item))
-      let color = item.style.color
+      const item = marks[key];
+      const mark = item.mark;
+      const [row, column] = key.split("-").map((item) => Number(item));
+      let color = item.style.color;
 
-      const isSenior = mark.senior
-      const isSolid = mark.isSolid
+      const isSenior = mark.senior;
+      const isSolid = mark.isSolid;
 
       // 额外处理稳码的情况
-      if (mark.condition === '稳码') {
-        let fontColor
-        const padding = rowHeight * PADDING
-        const startIndex = numberStartIndex + 1
-        const endIndex = type === '福彩3D' ? startIndex + 2 : startIndex + 3
-        const x = columns[startIndex].left + padding
-        const y = row * rowHeight + padding
-        const centerX = columns[startIndex].left / 2 + columns[endIndex].right / 2
-        const centerY = (row + 0.5) * rowHeight
-        const width = columns[endIndex].right - columns[startIndex].left - padding * 2
-        const height = rowHeight - padding * 2
+      if (mark.condition === "稳码") {
+        let fontColor;
+        const padding = rowHeight * PADDING;
+        const startIndex = numberStartIndex + 1;
+        const endIndex = type === "福彩3D" ? startIndex + 2 : startIndex + 3;
+        const x = columns[startIndex].left + padding;
+        const y = row * rowHeight + padding;
+        const centerX = columns[startIndex].left / 2 + columns[endIndex].right / 2;
+        const centerY = (row + 0.5) * rowHeight;
+        const width = columns[endIndex].right - columns[startIndex].left - padding * 2;
+        const height = rowHeight - padding * 2;
 
         if (isSolid) {
-          fontColor = '#fff'
-          this.drawShapeActive.drawSolidRect(x, y, width, height, color)
+          fontColor = "#fff";
+          this.drawShapeActive.drawSolidRect(x, y, width, height, color);
         } else {
-          fontColor = color
+          fontColor = color;
           this.drawShapeActive.drawSolidRect(
             x,
             y,
             width,
             height,
             columns[startIndex].backgroundColor
-          )
-          this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio)
+          );
+          this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio);
         }
         this.drawShapeActive.drawText(
-          `稳上一码：${mark.numbers.join('')}`,
+          `稳上一码：${mark.numbers.join("")}`,
           centerX,
           centerY,
           fontColor,
           width * 0.15,
           this.options.fontFamily,
-          'bold'
-        )
-        continue
+          "bold"
+        );
+        continue;
       }
 
-      const minSize = Math.min(columns[column].width, rowHeight)
-      const centerX = columns[column].left + columns[column].width / 2
-      const padding = minSize * PADDING * 2
-      const x = columns[column].left + (columns[column].width - minSize) / 2 + padding
-      const y = row * rowHeight + (rowHeight - minSize) / 2 + padding
-      const size = minSize - padding * 2
+      const minSize = Math.min(columns[column].width, rowHeight);
+      const centerX = columns[column].left + columns[column].width / 2;
+      const padding = minSize * PADDING * 2;
+      const x = columns[column].left + (columns[column].width - minSize) / 2 + padding;
+      const y = row * rowHeight + (rowHeight - minSize) / 2 + padding;
+      const size = minSize - padding * 2;
       // {"condition":"大","numbers":[5,6,7,8,9],"isSolid":true,"columns":[2],"senior":true,"row":40}
       if (isSenior) {
-        let fontColor
+        let fontColor;
         if (isSolid) {
-          fontColor = '#fff'
-          this.drawShapeActive.drawSolidRect(x, y, size, size, color)
+          fontColor = "#fff";
+          this.drawShapeActive.drawSolidRect(x, y, size, size, color);
         } else {
-          fontColor = color
-          this.drawShapeActive.drawSolidRect(x, y, size, size, columns[column].backgroundColor)
-          this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio)
+          fontColor = color;
+          this.drawShapeActive.drawSolidRect(x, y, size, size, columns[column].backgroundColor);
+          this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio);
         }
         // 更改字号
-        let fontSize = 30 * ratio
+        let fontSize = 30 * ratio;
         if (!mark.condition) {
           if (mark.numbers.length === 1) {
-            fontSize = 60 * ratio
+            fontSize = 60 * ratio;
           } else if (mark.numbers.length <= 2) {
-            fontSize = 50 * ratio
+            fontSize = 50 * ratio;
           } else {
-            fontSize = 40 * ratio
+            fontSize = 40 * ratio;
           }
         }
         // 文字位置
-        let fontY1 = y + 22 * ratio
-        let fontY2 = y + 52 * ratio
-        let fontY3 = y + 82 * ratio
+        let fontY1 = y + 22 * ratio;
+        let fontY2 = y + 52 * ratio;
+        let fontY3 = y + 82 * ratio;
 
         if (!mark.condition && mark.numbers.length > 3) {
-          fontY2 = y + 35 * ratio
-          fontY3 = y + 75 * ratio
-          fontSize = 40 * ratio
+          fontY2 = y + 35 * ratio;
+          fontY3 = y + 75 * ratio;
+          fontSize = 40 * ratio;
         } else if (mark.condition && mark.numbers.length < 3) {
-          fontY1 = y + 35 * ratio
-          fontY2 = y + 75 * ratio
-          fontSize = 30 * ratio
+          fontY1 = y + 35 * ratio;
+          fontY2 = y + 75 * ratio;
+          fontSize = 30 * ratio;
         }
 
         // 第一行文字
@@ -567,153 +584,214 @@ export class Draw {
             fontColor,
             fontSize,
             this.options.fontFamily,
-            'bold'
-          )
+            "bold"
+          );
         // 第二行数字
         if (mark.numbers.length > 0) {
           this.drawShapeActive.drawText(
-            mark.numbers.slice(0, 3).join(''),
+            mark.numbers.slice(0, 3).join(""),
             centerX,
             fontY2,
             fontColor,
             fontSize,
             this.options.fontFamily,
-            'bold'
-          )
+            "bold"
+          );
         }
         // 第三行数字
         if (mark.numbers.length > 3) {
           this.drawShapeActive.drawText(
-            mark.numbers.slice(3, 5).join(''),
+            mark.numbers.slice(3, 5).join(""),
             centerX,
             fontY3,
             fontColor,
             fontSize,
             this.options.fontFamily,
-            'bold'
-          )
+            "bold"
+          );
         }
       } else {
-        this.drawPoint(row, column, color, isSolid, true, mark.condition)
+        this.drawPoint(row, column, color, isSolid, true, mark.condition);
       }
     }
   }
   async saveDraw() {
-    await this.drawToCanvas(this.paintCtx, this.baseCtx)
-    this.reset(this.paintCtx)
+    await this.drawToCanvas(this.paintCtx, this.baseCtx);
+    this.reset(this.paintCtx);
   }
   // 将canvas绘制到另一个canvas上,耗时较长
-  drawToCanvas(sourseCtx, targetCtx, y) {
-    const sourseCtxId = sourseCtx.id || sourseCtx.canvasId
-    const targetCtxId = targetCtx.id || targetCtx.canvasId
+  drawToCanvas(sourseCtx, targetCtx, top, bottom) {
+    const sourseCtxId = sourseCtx.id || sourseCtx.canvasId;
+    const targetCtxId = targetCtx.id || targetCtx.canvasId;
 
-    const width = Math.trunc(this.canvasSize.width) - 1
-    let height
-    if (y) {
-      height = Math.trunc(windowHeight - 130 * ratio - safeAreaTop)
+    const width = Math.trunc(this.canvasSize.width) - 1;
+    let height;
+    if (top && bottom) {
+      height = bottom - top;
     } else {
-      height = Math.trunc(this.canvasSize.height)
-      y = 0
+      height = Math.trunc(this.canvasSize.height);
+      top = 0;
     }
 
     return new Promise((resolve, reject) => {
       uni.canvasGetImageData({
         canvasId: sourseCtxId,
         x: 0,
-        y,
+        y: top,
         width,
         height,
         success(res) {
           uni.canvasPutImageData({
             canvasId: targetCtxId,
             x: 0,
-            y,
+            y: top,
             width,
             height,
             data: res.data,
             success(res) {
-              resolve(res)
+              resolve(res);
             },
             fail(err) {
-              reject(err)
-            }
-          })
-        }
-      })
-    })
+              reject(err);
+            },
+          });
+        },
+      });
+    });
   }
   //画布重置
   reset(ctx) {
-    ctx.clearRect(0, 0, this.canvasSize.width, this.canvasSize.height)
-    ctx.draw()
+    ctx.clearRect(0, 0, this.canvasSize.width, this.canvasSize.height);
+    ctx.draw();
   }
   // 保存所有绘制内容
-  async save(top) {
-    const imageCtx = this.imageCtx
-    const sourseCtxes = [this.bgCtx, this.baseCtx, this.contentCtx, this.activeCtx]
-    const promiseMap = sourseCtxes.map((ctx) => this.drawToCanvas(ctx, imageCtx, top))
-    await Promise.all(promiseMap)
-    this.drawHoverText(top)
-    this.drawWatermark()
+  async save(record, scrolltop) {
+    const getMin = (min, item) => {
+      if (Array.isArray(item)) {
+        return item.reduce(getMin, min);
+      }
+      const mark = Math.min((item.mark?.row + 1) * rowHeight, item.point?.[0].y);
+      const point = item.point?.reduce((m, i) => Math.min(m, i.y), this.canvasSize.height);
+      const line = Array.isArray(item.line?.position)
+        ? item.line.position.reduce((m, i) => Math.min(m, i.y), this.canvasSize.height)
+        : Math.min(
+            item.line?.position?.startY || item.line?.position?.y,
+            item.line?.position?.endY || item.line?.position?.y + item.line?.position?.height
+          );
+      const text = item.text?.position.y;
+      return Math.min(min, mark || point || line || text);
+    };
+
+    const getMax = (max, item) => {
+      if (Array.isArray(item)) {
+        return item.reduce(getMax, max);
+      }
+      const mark = Math.max((item.mark?.row + 1) * rowHeight, item.point?.[0].y);
+      const point = item.point?.reduce((m, i) => Math.max(m, i.y), 0);
+      const line = Array.isArray(item.line?.position)
+        ? item.line.position.reduce((m, i) => Math.max(m, i.y), 0)
+        : Math.max(
+            item.line?.position?.startY || item.line?.position?.y,
+            item.line?.position?.endY || item.line?.position?.y + item.line?.position?.height
+          );
+      const text = item.text?.position.y;
+      return Math.max(max, mark || point || line || text);
+    };
+
+    const minHeight = Math.trunc(windowHeight - 130 * ratio - safeAreaTop); // 视图区域最小高度
+    let top = scrolltop;
+    let bottom = scrolltop + minHeight;
+
+    if (record.length) {
+      top = record.reduce(getMin, this.canvasSize.height) - rowHeight;
+      bottom = record.reduce(getMax, 0) + rowHeight;
+      if (bottom - top < minHeight) {
+        if (top < scrolltop && bottom > scrolltop + minHeight) {
+          // 绘制内容在视图内
+          top = scrolltop;
+          bottom = scrolltop + minHeight;
+        } else {
+          // 绘制内容在视图外
+          top = (bottom + top) / 2 - minHeight / 2;
+          bottom = (bottom + top) / 2 + minHeight / 2;
+          if (top < 0) {
+            top = 0;
+            bottom = minHeight;
+          } else if (bottom > this.canvasSize.height) {
+            bottom = this.canvasSize.height;
+            top = this.canvasSize.height - minHeight;
+          }
+        }
+      }
+    }
+
+    const imageCtx = this.imageCtx;
+    imageCtx.scale(0.5, 0.5);
+    const sourseCtxes = [this.bgCtx, this.baseCtx, this.contentCtx, this.activeCtx];
+    const promiseMap = sourseCtxes.map((ctx) => this.drawToCanvas(ctx, imageCtx, top, bottom));
+    await Promise.all(promiseMap);
+    this.drawHoverText();
+    this.drawWatermark();
+
     return new Promise((resolve, reject) => {
       uni.canvasToTempFilePath({
         canvasId: imageCtx.id,
         y: top,
-        height: windowHeight - 130 * ratio,
+        height: bottom - top,
         success(res) {
-          resolve(res.tempFilePath)
-          imageCtx.draw(false)
+          resolve(res.tempFilePath);
+          imageCtx.draw(false);
         },
         fail(err) {
-          reject(err)
-        }
-      })
-    })
+          reject(err);
+        },
+      });
+    });
   }
   // 绘制悬浮文字
-  drawHoverText(top) {
-    const bottom = top + Math.trunc(windowHeight - 130 * ratio - safeAreaTop)
-    const round = 5 * ratio
-    if (!this.record.length) return
+  drawHoverText() {
+    // const bottom = top + Math.trunc(windowHeight - 130 * ratio - safeAreaTop);
+    const round = 5 * ratio;
+    if (!this.record.length) return;
     this.record.forEach((item) => {
-      const style = item.style
-      const text = item.text
-      if (!text) return
-      const { width, height } = text
-      const { x, y } = text.position
+      const style = item.style;
+      const text = item.text;
+      if (!text) return;
+      const { width, height } = text;
+      const { x, y } = text.position;
       // 判断是否在可视区域内
-      if (y >= top && y + text.height <= bottom) {
-        if (item.isSolid)
-          this.drawShapeImage.drawSolidRoundRect(x, y, width, height, round, style.color)
+      // if (y >= top && y + text.height <= bottom) {
+      if (item.isSolid)
+        this.drawShapeImage.drawSolidRoundRect(x, y, width, height, round, style.color);
 
-        this.drawShapeImage.drawText(
-          text.content,
-          x + width / 2,
-          y + height / 2 + style.fontSize * 0.1,
-          item.isSolid ? '#fff' : style.color,
-          this.options.fontFamily,
-          style.fontSize
-        )
-      }
-    })
-    this.imageCtx.draw(true)
+      this.drawShapeImage.drawText(
+        text.content,
+        x + width / 2,
+        y + height / 2 + style.fontSize * 0.1,
+        item.isSolid ? "#fff" : style.color,
+        this.options.fontFamily,
+        style.fontSize
+      );
+      // }
+    });
+    this.imageCtx.draw(true);
   }
   // 添加水印
   drawWatermark() {
-    const content = '七五仔'
-    const height = (this.data.value.length + 10) * rowHeight
+    const content = "七五仔";
+    const height = (this.data.value.length + 10) * rowHeight;
 
-    this.imageCtx.font = `normal ${30 * ratio}px Arial`
-    this.imageCtx.fillStyle = 'rgba(0,0,0,0.1)'
+    this.imageCtx.font = `normal ${30 * ratio}px Arial`;
+    this.imageCtx.fillStyle = "rgba(0,0,0,0.1)";
     for (let index = 0; index < height; index += 200) {
-      this.imageCtx.translate(0, index - 300)
+      this.imageCtx.translate(0, index - 300);
       for (let i = 0; i < 4; i++) {
-        this.imageCtx.rotate(-Math.PI / 4)
-        this.imageCtx.fillText(content, 40 * i, 120 * i)
-        this.imageCtx.rotate(Math.PI / 4)
+        this.imageCtx.rotate(-Math.PI / 4);
+        this.imageCtx.fillText(content, 40 * i, 120 * i);
+        this.imageCtx.rotate(Math.PI / 4);
       }
-      this.imageCtx.translate(0, -(index - 300))
+      this.imageCtx.translate(0, -(index - 300));
     }
-    this.imageCtx.draw(true)
+    this.imageCtx.draw(true);
   }
 }
