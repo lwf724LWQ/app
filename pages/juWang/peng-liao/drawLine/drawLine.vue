@@ -58,11 +58,23 @@
         <canvas class="image-canvas" hidpi canvas-id="imageCanvas" id="imageCanvas"></canvas>
 
         <!-- 背景canvas -->
-        <canvas class="bg-canvas" hidpi canvas-id="bgCanvas" id="bgCanvas"></canvas>
+        <canvas
+          class="bg-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="bgCanvas"
+          id="bgCanvas"
+        ></canvas>
         <!-- 绘制图形 -->
         <canvas class="base-canvas" hidpi canvas-id="baseCanvas" id="baseCanvas"></canvas>
         <canvas class="paint-canvas" hidpi canvas-id="paintCanvas" id="paintCanvas"></canvas>
-        <canvas class="content-canvas" hidpi canvas-id="contentCanvas" id="contentCanvas"></canvas>
+        <canvas
+          class="content-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="contentCanvas"
+          id="contentCanvas"
+        ></canvas>
         <canvas
           class="active-canvas"
           hidpi
@@ -234,11 +246,13 @@ const isSettingOpen = ref(false);
 watch(
   () => options.showPeriod,
   async () => {
+    canvasReady.value = false;
     await getData();
+    canvasReady.value = true;
     await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 34));
     draw.redraw();
     iscurveHandleShow.value = false;
+    scrollTopRef.value = 0;
   }
 );
 // 设置屏幕常亮
@@ -262,10 +276,13 @@ watch(
   () => options.bottomRow,
   async (newVal) => {
     if (newVal === 6) {
+      canvasReady.value = false;
       await nextTick();
-      await new Promise((resolve) => setTimeout(resolve, 17));
+      canvasReady.value = true;
+      await nextTick();
       draw.redraw(record.value, pointActives.value);
     }
+    scrollTopRef.value = 0;
   }
 );
 // 页面数据
@@ -350,7 +367,10 @@ const touchstart = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
-      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) return;
+      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) {
+        startPosition = { x: 0, y: 0 };
+        return;
+      }
 
       startPosition = getPointPosition(x, y);
       break;
@@ -1081,7 +1101,7 @@ const saveImage = async () => {
   await new Promise((resolve) => setTimeout(resolve, 100));
   let url;
   try {
-    url = await draw.save(scrolltop / scale.value);
+    url = await draw.save(record.value, scrolltop / scale.value);
   } finally {
     uni.hideLoading();
   }
@@ -1121,7 +1141,7 @@ const share = async () => {
   // #endif
   // #ifdef APP
   shareNode.value.open();
-  getImageUrl.value = draw.save(scrolltop / scale.value);
+  getImageUrl.value = draw.save(record.value, scrolltop / scale.value);
   // #endif
   // #ifdef MP
   shareNode.value.open();
@@ -1162,6 +1182,7 @@ let draw;
 let drawnLineAll;
 let drawMethod;
 const styleConfig = ref({ topBar: {} });
+const canvasReady = ref(false);
 onReady(async () => {
   drawLineSettingStore.setStyleConfig(type.value, options.theme);
   styleConfig.value = drawLineSettingStore.styleConfig;
@@ -1174,6 +1195,8 @@ onReady(async () => {
   const imageCtx = uni.createCanvasContext("imageCanvas");
   drawMethod = new DrawShape(paintCtx);
   await getData();
+  canvasReady.value = true;
+  await nextTick();
   const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
 
   draw = new Draw(
