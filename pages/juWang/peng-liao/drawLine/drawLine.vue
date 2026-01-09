@@ -58,11 +58,23 @@
         <canvas class="image-canvas" hidpi canvas-id="imageCanvas" id="imageCanvas"></canvas>
 
         <!-- 背景canvas -->
-        <canvas class="bg-canvas" hidpi canvas-id="bgCanvas" id="bgCanvas"></canvas>
+        <canvas
+          class="bg-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="bgCanvas"
+          id="bgCanvas"
+        ></canvas>
         <!-- 绘制图形 -->
         <canvas class="base-canvas" hidpi canvas-id="baseCanvas" id="baseCanvas"></canvas>
         <canvas class="paint-canvas" hidpi canvas-id="paintCanvas" id="paintCanvas"></canvas>
-        <canvas class="content-canvas" hidpi canvas-id="contentCanvas" id="contentCanvas"></canvas>
+        <canvas
+          class="content-canvas"
+          hidpi
+          v-if="canvasReady"
+          canvas-id="contentCanvas"
+          id="contentCanvas"
+        ></canvas>
         <canvas
           class="active-canvas"
           hidpi
@@ -234,11 +246,13 @@ const isSettingOpen = ref(false);
 watch(
   () => options.showPeriod,
   async () => {
+    canvasReady.value = false;
     await getData();
+    canvasReady.value = true;
     await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 34));
     draw.redraw();
     iscurveHandleShow.value = false;
+    scrollTopRef.value = 0;
   }
 );
 // 设置屏幕常亮
@@ -262,10 +276,13 @@ watch(
   () => options.bottomRow,
   async (newVal) => {
     if (newVal === 6) {
+      canvasReady.value = false;
       await nextTick();
-      await new Promise((resolve) => setTimeout(resolve, 17));
+      canvasReady.value = true;
+      await nextTick();
       draw.redraw(record.value, pointActives.value);
     }
+    scrollTopRef.value = 0;
   }
 );
 // 页面数据
@@ -350,6 +367,11 @@ const touchstart = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
+      if (x > styleConfig.value.columns[styleConfig.value.columns.length - 1].right) {
+        startPosition = { x: 0, y: 0 };
+        return;
+      }
+
       startPosition = getPointPosition(x, y);
       break;
     case "自由线":
@@ -417,6 +439,8 @@ const touchmove = (event) => {
 
   switch (mode.value) {
     case "智能曲线":
+      if (!startPosition.x && !startPosition.y) return;
+
       // 只执行一次
       if (isFirst) {
         if (options.count === 1) {
@@ -637,7 +661,7 @@ const touchend = async (event) => {
         });
       }
     } else {
-      const position = getPointPosition(startPosition.x, startPosition.y);
+      const position = getPointPosition(x, y);
       if (position && position.x && position.column >= styleConfig.value.numberStartIndex) {
         if (
           marks.value[`${position.row}-all`] &&
@@ -667,6 +691,8 @@ const touchend = async (event) => {
   } else {
     switch (mode.value) {
       case "智能曲线":
+        if (!startPosition.x && !startPosition.y) return;
+
         const lastRecord = record.value[record.value.length - 1];
 
         let endPosition;
@@ -861,18 +887,16 @@ const touchend = async (event) => {
 
   isClick = true;
   isFirst = true;
+  startPosition = { x: 0, y: 0 };
 };
 
 // 手势缩放
 const scale = ref(1);
 const gestureStartCenterY = ref(0); // 手势操作开始中心位置
-// const initHeight = computed(() => (data.value.length + options.bottomRow) * options.rowHeight);
-// const containerHeight = ref(0);
 
 const gesturestart = async (event) => {
   //禁用曲线控制按钮
   iscurveHandleShow.value = false;
-  // containerHeight.value = initHeight.value;
 
   const { 0: touch1, 1: touch2 } = event.touches;
   const y = (touch1.y + touch2.y) / 2;
@@ -889,16 +913,14 @@ const gesturemove = (event) => {
 };
 
 const cnavasWidth = ref(750);
-// const cnavasWidth = ref(750 / 0.8)
 
-const gestureend = (event) => {
+const gestureend = async (event) => {
   // event.touches.length表示当前触摸屏幕的手指数量
   if (event.touches.length === 1) return;
 
-  setTimeout(async () => {
-    const el = await getRect(".container");
-    updateScale(el.dataset.scale);
-  }, 17);
+  scrollTopRef.value = 0;
+  const el = await getRect(".container");
+  updateScale(el.dataset.scale);
 };
 
 const updateScale = async (value) => {
@@ -1079,7 +1101,7 @@ const saveImage = async () => {
   await new Promise((resolve) => setTimeout(resolve, 100));
   let url;
   try {
-    url = await draw.save(scrolltop / scale.value);
+    url = await draw.save(record.value, scrolltop / scale.value);
   } finally {
     uni.hideLoading();
   }
@@ -1119,7 +1141,7 @@ const share = async () => {
   // #endif
   // #ifdef APP
   shareNode.value.open();
-  getImageUrl.value = draw.save(scrolltop / scale.value);
+  getImageUrl.value = draw.save(record.value, scrolltop / scale.value);
   // #endif
   // #ifdef MP
   shareNode.value.open();
@@ -1160,43 +1182,34 @@ let draw;
 let drawnLineAll;
 let drawMethod;
 const styleConfig = ref({ topBar: {} });
+const canvasReady = ref(false);
 onReady(async () => {
   drawLineSettingStore.setStyleConfig(type.value, options.theme);
   styleConfig.value = drawLineSettingStore.styleConfig;
   await getData();
-  setTimeout(async () => {
-    const bgCtx = uni.createCanvasContext("bgCanvas");
-    const baseCtx = uni.createCanvasContext("baseCanvas");
-    const paintCtx = uni.createCanvasContext("paintCanvas");
-    const contentCtx = uni.createCanvasContext("contentCanvas");
-    const activeCtx = uni.createCanvasContext("activeCanvas");
-    const imageCtx = uni.createCanvasContext("imageCanvas");
-    drawMethod = new DrawShape(paintCtx);
-    
-    const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
+  canvasReady.value = true;
+  await nextTick();
+  const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
 
-    draw = new Draw(
-      bgCtx,
-      baseCtx,
-      paintCtx,
-      contentCtx,
-      activeCtx,
-      imageCtx,
-      data,
-      options,
-      canvasSize,
-      marks
-    );
+  draw = new Draw(
+    bgCtx,
+    baseCtx,
+    paintCtx,
+    contentCtx,
+    activeCtx,
+    imageCtx,
+    data,
+    options,
+    canvasSize,
+    marks
+  );
 
-
-    drawnLineAll = draw.draw.bind(draw);
-    drawnLineAll(record.value);
-    // 滚动到底部
-    scrollInitTop.value = 9999;
-    await nextTick();
-    isScroll.value = false;
-  }, 100);
-  
+  drawnLineAll = draw.draw.bind(draw);
+  drawnLineAll(record.value);
+  // 滚动到底部
+  scrollInitTop.value = 9999;
+  await nextTick();
+  isScroll.value = false;
 });
 
 // 标记列表

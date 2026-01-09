@@ -232,7 +232,6 @@
 import { ref, computed, onMounted, inject } from 'vue'
 import { getToken, getAccount } from '@/utils/request.js'
 import { apiOrderQuery } from '@/api/apis.js'
-
 // 老人模式
 const useOldManModeStore = inject('useOldManModeStore')
 
@@ -747,7 +746,14 @@ const viewOrderDetail = (order) => {
   uni.showModal({
     title: '订单详情',
     content: `订单号：${order.orderNo}\n金额：¥${order.amount}\n状态：${getStatusText(order.status)}\n时间：${formatTime(order.updateTime || order.createTime)}`,
-    showCancel: false
+	showCancel: false,
+    // showCancel: order.status == 0 ? true : false,
+	// confirmText: order.status == 0 ? "去支付" : "关闭",
+	// success: (res) => {
+	// 	if(res.confirm){
+	// 		PaymentWrapperRef.value.payFromOrdreId(order.orderNo, 4)
+	// 	}
+	// }
   })
 }
 
@@ -881,6 +887,7 @@ onMounted(async () => {
     await getOrders()
   }
 })
+
 </script>
 
 <style lang="scss" scoped>

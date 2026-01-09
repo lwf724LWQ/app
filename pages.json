@@ -207,7 +207,6 @@
       "path": "pages/user/space",
       "style": {
         "navigationBarTitleText": "个人空间",
-        "enablePullDownRefresh": true,
         "navigationStyle": "custom"
       }
     },

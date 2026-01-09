@@ -160,6 +160,7 @@ import {
 } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
+import tool from "../../utils/tool";
 
 const useOldManModeStore = inject("useOldManModeStore");
 
@@ -594,15 +595,18 @@ const fetchFormImage = async () => {
     const response = await apiWordQuery({ videoId: videoId });
     console.log("表单图片API响应:", response);
 
-    formImageUrl.value = `http://video.caimizm.com/${response.msg}`;
-    showFormImage.value = true;
+    formImageUrl.value = tool.oss.getFullUrl(response.msg);
+    uni.previewImage({
+      urls: [formImageUrl.value],
+    });
+    // showFormImage.value = true;
   } catch (error) {
     console.error("获取表单图片异常:", error);
-    // uni.showToast({
-    // 	title: '获取预测图片失败',
-    // 	icon: 'none',
-    // 	duration: 2000
-    // })
+    uni.showToast({
+      title: "获取预测图片失败",
+      icon: "none",
+      duration: 2000,
+    });
   }
   uni.hideLoading();
 };
@@ -1054,11 +1058,11 @@ function toUserSpace() {
 
   .form-image-container {
     width: 90%;
-    max-width: 600rpx;
+    min-width: 600rpx;
     background-color: #fff;
     border-radius: 20rpx;
     overflow: hidden;
-    max-height: 80vh;
+    min-height: 80vh;
     display: flex;
     flex-direction: column;
   }
