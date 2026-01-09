@@ -348,7 +348,7 @@
       },
       {
         "text": "视频",
-        "pagePath": "pages/video/video",
+        "pagePath": "pages/forum/forum",
         "iconPath": "/static/images/tabBar/video.png",
         "selectedIconPath": "/static/images/tabBar/video-h.png"
       },

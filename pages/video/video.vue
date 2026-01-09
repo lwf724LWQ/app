@@ -78,10 +78,9 @@
     </view>
 
     <!-- 发布按钮 -->
-    <view class="publish-btn" @click="gotoOss()">
-      <!-- 投稿 -->
+    <!-- <view class="publish-btn" @click="gotoOss()">
       <uni-icons type="plusempty" size="30" color="#fff"></uni-icons>
-    </view>
+    </view> -->
     <bottomBar current-path="/pages/video/video" />
   </view>
 </template>

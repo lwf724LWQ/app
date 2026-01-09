@@ -1,57 +1,6 @@
 <template>
   <view class="forum-container">
-    <!-- 主导航栏 -->
-    <view class="main-navbar">
-      <view class="nav-left">
-        <uni-icons type="list" size="20" color="#fff"></uni-icons>
-        <text class="nav-text">说明</text>
-      </view>
-      <view class="nav-center">
-        <view class="period-selector" @click="togglePeriodDropdown">
-          <text class="period-text">
-            {{ currentLotteryType.name }} {{ currentLotteryType.status }}
-          </text>
-          <uni-icons
-            type="arrowdown"
-            size="16"
-            color="#fff"
-            :class="{ rotate: showPeriodDropdown }"
-          ></uni-icons>
-        </view>
-      </view>
-
-      <!-- 期号下拉菜单遮罩 -->
-      <view v-if="showPeriodDropdown" class="dropdown-mask" @click="closePeriodDropdown"></view>
-
-      <!-- 期号下拉菜单 -->
-      <view v-if="showPeriodDropdown" class="period-dropdown" @click.stop>
-        <view class="dropdown-header">
-          <text class="dropdown-title">选择彩票类型</text>
-          <view class="close-btn" @click="closePeriodDropdown">
-            <uni-icons type="close" size="16" color="#999"></uni-icons>
-          </view>
-        </view>
-        <scroll-view scroll-y class="dropdown-list">
-          <view
-            class="dropdown-item"
-            :class="{ active: lotteryType.id === currentLotteryType.id }"
-            v-for="lotteryType in lotteryTypes"
-            :key="lotteryType.id"
-            @click="selectLotteryType(lotteryType)"
-          >
-            <text class="period-item-text">{{ lotteryType.name }} {{ lotteryType.status }}</text>
-            <text class="period-item-time">{{ lotteryType.time }}</text>
-          </view>
-        </scroll-view>
-      </view>
-      <view class="nav-right" @click="showPublishModal">
-        <view class="post-icon">
-          <uni-icons type="plus" size="20" color="#fff"></uni-icons>
-        </view>
-        <text class="nav-text">发帖</text>
-      </view>
-    </view>
-
+    <!-- <TopNavigationBar title=""/> -->
     <!-- 切换标签栏 -->
     <view class="switch-tabs">
       <!-- <view
@@ -173,7 +122,7 @@
     </scroll-view>
 
     <!-- 发布按钮 -->
-    <view class="publish-btn" @click="showPublishModal">
+    <view class="publish-btn" @click="selectFunction('predict')">
       <uni-icons type="plusempty" size="30" color="#fff"></uni-icons>
     </view>
 
@@ -325,6 +274,7 @@ import tool from "@/utils/tool.js";
 import forumToos from "../../components/post-card/forumToos";
 import postCard from "./components/post-card.vue";
 import followUserList from "./components/follow-user-list.vue";
+import TopNavigationBar from "../../components/TopNavigationBar.vue";
 
 // 用户数据存储
 const userStore = useUserStore();
@@ -633,6 +583,26 @@ const loadLotteryData = async (lotteryCode) => {
   await loadLotteryDataByType(lotteryType);
 };
 
+function loginCheck() {
+  if (getToken()) {
+    return true;
+  } else {
+    uni.showModal({
+      title: "提示",
+      content: "该操作需要登录，是否前往",
+      success: async (res) => {
+        if (res.confirm) {
+          uni.navigateTo({
+            url: "/pages/login/login" + "?redirect=/pages/video/video",
+          });
+        }
+      },
+      showCancel: true,
+    });
+  }
+  return false;
+}
+
 // 显示发布弹出层
 const showPublishModal = () => {
   if (getToken()) {
@@ -666,24 +636,26 @@ const toggleAgreementManually = () => {
 // 选择功能类型
 const selectFunction = async (type) => {
   // 所有功能都需要先同意协议
-  if (!agreedToTerms.value) {
-    // uni.showToast({
-    //   title: "请先同意管理规范",
-    //   icon: "none",
-    // });
-    const res = await uni.showModal({
-      title: "提示",
-      content: "是否同意并遵守《彩友圈管理规范》",
-      showCancel: true,
-      confirmText: "同意",
-      cancelText: "取消",
-    });
-    if (!res.confirm) {
-      return;
-    }
-    toggleAgreementManually();
+  // if (!agreedToTerms.value) {
+  //   // uni.showToast({
+  //   //   title: "请先同意管理规范",
+  //   //   icon: "none",
+  //   // });
+  //   const res = await uni.showModal({
+  //     title: "提示",
+  //     content: "是否同意并遵守《彩友圈管理规范》",
+  //     showCancel: true,
+  //     confirmText: "同意",
+  //     cancelText: "取消",
+  //   });
+  //   if (!res.confirm) {
+  //     return;
+  //   }
+  //   toggleAgreementManually();
+  // }
+  if (!loginCheck()) {
+    return;
   }
-  uni.setStorageSync("postAgreement", true);
   selectedFunction.value = type;
 
   const urlParams = tool.formatUrlParams({

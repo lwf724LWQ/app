@@ -9,7 +9,7 @@
         </view>
       </view>
       <view class="more-options">
-        <uni-icons type="more-filled" size="20" color="#999"></uni-icons>
+        <!-- <uni-icons type="more-filled" size="20" color="#999"></uni-icons> -->
       </view>
     </view>
 
@@ -66,15 +66,11 @@
         <uni-icons type="hand-up" size="18" :color="item.isLiked ? '#ff4757' : '#999'"></uni-icons>
         <text class="count" :class="{ liked: item.isLiked }">{{ item.likes }}</text>
       </view>
-      <view class="action-item">
-        <uni-icons type="redo" size="18" color="#999"></uni-icons>
-        <text class="count">{{ item.shares }}</text>
-      </view>
-      <view class="action-item">
-        <uni-icons type="chatbubble" size="18" color="#999"></uni-icons>
-        <text class="count">{{ item.comments }}</text>
-      </view>
-      <view class="action-item append-btn" @click="handleAppendPost(item)">
+      <view
+        class="action-item append-btn"
+        @click="handleAppendPost(item)"
+        v-if="account == item.account"
+      >
         <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
         <text class="count">追帖</text>
       </view>
@@ -93,7 +89,9 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      account: getAccount(),
+    };
   },
   methods: {
     // 预览图片

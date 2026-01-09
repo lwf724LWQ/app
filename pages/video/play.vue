@@ -27,7 +27,7 @@
           @play="onVideoPlay"
           @pause="onVideoPause"
           @ended="onVideoEnded"
-		  x5-video-player-type="h5"
+          x5-video-player-type="h5"
         ></video>
         <view v-else-if="videoData.id"></view>
         <view v-else class="video-placeholder">
@@ -42,7 +42,7 @@
         </view>
 
         <!-- 购买按钮（如果有价格） -->
-        <view
+        <!-- <view
           class="buy-overlay"
           v-if="!hasPaid && videoData.price && videoData.price > 0"
           @click="handleBuyClick"
@@ -50,7 +50,7 @@
           <view class="buy-button">
             <view class="buy-text">¥{{ videoData.price }}购买</view>
           </view>
-        </view>
+        </view> -->
       </view>
 
       <!-- 表单图片显示遮罩层（独立层级） -->
@@ -81,10 +81,10 @@
 
       <!-- 打赏和点赞区域 -->
       <view class="interaction-bar">
-        <view class="reward-interaction" @click="goToRewardPage">
+        <!-- <view class="reward-interaction" @click="goToRewardPage">
           <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
           <text class="interaction-text">打赏 0</text>
-        </view>
+        </view> -->
         <view
           class="like-interaction"
           :class="videoData.isLiked ? 'liked' : ''"

@@ -1,6 +1,6 @@
 <!-- components/BottomTabBar.vue -->
 <template>
-  <view :class="{ oldManMode: useOldManModeStore.enabled }" v-if="false">
+  <view :class="{ oldManMode: useOldManModeStore.enabled }">
     <view class="tab-bar-reserved-grid"></view>
     <view class="tab-bar">
       <view
@@ -77,7 +77,7 @@ export default {
           selectedIcon: videoselectimg,
         },
         {
-          text: "彩友圈",
+          text: "友圈",
           path: "/pages/forum/forum",
           uniicon: "pyq",
           icon: classifyimg,
@@ -104,7 +104,7 @@ export default {
     },
   },
   created() {
-    // uni.hideTabBar();
+    uni.hideTabBar();
   },
 };
 </script>
