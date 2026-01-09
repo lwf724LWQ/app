@@ -14,17 +14,7 @@
     >
       <template #top>
         <top-navigation-bar title="帖子列表" />
-        <view class="tab-bar">
-          <view
-            class="item"
-            v-for="item in tnameList"
-            :key="item"
-            :class="{ activat: currentTname == item }"
-            @click="switchTab(item)"
-          >
-            {{ item }}
-          </view>
-        </view>
+        <!--                                                                                                                                                                                                                                                                                                                                                                                                   -->
         <!-- <view class="tab-bar" v-show="currentTname !== '全部'">
                     <view class="item" v-for="item in ruleList" :key="item" :class="{ activat: currentRule == item }"
                         @click="switchRuleTab(item)">{{ item }}</view>

@@ -1,7 +1,7 @@
 <template>
   <view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 开奖结果区域 - 排列五 -->
-    <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
+    <!-- <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
       <view class="lottery-results-plw">
         <view class="result-item-plw">
           <view class="result-header-plw">
@@ -16,7 +16,8 @@
           </view>
         </view>
       </view>
-    </navigator>
+    </navigator> -->
+    <image src="/static/images/home.png" class="home-image" mode=""></image>
 
     <!-- 功能图标区 - 15个图标网格 -->
     <view class="function-area">
@@ -353,10 +354,10 @@ export default {
 .lottery-container:not(.old-man-mode) {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   background-color: #f5f5f5;
-  padding-top: var(--status-bar-height);
-  padding-top: 30rpx;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
 
   /* 轮播图样式 */
   .ad-swiper {
@@ -428,7 +429,7 @@ export default {
 
   /* 排列五开奖结果 */
   .lottery-results-plw {
-    margin: 0 20rpx 20rpx 20rpx;
+    margin: 30rpx 20rpx 20rpx 20rpx;
   }
 
   .result-item-plw {
@@ -908,5 +909,9 @@ export default {
     justify-content: center;
     border: 2rpx solid #fff;
   }
+}
+.home-image {
+  width: 100%;
+  height: 530rpx;
 }
 </style>

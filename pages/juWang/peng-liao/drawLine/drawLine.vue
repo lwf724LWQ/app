@@ -1140,8 +1140,18 @@ const share = async () => {
   uni.showToast({ title: "复制链接成功" });
   // #endif
   // #ifdef APP
-  shareNode.value.open();
-  getImageUrl.value = draw.save(record.value, scrolltop / scale.value);
+  // shareNode.value.open();
+  // getImageUrl.value = draw.save(record.value, scrolltop / scale.value);
+  uni.showLoading({
+  	title: "绘制图片中..."
+  })
+  const url = await draw.save(record.value, scrolltop / scale.value);
+  uni.hideLoading()
+  uni.shareWithSystem({
+  	type: "image",
+	summary: "画规",
+	imageUrl: url
+  })
   // #endif
   // #ifdef MP
   shareNode.value.open();
@@ -1186,6 +1196,14 @@ const canvasReady = ref(false);
 onReady(async () => {
   drawLineSettingStore.setStyleConfig(type.value, options.theme);
   styleConfig.value = drawLineSettingStore.styleConfig;
+
+  const bgCtx = uni.createCanvasContext("bgCanvas");
+  const baseCtx = uni.createCanvasContext("baseCanvas");
+  const paintCtx = uni.createCanvasContext("paintCanvas");
+  const contentCtx = uni.createCanvasContext("contentCanvas");
+  const activeCtx = uni.createCanvasContext("activeCanvas");
+  const imageCtx = uni.createCanvasContext("imageCanvas");
+  drawMethod = new DrawShape(paintCtx);
   await getData();
   canvasReady.value = true;
   await nextTick();
@@ -1542,7 +1560,6 @@ page {
     .movable-area {
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
-      // height: 2300rpx;
       position: absolute;
       top: 0;
     }

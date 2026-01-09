@@ -1283,6 +1283,8 @@ textarea {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  box-sizing: border-box;
+  
 }
 
 /* 主导航栏 */
@@ -1455,6 +1457,7 @@ textarea {
 
 /* 切换标签栏 */
 .switch-tabs {
+  padding-top: var(--status-bar-height);
   left: 0;
   right: 0;
   height: 88rpx;

@@ -47,7 +47,7 @@
       </view>
       <view class="card-footer">
         <!-- #ifdef APP-PLUS -->
-        <view class="share-button" @click="share('link')" v-if="false">分享链接</view>
+        <view class="share-button" @click="share('link')">分享链接</view>
         <!-- #endif -->
         <view class="copy-button" @click="copyLink()">复制地址</view>
       </view>
@@ -62,11 +62,17 @@ import { ref } from "vue";
 
 import myPage from "@/components/myPage.vue";
 import SharePopup from "./components/Share-popup.vue";
-
+import logo from "/static/logo.png";
 const sharePopupRef = ref(null);
 
 function share(type) {
-  sharePopupRef.value.open(type);
+  // sharePopupRef.value.open(type);
+  uni.shareWithSystem({
+  	type: "text",
+	href: "http://caimizm.com/",
+	summary: "五七仔下载链接",
+	imageUrl: logo
+  })
 }
 function copyLink() {
   let txt = "http://www.caimizm.com/";

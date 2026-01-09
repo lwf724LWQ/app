@@ -48,12 +48,12 @@
           :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
         />
         <view class="video-title" v-if="!useOldManModeStore.enabled">{{ video.title }}</view>
-        <view class="video-info">
+        <!-- <view class="video-info">
           <text class="video-price" v-if="video.flag && video.price > 0">
             {{ video.hasPaid ? "已付费" : `付费视频 ${video.price}金币` }}
           </text>
           <text class="video-free" v-else>免费视频</text>
-        </view>
+        </view> -->
       </view>
     </view>
 
