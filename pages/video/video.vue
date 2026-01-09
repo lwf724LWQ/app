@@ -786,7 +786,34 @@ onMounted(async () => {
 }
 
 /* 发布按钮 */
-c
+.publish-btn {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  right: 30rpx;
+  bottom: calc(120rpx + var(--window-bottom));
+  width: 80rpx;
+  text-align: center;
+  height: 80rpx;
+  color: #fff;
+  font-size: 40rpx;
+  font-weight: bold;
+  background-color: #b3d35a;
+  border-radius: 50%;
+  padding: 10rpx;
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
+  border: 6rpx solid #ffffff;
+  box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
+  z-index: 999;
+}
+
+.publish-btn:active {
+  transform: scale(0.95);
+}
 
 .no-data-container {
   .no-data-text {

@@ -70,15 +70,15 @@
           <text class="stat-label">帖子</text>
           <text class="stat-value">0</text>
         </view> -->
-        <!-- <view class="stat-item">
+        <view class="stat-item">
           <text class="stat-label">评分</text>
           <text class="stat-value">100</text>
-        </view> -->
+        </view>
       </view>
     </view>
 
     <!-- 数据展示区域 -->
-    <!-- <view class="data-section">
+    <view class="data-section">
       <view class="data-card" @click="toggleBalanceVisibility">
         <text class="data-number">{{ isBalanceVisible ? "0.00" : "****" }}</text>
         <text class="data-label">我的收益</text>
@@ -96,6 +96,7 @@
           <text v-else>****</text>
         </text>
         <text class="data-label">我的金币</text>
+        <!--  -->
         <view class="eye-icon" @click="toggleBalanceVisibility">
           <uni-icons
             :type="isBalanceVisible ? 'eye-filled' : 'eye-slash-filled'"
@@ -104,10 +105,10 @@
           ></uni-icons>
         </view>
       </view>
-    </view> -->
+    </view>
 
     <!-- 我的充值区域 -->
-    <!-- <view class="recharge-section">
+    <view class="recharge-section">
       <view class="section-title"></view>
       <view class="recharge-items">
         <view class="recharge-item" @click="goToRecharge">
@@ -123,7 +124,7 @@
           <text class="recharge-text">消费明细</text>
         </view>
       </view>
-    </view> -->
+    </view>
 
     <!-- 其他服务区域 -->
     <view class="services-section">
