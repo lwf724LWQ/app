@@ -169,13 +169,11 @@ export default {
 	  console.log(orderNo)
       switch (payType) {
         case "0": // 展示二维码
-          // payInfo = payInfo
-          //   ? payInfo
-          //   : await this.getPayInfo({
-          //       orderNo: orderNo,
-          //       payType: payType,
-          //     });
-          await this.generateQRCode(orderNo);
+          payInfo =  await this.getPayInfo({
+                orderNo: orderNo,
+                payType: payType,
+              });
+          await this.generateQRCode(payInfo);
           break;
         case "1":
           apigoldpay({
