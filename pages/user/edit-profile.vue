@@ -17,14 +17,17 @@
     <view class="main-content">
       <!-- 头像显示区域 -->
       <view class="avatar-section">
-        <view class="avatar-container" @click="handleAvatarClick">
+        <view class="avatar-container"
+            v-permission:storage="[handleAvatarClick, '需要读取手机存储选择用于上传你的头像']">
           <image :src="userInfo.avatar" mode="aspectFill" class="avatar-image" @error="handleImageError"></image>
           <view class="avatar-overlay">
             <text class="avatar-text">点击上传头像</text>
           </view>
-		  <view class="avatar-overlay-for-ios">
-			  <!-- 兼容ios -->
-		  </view>
+          <view
+            class="avatar-overlay-for-ios"
+          >
+            <!-- 兼容ios处理 -->
+          </view>
         </view>
       </view>
       <!-- <view class="avatar-section">
@@ -113,9 +116,8 @@ const handleAvatarClick = async () => {
   const chooseResult = await uni.chooseImage({
     count: 1,
     sizeType: ["compressed"],
-    sourceType: ["album", "camera"],
+    sourceType: ["album"],
   });
-
   if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
     const tempFilePath = chooseResult.tempFilePaths[0];
     userInfo.avatar = tempFilePath;
