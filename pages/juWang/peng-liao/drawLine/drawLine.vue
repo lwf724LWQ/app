@@ -1186,40 +1186,38 @@ const canvasReady = ref(false);
 onReady(async () => {
   drawLineSettingStore.setStyleConfig(type.value, options.theme);
   styleConfig.value = drawLineSettingStore.styleConfig;
+
+  const bgCtx = uni.createCanvasContext("bgCanvas");
+  const baseCtx = uni.createCanvasContext("baseCanvas");
+  const paintCtx = uni.createCanvasContext("paintCanvas");
+  const contentCtx = uni.createCanvasContext("contentCanvas");
+  const activeCtx = uni.createCanvasContext("activeCanvas");
+  const imageCtx = uni.createCanvasContext("imageCanvas");
+  drawMethod = new DrawShape(paintCtx);
   await getData();
-  setTimeout(async () => {
-    const bgCtx = uni.createCanvasContext("bgCanvas");
-    const baseCtx = uni.createCanvasContext("baseCanvas");
-    const paintCtx = uni.createCanvasContext("paintCanvas");
-    const contentCtx = uni.createCanvasContext("contentCanvas");
-    const activeCtx = uni.createCanvasContext("activeCanvas");
-    const imageCtx = uni.createCanvasContext("imageCanvas");
-    drawMethod = new DrawShape(paintCtx);
-    
-    const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
+  canvasReady.value = true;
+  await nextTick();
+  const canvasSize = await getRect("#bgCanvas"); // canvas 尺寸
 
-    draw = new Draw(
-      bgCtx,
-      baseCtx,
-      paintCtx,
-      contentCtx,
-      activeCtx,
-      imageCtx,
-      data,
-      options,
-      canvasSize,
-      marks
-    );
+  draw = new Draw(
+    bgCtx,
+    baseCtx,
+    paintCtx,
+    contentCtx,
+    activeCtx,
+    imageCtx,
+    data,
+    options,
+    canvasSize,
+    marks
+  );
 
-
-    drawnLineAll = draw.draw.bind(draw);
-    drawnLineAll(record.value);
-    // 滚动到底部
-    scrollInitTop.value = 9999;
-    await nextTick();
-    isScroll.value = false;
-  }, 100);
-  
+  drawnLineAll = draw.draw.bind(draw);
+  drawnLineAll(record.value);
+  // 滚动到底部
+  scrollInitTop.value = 9999;
+  await nextTick();
+  isScroll.value = false;
 });
 
 // 标记列表
@@ -1552,7 +1550,6 @@ page {
     .movable-area {
       width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
-      // height: 2300rpx;
       position: absolute;
       top: 0;
     }
