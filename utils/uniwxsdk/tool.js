@@ -49,7 +49,7 @@ async function signWithRSA(data, privateKeyPEM) {
             false,
             ["sign"]
         );
-
+        console.log(privateKey)
         // 将数据编码为 ArrayBuffer
         const encodedData = new TextEncoder().encode(data);
 
@@ -59,7 +59,7 @@ async function signWithRSA(data, privateKeyPEM) {
             privateKey,
             encodedData
         );
-
+        console.log(signature)
         // 将签名结果转换为 base64 字符串
         const signatureArray = new Uint8Array(signature);
         let signatureBase64 = '';
@@ -73,15 +73,10 @@ async function signWithRSA(data, privateKeyPEM) {
     }
 }
 
-
-function md5(str){
-    return cryptoJs.MD5(str).toString().toUpperCase()
-}
-
-function log(...arg){
-    if(config.isDebug){
+function log(...arg) {
+    if (config.isDebug) {
         console.log(...arg)
     }
 }
 
-export default { generateRandomString, sha1, signWithRSA, base64Encode, log, md5 }
+export default { generateRandomString, sha1, signWithRSA, base64Encode, log }
