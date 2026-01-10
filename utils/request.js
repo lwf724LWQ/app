@@ -1,7 +1,7 @@
 export let BASE_URL;
 if (process.env.NODE_ENV === "development") {
-  BASE_URL = "http://caimi.s7.tunnelfrp.com";
-  // BASE_URL = "http://web.caimizm.com";
+  // BASE_URL = "http://caimi.s7.tunnelfrp.com";
+  BASE_URL = "http://web.caimizm.com";
 }else if (process.env.NODE_ENV === "production") {
   BASE_URL = "http://web.caimizm.com";
 }
