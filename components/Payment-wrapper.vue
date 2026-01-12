@@ -236,9 +236,9 @@ export default {
     },
     generateQRCode(url) {
       return new Promise((resolve) => {
-        uni.showLoading({
-          title: "生成二维码中...",
-        });
+        // uni.showLoading({
+        //   title: "生成二维码中...",
+        // });
 		// const canvas = document.createElement('canvas');
 this.generateQRCodeOnline(url)
 return
