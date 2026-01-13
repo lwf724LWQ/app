@@ -38,7 +38,7 @@
       <radio-group @change="selectPaymentMethod">
         <label class="payment-method">
           <radio value="0" :checked="orderData.payType === 0" />
-          <text class="method-text">微信支付</text>
+          <text class="method-text">直接支付</text>
         </label>
         <label class="payment-method">
           <radio value="1" :checked="orderData.payType === 1" />
@@ -61,8 +61,13 @@
         </view>
         <view class="qr-body">
           <view class="qr-code-container">
-            <image v-if="qrCodeUrl" :src="qrCodeUrl" class="qr-image"
-              :style="{ width: qrSize + 'px', height: qrSize + 'px' }" mode="aspectFit"></image>
+            <image
+              v-if="qrCodeUrl"
+              :src="qrCodeUrl"
+              class="qr-image"
+              :style="{ width: qrSize + 'px', height: qrSize + 'px' }"
+              mode="aspectFit"
+            ></image>
             <view v-else class="qr-loading">
               <text class="loading-text">生成二维码中...</text>
             </view>
@@ -70,7 +75,9 @@
           <text class="qr-tip">请使用微信扫描二维码完成支付</text>
           <text class="qr-amount">支付金额：¥{{ orderData.amount }}元</text>
           <text class="qr-status" v-if="isCheckingPayment">正在检查支付状态...</text>
-          <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
+          <text class="qr-hint" v-if="isCheckingPayment">
+            如已支付完成，可点击下方"支付完成"按钮
+          </text>
         </view>
         <!-- <view class="qr-footer">
 	      <button class="cancel-qr-btn" @click="closeQRModal">取消支付</button>
@@ -79,7 +86,6 @@
 	    </view> -->
       </view>
     </view>
-
 
     <!-- 支付结果提示 -->
     <!--  <view class="payment-result" v-if="paymentResult">
@@ -93,27 +99,33 @@
         {{ paymentResult.success ? '查看订单' : '重新支付' }}
       </button>
     </view> -->
-	<PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver"/>
+    <PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver" />
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
-import { apiRewardVideo, apiWxpay, apiCheckVideoPayment, apiGetUserBalance, apigoldpay, } from '@/api/apis';
-import { getToken, getAccount } from '@/utils/request.js';
-import PaymentWrapper from '../../components/Payment-wrapper.vue';
+import { ref, onMounted } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import {
+  apiRewardVideo,
+  apiWxpay,
+  apiCheckVideoPayment,
+  apiGetUserBalance,
+  apigoldpay,
+} from "@/api/apis";
+import { getToken, getAccount } from "@/utils/request.js";
+import PaymentWrapper from "../../components/Payment-wrapper.vue";
 
-const PaymentWrapperRef = ref(null)
+const PaymentWrapperRef = ref(null);
 
 // 订单数据
 const orderData = ref({
-  info: '',
-  amount: '',
+  info: "",
+  amount: "",
   type: 2, // 默认打赏类型
-  account: '',
+  account: "",
   payType: 0, // 默认微信支付
-  channel: 1 // 默认微信小程序
+  channel: 1, // 默认微信小程序
 });
 
 // 获取路由参数
@@ -136,22 +148,22 @@ onLoad((options) => {
 // 获取订单类型文本
 const getOrderTypeText = (type) => {
   const types = {
-    0: '充值',
-    1: '提现',
-    2: '打赏',
-    3: '视频付费'
+    0: "充值",
+    1: "提现",
+    2: "打赏",
+    3: "视频付费",
   };
-  return types[type] || '未知类型';
+  return types[type] || "未知类型";
 };
 
 // 获取下单渠道文本
 const getChannelText = (channel) => {
   const channels = {
-    0: '电脑端',
-    1: '微信小程序',
-    2: 'APP'
+    0: "电脑端",
+    1: "微信小程序",
+    2: "APP",
   };
-  return channels[channel] || '未知渠道';
+  return channels[channel] || "未知渠道";
 };
 
 // 选择支付方式
@@ -166,41 +178,40 @@ const goBack = () => {
 
 //---------------------------------------------------------------------------
 
-
 const handlePayment = () => {
   uni.showModal({
-    title: '确认支付',
+    title: "确认支付",
     content: `确认支付 ¥${orderData.value.amount}元 购买 ${orderData.value.amount}个金币？`,
     success: (res) => {
       if (res.confirm) {
         // 这里调用支付API
-        processPayment()
+        processPayment();
       }
-    }
-  })
-}
+    },
+  });
+};
 const processPayment = async () => {
   uni.showLoading({
-    title: '处理中...'
-  })
-	// 准备充值数据
-	const rechargeData = {
-	  info: `付费${orderData.value.amount.toString()}元观看视频:` + orderData.value.info,
-	  amount: orderData.value.amount.toString(),
-	  type: orderData.value.type, // 0表示充值
-	  remark: orderData.value.videoId
-	}
-	if(orderData.value.payType == '1'){
-		rechargeData.payType = '1'
-	}
-	
-	PaymentWrapperRef.value.pay(rechargeData)
-}
+    title: "处理中...",
+  });
+  // 准备充值数据
+  const rechargeData = {
+    info: `付费${orderData.value.amount.toString()}元观看视频:` + orderData.value.info,
+    amount: orderData.value.amount.toString(),
+    type: orderData.value.type, // 0表示充值
+    remark: orderData.value.videoId,
+  };
+  if (orderData.value.payType == "1") {
+    rechargeData.payType = "1";
+  }
 
-function payOver({flag}){
-	if(flag){
-		goBack()
-	}
+  PaymentWrapperRef.value.pay(rechargeData);
+};
+
+function payOver({ flag }) {
+  if (flag) {
+    goBack();
+  }
 }
 </script>
 
@@ -372,7 +383,6 @@ function payOver({flag}){
   margin-top: 20rpx;
 }
 
-
 /* 二维码弹出层样式 */
 .qr-modal {
   position: fixed;
@@ -470,7 +480,7 @@ function payOver({flag}){
 
 .qr-status {
   font-size: 24rpx;
-  color: #28B389;
+  color: #28b389;
   text-align: center;
   margin-top: 10rpx;
   animation: pulse 1.5s infinite;
@@ -522,7 +532,7 @@ function payOver({flag}){
 }
 
 .refresh-qr-btn {
-  background-color: #28B389;
+  background-color: #28b389;
   color: #fff;
 }
 

@@ -71,6 +71,9 @@
                         "__platform__" : [ "ios", "android" ],
                         "appid" : "wxcc8965020c482056",
                         "UniversalLinks" : "https://caimizm.com/"
+                    },
+                    "alipay" : {
+                        "__platform__" : [ "ios", "android" ]
                     }
                 },
                 "share" : {
