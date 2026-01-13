@@ -72,7 +72,6 @@ export default {
     channel = 0;
     // #endif
     return {
-      payType: 0,
       channel,
 
       showQRModal: false,
@@ -96,6 +95,7 @@ export default {
       }
     },
     confirmPayMethod(payMethod) {
+		console.log("payMethod:", payMethod)
       const payType = {
         "wechat-qr": 0,
         "alipay-app": 3,
@@ -141,7 +141,7 @@ export default {
           amount: amount.toString(), // 订单金额（必需）
           type: type, // 订单类型：0充值（可选）
           account: currentUser || getAccount(), // 账号（可选）
-          // payType: payType, // 支付方式：0微信（可选）
+          payType: payType, // 支付方式：0微信（可选）
           channel: this.channel, // 下单渠道：0电脑端（可选）
           remark: remark,
         };
@@ -168,7 +168,7 @@ export default {
     },
 
     // 展示二维码或调起app支付
-    async payFromOrdreId(orderNo, payType = this.payType) {
+    async payFromOrdreId(orderNo, payType = 0) {
       // 打赏或者付费
       let payInfo;
       payType = payType.toString();
@@ -200,6 +200,12 @@ export default {
               this.payOver(false);
             });
           break;
+		case "3": // 支付宝支付
+			payInfo = await this.getPayInfo({
+			  orderNo: orderNo,
+			  payType: payType,
+			});
+			await this.zfbPay(payInfo.orderstr)
         case "4": // 掉起微信支付
           payInfo = await this.getPayInfo({
             orderNo: orderNo,
@@ -285,6 +291,26 @@ export default {
         });
       });
     },
+	zfbPay(orderStr){
+		return new Promise((resolve) => {
+		  const self = this;
+		  uni.requestPayment({
+		    provider: "alipay",
+		    orderInfo: orderStr,
+		    success: function (res) {
+		      resolve();
+		    },
+		    fail: function (res) {
+		      uni.showToast({
+		        title: "支付失败",
+		        content: JSON.stringify(res),
+		        icon: "error",
+		      });
+		      self.payOver(false);
+		    },
+		  });
+		});
+	},
     async checkBalance(amount) {
       const balanceResponse = await apiGetUserBalance({
         account: getAccount(),

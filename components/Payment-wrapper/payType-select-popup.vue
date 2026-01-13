@@ -11,7 +11,8 @@
         <view class="pay-options">
           <radio-group @change="selectPayMethod">
             <!-- H5 平台 -->
-            <view class="pay-option">
+			
+            <label class="pay-option" value="wechat-qr">
               <!-- <view class="option-icon wechat-qr-icon"></view> -->
               <uni-icons
                 class="option-icon wechat-qr-icon"
@@ -21,10 +22,10 @@
               ></uni-icons>
               <text class="option-text">微信二维码支付</text>
               <radio :checked="selectedMethod === 'wechat-qr'" value="wechat-qr" color="#00aa00" />
-            </view>
+            </label>
             <!-- APP 平台 -->
             <template v-if="platform === 'app-plus'">
-              <view class="pay-option">
+              <label class="pay-option" value="alipay-app">
                 <view class="option-icon alipay-app-icon"></view>
                 <text class="option-text">支付宝APP支付</text>
                 <radio
@@ -32,9 +33,9 @@
                   value="alipay-app"
                   color="#00aa00"
                 />
-              </view>
+              </label>
 
-              <view class="pay-option">
+              <label class="pay-option" value="wechat-app">
                 <view class="option-icon wechat-app-icon"></view>
                 <text class="option-text">微信APP支付</text>
                 <radio
@@ -42,7 +43,7 @@
                   value="wechat-app"
                   color="#00aa00"
                 />
-              </view>
+              </label>
             </template>
           </radio-group>
         </view>
@@ -80,8 +81,8 @@ export default {
       this.$refs.payPopup.close();
     },
 
-    selectPayMethod(method) {
-      this.selectedMethod = method;
+    selectPayMethod(e) {
+      this.selectedMethod = e.detail.value;
     },
 
     confirmPayMethod() {
