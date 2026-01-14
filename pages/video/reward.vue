@@ -30,8 +30,13 @@
     <view class="reward-options">
       <text class="section-title">选择打赏金额</text>
       <view class="amount-grid">
-        <view v-for="(amount, index) in amountOptions" :key="index" class="amount-option"
-          :class="{ 'active': selectedAmount === amount }" @click="selectAmount(amount)">
+        <view
+          v-for="(amount, index) in amountOptions"
+          :key="index"
+          class="amount-option"
+          :class="{ active: selectedAmount === amount }"
+          @click="selectAmount(amount)"
+        >
           <text class="amount-text">¥{{ amount }}</text>
         </view>
       </view>
@@ -41,8 +46,13 @@
         <text class="custom-title">自定义金额</text>
         <view class="custom-input-container">
           <text class="currency-symbol">¥</text>
-          <input type="number" class="custom-input" placeholder="输入金额" v-model="customAmount"
-            @input="validateCustomAmount" />
+          <input
+            type="number"
+            class="custom-input"
+            placeholder="输入金额"
+            v-model="customAmount"
+            @input="validateCustomAmount"
+          />
           <button class="confirm-custom-btn" @click="confirmCustomAmount">确定</button>
         </view>
       </view>
@@ -54,7 +64,7 @@
       <radio-group @change="selectPaymentMethod">
         <label class="payment-method">
           <radio value="0" :checked="paymentMethod === '0'" />
-          <text class="method-text">微信支付</text>
+          <text class="method-text">直接支付</text>
         </label>
         <label class="payment-method">
           <radio value="1" :checked="paymentMethod === '1'" />
@@ -67,47 +77,19 @@
     <view class="payment-btn-container">
       <button class="payment-btn" @click="handleReward">支付 ¥{{ selectedAmount }}元</button>
     </view>
-
-    <!-- 二维码支付弹出层 -->
-    <view class="qr-modal" v-if="showQRModal" @click="closeQRModal">
-      <view class="qr-content" @click.stop>
-        <view class="qr-header">
-          <text class="qr-title">扫码支付</text>
-          <text class="close-btn" @click="closeQRModal">×</text>
-        </view>
-        <view class="qr-body">
-          <view class="qr-code-container">
-            <image v-if="qrCodeUrl" :src="qrCodeUrl" class="qr-image"
-              :style="{ width: qrSize + 'px', height: qrSize + 'px' }" mode="aspectFit"></image>
-            <view v-else class="qr-loading">
-              <text class="loading-text">生成二维码中...</text>
-            </view>
-          </view>
-          <text class="qr-tip">请使用微信扫描二维码完成支付</text>
-          <text class="qr-amount">支付金额：¥{{ selectedAmount }}元</text>
-          <text class="qr-status" v-if="isCheckingPayment">正在检查支付状态...</text>
-          <text class="qr-hint" v-if="isCheckingPayment">如已支付完成，可点击下方"支付完成"按钮</text>
-        </view>
-        <!-- <view class="qr-footer">
-          <button class="cancel-qr-btn" @click="closeQRModal">取消支付</button>
-          <button class="refresh-qr-btn" @click="refreshQRCode">刷新二维码</button>
-          <button class="success-qr-btn" @click="handlePaymentSuccess">支付完成</button>
-        </view> -->
-      </view>
-    </view>
-	<PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver"/>
+    <PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver" />
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { onLoad } from '@dcloudio/uni-app'
-import { apiRewardVideo, apiWxpay, apiCheckVideoPayment } from '@/api/apis';
-import { getToken, getAccount } from '@/utils/request.js';
-import QRCode from 'qrcode';
-import PaymentWrapper from '../../components/Payment-wrapper.vue';
+import { ref } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import { apiRewardVideo, apiWxpay, apiCheckVideoPayment } from "@/api/apis";
+import { getToken, getAccount } from "@/utils/request.js";
+import QRCode from "qrcode";
+import PaymentWrapper from "../../components/Payment-wrapper/Payment-wrapper.vue";
 
-const PaymentWrapperRef = ref(null)
+const PaymentWrapperRef = ref(null);
 
 // 打赏金额选项
 const amountOptions = ref([1.8, 3.8, 5.8, 6.8, 8.8, 18, 38, 58, 68]);
@@ -116,31 +98,31 @@ const amountOptions = ref([1.8, 3.8, 5.8, 6.8, 8.8, 18, 38, 58, 68]);
 const selectedAmount = ref(3.8);
 
 // 自定义金额
-const customAmount = ref('');
+const customAmount = ref("");
 const isCustomAmountSelected = ref(false);
 
 // 支付方式 (0:微信 1:账户余额)
-const paymentMethod = ref('0');
+const paymentMethod = ref("0");
 
 // 作者信息
-const authorName = ref('追梦人');
-const authorAvatar = ref('');
-const authorLocation = ref('海南省 - 儋州市');
+const authorName = ref("追梦人");
+const authorAvatar = ref("");
+const authorLocation = ref("海南省 - 儋州市");
 
 // 路由参数
 const routeParams = ref({
-  videoId: '',
-  author: '',
-  title: '',
-  authorAvatar: '', // 添加作者头像参数
-  authorName: ''   // 添加作者名称参数
+  videoId: "",
+  author: "",
+  title: "",
+  authorAvatar: "", // 添加作者头像参数
+  authorName: "", // 添加作者名称参数
 });
 
 // 二维码相关数据
 const showQRModal = ref(false);
 const qrSize = ref(200);
-const currentPaymentUrl = ref('');
-const qrCodeUrl = ref('');
+const currentPaymentUrl = ref("");
+const qrCodeUrl = ref("");
 const paymentCheckTimer = ref(null);
 const isCheckingPayment = ref(false);
 
@@ -161,7 +143,7 @@ onLoad((options) => {
 
 // 获取头像URL
 const getAvatarUrl = (avatar) => {
-  if (!avatar) return '/static/default-avatar.png';
+  if (!avatar) return "/static/default-avatar.png";
   return `http://video.caimizm.com/himg/${avatar}`;
 };
 
@@ -185,7 +167,7 @@ const goBack = () => {
 const validateCustomAmount = () => {
   // 确保金额为正数
   if (customAmount.value < 0) {
-    customAmount.value = '';
+    customAmount.value = "";
   }
 };
 
@@ -193,8 +175,8 @@ const validateCustomAmount = () => {
 const confirmCustomAmount = () => {
   if (!customAmount.value) {
     uni.showToast({
-      title: '请输入金额',
-      icon: 'none'
+      title: "请输入金额",
+      icon: "none",
     });
     return;
   }
@@ -202,8 +184,8 @@ const confirmCustomAmount = () => {
   const amount = parseFloat(customAmount.value);
   if (isNaN(amount) || amount <= 0) {
     uni.showToast({
-      title: '请输入有效金额',
-      icon: 'none'
+      title: "请输入有效金额",
+      icon: "none",
     });
     return;
   }
@@ -211,8 +193,8 @@ const confirmCustomAmount = () => {
   selectedAmount.value = amount;
   isCustomAmountSelected.value = true;
   uni.showToast({
-    title: '已选择自定义金额',
-    icon: 'success'
+    title: "已选择自定义金额",
+    icon: "success",
   });
 };
 
@@ -222,49 +204,49 @@ const handleReward = async () => {
   const token = getToken();
   if (!token) {
     uni.showToast({
-      title: '请先登录',
-      icon: 'none'
+      title: "请先登录",
+      icon: "none",
     });
     setTimeout(() => {
       uni.navigateTo({
-        url: '/pages/login/login'
+        url: "/pages/login/login",
       });
     }, 1500);
     return;
   }
-  
+
   // 准备打赏数据
   const rewardData = {
     info: `打赏视频: ${routeParams.value.title}`,
     amount: selectedAmount.value.toString(),
     type: 2, // 2=打赏
-	remark: routeParams.value.videoId
+    remark: routeParams.value.videoId,
   };
 
   // 选择账户余额支付
-  if (paymentMethod.value === '1') {
-	rewardData.payType = '1'
+  if (paymentMethod.value === "1") {
+    rewardData.payType = "1";
   }
 
-	if(!rewardData.payType){
-		// 如果选择微信支付，显示确认支付弹窗
-		uni.showModal({
-		  title: '确认支付',
-		  content: `确认支付 ¥${selectedAmount.value}元 打赏作者？`,
-		  success: (res) => {
-		    if (res.confirm) {
-				PaymentWrapperRef.value.pay(rewardData)
-		    }
-		  }
-		});
-	}else{
-		PaymentWrapperRef.value.pay(rewardData)
-	}
+  if (!rewardData.payType) {
+    // 如果选择微信支付，显示确认支付弹窗
+    uni.showModal({
+      title: "确认支付",
+      content: `确认支付 ¥${selectedAmount.value}元 打赏作者？`,
+      success: (res) => {
+        if (res.confirm) {
+          PaymentWrapperRef.value.pay(rewardData);
+        }
+      },
+    });
+  } else {
+    PaymentWrapperRef.value.pay(rewardData);
+  }
 };
-function payOver({flag}){
-	if(flag){
-		goBack()
-	}
+function payOver({ flag }) {
+  if (flag) {
+    goBack();
+  }
 }
 </script>
 
@@ -606,7 +588,7 @@ function payOver({flag}){
 
 .qr-status {
   font-size: 24rpx;
-  color: #28B389;
+  color: #28b389;
   text-align: center;
   margin-top: 10rpx;
   animation: pulse 1.5s infinite;
@@ -658,7 +640,7 @@ function payOver({flag}){
 }
 
 .refresh-qr-btn {
-  background-color: #28B389;
+  background-color: #28b389;
   color: #fff;
 }
 

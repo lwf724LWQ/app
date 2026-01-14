@@ -29,6 +29,10 @@
         </view>
       </view>
     </view>
+    <pay-type-select-popup
+      ref="payMethodSelectorRef"
+      @payMethodSelected="confirmPayMethod"
+    ></pay-type-select-popup>
   </view>
 </template>
 
@@ -40,10 +44,13 @@ import {
   apiWxpay,
   apigoldpay,
 } from "@/api/apis.js";
-import { getAccount } from "../utils/request";
-import qrcode from "qrcode";
+import { getAccount } from "../../utils/request";
+import payTypeSelectPopup from "./payType-select-popup.vue";
 export default {
   name: "pay",
+  components: {
+    payTypeSelectPopup,
+  },
   props: {
     info: {
       type: String,
@@ -57,17 +64,14 @@ export default {
     },
   },
   data() {
-    let payType, channel;
+    let channel = 0;
     // #ifdef APP-PLUS
-    payType = 4;
-    channel = 0;
+    channel = 3;
     // #endif
     // #ifdef H5
-    payType = 0;
     channel = 0;
     // #endif
     return {
-      payType,
       channel,
 
       showQRModal: false,
@@ -76,14 +80,28 @@ export default {
       qrCodeUrl: "",
 
       isCheckingPayment: false,
-      orderNo: "",
 
       timer: 0,
     };
   },
   methods: {
     pay(data) {
-      return this.createOrder(data);
+      this.orderData = data;
+      if (data.payType == 1) {
+        // 积分支付
+        this.createOrder(data);
+      } else {
+        this.$refs.payMethodSelectorRef.openPayModal();
+      }
+    },
+    confirmPayMethod(payMethod) {
+      console.log("payMethod:", payMethod);
+      const payType = {
+        "wechat-qr": 0,
+        "alipay-app": 3,
+        "wechat-app": 4,
+      }[payMethod];
+      this.createOrder({ ...this.orderData, payType });
     },
     // 暴露给外部的支付函数
     async createOrder({
@@ -121,9 +139,9 @@ export default {
           info: info, // 订单信息（可选）
           name: info, // 订单信息（可选）
           amount: amount.toString(), // 订单金额（必需）
-          type: type == 0 ? 4 : type, // 订单类型：0充值（可选）
+          type: type, // 订单类型：0充值（可选）
           account: currentUser || getAccount(), // 账号（可选）
-          payType: 0, // 支付方式：0微信（可选）
+          payType: payType, // 支付方式：0微信（可选）
           channel: this.channel, // 下单渠道：0电脑端（可选）
           remark: remark,
         };
@@ -138,10 +156,8 @@ export default {
 
       try {
         // 调用充值接口
-		console.log(rechargeData)
         const response = await apiUserRecharge(rechargeData);
-		console.log(response)
-        this.payFromOrdreId(response.data, payType, type);
+        this.payFromOrdreId(response.data, payType);
       } catch (error) {
         const errStr = (error && typeof error.toString === "function" && error.toString()) || "";
         uni.showModal({
@@ -152,27 +168,16 @@ export default {
     },
 
     // 展示二维码或调起app支付
-    async payFromOrdreId(orderNo, payType = this.payType, type) {
+    async payFromOrdreId(orderNo, payType = 0) {
       // 打赏或者付费
       let payInfo;
       payType = payType.toString();
-      if (typeof orderNo === "object") {
-		  payInfo = orderNo
-        orderNo = orderNo.orderNo;
-      }
-	  if(type != 0){
-	  	payType = "0"
-	  }else{
-	  	payType = "4"
-	  }
-      this.orderNo = orderNo;
-	  console.log(orderNo)
       switch (payType) {
         case "0": // 展示二维码
-          payInfo =  await this.getPayInfo({
-                orderNo: orderNo,
-                payType: payType,
-              });
+          payInfo = await this.getPayInfo({
+            orderNo: orderNo,
+            payType: payType,
+          });
           await this.generateQRCode(payInfo);
           break;
         case "1":
@@ -195,14 +200,18 @@ export default {
               this.payOver(false);
             });
           break;
+        case "3": // 支付宝支付
+          payInfo = await this.getPayInfo({
+            orderNo: orderNo,
+            payType: payType,
+          });
+          await this.zfbPay(payInfo);
+		  break;
         case "4": // 掉起微信支付
-     //      payInfo = payInfo
-     //        ? payInfo
-     //        : await this.getPayInfo({
-     //            orderNo: orderNo,
-     //            payType: payType,
-     //          });
-			  console.log(payInfo)
+          payInfo = await this.getPayInfo({
+            orderNo: orderNo,
+            payType: payType,
+          });
           await this.wxAppPay(payInfo);
           break;
         default:
@@ -212,8 +221,8 @@ export default {
           });
           break;
       }
-      if (payType != "0" && payType != "1") {
-        this.startPaymentCheck();
+      if (payType != "1") {
+        this.startPaymentCheck(orderNo);
       }
     },
     async getPayInfo({ orderNo, payType }) {
@@ -236,54 +245,25 @@ export default {
     },
     generateQRCode(url) {
       return new Promise((resolve) => {
-        // uni.showLoading({
-        //   title: "生成二维码中...",
-        // });
-		// const canvas = document.createElement('canvas');
-this.generateQRCodeOnline(url)
-return
-		
-        qrcode.toDataURL(
-		// canvas,
-          url,
-          {
-            width: this.qrSize,
-            height: this.qrSize,
-            margin: 2,
-            color: {
-              dark: "#000000",
-              light: "#FFFFFF",
-            },
-          },
-          (error, dataUrl) => {
-			  if(error){
-				this.generateQRCodeOnline(url)
-				
-				return
-			  }
-            // 直接设置二维码URL
-            this.qrCodeUrl = dataUrl;
-            this.showQRModal = true;
-            resolve();
-          }
-        );
+        this.generateQRCodeOnline(url);
+        return;
       });
     },
-	// 使用在线服务生成二维码
-	generateQRCodeOnline(url) {
-	  try {
-	    // 使用qrcode.js在线服务
-	    const encodedUrl = encodeURIComponent(url);
-	    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&data=${encodedUrl}`;
-	    this.qrCodeUrl = qrApiUrl;
-		this.showQRModal = true;
-	  } catch (error) {
-	    uni.showToast({
-	      title: "二维码生成失败",
-	      icon: "none",
-	    });
-	  }
-	},
+    // 使用在线服务生成二维码
+    generateQRCodeOnline(url) {
+      try {
+        // 使用qrcode.js在线服务
+        const encodedUrl = encodeURIComponent(url);
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${this.qrSize}x${this.qrSize}&data=${encodedUrl}`;
+        this.qrCodeUrl = qrApiUrl;
+        this.showQRModal = true;
+      } catch (error) {
+        uni.showToast({
+          title: "二维码生成失败",
+          icon: "none",
+        });
+      }
+    },
     wxAppPay(orderInfo) {
       return new Promise((resolve) => {
         const self = this;
@@ -302,6 +282,29 @@ return
             resolve();
           },
           fail: function (res) {
+			  
+			  console.log("支付失败",res)
+            uni.showToast({
+              title: "支付失败",
+              content: JSON.stringify(res),
+              icon: "error",
+            });
+            self.payOver(false);
+          },
+        });
+      });
+    },
+    zfbPay(orderStr) {
+      return new Promise((resolve) => {
+        const self = this;
+        uni.requestPayment({
+          provider: "alipay",
+          orderInfo: orderStr,
+          success: function (res) {
+            resolve();
+          },
+          fail: function (res) {
+			  console.log("支付失败",res)
             uni.showToast({
               title: "支付失败",
               content: JSON.stringify(res),
@@ -338,7 +341,7 @@ return
         return false;
       }
     },
-    startPaymentCheck(count = 0) {
+    startPaymentCheck(orderNo, count = 0) {
       const checkTime = 1000 * 1; // 1秒检查一次
       const maxCheckCount = 60;
       clearTimeout(this.timer);
@@ -358,8 +361,8 @@ return
       }
 
       this.timer = setTimeout(() => {
-        if (this.orderNo) {
-          this.checkPayStatusApi(this.orderNo).then((flat) => {
+        if (orderNo) {
+          this.checkPayStatusApi(orderNo).then((flat) => {
             if (flat) {
               uni.hideLoading();
               uni.showToast({
@@ -367,7 +370,7 @@ return
               });
               this.payOver(true);
             } else {
-              this.startPaymentCheck(count + 1);
+              this.startPaymentCheck(orderNo, count + 1);
             }
           });
         }

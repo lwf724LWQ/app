@@ -2,8 +2,8 @@
     "name" : "五七仔",
     "appid" : "__UNI__FA93A0C",
     "description" : "五七仔",
-    "versionName" : "1.3.22010",
-    "versionCode" : 20260109,
+    "versionName" : "1.3.23010",
+    "versionCode" : 20260114,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
@@ -58,6 +58,11 @@
                     "entitlements" : {
                         "com.apple.developer.associated-domains" : [ "applinks:caimizm.com" ]
                     }
+                },
+                "privacyDescription" : {
+                    "NSPhotoLibraryUsageDescription" : "五七仔希望访问您的相册，用于修改头像时的使用",
+                    "NSPhotoLibraryAddUsageDescription" : "五七仔希望保存图片到您的相册，用于保存长条，画规图片",
+                    "NSCameraUsageDescription" : "五七仔希望访问您的摄像头，用于修改头像时的使用"
                 }
             },
             /* SDK配置 */
@@ -67,6 +72,9 @@
                         "__platform__" : [ "ios", "android" ],
                         "appid" : "wxcc8965020c482056",
                         "UniversalLinks" : "https://caimizm.com/"
+                    },
+                    "alipay" : {
+                        "__platform__" : [ "ios", "android" ]
                     }
                 },
                 "share" : {
