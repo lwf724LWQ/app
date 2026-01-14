@@ -160,9 +160,11 @@
             v-for="(item, index) in isSearching && searchKeyword
               ? filteredPredictList
               : predictList"
+            v-show="isReport(item.id)"
             :key="index"
             :item="item"
             @updatePost="updatePostInList"
+            @report="handleReport"
           />
           <!-- 暂无数据提示 -->
           <view v-if="predictList.length === 0" class="no-posts-tip">
@@ -311,6 +313,7 @@
       </view>
     </view>
     <bottomBar current-path="/pages/forum/forum" />
+    <reportPopup ref="reportPopupRef" @reportSubmitted="refreshReportList" />
   </view>
 </template>
 
@@ -326,6 +329,7 @@ import tool from "@/utils/tool.js";
 import forumToos from "../../components/post-card/forumToos";
 import postCard from "./components/post-card.vue";
 import followUserList from "./components/follow-user-list.vue";
+import reportPopup from "../../components/report-popup/report-popup.vue";
 
 // 用户数据存储
 const userStore = useUserStore();
@@ -487,6 +491,7 @@ onMounted(() => {
 
   optimizeTouchEvents();
   loadLotteryData(currentLotteryType.value.code);
+  refreshReportList();
   isPageInitialized.value = true;
 });
 const followUserListRef = ref(null);
@@ -1298,6 +1303,27 @@ const extractSchemeFromContent = (content) => {
     return [];
   }
 };
+
+const reportPopupRef = ref(null);
+function handleReport(postId) {
+  console.log("handleReport", postId);
+  reportPopupRef.value.openReportModal({
+    type: "post",
+    id: postId,
+  });
+}
+const reportList = ref([]);
+function refreshReportList() {
+  const r = uni.getStorageSync("reportList");
+  if (r instanceof Array) {
+    reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
+  } else {
+    reportList.value = [];
+  }
+}
+function isReport(postId) {
+  return !reportList.value.includes(postId);
+}
 </script>
 
 <style scoped lang="scss">

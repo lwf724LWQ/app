@@ -8,6 +8,11 @@
         </view>
         <!-- 标题 -->
         <view class="navbar-title">{{ videoData.title }}</view>
+        <view class="navbar-right">
+          <view class="navbar-right-item" @click="toggleMoreOptions">
+            <uni-icons type="more" size="24" color="#999"></uni-icons>
+          </view>
+        </view>
       </view>
       <!-- 视频播放器容器 -->
       <view class="video-container">
@@ -141,6 +146,7 @@
         </button>
       </view>
     </view>
+    <reportPopup ref="reportPopupRef" />
   </view>
 </template>
 
@@ -161,6 +167,7 @@ import {
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
 import tool from "../../utils/tool";
+import reportPopup from "../../components/report-popup/report-popup.vue";
 
 const useOldManModeStore = inject("useOldManModeStore");
 
@@ -745,6 +752,27 @@ function toUserSpace() {
   // uni.navigateTo({
   // 	url: '/pages/user/space?id='
   // });
+}
+
+const reportPopupRef = ref(null);
+
+function toggleMoreOptions() {
+  uni.showActionSheet({
+    itemList: ["举报"],
+    success: (res) => {
+      if (res.tapIndex === 0) {
+        // 举报
+        handleReport(videoData.value.id);
+      }
+    },
+  });
+}
+function handleReport(postId) {
+  console.log("handleReport", postId);
+  reportPopupRef.value.openReportModal({
+    type: "video",
+    id: postId,
+  });
 }
 </script>
 
