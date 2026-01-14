@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import { getAccount } from "../../utils/request";
 import { sendReport } from "@/api/apis.js";
 export default {
   name: "ReportModal",
@@ -64,32 +65,42 @@ export default {
         });
         return;
       }
-      const reportList = uni.getStorageSync("reportList") || [];
-      reportList.push({
-        id: this.reportData.id,
-        type: this.reportData.type,
-      });
-      uni.setStorageSync("reportList", reportList);
+      
+		if(getAccount()){
+			await sendReport({
+			  title: this.reportData.title || "",
+			  content: this.reportReason,
+			  rpid: this.reportData.id,
+			  type: {
+			    post: 2,
+			    video: 1,
+			  }[this.reportData.type],
+			});
+		}else{
+			await uni.showModal({
+				title: "您当前未登录",
+				content: "我们会为你屏蔽该条帖子，登录后同步到账号",
+				showCancel: false
+			})
+		}
+		const reportList = uni.getStorageSync("reportList") || [];
+		reportList.push({
+		  id: this.reportData.id,
+		  type: this.reportData.type,
+		});
+		uni.setStorageSync("reportList", reportList);
       try {
         // 这里可以添加实际的提交逻辑
         console.log("提交举报:", this.reportReason);
-
+		
         // 显示提交成功提示
         uni.showLoading({
           title: "提交中...",
-        });
+        });	
 
         // 模拟网络请求
         // await new Promise((resolve) => setTimeout(resolve, 1000));
-        await sendReport({
-          title: this.reportData.title || "",
-          content: this.reportReason,
-          rpid: this.reportData.id,
-          type: {
-            post: 2,
-            video: 1,
-          }[this.reportData.type],
-        });
+        
 
         uni.hideLoading();
         uni.showToast({

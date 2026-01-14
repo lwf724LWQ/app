@@ -1897,10 +1897,10 @@ textarea {
   padding: 10rpx;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
-  z-index: 999;
   /* 优化触摸性能 */
   touch-action: manipulation;
   transition: transform 0.2s ease;
+  z-index: 10;
 }
 
 .publish-btn:active {
