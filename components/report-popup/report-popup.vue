@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import { sendReport } from "@/api/apis.js";
 export default {
   name: "ReportModal",
   data() {
@@ -79,7 +80,16 @@ export default {
         });
 
         // 模拟网络请求
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // await new Promise((resolve) => setTimeout(resolve, 1000));
+        await sendReport({
+          title: this.reportData.title || "",
+          content: this.reportReason,
+          rpid: this.reportData.id,
+          type: {
+            post: 2,
+            video: 1,
+          }[this.reportData.type],
+        });
 
         uni.hideLoading();
         uni.showToast({
