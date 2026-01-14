@@ -173,18 +173,30 @@ const fetchVideoList = async () => {
       Videoinfo.data.records &&
       Array.isArray(Videoinfo.data.records)
     ) {
-      videoList.value = Videoinfo.data.records.map((item) => ({
-        title: item.title,
-        src: "http://video.caimizm.com/" + item.url,
-        id: item.id,
-        account: item.account,
-        likeCount: item.likeCount,
-        createTime: item.createTime,
-        flag: item.price > 0 ? item.flag : false,
-        price: item.price,
-        updateTime: item.updateTime,
-        imgurl: "http://video.caimizm.com/" + item.vimg,
-      }));
+      let reportList = [];
+
+      // 屏蔽被举报的视频
+      const r = uni.getStorageSync("reportList");
+      if (r instanceof Array) {
+        reportList = r.filter((item) => item.type == "video").map((item) => item.id);
+      } else {
+        reportList = [];
+      }
+
+      videoList.value = Videoinfo.data.records
+        .map((item) => ({
+          title: item.title,
+          src: "http://video.caimizm.com/" + item.url,
+          id: item.id,
+          account: item.account,
+          likeCount: item.likeCount,
+          createTime: item.createTime,
+          flag: item.price > 0 ? item.flag : false,
+          price: item.price,
+          updateTime: item.updateTime,
+          imgurl: "http://video.caimizm.com/" + item.vimg,
+        }))
+        .filter((item) => !reportList.includes(item.id));
 
       uni.showToast({
         title: `已加载 ${videoList.value.length} 个视频`,
