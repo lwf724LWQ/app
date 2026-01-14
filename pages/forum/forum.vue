@@ -160,9 +160,11 @@
             v-for="(item, index) in isSearching && searchKeyword
               ? filteredPredictList
               : predictList"
+            v-show="isReport(item.id)"
             :key="index"
             :item="item"
             @updatePost="updatePostInList"
+            @report="handleReport"
           />
           <!-- 暂无数据提示 -->
           <view v-if="predictList.length === 0" class="no-posts-tip">
@@ -310,6 +312,7 @@
       </view>
     </view>
     <bottomBar current-path="/pages/forum/forum" />
+    <reportPopup ref="reportPopupRef" @reportSubmitted="refreshReportList" />
   </view>
 </template>
 
@@ -325,6 +328,7 @@ import tool from "@/utils/tool.js";
 import forumToos from "../../components/post-card/forumToos";
 import postCard from "./components/post-card.vue";
 import followUserList from "./components/follow-user-list.vue";
+import reportPopup from "../../components/report-popup/report-popup.vue";
 
 // 用户数据存储
 const userStore = useUserStore();
@@ -486,6 +490,7 @@ onMounted(() => {
 
   optimizeTouchEvents();
   loadLotteryData(currentLotteryType.value.code);
+  refreshReportList();
   isPageInitialized.value = true;
 });
 const followUserListRef = ref(null);
@@ -1297,6 +1302,27 @@ const extractSchemeFromContent = (content) => {
     return [];
   }
 };
+
+const reportPopupRef = ref(null);
+function handleReport(postId) {
+  console.log("handleReport", postId);
+  reportPopupRef.value.openReportModal({
+    type: "post",
+    id: postId,
+  });
+}
+const reportList = ref([]);
+function refreshReportList() {
+  const r = uni.getStorageSync("reportList");
+  if (r instanceof Array) {
+    reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
+  } else {
+    reportList.value = [];
+  }
+}
+function isReport(postId) {
+  return !reportList.value.includes(postId);
+}
 </script>
 
 <style scoped lang="scss">
@@ -1872,7 +1898,10 @@ textarea {
   // justify-content: center;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
-  z-index: 999;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
+  z-index: 10;
 }
 
 .publish-btn:active {

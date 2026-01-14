@@ -482,4 +482,14 @@ export const getUserDelete = () => {
     url: "/web/user/delete",
     method: "GET",
   });
+}
+// 举报
+export const sendReport = ({ title, content, rpid, type }) => {
+  return request({
+    url: "/web/report/insert",
+    method: "POST",
+    data: {
+      title, content, rpid, type
+    },
+  });
 };

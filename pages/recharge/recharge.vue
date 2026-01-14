@@ -111,7 +111,7 @@
       </view>
     </scroll-view>
 
-	<PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver"/>
+    <PaymentWrapper ref="PaymentWrapperRef" @payOver="payOver" />
   </view>
 </template>
 
@@ -119,9 +119,9 @@
 import { ref, computed, onMounted, inject } from "vue";
 import { getToken, getAccount } from "@/utils/request.js";
 import { apiGetUserBalance } from "@/api/apis.js";
-import PaymentWrapper from "../../components/Payment-wrapper.vue";
+import PaymentWrapper from "../../components/Payment-wrapper/Payment-wrapper.vue";
 
-const PaymentWrapperRef = ref(null)
+const PaymentWrapperRef = ref(null);
 
 // 老人模式
 const useOldManModeStore = inject("useOldManModeStore");
@@ -206,21 +206,19 @@ const handlePayment = async () => {
       if (res.confirm) {
         // 这里调用支付API
         PaymentWrapperRef.value.pay({
-			info: `用户充值${paymentAmount.value}元`,
-			amount: paymentAmount.value,
-			type: 0
-		})
+          info: `用户充值${paymentAmount.value}元`,
+          amount: paymentAmount.value,
+          type: 0,
+        });
       }
     },
   });
 };
 
-
 const payOver = async () => {
-	// 重新获取用户余额
-	await getUserInfo();
+  // 重新获取用户余额
+  await getUserInfo();
 };
-
 
 // 获取用户信息
 const getUserInfo = async () => {
@@ -249,7 +247,6 @@ const getUserInfo = async () => {
     isLoadingUserInfo.value = false;
   }
 };
-
 
 // 下拉刷新方法
 const onRefresh = async () => {
@@ -294,7 +291,6 @@ onMounted(async () => {
     await getUserInfo();
   }
 });
-
 </script>
 
 <style scoped lang="scss">

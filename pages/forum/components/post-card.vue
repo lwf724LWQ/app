@@ -8,7 +8,7 @@
           <text class="username">{{ item.username }}</text>
         </view>
       </view>
-      <view class="more-options">
+      <view class="more-options" @click="toggleMoreOptions">
         <uni-icons type="more-filled" size="20" color="#999"></uni-icons>
       </view>
     </view>
@@ -83,7 +83,7 @@
 </template>
 <script>
 import forumToos from "../../../components/post-card/forumToos";
-import { apiPostLike } from "@/api/apis.js";
+import { apiPostLike, userFollowApi } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 export default {
   props: {
@@ -185,6 +185,35 @@ export default {
       } finally {
         post.isLiking = false;
       }
+    },
+    toggleMoreOptions() {
+      uni.showActionSheet({
+        itemList: ["举报"],
+        success: (res) => {
+          // if (res.tapIndex === 0) {
+          //   if (this.item.isFollowed) {
+
+          //   }
+          //   userFollowApi({ account2: this.item.account })
+          //     .then(() => {
+          //       uni.showToast({
+          //         title: "关注成功",
+          //         icon: "success",
+          //       });
+          //     })
+          //     .catch(() => {
+          //       uni.showToast({
+          //         title: "关注失败",
+          //         icon: "none",
+          //       });
+          //     });
+          // }
+          if (res.tapIndex === 0) {
+            // 举报
+            this.$emit("report", this.item.id);
+          }
+        },
+      });
     },
   },
 };
