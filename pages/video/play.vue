@@ -146,7 +146,7 @@
         </button>
       </view>
     </view>
-    <reportPopup ref="reportPopupRef" />
+    <reportPopup ref="reportPopupRef" @reportSubmitted="reportSubmitted" />
   </view>
 </template>
 
@@ -773,6 +773,9 @@ function handleReport(postId) {
     type: "video",
     id: postId,
   });
+}
+function reportSubmitted(){
+	uni.navigateBack()
 }
 </script>
 
