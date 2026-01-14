@@ -114,7 +114,7 @@ import {
   apigoldpay,
 } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
-import PaymentWrapper from "../../components/Payment-wrapper.vue";
+import PaymentWrapper from "../../components/Payment-wrapper/Payment-wrapper.vue";
 
 const PaymentWrapperRef = ref(null);
 

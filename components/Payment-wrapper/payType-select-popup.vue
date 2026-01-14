@@ -11,7 +11,7 @@
         <view class="pay-options">
           <radio-group @change="selectPayMethod">
             <!-- H5 平台 -->
-			
+
             <label class="pay-option" value="wechat-qr">
               <!-- <view class="option-icon wechat-qr-icon"></view> -->
               <uni-icons
@@ -59,7 +59,7 @@ export default {
   name: "PayMethodSelector",
   data() {
     // 获取当前平台
-    let platform = "app-plus";
+    let platform = "h5";
     let selectedMethod = "wechat-qr";
     // #ifdef APP-PLUS
     platform = "app-plus";

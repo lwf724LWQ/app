@@ -95,7 +95,7 @@ export default {
       }
     },
     confirmPayMethod(payMethod) {
-		console.log("payMethod:", payMethod)
+      console.log("payMethod:", payMethod);
       const payType = {
         "wechat-qr": 0,
         "alipay-app": 3,
@@ -200,12 +200,13 @@ export default {
               this.payOver(false);
             });
           break;
-		case "3": // 支付宝支付
-			payInfo = await this.getPayInfo({
-			  orderNo: orderNo,
-			  payType: payType,
-			});
-			await this.zfbPay(payInfo.orderstr)
+        case "3": // 支付宝支付
+          payInfo = await this.getPayInfo({
+            orderNo: orderNo,
+            payType: payType,
+          });
+          await this.zfbPay(payInfo);
+		  break;
         case "4": // 掉起微信支付
           payInfo = await this.getPayInfo({
             orderNo: orderNo,
@@ -281,6 +282,8 @@ export default {
             resolve();
           },
           fail: function (res) {
+			  
+			  console.log("支付失败",res)
             uni.showToast({
               title: "支付失败",
               content: JSON.stringify(res),
@@ -291,26 +294,27 @@ export default {
         });
       });
     },
-	zfbPay(orderStr){
-		return new Promise((resolve) => {
-		  const self = this;
-		  uni.requestPayment({
-		    provider: "alipay",
-		    orderInfo: orderStr,
-		    success: function (res) {
-		      resolve();
-		    },
-		    fail: function (res) {
-		      uni.showToast({
-		        title: "支付失败",
-		        content: JSON.stringify(res),
-		        icon: "error",
-		      });
-		      self.payOver(false);
-		    },
-		  });
-		});
-	},
+    zfbPay(orderStr) {
+      return new Promise((resolve) => {
+        const self = this;
+        uni.requestPayment({
+          provider: "alipay",
+          orderInfo: orderStr,
+          success: function (res) {
+            resolve();
+          },
+          fail: function (res) {
+			  console.log("支付失败",res)
+            uni.showToast({
+              title: "支付失败",
+              content: JSON.stringify(res),
+              icon: "error",
+            });
+            self.payOver(false);
+          },
+        });
+      });
+    },
     async checkBalance(amount) {
       const balanceResponse = await apiGetUserBalance({
         account: getAccount(),
