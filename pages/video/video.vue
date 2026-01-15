@@ -176,12 +176,8 @@ const fetchVideoList = async () => {
       let reportList = [];
 
       // 屏蔽被举报的视频
-      const r = uni.getStorageSync("reportList");
-      if (r instanceof Array) {
-        reportList = r.filter((item) => item.type == "video").map((item) => item.id);
-      } else {
-        reportList = [];
-      }
+      const r = uni.getStorageSync("reportList") || [];
+      reportList = r.filter((item) => item.type == "video").map((item) => item.id);
 
       videoList.value = Videoinfo.data.records
         .map((item) => ({
