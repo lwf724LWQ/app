@@ -1314,12 +1314,9 @@ function handleReport(postId) {
 }
 const reportList = ref([]);
 function refreshReportList() {
-  const r = uni.getStorageSync("reportList");
-  if (r instanceof Array) {
-    reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
-  } else {
-    reportList.value = [];
-  }
+  const r = uni.getStorageSync("reportList") || [];
+  reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
+  
 }
 function isReport(postId) {
   return !reportList.value.includes(postId);
