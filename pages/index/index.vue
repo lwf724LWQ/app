@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <!-- 帖子列表 -->
-    <scroll-view class="post-list" scroll-y="true" @scrolltolower="loadMore" :lower-threshold="20">
+    <scroll-view class="post-list" scroll-y="true" :lower-threshold="20">
       <view
         class="post-item"
         v-for="(post, index) in posts"
@@ -13,6 +13,11 @@
           <text class="time">{{ post.time }}</text>
         </view>
         <text class="post-content">{{ post.introduction }}</text>
+        <!-- 添加点赞数显示 -->
+        <view class="post-footer">
+          <text class="comment-count">💬 {{ post.comments ? post.comments.length : 0 }}</text>
+          <text class="like-count">👍 {{ post.likes || 0 }}</text>
+        </view>
       </view>
 
       <!-- 加载更多提示 -->
@@ -25,83 +30,96 @@
         <text>没有更多了</text>
       </view>
     </scroll-view>
-	
-	
-	<flipModal 
-	      :show.sync="showModal"
-	      title="确认操作"
-	      @update:show="showModal = $event"
-	    />
+
+    <flipModal :show.sync="showModal" title="确认操作" @update:show="showModal = $event" />
   </view>
 </template>
 
 <script>
-	import mockData from "./mock.js"
-	import flipModal from "./flip-modal.vue";
+import mockData from "./mock.js";
+import flipModal from "./flip-modal.vue";
 export default {
-	components:{flipModal},
+  components: { flipModal },
   data() {
     return {
-      posts: mockData['鸡汤文章'],
+      posts: [],
       loading: false,
       noMore: false,
       currentPage: 1,
-	  showModal: true
+      showModal: true,
     };
   },
   onLoad() {
     // 页面加载时的初始化
     console.log("帖子首页加载");
   },
+  onShow() {
+    // 页面显示时刷新列表，包括更新本地评论数量
+    // this.updateLocalComments();
+    this.fetchPosts();
+  },
   methods: {
+    // 获取帖子列表数据
+    fetchPosts() {
+      // 从mock数据获取基础帖子信息
+      const mockPosts = mockData["鸡汤文章"];
+
+      // 获取本地存储的评论和点赞数据
+      const storedComments = uni.getStorageSync("post_comments") || {};
+      const storedLikes = uni.getStorageSync("post_likes") || {};
+
+      // 合并本地评论数量和点赞数量到帖子数据
+      this.posts = mockPosts.map((post, index) => {
+        // 获取本地评论数量
+        const localCommentsCount = (storedComments[index] || []).length;
+        // 获取本地点赞数量
+        const localLikesCount = (storedLikes[index] || []).length;
+
+        return {
+          ...post,
+          id: index, // 添加索引作为ID
+          // 合并本地评论数量（如果有原始评论则加上本地评论数，否则仅显示本地评论数）
+          comments: [
+            ...(post.comments || []),
+            // 添加标记为本地的评论，便于区分
+            ...(storedComments[index] || []).map((comment) => ({ ...comment, local: true })),
+          ],
+          // 合并本地点赞数量
+          likes: (post.likes || 0) + localLikesCount,
+        };
+      });
+    },
+
+    // 更新本地评论（保持原有方法）
+    updateLocalComments() {
+      // 获取本地存储的评论
+      const storedComments = uni.getStorageSync("post_comments") || {};
+      const storedLikes = uni.getStorageSync("post_likes") || {};
+
+      // 更新每个帖子的评论和点赞总数
+      this.posts = this.posts.map((post, index) => {
+        const localCommentsCount = (storedComments[index] || []).length;
+        const localLikesCount = (storedLikes[index] || []).length;
+
+        return {
+          ...post,
+          id: index,
+          // 包含本地评论在内的总评论数
+          comments: [
+            ...(post.comments || []),
+            ...(storedComments[index] || []).map((comment) => ({ ...comment, local: true })),
+          ],
+          // 包含本地点赞在内的总点赞数
+          likes: (post.likes || 0) + localLikesCount,
+        };
+      });
+    },
+
     // 跳转到帖子详情页
     goToPostDetail(postId) {
       uni.navigateTo({
         url: `/pages/post-detail/post-detail?id=${postId}`,
       });
-    },
-
-    // 加载更多帖子
-    loadMore() {
-      if (this.loading || this.noMore) return;
-
-      this.loading = true;
-
-      // 模拟异步加载数据
-      setTimeout(() => {
-        const newPosts = [
-          {
-            id: this.posts.length + 1,
-            author: `用户${String.fromCharCode(65 + this.posts.length)}`,
-            time: `${this.posts.length + 1}小时前`,
-            content: `这是第${
-              this.posts.length + 1
-            }个帖子的内容，展示更多的帖子信息，让页面看起来更丰富。`,
-            commentCount: Math.floor(Math.random() * 20),
-            likeCount: Math.floor(Math.random() * 50),
-          },
-          {
-            id: this.posts.length + 2,
-            author: `用户${String.fromCharCode(65 + this.posts.length + 1)}`,
-            time: `${this.posts.length + 2}小时前`,
-            content: `这是第${
-              this.posts.length + 2
-            }个帖子的内容，继续展示更多的帖子信息，让页面看起来更丰富。`,
-            commentCount: Math.floor(Math.random() * 20),
-            likeCount: Math.floor(Math.random() * 50),
-          },
-        ];
-
-        this.posts = [...this.posts, ...newPosts];
-        this.currentPage++;
-
-        // 模拟没有更多数据的情况
-        if (this.currentPage >= 5) {
-          this.noMore = true;
-        }
-
-        this.loading = false;
-      }, 1000);
     },
   },
 };
@@ -116,11 +134,10 @@ page {
   width: 100%;
   display: flex;
   flex-direction: column;
-  
 }
 
 .post-list {
-	margin-top: var(--status-bar-height);
+  margin-top: var(--status-bar-height);
   flex: 1;
   padding: 20rpx;
 
