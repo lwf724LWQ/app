@@ -8,6 +8,7 @@
             focus
             @confirm="searchUser(searchInputValue)"
             v-model.trim="searchInputValue"
+			class="flex-1"
           />
           <uni-icons
             type="close"
@@ -178,5 +179,8 @@ const goToUserDetail = (account, isFollow) => {
 
 .user-list {
   margin-top: 20rpx;
+}
+.flex-1{
+	flex:1;
 }
 </style>
