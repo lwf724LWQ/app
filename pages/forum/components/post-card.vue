@@ -2,7 +2,7 @@
   <view class="predict-item">
     <!-- 帖子头部 -->
     <view class="post-header">
-      <view class="user-info">
+      <view class="user-info" @click="gotoUserSpace(item.account)">
         <image :src="item.avatar" class="avatar"></image>
         <view class="username-and-url">
           <text class="username">{{ item.username }}</text>
@@ -210,18 +210,23 @@ export default {
           // }
           if (res.tapIndex === 0) {
             // 举报
-			if(this.item.account == getAccount()){
-				uni.showModal({
-					title: "不能举报自己的帖子哦~",
-					content: "如果需要变动，可以通过追贴的方式进行补充~",
-					showCancel:false
-				})
-				return
-			}
-			
+            if (this.item.account == getAccount()) {
+              uni.showModal({
+                title: "不能举报自己的帖子哦~",
+                content: "如果需要变动，可以通过追贴的方式进行补充~",
+                showCancel: false,
+              });
+              return;
+            }
+
             this.$emit("report", this.item.id);
           }
         },
+      });
+    },
+    gotoUserSpace(account) {
+      uni.navigateTo({
+        url: `/pages/user/space?account=${account}`,
       });
     },
   },
