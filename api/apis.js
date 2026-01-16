@@ -132,6 +132,11 @@ export function apiUserimg(data) {
   return request({
     url: "/web/user/find_info",
     data,
+  }).then((res) => {
+    if (res?.data) {
+      return { ...res, data: { ...res.data.user, isForllow: res.data.flag } }
+    }
+    return res;
   });
 }
 //余额支付
