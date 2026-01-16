@@ -62,19 +62,20 @@ export const myDirective = {
     Vue.directive('permission', {
       mounted(el, binding) {
         el.addEventListener('click', () => {
+			let fn, permissionText;
+			if (binding.value instanceof Array) {
+			  fn = binding.value[0]
+			  permissionText = binding.value[1]
+			} else {
+			  fn = binding.value
+			}
           const systemInfo = uni.getSystemInfoSync();
           const isIOS = systemInfo.platform === 'ios' || systemInfo.osName === 'ios';
           if (isIOS) {
-            return binding.value()
+            return fn()
           }
           // #ifdef APP
-          let fn, permissionText;
-          if (binding.value instanceof Array) {
-            fn = binding.value[0]
-            permissionText = binding.value[1]
-          } else {
-            fn = binding.value
-          }
+          
           const permissionMeta = permissionMap[binding.arg]
           let compat = plus.android.importClass('androidx.core.content.ContextCompat')
           let context = plus.android.runtimeMainActivity()
