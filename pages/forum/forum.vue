@@ -1082,6 +1082,7 @@ const loadPredictPosts = async () => {
 
     if (response.code === 200) {
       if (response.data) {
+		 response.data.list = response.data.list.filter(item => isReport(item.id))
         allPosts = [...response.data.list];
       }
     }

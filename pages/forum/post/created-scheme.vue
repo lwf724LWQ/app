@@ -109,6 +109,11 @@ onLoad(async (options) => {
     const postid = options.id || postData?.id;
     if (content) {
       // 追贴
+	  uni.showModal({
+			title: "提示",
+			content: "您本期已经发布过帖子了,目前为追贴模式，新增的内容将作为补充添加到本期帖子中！",
+			showCancel:false
+	  })
       id.value = postid;
 
       disabledTag.value = tags.value
