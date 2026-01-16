@@ -8,11 +8,11 @@
         </view>
         <!-- 标题 -->
         <view class="navbar-title">{{ videoData.title }}</view>
-        <view class="navbar-right">
+        <!-- <view class="navbar-right">
           <view class="navbar-right-item" @click="toggleMoreOptions">
             <uni-icons type="more" size="24" color="#999"></uni-icons>
           </view>
-        </view>
+        </view> -->
       </view>
       <!-- 视频播放器容器 -->
       <view class="video-container">

@@ -87,7 +87,8 @@
                     "weixin" : {
                         "appid" : "wxcc8965020c482056",
                         "UniversalLinks" : "https://caimizm.com/"
-                    }
+                    },
+                    "univerify" : {}
                 }
             },
             "splashscreen" : {
