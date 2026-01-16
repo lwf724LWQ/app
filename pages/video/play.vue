@@ -749,9 +749,9 @@ const toggleLike = async () => {
 };
 
 function toUserSpace() {
-  // uni.navigateTo({
-  // 	url: '/pages/user/space?id='
-  // });
+  uni.navigateTo({
+    url: `/pages/user/space?account=${videoData.value.account}&follow=${followStatus.value}`,
+  });
 }
 
 const reportPopupRef = ref(null);
@@ -774,8 +774,8 @@ function handleReport(postId) {
     id: postId,
   });
 }
-function reportSubmitted(){
-	uni.navigateBack()
+function reportSubmitted() {
+  uni.navigateBack();
 }
 </script>
 

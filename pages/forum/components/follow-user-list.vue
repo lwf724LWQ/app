@@ -55,7 +55,7 @@ export default {
     },
 	gotoUserSpace(account){
 		uni.navigateTo({
-		  url: `/pages/user/space?account=${account}`,
+		  url: `/pages/user/space?account=${account}&follow=1`,
 		});
 	}
   },
