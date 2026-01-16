@@ -225,6 +225,17 @@ export default {
       });
     },
     gotoUserSpace(account) {
+      const myAccount = getAccount();
+      if (account == myAccount) {
+        return;
+      }
+      if (myAccount == "") {
+        uni.showToast({
+          title: "请先登录",
+          icon: "none",
+        });
+        return;
+      }
       uni.navigateTo({
         url: `/pages/user/space?account=${account}`,
       });
