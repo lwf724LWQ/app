@@ -134,7 +134,7 @@ export function apiUserimg(data) {
     data,
   }).then((res) => {
     if (res?.data) {
-      return { ...res, data: { ...res.data.user, isForllow: res.data.flag } }
+      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } }
     }
     return res;
   });

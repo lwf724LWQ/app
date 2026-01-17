@@ -102,7 +102,7 @@
       <view class="rules-section">
         <text class="rule-item">1、1元=1金币</text>
         <text class="rule-item">2、金币仅限于平台内部使用,充值后不可退还,不可兑换,不可提现</text>
-        <text class="rule-item">3、若有疑问、请联系管理员（联系方式：13637666646）</text>
+        <text class="rule-item">3、若有疑问、请联系管理员</text>
       </view>
 
       <!-- 支付按钮 -->
