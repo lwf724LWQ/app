@@ -156,6 +156,10 @@
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
           <text class="service-text">分享</text>
         </view>
+        <view class="service-item" @click="toWxchat">
+          <uni-icons type="weixin" size="24" color="#222"></uni-icons>
+          <text class="service-text">添加微信</text>
+        </view>
         <!-- <view class="service-item" @click="showAboutAs">
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
@@ -481,6 +485,12 @@ const getUserFollowCount = async () => {
   fansCount.value = res.data.fensi;
   postCount.value = res.data.fatie;
 };
+
+function toWxchat() {
+  uni.navigateTo({
+    url: "/pages/share/wxchat",
+  });
+}
 </script>
 
 <style lang="scss" scoped>
