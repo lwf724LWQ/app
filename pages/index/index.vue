@@ -82,9 +82,9 @@
     </navigator>
 
     <!-- 通知横幅 -->
-    <view class="notice-banner">
+    <view class="notice-banner" @click="toActivity">
       <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
-      <text class="notice-text">【2025 国庆总结通知】</text>
+      <text class="notice-text">【2026 新版本邀请好友福利来了！！！】</text>
       <text class="notice-new">NEW</text>
       <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
     </view>
@@ -199,14 +199,14 @@ export default {
       // 	url: `/pages/juWang/drawLine/drawLine`
       // });
     },
-    isLogin() {
+    isLogin(text) {
       const userStore = useUserStore();
       if (userStore.getUserInfo.account) {
         return true;
       } else {
         uni.showModal({
           title: "提示",
-          content: "该功能需要登录，是否前往",
+          content: text || "该功能需要登录，是否前往",
           success: async (res) => {
             if (res.confirm) {
               uni.navigateTo({ url: "/pages/login/login" });
@@ -409,6 +409,13 @@ export default {
         url: "/pages/index/searchUser",
       });
     },
+    toActivity() {
+      if (this.isLogin("登录后邀请对方注册后双方可得8金币！")) {
+        uni.navigateTo({
+          url: "/pages/activity-page/activity-page",
+        }); 
+      }
+    }
   },
   onShow() {
     // 加载开奖结果

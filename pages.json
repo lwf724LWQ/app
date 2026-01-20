@@ -304,7 +304,28 @@
       }
     },
     {
+      "path": "pages/share/wxchat",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/index/searchUser",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-page/activity-page",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-page/activity-dowapp",
       "style": {
         "navigationBarTitleText": "",
         "navigationStyle": "custom"

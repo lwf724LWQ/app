@@ -544,3 +544,14 @@ export const getWithdrawDetailApi = (id) => {
     method: "GET",
   });
 };
+
+export const vcodeConfiont = (account, vcode) => {
+  return request({
+    url: "/web/vcode/insert",
+    method: "POST",
+    data: {
+      account,
+      vcode,
+    },
+  });
+};
