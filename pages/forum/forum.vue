@@ -320,7 +320,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { apiGetIssueNo, apiPostListQuery, apiPostLike } from "@/api/apis.js";
+import { apiGetIssueNo, apiPostListQuery, apiPostLike, post_select_by_follow } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
 import { useUserStore } from "../../stores/userStore";
@@ -502,12 +502,19 @@ onShow(() => {
 function onRefresh() {
   if (refreshing.value) return;
   refreshing.value = true;
+  pageData.value = {
+    page: "1",
+    limit: "20",
+    total: 0,
+    maxPage: 1,
+  };
   loadLotteryData(currentLotteryType.value.code);
 }
 
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab;
+  onRefresh();
 };
 
 // 选择分类标签
@@ -1072,9 +1079,14 @@ const loadPredictPosts = async () => {
     if (account) {
       queryData.account = account;
     }
-
+    let response;
+    if (activeTab.value === "predict") {
+      response = await apiPostListQuery(queryData);
+    } else {
+      delete queryData.account;
+      response = await post_select_by_follow(queryData);
+    }
     // 查询预测帖
-    const response = await apiPostListQuery(queryData);
 
     let allPosts = [];
 
@@ -1082,7 +1094,7 @@ const loadPredictPosts = async () => {
 
     if (response.code === 200) {
       if (response.data) {
-		 response.data.list = response.data.list.filter(item => isReport(item.id))
+        response.data.list = response.data.list.filter((item) => isReport(item.id));
         allPosts = [...response.data.list];
       }
     }
@@ -1164,7 +1176,7 @@ async function nextPage(res) {
   if (isLoadNextPage.value) return;
   if (isMaxPage.value) return;
   if (pageData.value.total < pageData.value.page * pageData.value.limit) return;
-  debugger;
+
   pageData.value.page = parseInt(pageData.value.page) + 1;
 
   isLoadNextPage.value = true;
@@ -1317,7 +1329,6 @@ const reportList = ref([]);
 function refreshReportList() {
   const r = uni.getStorageSync("reportList") || [];
   reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
-  
 }
 function isReport(postId) {
   return !reportList.value.includes(postId);
