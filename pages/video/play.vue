@@ -88,7 +88,7 @@
       <view class="interaction-bar">
         <view class="reward-interaction" @click="goToRewardPage">
           <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
-          <text class="interaction-text">打赏 0</text>
+          <text class="interaction-text">打赏</text>
         </view>
         <view
           class="like-interaction"

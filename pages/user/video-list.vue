@@ -33,10 +33,11 @@
       <!-- :id="`zp-id-${item.zp_index}`"和:key="item.zp_index" 必须写，必须写！！！！ -->
       <!-- :id="`zp-id-${item.zp_index}`"必须这么写，不能改动 -->
       <!-- 这里for循环的index不是数组中真实的index了，请使用item.zp_index获取真实的index -->
+
       <uni-swipe-action-item
-        :threshold="0"
+        :threshold="1"
         :right-options="options1"
-        @click="bindClick"
+        @click="bindClick($event, video)"
         :id="`zp-id-${video.zp_index}`"
         v-for="video in virtualList"
         :key="video.id"
@@ -45,6 +46,7 @@
         <videoCard :video="video"></videoCard>
       </uni-swipe-action-item>
       <!-- <view>
+
         
       </view> -->
     </z-paging>
@@ -55,7 +57,7 @@
 import { onLoad } from "@dcloudio/uni-app";
 import { ref, nextTick } from "vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
-import { getUserVideoListApi } from "@/api/apis.js";
+import { getUserVideoListApi, delVideo } from "@/api/apis.js";
 import { getAccount } from "../../utils/request";
 import postCard from "../../components/post-card/post-card.vue";
 import videoCard from "@/components/post-card/video-card.vue";
@@ -114,9 +116,28 @@ function queryList(pageNo, pageSize) {
     });
 }
 
-function bindClick(e) {
+async function bindClick(e, video) {
   if (e.index === 0) {
     console.log("删除视频");
+    uni.showLoading({
+      title: "正在处理...",
+    });
+    debugger;
+    await delVideo(video.id)
+      .then((res) => {
+        uni.showToast({
+          title: "删除成功",
+          icon: "success",
+        });
+      })
+      .catch((res) => {
+        uni.showToast({
+          title: "删除失败",
+          icon: "error",
+        });
+      });
+    uni.hideLoading();
+    pagingRef.value.reload(true);
   }
 }
 

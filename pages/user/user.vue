@@ -33,7 +33,7 @@
         </view>
         <view class="stat-item" @click="goToVideolist">
           <text class="stat-label">视频</text>
-          <text class="stat-value">{{ postCount }}</text>
+          <text class="stat-value">{{ videoCount }}</text>
         </view>
         <view class="stat-item">
           <text class="stat-label">评分</text>
@@ -477,11 +477,13 @@ function checkUpdate() {
 const followCount = ref(0);
 const fansCount = ref(0);
 const postCount = ref(0);
+const videoCount = ref(0);
 const getUserFollowCount = async () => {
   const res = await getUserFollowCountApi();
   followCount.value = res.data.guanzhu;
   fansCount.value = res.data.fensi;
   postCount.value = res.data.fatie;
+  videoCount.value = res.data.video;
 };
 
 function toWxchat() {
