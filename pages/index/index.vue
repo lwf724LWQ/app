@@ -413,9 +413,9 @@ export default {
       if (this.isLogin("登录后邀请对方注册后双方可得8金币！")) {
         uni.navigateTo({
           url: "/pages/activity-page/activity-page",
-        }); 
+        });
       }
-    }
+    },
   },
   onShow() {
     // 加载开奖结果
@@ -638,7 +638,7 @@ export default {
 
   .notice-text {
     font-size: 26rpx;
-    color: #333;
+    color: #e74c3c;
     flex: 1;
   }
 
@@ -916,7 +916,7 @@ export default {
   .notice-text {
     font-size: 40rpx;
     font-weight: bold;
-    color: #000000;
+    color: #e74c3c;
     flex: 1;
   }
 
