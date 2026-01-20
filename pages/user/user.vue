@@ -65,7 +65,7 @@
 
     <!-- 数据展示区域 -->
     <view class="data-section">
-      <view class="data-card" @click="toggleBalanceVisibility">
+      <view class="data-card" @click="goToMyIncome">
         <text class="data-number">{{ isBalanceVisible ? grossIncome : "****" }}</text>
         <text class="data-label">我的收益</text>
         <view class="eye-icon" @click="toggleBalanceVisibility">
