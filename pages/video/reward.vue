@@ -42,7 +42,7 @@
       </view>
 
       <!-- 添加自定义金额区域 -->
-      <view class="custom-amount-section">
+      <!-- <view class="custom-amount-section">
         <text class="custom-title">自定义金额</text>
         <view class="custom-input-container">
           <text class="currency-symbol">¥</text>
@@ -55,7 +55,7 @@
           />
           <button class="confirm-custom-btn" @click="confirmCustomAmount">确定</button>
         </view>
-      </view>
+      </view> -->
     </view>
 
     <!-- 支付方式选择 -->

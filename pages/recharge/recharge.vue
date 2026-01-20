@@ -237,7 +237,7 @@ const getUserInfo = async () => {
       // 获取用户余额
       const balanceResponse = await apiGetUserBalance({ account });
       if (balanceResponse.code === 200) {
-        userBalance.value = balanceResponse.data || 0;
+        userBalance.value = balanceResponse.data.gold || 0;
       }
     }
   } catch (error) {
