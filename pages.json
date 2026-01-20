@@ -262,6 +262,13 @@
       }
     },
     {
+      "path": "pages/user/video-list",
+      "style": {
+        "navigationBarTitleText": "视频列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/forum/post/created-scheme",
       "style": {
         "navigationBarTitleText": "创建方案",

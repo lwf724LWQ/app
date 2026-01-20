@@ -134,7 +134,7 @@ export function apiUserimg(data) {
     data,
   }).then((res) => {
     if (res?.data) {
-      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } };
+      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } }
     }
     return res;
   });
@@ -553,5 +553,20 @@ export const vcodeConfiont = (account, vcode) => {
       account,
       vcode,
     },
+  });
+};
+
+export const delVideo = (id) => {
+  return request({
+    url: "/web/video/delete?id=" + id,
+    method: "GET",
+  });
+};
+
+export const post_select_by_follow = (data) => {
+  return request({
+    url: "/web/post/select_by_follow",
+    method: "POST",
+    data
   });
 };

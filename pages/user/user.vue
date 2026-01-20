@@ -31,6 +31,10 @@
           <text class="stat-label">帖子</text>
           <text class="stat-value">{{ postCount }}</text>
         </view>
+        <view class="stat-item" @click="goToVideolist">
+          <text class="stat-label">视频</text>
+          <text class="stat-value">{{ videoCount }}</text>
+        </view>
         <view class="stat-item">
           <text class="stat-label">评分</text>
           <text class="stat-value">100</text>
@@ -57,30 +61,12 @@
           <text class="edit-text">点击登录</text>
         </view>
       </view>
-      <view class="user-stats">
-        <view class="stat-item" @click="goToFollowlist">
-          <text class="stat-label">关注</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item" @click="goToFanslist">
-          <text class="stat-label">粉丝</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item" @click="goToPostlist">
-          <text class="stat-label">帖子</text>
-          <text class="stat-value">0</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-label">评分</text>
-          <text class="stat-value">100</text>
-        </view>
-      </view>
     </view>
 
     <!-- 数据展示区域 -->
     <view class="data-section">
-      <view class="data-card" @click="goToMyIncome">
-        <text class="data-number">{{ isBalanceVisible ? "0.00" : "****" }}</text>
+      <view class="data-card" @click="toggleBalanceVisibility">
+        <text class="data-number">{{ isBalanceVisible ? grossIncome : "****" }}</text>
         <text class="data-label">我的收益</text>
         <view class="eye-icon" @click="toggleBalanceVisibility">
           <uni-icons
@@ -127,6 +113,15 @@
           <view class="recharge-icon red">🎁</view>
           <text class="recharge-text">收藏</text>
         </view>
+      </view>
+    </view>
+
+    <!-- 推荐给其他朋友提示 -->
+    <view class="share-section" @click="toActivity">
+      <view class="share-container">
+        <uni-icons class="share-icon" type="upload" size="24" color="#dd0909"></uni-icons>
+        <view class="share-text">推荐五七仔给朋友</view>
+        <view class="share-right-text">领取金币></view>
       </view>
     </view>
 
@@ -209,6 +204,7 @@ const memberStore = reactive({
 const isBalanceVisible = ref(false);
 // 用户金币余额
 const userBalance = ref(0);
+const grossIncome = ref(0);
 // 请求锁 - 防止重复请求
 const isLoadingBalance = ref(false);
 const isLoadingLogin = ref(false);
@@ -243,7 +239,8 @@ const getUserBalance = async () => {
     const response = await apiGetUserBalance({ account });
 
     if (response.code === 200) {
-      userBalance.value = response.data || 0;
+      userBalance.value = response.data.gold || 0;
+      grossIncome.value = response.data.income || 0;
     } else {
       userBalance.value = 0;
     }
@@ -303,6 +300,7 @@ const checkLoginStatus = async () => {
       // 没有token表示未登录
       memberStore.profile = null;
       userBalance.value = 0;
+      grossIncome.value = 0;
     }
   } finally {
     isLoadingLogin.value = false;
@@ -486,17 +484,35 @@ function checkUpdate() {
 const followCount = ref(0);
 const fansCount = ref(0);
 const postCount = ref(0);
+const videoCount = ref(0);
 const getUserFollowCount = async () => {
   const res = await getUserFollowCountApi();
   followCount.value = res.data.guanzhu;
   fansCount.value = res.data.fensi;
   postCount.value = res.data.fatie;
+  videoCount.value = res.data.video;
 };
 
 function toWxchat() {
   uni.navigateTo({
     url: "/pages/share/wxchat",
   });
+}
+
+function toActivity() {
+  if (tool.isLogin("登录后邀请对方注册后双方可得8金币！")) {
+    uni.navigateTo({
+      url: "/pages/activity-page/activity-page",
+    });
+  }
+}
+
+function goToVideolist() {
+  if (tool.isLogin()) {
+    uni.navigateTo({
+      url: "/pages/user/video-list",
+    });
+  }
 }
 </script>
 
@@ -1288,6 +1304,25 @@ function toWxchat() {
     text-align: center;
     margin-bottom: 15rpx;
     font-size: 22rpx;
+  }
+}
+
+.share-section {
+  background-color: rgba(230, 150, 150, 0.411);
+  padding: 20rpx;
+  box-sizing: border-box;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  color: #dd0909;
+  font-weight: 400;
+  .share-container {
+    display: flex;
+    .share-icon {
+      margin-right: 10rpx;
+    }
+    .share-text {
+      flex: 1;
+    }
   }
 }
 </style>

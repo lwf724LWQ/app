@@ -10,7 +10,7 @@
       circular="true"
       easing-function="default"
     >
-      <swiper-item>
+      <!-- <swiper-item>
         <view class="swiper-item">
           <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
         </view>
@@ -18,6 +18,11 @@
       <swiper-item>
         <view class="swiper-item">
           <image src="/static/aoRed.jpg" mode="aspectFill"></image>
+        </view>
+      </swiper-item> -->
+      <swiper-item>
+        <view class="swiper-item">
+          <image src="/static/banner3.jpg" mode="aspectFill"></image>
         </view>
       </swiper-item>
     </swiper>
@@ -82,12 +87,34 @@
     </navigator>
 
     <!-- 通知横幅 -->
-    <view class="notice-banner" @click="toActivity">
-      <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
-      <text class="notice-text">【2026 新版本邀请好友福利来了！！！】</text>
-      <text class="notice-new">NEW</text>
-      <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
-    </view>
+
+    <swiper
+      class="notice-banner-swiper"
+      indicator-dots="true"
+      autoplay="true"
+      interval="7000"
+      duration="500"
+      circular="true"
+      vertical="true"
+      easing-function="default"
+    >
+      <swiper-item>
+        <view class="notice-banner" @click="toActivity">
+          <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
+          <text class="notice-text">欢迎各地大师加微详谈！！！</text>
+          <text class="notice-new">NEW</text>
+          <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="notice-banner" @click="toActivity">
+          <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
+          <text class="notice-text">2026 新版本邀请好友福利来了</text>
+          <text class="notice-new">NEW</text>
+          <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
+        </view>
+      </swiper-item>
+    </swiper>
 
     <!-- 功能图标区 - 15个图标网格 -->
     <view class="function-area">
@@ -413,9 +440,9 @@ export default {
       if (this.isLogin("登录后邀请对方注册后双方可得8金币！")) {
         uni.navigateTo({
           url: "/pages/activity-page/activity-page",
-        }); 
+        });
       }
-    }
+    },
   },
   onShow() {
     // 加载开奖结果
@@ -638,7 +665,7 @@ export default {
 
   .notice-text {
     font-size: 26rpx;
-    color: #333;
+    color: #e74c3c;
     flex: 1;
   }
 
@@ -722,7 +749,7 @@ export default {
   /* 轮播图样式 */
   .ad-swiper {
     width: 100%;
-    height: 180rpx;
+    height: 280rpx;
   }
 
   .swiper-item {
@@ -899,6 +926,7 @@ export default {
   .notice-banner {
     display: flex;
     align-items: center;
+    height: 105rpx;
     padding: 0 20rpx;
     background-color: #fff;
     box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
@@ -916,7 +944,7 @@ export default {
   .notice-text {
     font-size: 40rpx;
     font-weight: bold;
-    color: #000000;
+    color: #e74c3c;
     flex: 1;
   }
 
@@ -990,5 +1018,9 @@ export default {
     justify-content: center;
     border: 2rpx solid #fff;
   }
+}
+.notice-banner-swiper {
+  margin: 10rpx 0;
+  height: 105rpx;
 }
 </style>
