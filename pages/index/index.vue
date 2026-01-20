@@ -21,7 +21,7 @@
         </view>
       </swiper-item> -->
       <swiper-item>
-        <view class="swiper-item">
+        <view class="swiper-item" @click="toWxchat">
           <image src="/static/banner3.jpg" mode="aspectFill"></image>
         </view>
       </swiper-item>
@@ -442,6 +442,11 @@ export default {
           url: "/pages/activity-page/activity-page",
         });
       }
+    },
+    toWxchat() {
+      uni.navigateTo({
+        url: "/pages/share/wxchat",
+      });
     },
   },
   onShow() {
