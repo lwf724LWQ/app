@@ -1,40 +1,32 @@
 <template>
   <myPage pageTitle="五七仔">
     <view class="content">
-      <image class="bg-img" src="/static/images/activity-bg.jpg" mode="widthFix"></image>
+      <image class="bg-img" src="/static/images/activity-bg1.jpg" mode="widthFix"></image>
 
-      <!-- 活动主内容 -->
-      <view class="activity-content">
-        <view class="title">邀请好友注册</view>
-        <view class="subtitle">双方各得8金币</view>
-        <view class="description">邀请新用户通过您的专属链接下载APP并完成注册，即可获得奖励</view>
-
-        <view class="reward-info">
-          <view class="reward-item">
-            <text class="number">8</text>
-            <text class="unit">金币</text>
-            <text class="label">您获得</text>
-          </view>
-          <view class="vs-text">VS</view>
-          <view class="reward-item">
-            <text class="number">8</text>
-            <text class="unit">金币</text>
-            <text class="label">好友获得</text>
-          </view>
-        </view>
-
-        <view class="action-buttons">
-          <button class="share-btn wechat-friend" @click="shareToWechatFriend">
-            分享给微信好友
+      <view class="btns">
+        <view class="wx" @click="shareToWechatFriend">
+          <button class="icon" open-type="share" id="shareWx">
+            <uni-icons
+              custom-prefix="iconfont"
+              type="icon-weixin"
+              size="30"
+              color="#07c160"
+            ></uni-icons>
           </button>
-          <button class="share-btn wechat-moments" @click="shareToWechatMoments">
-            分享到微信朋友圈
-          </button>
-        </view>
 
-        <view class="rule-link" @click="showRulePopup">
-          <text>活动规则</text>
-          <text class="icon-arrow">></text>
+          微信
+        </view>
+        <view class="wxpyq" @click="shareToWechatMoments">
+          <button class="icon" open-type="share" id="shareWxpyq">
+            <uni-icons
+              custom-prefix="iconfont"
+              type="icon-weixinpengyouquan1"
+              size="30"
+              color="#07c160"
+            ></uni-icons>
+          </button>
+
+          微信朋友圈
         </view>
       </view>
 
@@ -54,6 +46,10 @@
             <button class="confirm-btn" @click="hideRulePopup">确定</button>
           </view>
         </view>
+      </view>
+
+      <view class="rule-link" @click="showRulePopup">
+        <text>规则</text>
       </view>
     </view>
   </myPage>
@@ -141,150 +137,45 @@ export default {
 .content {
   width: 100%;
   min-height: 100%;
-  background-color: #ee0050;
+  background-color: #ba3a43;
   position: relative;
 
   .bg-img {
     width: 100%;
   }
 
-  .activity-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 100rpx 20rpx 20rpx;
-    box-sizing: border-box;
-
-    .title {
-      text-align: center;
-      font-size: 70rpx;
-      color: #fff;
-      font-weight: bold;
-      margin-top: 60rpx;
-      text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3); // 添加灰色透明底
-      padding: 10rpx 20rpx; // 增加内边距使文字与背景更协调
-      border-radius: 10rpx; // 添加圆角使外观更美观
-      display: block; // 修改为block使其能居中
-      margin-left: auto; // 居中显示
-      margin-right: auto;
-    }
-
-    .subtitle {
-      text-align: center;
-      font-size: 56rpx;
-      color: #ffd700;
-      font-weight: bold;
-      margin-top: 20rpx;
-      text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3); // 添加灰色透明底
-      padding: 10rpx 20rpx; // 增加内边距使文字与背景更协调
-      border-radius: 10rpx; // 添加圆角使外观更美观
-      display: block; // 修改为block使其能居中
-      margin-left: auto; // 居中显示
-      margin-right: auto;
-    }
-
-    .description {
-      text-align: center;
-      font-size: 42rpx;
-      color: #fff;
-      margin-top: 20rpx;
-      opacity: 0.9;
-      text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3); // 添加灰色透明底
-      padding: 10rpx 20rpx; // 增加内边距使文字与背景更协调
-      border-radius: 10rpx; // 添加圆角使外观更美观
-      display: block; // 修改为block使其能居中
-      margin-left: auto; // 居中显示
-      margin-right: auto;
-    }
-
-    .reward-info {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 60rpx 0;
-
-      .reward-item {
+  .btns {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 35rpx;
+    color: #fff;
+    .wx,
+    .wxpyq {
+      .icon {
+        width: 100rpx;
+        height: 100rpx;
+        line-height: 100rpx;
+        border-radius: 50%;
+        box-shadow: 0 0 10rpx rgba($color: #000000, $alpha: 0.1);
         text-align: center;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 20rpx;
-        padding: 30rpx 40rpx;
-        min-width: 180rpx;
-
-        .number {
-          font-size: 60rpx;
-          color: #ffd700;
-          font-weight: bold;
-          text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-        }
-
-        .unit {
-          display: block;
-          font-size: 32rpx;
-          color: #fff;
-          margin-top: 10rpx;
-          text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-        }
-
-        .label {
-          display: block;
-          font-size: 32rpx;
-          color: #fff;
-          margin-top: 10rpx;
-          text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
+        padding: 0;
+        background-color: #fff;
+        font-weight: normal;
+        box-sizing: border-box;
+        margin-bottom: 15rpx;
+        &:after {
+          border: none;
         }
       }
 
-      .vs-text {
-        font-size: 40rpx;
-        color: #fff;
-        margin: 0 30rpx;
-        font-weight: bold;
-        text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
-      }
-    }
-
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 20rpx;
-      padding: 0 40rpx;
-
-      .share-btn {
-        height: 80rpx;
-        line-height: 80rpx;
-        border-radius: 40rpx;
-        font-size: 32rpx;
-        color: #fff;
-        border: none;
-        outline: none;
-
-        &.wechat-friend {
-          background: #07c160;
-        }
-
-        &.wechat-moments {
-          background: #1aad19;
-        }
-      }
-    }
-
-    .rule-link {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-top: 40rpx;
-      color: #fff;
-      text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
+      flex-direction: column;
 
-      .icon-arrow {
-        margin-left: 10rpx;
-        font-size: 32rpx;
-        opacity: 0.7;
-      }
+      width: 180rpx;
+      font-weight: bold;
     }
   }
 
@@ -353,6 +244,21 @@ export default {
         }
       }
     }
+  }
+
+  .rule-link {
+    position: absolute;
+    top: 15rpx;
+    right: 15rpx;
+    padding: 5rpx 20rpx;
+    border: 2rpx solid #fcd64f;
+    color: #fcd64f;
+    border-radius: 30rpx;
+    background-color: transparent;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    font-size: 27rpx;
   }
 }
 </style>
