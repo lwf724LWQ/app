@@ -34,7 +34,7 @@
     <!-- 功能图标区 -->
     <view class="area" v-if="currentTab !== 'review'">
       <view class="title" v-for="(video, index) in videoList" :key="index">
-        <view class="video-title" v-if="useOldManModeStore.enabled">{{ video.title }}</view>
+        <!-- <view class="video-title" v-if="useOldManModeStore.enabled">{{ video.title }}</view> -->
         <!-- 将 video 标签改为 img 标签 -->
         <image
           mode="aspectFill"
@@ -43,7 +43,7 @@
           @click="playVideo(video)"
           :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
         />
-        <view class="video-title" v-if="!useOldManModeStore.enabled">{{ video.title }}</view>
+        <view class="video-title">{{ video.title }}</view>
         <view class="video-info">
           <text class="video-price" v-if="video.flag && video.price > 0">
             {{ video.hasPaid ? "已付费" : `付费视频 ${video.price}金币` }}
@@ -524,73 +524,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.old-man-mode {
-  .video-title {
-    font-size: 30rpx;
-    font-weight: 600;
-    color: #333;
-    line-height: 1.3;
-    text-align: center;
-    margin: 12rpx 0 8rpx;
-    padding: 0 15rpx;
-
-    background-image: linear-gradient(180deg, #58db8e, #1abc9c);
-  }
-
-  .video-free {
-    font-size: 40rpx;
-    color: #27ae60;
-    font-weight: bold;
-    padding: 4rpx 12rpx;
-    background-color: #e8f6ef;
-    border-radius: 12rpx;
-  }
-
-  .video-info {
-    margin: 10rpx 0;
-    text-align: center;
-  }
-
-  .video-price {
-    font-size: 40rpx;
-    color: #e74c3c;
-    font-weight: bold;
-    padding: 4rpx 12rpx;
-    background-color: #ffeaea;
-    border-radius: 12rpx;
-  }
-
-  .tab-text {
-    font-size: 40rpx;
-    font-weight: bold;
-  }
-
-  .title {
-    display: block;
-    flex: 0 0 calc(50% - 30px);
-    width: 100%;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    border: 4rpx solid rgba(85, 255, 255, 0.9);
-  }
-
-  .video-image {
-    flex: 1 1 calc(50% - 30px);
-    width: 100%;
-    height: 80px;
-    /* 设置固定高度 */
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    object-fit: cover;
-    /* 确保图片填充整个容器 */
-    cursor: pointer;
-    /* 添加指针样式，表示可点击 */
-  }
-}
-
+// 公共样式
 .area {
   padding: 10rpx;
   display: grid;
@@ -600,49 +534,9 @@ onMounted(async () => {
   /* 间距 */
 }
 
-.video-page-container:not(.old-man-mode) {
-  .title {
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-    font-size: 26rpx;
-    padding-bottom: 20rpx;
-
-    .video-image {
-      width: 100%;
-      height: 200rpx;
-    }
-
-    .video-title {
-      padding: 10rpx 20rpx 5rpx 20rpx;
-    }
-
-    .video-info {
-      padding: 5rpx 20rpx;
-
-      > text {
-        padding: 5rpx;
-        border-radius: 6rpx;
-        color: #fff;
-        font-size: 22rpx;
-      }
-
-      .video-price {
-        background-color: #e74c3c;
-      }
-
-      .video-free {
-        background-color: #2ecc71;
-      }
-    }
-  }
-
-  .switch-tabs {
-    padding-top: var(--status-bar-height);
-  }
-}
-
-.video-page-container.old-man-mode {
-  min-height: 100vh;
-  font-weight: bold;
+.photo {
+  width: 100%;
+  height: 90px;
 }
 
 .current-lottery-type {
@@ -657,11 +551,6 @@ onMounted(async () => {
 .current-lottery-type text {
   display: block;
   margin: 5rpx 0;
-}
-
-.photo {
-  width: 100%;
-  height: 90px;
 }
 
 /* 头部容器 - 水平排列 */
@@ -725,6 +614,7 @@ onMounted(async () => {
   background-color: #fff;
   z-index: 10;
   display: flex;
+  padding-top: var(--status-bar-height);
 }
 
 .tab-item {
@@ -743,7 +633,6 @@ onMounted(async () => {
 
 .tab-text {
   color: #000000;
-
   font-weight: lighter;
   font-size: 32rpx;
 }
@@ -814,9 +703,6 @@ onMounted(async () => {
   background-color: #b3d35a;
   border-radius: 10px;
   padding: 10rpx;
-  // display: flex;
-  // align-items: center;
-  // justify-content: center;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
   z-index: 999;
@@ -834,4 +720,116 @@ onMounted(async () => {
     margin-top: 50rpx;
   }
 }
+
+// 非old-man-mode样式 :not(.old-man-mode)
+.video-page-container {
+  .title {
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+    font-size: 26rpx;
+    padding-bottom: 20rpx;
+
+    display: flex;
+    flex-direction: column;
+
+    .video-image {
+      width: 100%;
+      height: 200rpx;
+    }
+
+    .video-title {
+      padding: 10rpx 20rpx 5rpx 20rpx;
+      flex: 1;
+    }
+
+    .video-info {
+      padding: 5rpx 20rpx;
+
+      > text {
+        padding: 5rpx;
+        border-radius: 6rpx;
+        color: #fff;
+        font-size: 22rpx;
+      }
+
+      .video-price {
+        background-color: #e74c3c;
+      }
+
+      .video-free {
+        background-color: #2ecc71;
+      }
+    }
+  }
+}
+
+// old-man-mode样式
+// .old-man-mode {
+//   min-height: 100vh;
+//   font-weight: bold;
+
+//   .video-title {
+//     font-size: 30rpx;
+//     font-weight: 600;
+//     color: #333;
+//     line-height: 1.3;
+//     text-align: center;
+//     margin: 12rpx 0 8rpx;
+//     padding: 0 15rpx;
+
+//     background-image: linear-gradient(180deg, #58db8e, #1abc9c);
+//   }
+
+//   .video-free {
+//     font-size: 40rpx;
+//     color: #27ae60;
+//     font-weight: bold;
+//     padding: 4rpx 12rpx;
+//     background-color: #e8f6ef;
+//     border-radius: 12rpx;
+//   }
+
+//   .video-info {
+//     margin: 10rpx 0;
+//     text-align: center;
+//   }
+
+//   .video-price {
+//     font-size: 40rpx;
+//     color: #e74c3c;
+//     font-weight: bold;
+//     padding: 4rpx 12rpx;
+//     background-color: #ffeaea;
+//     border-radius: 12rpx;
+//   }
+
+//   .tab-text {
+//     font-size: 40rpx;
+//     font-weight: bold;
+//   }
+
+//   .title {
+//     display: block;
+//     flex: 0 0 calc(50% - 30px);
+//     width: 100%;
+//     text-align: center;
+//     background: rgba(255, 255, 255, 0.95);
+//     border: 4rpx solid rgba(85, 255, 255, 0.9);
+//   }
+
+//   .video-image {
+//     flex: 1 1 calc(50% - 30px);
+//     width: 100%;
+//     height: 80px;
+//     /* 设置固定高度 */
+//     background: rgba(255, 255, 255, 0.95);
+//     border-radius: 16px;
+//     overflow: hidden;
+//     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+//     transition: transform 0.3s ease, box-shadow 0.3s ease;
+//     object-fit: cover;
+//     /* 确保图片填充整个容器 */
+//     cursor: pointer;
+//     /* 添加指针样式，表示可点击 */
+//   }
+// }
 </style>

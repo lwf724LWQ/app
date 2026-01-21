@@ -4,20 +4,20 @@
 
     <!-- 视频信息表单 -->
     <view class="form-area">
-      <view class="form-item">
+      <!-- <view class="form-item">
         <text class="form-label">视频标题</text>
         <input class="form-input" v-model="videoTitle" placeholder="请输入视频标题" />
-      </view>
+      </view> -->
 
       <view class="form-item">
         <text class="form-label">是否收费</text>
         <view class="radio-group">
           <label class="radio-label">
-            <radio value="1" :checked="isCharge === 1" @click="isCharge = 1">免费</radio>
+            <radio value="1" :checked="isCharge === 1" @click="setIsCharge(1)">免费</radio>
           </label>
 
           <label class="radio-label">
-            <radio value="2" :checked="isCharge === 2" @click="isCharge = 2">收费</radio>
+            <radio value="2" :checked="isCharge === 2" @click="setIsCharge(2)">收费</radio>
           </label>
         </view>
       </view>
@@ -119,10 +119,19 @@ onLoad((options) => {
   apiUserimg({
     account: getAccount(),
   }).then((res) => {
-    videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}`;
+    videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
     coverFile.value = res.data.himg ? `himg/${res.data.himg}` : "himg/user.png";
   });
 });
+
+function setIsCharge(isCharge){
+	isCharge.value = isCharge
+	setVideo()
+}
+
+function setVideo(){
+	videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
+}
 
 //导航栏
 const goBack = () => {
