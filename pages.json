@@ -371,9 +371,9 @@
       }
     },
     {
-      "path": "pages/user/withdraw-detail",
+      "path": "pages/user/income-record",
       "style": {
-        "navigationBarTitleText": "提现详情"
+        "navigationBarTitleText": "收益记录"
       }
     }
   ],
