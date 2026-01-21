@@ -153,7 +153,7 @@
         </view>
         <view class="service-item" @click="toWxchat">
           <uni-icons type="weixin" size="24" color="#222"></uni-icons>
-          <text class="service-text">添加微信</text>
+          <text class="service-text">联系我们</text>
         </view>
         <!-- <view class="service-item" @click="showAboutAs">
           <uni-icons type="help" size="24" color="#222"></uni-icons>

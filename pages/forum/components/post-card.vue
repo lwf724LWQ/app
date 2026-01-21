@@ -187,6 +187,7 @@ export default {
       }
     },
     toggleMoreOptions() {
+      return;
       uni.showActionSheet({
         itemList: ["举报"],
         success: (res) => {
