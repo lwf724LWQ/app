@@ -65,7 +65,7 @@ function getConfig(username, inviteCode) {
   return {
     provider: "weixin",
     type: 0,
-    href: `https://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
+    href: `http://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
       inviteCode
     )}&username=${encodeURIComponent(username)}`,
     title: "送您金币，免费查看大师预测！",
