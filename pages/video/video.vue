@@ -168,13 +168,11 @@ function refreshCurrentTab() {
 }
 
 function swiperChange(e) {
-  console.log(e.detail.current);
   switchTabByIndex(e.detail.current);
 }
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index) => {
-  console.log(index);
   pickerIndex.value = index;
   switch (index) {
     case 0:
@@ -253,7 +251,6 @@ const gotoOss = () => {
 
     // 传递当前彩票类型名称（tname）到 oss.vue
     let url = `/pages/video/oss`;
-    console.log(currentLotteryType.value.name);
     if (currentLotteryType.value && currentLotteryType.value.name) {
       url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`;
     }
