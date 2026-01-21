@@ -168,33 +168,54 @@ function refreshCurrentTab() {
 }
 
 function swiperChange(e) {
-  console.log(e);
+  console.log(e.detail.current);
   switchTabByIndex(e.detail.current);
 }
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index) => {
+  console.log(index);
   pickerIndex.value = index;
   switch (index) {
     case 0:
       currentTab.value = "fc";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "fc") || lotteryTypes.value[0];
-      break;
+      currentLotteryType.value = {
+        id: 12,
+        name: "福彩3D",
+        code: "fc",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
     case 1:
       currentTab.value = "pls";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "pls") || lotteryTypes.value[0];
+      currentLotteryType.value = {
+        id: 16,
+        name: "排列三",
+        code: "pls",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
     case 2:
       currentTab.value = "plw";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "plw") || lotteryTypes.value[0];
+      currentLotteryType.value = {
+        id: 17,
+        name: "排列五",
+        code: "plw",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
+      break;
     case 3:
       currentTab.value = "qxc";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "qxc") || lotteryTypes.value[0];
+      currentLotteryType.value = {
+        id: 15,
+        name: "七星彩",
+        code: "qxc",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
 
     case 4:
@@ -232,6 +253,7 @@ const gotoOss = () => {
 
     // 传递当前彩票类型名称（tname）到 oss.vue
     let url = `/pages/video/oss`;
+    console.log(currentLotteryType.value.name);
     if (currentLotteryType.value && currentLotteryType.value.name) {
       url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`;
     }
@@ -358,6 +380,7 @@ onMounted(async () => {
   position: relative;
   border-bottom: 4rpx solid transparent;
   transition: all 0.2s ease;
+  font-weight: bold;
 }
 
 .tab-item.active {
