@@ -127,7 +127,35 @@ const openPopup = () => {
 };
 
 // 银行列表
-const bankList = ["中国银行", "建设银行", "工商银行", "农业银行", "招商银行"];
+const bankList = [
+  "中国银行",
+  "中国建设银行",
+  "中国工商银行",
+  "中国农业银行",
+  "交通银行",
+  "中国邮政储蓄银行",
+  "招商银行",
+  "中信银行",
+  "上海浦东发展银行",
+  "中国民生银行",
+  "兴业银行",
+  "中国光大银行",
+  "华夏银行",
+  "广发银行",
+  "平安银行",
+  "浙商银行",
+  "恒丰银行",
+  "渤海银行",
+  "北京银行",
+  "上海银行",
+  "江苏银行",
+  "宁波银行",
+  "南京银行",
+  "杭州银行",
+  "盛京银行",
+  "天津银行",
+  "汉口银行",
+];
 const pickIndex = ref(0);
 const onPickerChange = (e) => {
   pickIndex.value = e.detail.value;
@@ -354,7 +382,7 @@ const addCard = async () => {
     }
 
     .input,
-    .picker {
+    .uni-input {
       height: 80rpx;
       border: 2rpx solid #eee;
       border-radius: 12rpx;
@@ -363,7 +391,7 @@ const addCard = async () => {
       color: #333;
     }
 
-    .picker {
+    .uni-input {
       line-height: 80rpx;
     }
   }
