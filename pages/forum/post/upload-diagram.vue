@@ -337,7 +337,7 @@ const handlePublish = async () => {
 
     if (response.code === 200) {
       uni.showToast({
-        title: "规律帖已提交审核",
+        title: "规律帖已发布",
         icon: "success",
       });
 
@@ -346,7 +346,7 @@ const handlePublish = async () => {
       selectedImages.value = [];
       uploadedImageUrls.value = [];
 
-      postData.clearSchemesData();
+      // postData.clearSchemesData();
 
       // 延迟返回规律预测页面
       setTimeout(() => {
