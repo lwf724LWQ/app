@@ -12,7 +12,7 @@
             <uni-icons type="right" size="25" color="#666"></uni-icons>
           </view>
           <view class="withdraw-btn-item" @click="navigateToIncomeRecord">
-            <text>受益记录</text>
+            <text>收益记录</text>
             <uni-icons type="right" size="25" color="#666"></uni-icons>
           </view>
         </view>
