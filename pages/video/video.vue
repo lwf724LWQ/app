@@ -41,6 +41,7 @@
           :src="video.imgurl"
           class="video-image"
           @click="playVideo(video)"
+          @longpress="videoMenu(video)"
           :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
         />
         <view class="video-title">{{ video.title }}</view>
@@ -91,6 +92,7 @@ import {
   apiGetIsLike,
   apiCheckVideoPayment,
   apiGetIssueNo,
+  delVideo,
 } from "../../api/apis";
 import { getToken, getAccount } from "@/utils/request.js"; // 导入setToken，账号
 // 导入 Pinia store
@@ -324,6 +326,37 @@ const handleSwiperChange = (e) => {
 const switchNav = (nav) => {
   currentNav.value = nav;
 };
+
+function videoMenu(video) {
+  if (video.account == getAccount()) {
+    uni.showActionSheet({
+      itemList: ["删除"],
+      success: async (res) => {
+        if (res.tapIndex === 0) {
+          uni.showLoading({
+            title: "正在处理...",
+          });
+          await delVideo(video.id)
+            .then((res) => {
+              uni.showToast({
+                title: "删除成功",
+                icon: "success",
+              });
+
+              videoList.value = videoList.value.filter((item) => item.id !== video.id);
+            })
+            .catch((res) => {
+              uni.showToast({
+                title: "删除失败",
+                icon: "error",
+              });
+            });
+          uni.hideLoading();
+        }
+      },
+    });
+  }
+}
 
 // 播放视频方法 - 新增付费检查
 const playVideo = async (video) => {

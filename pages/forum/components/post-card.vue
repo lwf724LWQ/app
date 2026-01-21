@@ -317,7 +317,7 @@ export default {
 .post-content {
   margin-bottom: 20rpx;
   line-height: 1.6;
-  font-size: 28rpx;
+  font-size: 36rpx;
   color: #333;
   white-space: pre-wrap;
   word-break: break-word;

@@ -122,7 +122,6 @@ async function bindClick(e, video) {
     uni.showLoading({
       title: "正在处理...",
     });
-    debugger;
     await delVideo(video.id)
       .then((res) => {
         uni.showToast({
