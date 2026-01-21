@@ -124,13 +124,13 @@ onLoad((options) => {
   });
 });
 
-function setIsCharge(isCharge){
-	isCharge.value = isCharge
-	setVideo()
+function setIsCharge(value) {
+  isCharge.value = value;
+  setVideo();
 }
 
-function setVideo(){
-	videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
+function setVideo() {
+  videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
 }
 
 //导航栏
