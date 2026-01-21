@@ -134,7 +134,7 @@ export function apiUserimg(data) {
     data,
   }).then((res) => {
     if (res?.data) {
-      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } }
+      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } };
     }
     return res;
   });
@@ -537,10 +537,10 @@ export const getWithdrawListApi = (page, limit) => {
   });
 };
 
-// 获取提现详情
-export const getWithdrawDetailApi = (id) => {
+// 获取收益记录
+export const getIncomeListApi = (page, limit) => {
   return request({
-    url: `/web/withdraw/find_income?page=1&limit=1&id=${id}`,
+    url: `/web/withdraw/find_income?page=${page}&limit=${limit}`,
     method: "GET",
   });
 };
@@ -567,6 +567,6 @@ export const post_select_by_follow = (data) => {
   return request({
     url: "/web/post/select_by_follow",
     method: "POST",
-    data
+    data,
   });
 };
