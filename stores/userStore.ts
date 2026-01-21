@@ -29,6 +29,9 @@ export const useUserStore = defineStore('user', {
 
     getters: {
         getUserInfo(): UserInfo | null {
+            if (this.userInfo.agent == null) {
+                this.userInfo.agent = 1
+            }
             return Object.assign({}, this.userInfo, {avatar: hanldeAvatar(this.userInfo?.avatar)})
         },
 
