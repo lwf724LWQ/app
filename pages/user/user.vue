@@ -261,15 +261,14 @@ async function getUserInfo() {
     };
 
     const res = await apiUserimg({ account: savedUserInfo.account });
-    const avatar = `http://video.caimizm.com/himg/${res.data.himg}`;
     userStore.updateUserInfo({
       nickname: res.data.uname,
-      avatar: avatar,
+      avatar: res.data.himg,
       account: res.data.account,
     });
 
     memberStore.profile = {
-      avatar: avatar || "http://video.caimizm.com/himg/user.png",
+      avatar: userStore.getUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
       nickname: res.data.uname || "欢迎您",
     };
   } catch (error) {
