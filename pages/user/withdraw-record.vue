@@ -8,12 +8,7 @@
     @refresherrefresh="onRefresh"
   >
     <view class="record-list">
-      <view
-        class="record-item"
-        v-for="record in withdrawList"
-        :key="record.id"
-        @click="goToWithdrawDetail(record.id)"
-      >
+      <view class="record-item" v-for="record in withdrawList" :key="record.id">
         <view class="record-info">
           <view class="amount">
             <text class="label">提现金额:</text>
@@ -107,13 +102,6 @@ const getStatusClass = (flag) => {
     default:
       return "";
   }
-};
-
-// 跳转提现详情页
-const goToWithdrawDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/user/withdraw-detail?id=${id}`,
-  });
 };
 </script>
 

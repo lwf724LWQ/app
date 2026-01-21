@@ -6,9 +6,15 @@
         <view class="income">
           <text class="number">{{ incomeCount.toFixed(2) }}</text>
         </view>
-        <view class="withdraw-btn" @click="navigateToWithdrawRecord">
-          <text>提现中</text>
-          <uni-icons type="right" size="25" color="#666"></uni-icons>
+        <view class="withdraw-btn">
+          <view class="withdraw-btn-item" @click="navigateToWithdrawRecord">
+            <text>提现中</text>
+            <uni-icons type="right" size="25" color="#666"></uni-icons>
+          </view>
+          <view class="withdraw-btn-item" @click="navigateToIncomeRecord">
+            <text>受益记录</text>
+            <uni-icons type="right" size="25" color="#666"></uni-icons>
+          </view>
         </view>
       </view>
     </view>
@@ -148,6 +154,12 @@ const navigateToWithdrawRecord = () => {
     url: "/pages/user/withdraw-record",
   });
 };
+// 跳转收益记录
+const navigateToIncomeRecord = () => {
+  uni.navigateTo({
+    url: "/pages/user/income-record",
+  });
+};
 </script>
 
 <style lang="scss" scoped>
@@ -195,9 +207,15 @@ view {
     }
 
     .withdraw-btn {
+      width: 500rpx;
       display: flex;
+      justify-content: space-between;
       align-items: center;
       color: #666;
+      .withdraw-btn-item {
+        display: flex;
+        align-items: center;
+      }
     }
   }
 }
