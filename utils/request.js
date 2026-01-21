@@ -109,12 +109,12 @@ function handleServerError(res) {
 // 判断是否未登录
 const notLoginPages = ["pages/login/login"]; // 白名单
 function loginGuard(res) {
-  if (res.msg && ["Token验证失败", "Token已过期"].includes(res.msg)) {
+  if (res.msg && ["Token验证失败", "Token已过期",
+    "无效的签名"].includes(res.msg)) {
     const pages = getCurrentPages();
     if (notLoginPages.includes(pages[pages.length - 1].route)) {
       return false;
     }
-    // #ifdef APP-PLUS
     // app的话直接拿缓存的账号密码重新登录
     uni.showLoading({
       title: "登录校验过期，重新登录中...",
@@ -138,9 +138,11 @@ function loginGuard(res) {
           const userInfo = {
             nickname: loginData.uname || "用户",
             avatar: loginData.himg,
-            account: account.value,
+            account: account,
+            agent: loginData.agent || 0,
           };
-          userStore.updateUserInfo(userInfo, success.data.token);
+          setToken(loginRes.data.token)
+          userStore.updateUserInfo(userInfo, loginRes.data.token);
           uni.showToast({
             title: "重新登录成功，请重新操作",
           });
@@ -159,7 +161,6 @@ function loginGuard(res) {
         });
       return;
     }
-    // #endif
 
     const token = getToken();
     userStore.clearUserInfo();
