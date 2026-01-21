@@ -6,26 +6,18 @@
     <view class="form-area">
       <view class="form-item">
         <text class="form-label">视频标题</text>
-        <input
-          class="form-input"
-          v-model="videoTitle"
-          placeholder="请输入视频标题"
-        />
+        <input class="form-input" v-model="videoTitle" placeholder="请输入视频标题" />
       </view>
 
       <view class="form-item">
         <text class="form-label">是否收费</text>
         <view class="radio-group">
           <label class="radio-label">
-            <radio value="1" :checked="isCharge === 1" @click="isCharge = 1"
-              >免费</radio
-            >
+            <radio value="1" :checked="isCharge === 1" @click="isCharge = 1">免费</radio>
           </label>
 
           <label class="radio-label">
-            <radio value="2" :checked="isCharge === 2" @click="isCharge = 2"
-              >收费</radio
-            >
+            <radio value="2" :checked="isCharge === 2" @click="isCharge = 2">收费</radio>
           </label>
         </view>
       </view>
@@ -40,17 +32,12 @@
 
     <!-- 视频上传区域 -->
     <view class="upload-area" @click="chooseFile">
-      <video
-        v-if="selectedVideoUrl"
-        :src="selectedVideoUrl"
-        class="video-preview"
-        controls
-      ></video>
+      <video v-if="selectedVideoUrl" :src="selectedVideoUrl" class="video-preview" controls></video>
       <view v-if="selectedVideoName" class="video-info">
         <text class="video-name">{{ selectedVideoName }}</text>
-        <text class="video-size" v-if="selectedVideoSize">{{
-          formatFileSize(selectedVideoSize)
-        }}</text>
+        <text class="video-size" v-if="selectedVideoSize">
+          {{ formatFileSize(selectedVideoSize) }}
+        </text>
       </view>
       <view v-else class="upload-placeholder">
         <uni-icons name="plus" size="50" color="#3498db"></uni-icons>
@@ -83,26 +70,14 @@
 
     <!-- 操作按钮 -->
     <view class="action-buttons">
-      <button type="primary" @click="startUpload" :disabled="isUploading">
-        开始上传
-      </button>
-      <button
-        type="default"
-        @click="clearFiles"
-        :disabled="fileList.length === 0"
-      >
-        清空文件
-      </button>
+      <button type="primary" @click="startUpload" :disabled="isUploading">开始上传</button>
+      <button type="default" @click="clearFiles" :disabled="fileList.length === 0">清空文件</button>
     </view>
 
     <!-- 上传结果 -->
     <view class="result-area" v-if="uploadResults.length > 0">
       <view class="file-list">
-        <view
-          v-for="(result, index) in uploadResults"
-          :key="index"
-          class="file-item"
-        >
+        <view v-for="(result, index) in uploadResults" :key="index" class="file-item">
           <view class="file-icon">
             <uni-icons name="file" size="24" color="#409eff"></uni-icons>
           </view>
@@ -128,6 +103,8 @@ import { getAccount } from "@/utils/request.js";
 
 import NumberInput from "../../components/number-input.vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
+
+import dayjs from "dayjs";
 // 接收从 video.vue 传递的 tname 参数
 const routeParams = ref({
   tname: "",
@@ -142,19 +119,10 @@ onLoad((options) => {
   apiUserimg({
     account: getAccount(),
   }).then((res) => {
-    videoTitle.value = `${res.data.uname}于${getCurrentDate()}上传的视频`;
-    coverFile.value = res.data.himg ? `himg/${res.data.himg}` : 'himg/user.png';
+    videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}`;
+    coverFile.value = res.data.himg ? `himg/${res.data.himg}` : "himg/user.png";
   });
 });
-
-function getCurrentDate() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // 月份从0开始，所以需要+1
-  const day = String(today.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 //导航栏
 const goBack = () => {
@@ -260,10 +228,7 @@ const startUpload = async () => {
     return;
   }
 
-  if (
-    isCharge.value === 2 &&
-    (!chargePrice.value || Number(chargePrice.value) <= 0)
-  ) {
+  if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
     statusMessage.value = "请输入有效的收费价格";
     statusClass.value = "status-error";
     return;
@@ -359,9 +324,7 @@ const startUpload = async () => {
         coverUrl: coverUrl,
       });
 
-      statusMessage.value = `文件"${
-        fileItem.name || selectedVideoName.value
-      }"上传成功`;
+      statusMessage.value = `文件"${fileItem.name || selectedVideoName.value}"上传成功`;
       statusClass.value = "status-success";
 
       // 如果是付费视频，保存数据并跳转到表单页面
@@ -403,22 +366,15 @@ const startUpload = async () => {
             submitResult.data.video_id ||
             submitResult.data.vId ||
             submitResult.id ||
-            (typeof submitResult.data === "number"
-              ? submitResult.data
-              : null) ||
-            (typeof submitResult.data === "string"
-              ? submitResult.data
-              : null) ||
+            (typeof submitResult.data === "number" ? submitResult.data : null) ||
+            (typeof submitResult.data === "string" ? submitResult.data : null) ||
             null;
         }
 
         // 如果 videoId 为空，尝试从响应体的其他位置获取
         if (!videoId && submitResult.code === 200) {
           // 有些接口直接返回 ID 字符串或数字
-          if (
-            typeof submitResult.data === "string" ||
-            typeof submitResult.data === "number"
-          ) {
+          if (typeof submitResult.data === "string" || typeof submitResult.data === "number") {
             videoId = submitResult.data;
           }
         }
@@ -429,8 +385,7 @@ const startUpload = async () => {
           title: videoTitle.value,
           price: Number(chargePrice.value) || 0,
           account: getAccount(),
-          videoUrl:
-            videoResult.url || `http://video.caimizm.com/${videoResult.name}`,
+          videoUrl: videoResult.url || `http://video.caimizm.com/${videoResult.name}`,
           coverUrl: coverUrl || "",
           issueno: issueno, // 期号
           tname: tname, // 彩票名称
@@ -492,9 +447,9 @@ const startUpload = async () => {
         }, 1500);
       }
     } catch (error) {
-      statusMessage.value = `文件"${
-        fileItem.name || selectedVideoName.value || "视频"
-      }"上传失败: ${error.message}`;
+      statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || "视频"}"上传失败: ${
+        error.message
+      }`;
       statusClass.value = "status-error";
     }
     isUploading.value = false;

@@ -21,19 +21,28 @@ export default {
       qrcodeUrl: wxchatFriend, // 替换为实际的二维码图片路径
     };
   },
-  onLoad() {
-    // 页面加载时可以获取客服信息
-    this.getCustomerServiceInfo();
-  },
+  onLoad() {},
   methods: {
     openMenu() {},
     saveImg() {
+      console.log("!@3");
+      const localPath = plus.io.convertLocalFileSystemURL("/static/images/baguajianbihua.png");
+      console.log(localPath);
       uni.saveImageToPhotosAlbum({
-        filePath: this.qrcodeUrl,
+        filePath: localPath,
+        // url: "https://caimizm.com/assets/baguajianbihua-2sHe7GSa.jpg",
         success: function (res) {
           uni.showToast({
             title: "图片保存成功",
             icon: "success",
+            duration: 2000,
+          });
+        },
+        fail(err) {
+          console.log(err);
+          uni.showToast({
+            title: "保存失败",
+            icon: "none",
             duration: 2000,
           });
         },

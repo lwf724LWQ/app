@@ -99,7 +99,7 @@
       easing-function="default"
     >
       <swiper-item>
-        <view class="notice-banner" @click="toActivity">
+        <view class="notice-banner" @click="toWxchat">
           <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
           <text class="notice-text">欢迎各地大师加微详谈！！！</text>
           <text class="notice-new">NEW</text>
