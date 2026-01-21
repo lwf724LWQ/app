@@ -1101,7 +1101,7 @@ const saveImage = async () => {
   await new Promise((resolve) => setTimeout(resolve, 100));
   let url;
   try {
-    url = await draw.save(record.value, scrolltop / scale.value);
+    url = await draw.save(record.value, scrolltop / scale.value, pointActives.value, scale.value);
   } finally {
     uni.hideLoading();
   }
@@ -1141,7 +1141,12 @@ const share = async () => {
   // #endif
   // #ifdef APP
   shareNode.value.open();
-  getImageUrl.value = draw.save(record.value, scrolltop / scale.value);
+  getImageUrl.value = draw.save(
+    record.value,
+    scrolltop / scale.value,
+    pointActives.value,
+    scale.value
+  );
   // #endif
   // #ifdef MP
   shareNode.value.open();
@@ -1459,7 +1464,7 @@ export default {
 
       const gestureEndDistance = Math.sqrt(Math.pow(end1.pageX - end2.pageX, 2) + Math.pow(end1.pageY - end2.pageY, 2))
       const _scale = (gestureEndDistance / gestureStartDistance) * tmpScale
-      if (_scale < 0.6 || _scale > 2) return
+      if (_scale < 0.6 || _scale > 1) return
       scale = _scale
       document.querySelector('.container').style.transform = `scale(${scale})`
     },
@@ -1555,7 +1560,8 @@ page {
     }
     .paint-canvas,
     .base-canvas,
-    .active-canvas {
+    .active-canvas,
+    .image-canvas {
       width: v-bind('cnavasWidth + "rpx"');
     }
     .paint-canvas {
@@ -1578,7 +1584,6 @@ page {
     }
     .image-canvas {
       visibility: hidden;
-      width: 100vw;
       height: v-bind('(data.length + options.bottomRow) * options.rowHeight + "rpx"');
       transform: scale(0.1); // 0.1随便写，足够小即可
     }

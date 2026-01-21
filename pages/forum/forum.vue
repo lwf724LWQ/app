@@ -4,7 +4,7 @@
     <view class="main-navbar">
       <view class="nav-left">
         <uni-icons type="list" size="20" color="#fff"></uni-icons>
-        <text class="nav-text">说明</text>
+        <text class="nav-text"></text>
       </view>
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
