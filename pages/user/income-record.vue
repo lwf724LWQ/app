@@ -1,5 +1,12 @@
 <template>
-  <scroll-view class="income-record-page">
+  <scroll-view
+    class="income-record-page"
+    scroll-y
+    refresher-enabled
+    :refresher-triggered="triggered"
+    @scrolltolower="onScrolltolower"
+    @refresherrefresh="onRefresh"
+  >
     <view class="record-list">
       <view class="record-item" v-for="record in incomeList" :key="record.id">
         <view class="record-info">
@@ -48,15 +55,32 @@ import { ref } from "vue";
 const usableHeight = uni.getSystemInfoSync().windowHeight;
 
 const incomeList = ref([]);
-const page = ref(1);
-const limit = ref(10);
+let page = 1;
+let limit = 10;
 
-const getIncomeList = async () => {
-  const res = await getIncomeListApi(page.value, limit.value);
+const getIncomeList = () => {
+  return getIncomeListApi(page, limit);
+};
+
+const setIncomeList = async () => {
+  const res = await getIncomeList();
   incomeList.value = res.data.records;
 };
 
-getIncomeList();
+setIncomeList();
+
+// 追加收益记录
+let isAppend = false;
+const addIncomeRecord = async () => {
+  if (isAppend) return;
+  isAppend = true;
+
+  page++;
+  const res = await getIncomeList();
+  incomeList.value = [...incomeList.value, ...res.data.records];
+
+  isAppend = false;
+};
 
 const getType = (type) => {
   switch (type) {
@@ -67,6 +91,18 @@ const getType = (type) => {
     default:
       return "其他";
   }
+};
+
+const triggered = ref(false);
+
+const onRefresh = async () => {
+  triggered.value = true;
+  await setIncomeList();
+  triggered.value = false;
+};
+
+const onScrolltolower = () => {
+  addIncomeRecord();
 };
 </script>
 

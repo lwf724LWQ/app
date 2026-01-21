@@ -57,14 +57,20 @@ const setWithdrawList = async () => {
 setWithdrawList();
 
 // 追加数据
+let isAppend = false;
 const addWithdrawList = async () => {
+  if (isAppend) return;
+  isAppend = true;
+
+  page++;
   const res = await getWithdrawList(page, limit);
   withdrawList.value = [...withdrawList.value, ...res];
+
+  isAppend = false;
 };
 
 // 触底
 const onScrolltolower = () => {
-  page++;
   addWithdrawList();
 };
 // 下拉
