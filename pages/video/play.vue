@@ -25,7 +25,7 @@
           controls="true"
           autoplay="false"
           show-fullscreen-btn="true"
-          object-fit="cover"
+          object-fit="contain"
           class="video-player"
           :class="{ 'video-full-screen': isFullScreen }"
           id="videoPlayer"
