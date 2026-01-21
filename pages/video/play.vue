@@ -29,6 +29,7 @@
           class="video-player"
           :class="{ 'video-full-screen': isFullScreen }"
           id="videoPlayer"
+          direction="0"
           @play="onVideoPlay"
           @pause="onVideoPause"
           @ended="onVideoEnded"
