@@ -497,6 +497,7 @@ onMounted(() => {
 const followUserListRef = ref(null);
 onShow(() => {
   followUserListRef.value?.reload();
+  onRefresh();
 });
 
 function onRefresh() {

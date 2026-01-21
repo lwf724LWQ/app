@@ -108,20 +108,54 @@ const isUploadingImage = ref(false);
 const canPublish = computed(() => {
   return schemes.value.length > 0 && selectedImages.value.length > 0;
 });
+const isLoad = ref(false);
 // 页面加载时获取期号
-onLoad((option) => {
+onLoad(async (option) => {
   lotteryType.value = { name: option.lotteryType };
-
+  uni.showLoading({ title: "加载中..." });
+  let postData = {};
+  try {
+    postData = await postTool.getTodayNewPost(option.lotteryType);
+  } catch (error) {}
+  uni.hideLoading();
+  const content = postData?.content;
+  if (content) {
+    uni.showModal({
+      title: "提示",
+      content: "当期已经发过贴子，只支持追贴模式",
+      confirmText: "去追贴",
+      cancelText: "返回",
+      success: (res) => {
+        if (res.confirm) {
+          const urlParams = tool.formatUrlParams({
+            lotteryType: lotteryType.value.name,
+          });
+          // 跳转到追贴页面
+          uni.redirectTo({
+            url: `/pages/forum/post/created-scheme?` + urlParams,
+          });
+        } else {
+          // 返回
+          uni.navigateBack();
+        }
+      },
+    });
+  }
   postTool.clearSchemesData();
+  loadIssueInfo();
+  isLoad.value = true;
 });
 onMounted(() => {
-  loadIssueInfo();
-  loadSchemesFromStorage();
+  if (isLoad.value) {
+    loadSchemesFromStorage();
+  }
 });
 
 // 页面显示时重新加载方案数据
 onShow(() => {
-  loadSchemesFromStorage();
+  if (isLoad.value) {
+    loadSchemesFromStorage();
+  }
 });
 
 // 从本地存储加载方案数据
