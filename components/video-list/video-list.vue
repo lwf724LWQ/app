@@ -330,6 +330,14 @@ defineExpose({
   /* 两列等宽 */
   gap: 10rpx;
   /* 间距 */
+  .title {
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10rpx;
+    box-sizing: border-box;
+  }
 }
 
 .video-image {
@@ -342,9 +350,6 @@ defineExpose({
   flex: 1;
   font-size: 32rpx;
   font-weight: bold;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .video-info {
