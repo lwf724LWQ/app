@@ -340,7 +340,8 @@ defineExpose({
 .video-title {
   padding: 10rpx 20rpx 5rpx 20rpx;
   flex: 1;
-  font-size: 28rpx;
+  font-size: 32rpx;
+  font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -352,7 +353,7 @@ defineExpose({
   > text {
     padding: 5rpx 10rpx;
     border-radius: 6rpx;
-    font-size: 22rpx;
+    font-size: 26rpx;
   }
 
   .video-price {
