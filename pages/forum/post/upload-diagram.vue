@@ -111,6 +111,8 @@ const canPublish = computed(() => {
 const isLoad = ref(false);
 // 页面加载时获取期号
 onLoad(async (option) => {
+  option = tool.optionsParamsDecode(option);
+
   lotteryType.value = { name: option.lotteryType };
   uni.showLoading({ title: "加载中..." });
   let postData = {};

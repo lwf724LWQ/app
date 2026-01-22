@@ -477,6 +477,7 @@ const currentIssueInfo = ref({
 
 // 页面是否已经初始化
 const isPageInitialized = ref(false);
+const isLoad = ref(false);
 
 // 页面加载完成
 onMounted(() => {
@@ -493,9 +494,13 @@ onMounted(() => {
   loadLotteryData(currentLotteryType.value.code);
   refreshReportList();
   isPageInitialized.value = true;
+  isLoad.value = true;
 });
 const followUserListRef = ref(null);
 onShow(() => {
+  if (!isLoad.value) {
+    return;
+  }
   followUserListRef.value?.reload();
   onRefresh();
 });
@@ -509,6 +514,7 @@ function onRefresh() {
     total: 0,
     maxPage: 1,
   };
+  debugger;
   loadLotteryData(currentLotteryType.value.code);
 }
 

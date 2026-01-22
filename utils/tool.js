@@ -216,8 +216,21 @@ const tool = {
   formatUrlParams(params) {
     return Object.keys(params)
       .filter((key) => params[key] !== null && params[key] !== "")
-      .map((key) => `${key}=${params[key]}`)
+      .map((key) => `${key}=${encodeURIComponent(params[key])}`)
       .join("&");
+  },
+  optionsParamsDecode(options) {
+    const newObj = {};
+
+    if (typeof options === 'object') {
+      for (const key in options) {
+        if (Object.prototype.hasOwnProperty.call(options, key)) {
+          newObj[key] = decodeURIComponent(options[key]);
+        }
+      }
+    }
+
+    return newObj;
   },
   isLogin(text) {
     const userStore = useUserStore();
