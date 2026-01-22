@@ -38,7 +38,7 @@
         <view class="stat-item">
           <text class="stat-label">评分</text>
           <text class="stat-value">100</text>
-        </view>
+        </view> -->
       </view>
     </view>
     <!-- 情况2：未登录 -->
