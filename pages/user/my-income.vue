@@ -105,11 +105,12 @@ const withdraw = async () => {
     });
     return;
   }
-  if (withdrawAmount.value < 500) {
+  if (withdrawAmount.value < 200) {
     uni.showToast({
-      title: "单笔提现金额不能小于500",
+      title: "单笔提现金额不能小于200",
       icon: "none",
     });
+    return;
   }
   if (withdrawAmount.value > incomeCount.value) {
     uni.showToast({
