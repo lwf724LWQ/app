@@ -68,7 +68,7 @@
         </label>
         <label class="payment-method">
           <radio value="1" :checked="paymentMethod === '1'" />
-          <text class="method-text">账户余额</text>
+          <text class="method-text">账户余额({{ Gold }}金币)</text>
         </label>
       </radio-group>
     </view>
@@ -84,7 +84,7 @@
 <script setup>
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import { apiRewardVideo, apiWxpay, apiCheckVideoPayment } from "@/api/apis";
+import { apiRewardVideo, apiWxpay, apiCheckVideoPayment, apiGetUserBalance } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import QRCode from "qrcode";
 import PaymentWrapper from "../../components/Payment-wrapper/Payment-wrapper.vue";
@@ -95,7 +95,7 @@ const PaymentWrapperRef = ref(null);
 const amountOptions = ref([1.8, 3.8, 5.8, 6.8, 8.8, 18, 38, 58, 68]);
 
 // 选中的金额
-const selectedAmount = ref(3.8);
+const selectedAmount = ref(8.8);
 
 // 自定义金额
 const customAmount = ref("");
@@ -118,16 +118,10 @@ const routeParams = ref({
   authorName: "", // 添加作者名称参数
 });
 
-// 二维码相关数据
-const showQRModal = ref(false);
-const qrSize = ref(200);
-const currentPaymentUrl = ref("");
-const qrCodeUrl = ref("");
-const paymentCheckTimer = ref(null);
-const isCheckingPayment = ref(false);
+const Gold = ref(0);
 
 // 获取路由参数
-onLoad((options) => {
+onLoad(async (options) => {
   if (options.videoId) routeParams.value.videoId = options.videoId;
   if (options.author) routeParams.value.author = decodeURIComponent(options.author);
   if (options.title) routeParams.value.title = decodeURIComponent(options.title);
@@ -139,7 +133,22 @@ onLoad((options) => {
   if (options.authorName) {
     authorName.value = decodeURIComponent(options.authorName);
   }
+
+  uni.showLoading({
+    title: "加载中...",
+  });
+  Gold.value = await GetUserBalance();
+  uni.hideLoading();
+
+  selectAmount(8.8);
 });
+
+async function GetUserBalance() {
+  const res = await apiGetUserBalance({
+    account: getAccount(),
+  });
+  return res.data.gold;
+}
 
 // 获取头像URL
 const getAvatarUrl = (avatar) => {
@@ -151,6 +160,12 @@ const getAvatarUrl = (avatar) => {
 const selectAmount = (amount) => {
   selectedAmount.value = amount;
   isCustomAmountSelected.value = false;
+
+  if (amount <= Gold.value) {
+    paymentMethod.value = "1";
+  } else {
+    paymentMethod.value = "0";
+  }
 };
 
 // 选择支付方式
