@@ -174,6 +174,18 @@
           <uni-icons type="search" size="20" color="#4A90E2"></uni-icons>
           <text>彩友搜索</text>
         </view>
+        <view class="icon-item" @click="toActivity">
+          <uni-icons type="gift" size="20" color="#4A90E2"></uni-icons>
+          <text>领取金币</text>
+        </view>
+        <view class="icon-item" @click="toWxchat">
+          <uni-icons type="weixin" size="20" color="#4A90E2"></uni-icons>
+          <text>联系我们</text>
+        </view>
+        <view class="icon-item" @click="showAboutAs">
+          <uni-icons type="link" size="24" color="#4A90E2"></uni-icons>
+          <text>关于我们</text>
+        </view>
         <!-- <view class="icon-item icon-item-message">
           <image src="/static/icons/color.png" mode="aspectFit"></image>
           <text>我的消息</text>
@@ -226,26 +238,8 @@ export default {
       // 	url: `/pages/juWang/drawLine/drawLine`
       // });
     },
-    isLogin(text) {
-      const userStore = useUserStore();
-      if (userStore.getUserInfo.account) {
-        return true;
-      } else {
-        uni.showModal({
-          title: "提示",
-          content: text || "该功能需要登录，是否前往",
-          success: async (res) => {
-            if (res.confirm) {
-              uni.navigateTo({ url: "/pages/login/login" });
-            }
-          },
-          showCancel: true,
-        });
-        return false;
-      }
-    },
     toChangtiao() {
-      if (this.isLogin()) {
+      if (tool.isLogin()) {
         uni.navigateTo({
           url: "/pages/changtiao/index",
         });
@@ -282,6 +276,16 @@ export default {
           showCancel: true,
         });
       }
+    },
+    toWxchat() {
+      uni.navigateTo({
+        url: "/pages/share/wxchat",
+      });
+    },
+    showAboutAs() {
+      uni.navigateTo({
+        url: "/pages/login/agreement?type=AboutAs",
+      });
     },
     // 加载开奖结果
     async loadLotteryResults() {
@@ -437,7 +441,7 @@ export default {
       });
     },
     toActivity() {
-      if (this.isLogin("登录后邀请对方注册后双方可得8金币！")) {
+      if (tool.isLogin("登录后邀请对方注册后双方可得8金币！")) {
         uni.navigateTo({
           url: "/pages/activity-page/activity-page",
         });
