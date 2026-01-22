@@ -5,7 +5,7 @@
         <uni-icons class="avatar search-icon" type="search" />
         <view class="nickname">发现大师</view>
       </view>
-      <view class="item" v-for="item in list" :key="item.id">
+      <view class="item" v-for="item in list" :key="item.id" @click="gotoUserSpace(item.account)">
         <image class="avatar" :src="item.avatar"></image>
         <view class="nickname">{{ item.uname }}</view>
       </view>
@@ -53,6 +53,11 @@ export default {
       this.page++;
       this.getUserFollow();
     },
+	gotoUserSpace(account){
+		uni.navigateTo({
+		  url: `/pages/user/space?account=${account}&follow=1`,
+		});
+	}
   },
   mounted() {
     this.getUserFollow();

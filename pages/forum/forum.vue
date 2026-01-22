@@ -4,7 +4,7 @@
     <view class="main-navbar">
       <view class="nav-left">
         <uni-icons type="list" size="20" color="#fff"></uni-icons>
-        <text class="nav-text">说明</text>
+        <text class="nav-text"></text>
       </view>
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
@@ -319,7 +319,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { apiGetIssueNo, apiPostListQuery, apiPostLike } from "@/api/apis.js";
+import { apiGetIssueNo, apiPostListQuery, apiPostLike, post_select_by_follow } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
 import { useUserStore } from "../../stores/userStore";
@@ -476,6 +476,7 @@ const currentIssueInfo = ref({
 
 // 页面是否已经初始化
 const isPageInitialized = ref(false);
+const isLoad = ref(false);
 
 // 页面加载完成
 onMounted(() => {
@@ -492,21 +493,34 @@ onMounted(() => {
   loadLotteryData(currentLotteryType.value.code);
   refreshReportList();
   isPageInitialized.value = true;
+  isLoad.value = true;
 });
 const followUserListRef = ref(null);
 onShow(() => {
+  if (!isLoad.value) {
+    return;
+  }
   followUserListRef.value?.reload();
+  onRefresh();
 });
 
 function onRefresh() {
   if (refreshing.value) return;
   refreshing.value = true;
+  pageData.value = {
+    page: "1",
+    limit: "20",
+    total: 0,
+    maxPage: 1,
+  };
+  debugger;
   loadLotteryData(currentLotteryType.value.code);
 }
 
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab;
+  onRefresh();
 };
 
 // 选择分类标签
@@ -1071,9 +1085,14 @@ const loadPredictPosts = async () => {
     if (account) {
       queryData.account = account;
     }
-
+    let response;
+    if (activeTab.value === "predict") {
+      response = await apiPostListQuery(queryData);
+    } else {
+      delete queryData.account;
+      response = await post_select_by_follow(queryData);
+    }
     // 查询预测帖
-    const response = await apiPostListQuery(queryData);
 
     let allPosts = [];
 
@@ -1081,6 +1100,7 @@ const loadPredictPosts = async () => {
 
     if (response.code === 200) {
       if (response.data) {
+        response.data.list = response.data.list.filter((item) => isReport(item.id));
         allPosts = [...response.data.list];
       }
     }
@@ -1162,7 +1182,7 @@ async function nextPage(res) {
   if (isLoadNextPage.value) return;
   if (isMaxPage.value) return;
   if (pageData.value.total < pageData.value.page * pageData.value.limit) return;
-  debugger;
+
   pageData.value.page = parseInt(pageData.value.page) + 1;
 
   isLoadNextPage.value = true;

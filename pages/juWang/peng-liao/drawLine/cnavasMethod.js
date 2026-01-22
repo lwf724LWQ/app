@@ -70,6 +70,7 @@ export class Draw {
     getStyleConfig();
 
     this.drawGrid(); // 绘制网格
+    this.bgCtx.draw();
 
     this.drawContent();
     this.contentCtx.draw();
@@ -98,6 +99,7 @@ export class Draw {
 
     // setTimeout(() => {
     this.drawGrid();
+    this.bgCtx.draw();
 
     this.drawContent();
     this.contentCtx.draw();
@@ -106,14 +108,14 @@ export class Draw {
     // }, 0)
   }
   // 绘制网格
-  drawGrid() {
-    this.drawGridBackground();
-    this.drawGridRow();
-    this.drawGridColumn();
-    this.bgCtx.draw();
+  drawGrid(ctx = this.bgCtx) {
+    const drawShape = new DrawShape(ctx);
+    this.drawGridBackground(drawShape);
+    this.drawGridRow(drawShape);
+    this.drawGridColumn(drawShape);
   }
   // 绘制网格行
-  drawGridRow() {
+  drawGridRow(drawShape) {
     for (let index = 0; index < this.data.value.length + this.options.bottomRow; index++) {
       let width;
       if (theme !== "其他") {
@@ -123,7 +125,7 @@ export class Draw {
         if (index % 4 == 0) width = 1 * ratio;
         else continue;
       }
-      this.drawShapeBg.drawnStraightLine(
+      drawShape.drawnStraightLine(
         0,
         index * rowHeight,
         columns[columns.length - 1].right,
@@ -134,18 +136,18 @@ export class Draw {
     }
   }
   // 绘制网格列
-  drawGridColumn() {
+  drawGridColumn(drawShape) {
     for (let index = 0; index < columns.length; index++) {
       const column = columns[index];
       if (column.border === 0) continue;
       const x = columns[index].right + columns[index].border / 2;
       const y = 0;
       const endY = (this.data.value.length + this.options.bottomRow) * rowHeight;
-      this.drawShapeBg.drawnStraightLine(x, y, x, endY, borderColor, column.border);
+      drawShape.drawnStraightLine(x, y, x, endY, borderColor, column.border);
     }
   }
   // 绘制网格背景
-  drawGridBackground() {
+  drawGridBackground(drawShape) {
     for (let index = 0; index < columns.length; index++) {
       const column = columns[index];
       const x = columns[index]?.left || 0;
@@ -153,11 +155,12 @@ export class Draw {
       const width = column.width;
       const height = (this.data.value.length + this.options.bottomRow) * rowHeight;
       let color = column.backgroundColor;
-      this.drawShapeBg.drawSolidRect(x, y, width, height, color);
+      drawShape.drawSolidRect(x, y, width, height, color);
     }
   }
   // 绘制内容
-  drawContent() {
+  drawContent(ctx = this.contentCtx) {
+    const drawShape = new DrawShape(ctx);
     this.data.value.forEach((data, rowIndex) => {
       const numbers = data.number;
 
@@ -170,7 +173,7 @@ export class Draw {
         x = columns[0].width / 2;
         y = (rowIndex + 1) * rowHeight - 70 * ratio;
         color = columns[0].color;
-        this.drawShapeContent.drawText(
+        drawShape.drawText(
           value,
           x,
           y,
@@ -184,7 +187,7 @@ export class Draw {
         x = columns[0].width / 2;
         y = (rowIndex + 1) * rowHeight - 30 * ratio;
         color = columns[0].color;
-        this.drawShapeContent.drawText(
+        drawShape.drawText(
           value,
           x,
           y,
@@ -200,45 +203,33 @@ export class Draw {
           case "排列五":
             let text =
               numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10;
-            this.drawCenterText(this.drawShapeContent, rowIndex, 0, text, columns[0].fontSize);
+            this.drawCenterText(drawShape, rowIndex, 0, text, columns[0].fontSize);
             for (let index = 1; index < numbers.length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index,
                 numbers[index - 1],
                 columns[index].fontSize
               );
             }
-            this.drawCenterText(
-              this.drawShapeContent,
-              rowIndex,
-              5,
-              numbers[4],
-              columns[5].fontSize
-            );
+            this.drawCenterText(drawShape, rowIndex, 5, numbers[4], columns[5].fontSize);
             break;
           case "福彩3D":
             this.drawCenterText(
-              this.drawShapeContent,
+              drawShape,
               rowIndex,
               0,
               numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
               50 * ratio
             );
             for (let index = 0; index < numbers.length; index++) {
-              this.drawCenterText(
-                this.drawShapeContent,
-                rowIndex,
-                index + 1,
-                numbers[index],
-                60 * ratio
-              );
+              this.drawCenterText(drawShape, rowIndex, index + 1, numbers[index], 60 * ratio);
             }
             break;
           case "七星彩":
             this.drawCenterText(
-              this.drawShapeContent,
+              drawShape,
               rowIndex,
               0,
               numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0) % 10,
@@ -246,7 +237,7 @@ export class Draw {
             );
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index + 1,
                 numbers[index],
@@ -259,7 +250,7 @@ export class Draw {
         dayeColumn();
 
         this.drawCenterText(
-          this.drawShapeContent,
+          drawShape,
           rowIndex,
           1,
           numbers.slice(0, 4).reduce((sum, item) => Number(sum) + Number(item), 0),
@@ -269,7 +260,7 @@ export class Draw {
           case "排列五":
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index + 2,
                 numbers[index],
@@ -280,7 +271,7 @@ export class Draw {
           case "福彩3D":
             for (let index = 0; index < numbers.length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index + 2,
                 numbers[index],
@@ -291,7 +282,7 @@ export class Draw {
           case "七星彩":
             for (let index = 0; index < numbers.slice(0, 4).length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index + 2,
                 numbers[index],
@@ -300,7 +291,7 @@ export class Draw {
             }
             for (let index = 0; index < numbers.slice(4, 7).length; index++) {
               this.drawCenterText(
-                this.drawShapeContent,
+                drawShape,
                 rowIndex,
                 index + 6,
                 numbers[index + 4],
@@ -314,7 +305,7 @@ export class Draw {
 
     if (theme !== "其他") {
       this.drawCenterText(
-        this.drawShapeContent,
+        drawShape,
         this.data.value.length,
         0,
         Number(this.data.value[this.data.value.length - 1].issueno) + 1,
@@ -338,7 +329,8 @@ export class Draw {
       "bold"
     );
   }
-  drawLine(record) {
+  drawLine(record, ctx = this.baseCtx) {
+    const drawShape = new DrawShape(ctx);
     if (!record || record.length <= 0) return;
     const draw = (item) => {
       if (!item?.line) return;
@@ -348,40 +340,31 @@ export class Draw {
 
       if (type === "straight") {
         const { startX, startY, endX, endY } = item.line.position;
-        this.drawShapeBase.drawnStraightLine(startX, startY, endX, endY, color, size);
+        drawShape.drawnStraightLine(startX, startY, endX, endY, color, size);
       }
       if (type === "curve") {
         const { startX, startY, centerX, centerY, endX, endY } = item.line.position;
-        this.drawShapeBase.drawnCurveLine(
-          startX,
-          startY,
-          centerX,
-          centerY,
-          endX,
-          endY,
-          color,
-          size
-        );
+        drawShape.drawnCurveLine(startX, startY, centerX, centerY, endX, endY, color, size);
       }
       if (type === "track") {
         const track = item.line.position;
-        this.drawShapeBase.drawnTrack(track, color, size);
+        drawShape.drawnTrack(track, color, size);
       }
       if (type === "solidRect") {
         const { x, y, width, height } = item.line.position;
-        this.drawShapeBase.drawSolidRect(x, y, width, height, color);
+        drawShape.drawSolidRect(x, y, width, height, color);
       }
       if (type === "hollowRect") {
         const { x, y, width, height } = item.line.position;
-        this.drawShapeBase.drawHollowRect(x, y, width, height, color, size);
+        drawShape.drawHollowRect(x, y, width, height, color, size);
       }
       if (type === "solidCircle") {
         const { startX, startY, endX, endY } = item.line.position;
-        this.drawShapeBase.drawSolidCircle(startX, startY, endX, endY, color, size);
+        drawShape.drawSolidCircle(startX, startY, endX, endY, color, size);
       }
       if (type === "hollowCircle") {
         const { startX, startY, endX, endY } = item.line.position;
-        this.drawShapeBase.drawHollowCircle(startX, startY, endX, endY, color, size);
+        drawShape.drawHollowCircle(startX, startY, endX, endY, color, size);
       }
     };
     record.forEach((item) => {
@@ -395,7 +378,7 @@ export class Draw {
     });
   }
   // 渲染激活数字
-  drawActiveNumber(pointActives) {
+  drawActiveNumber(pointActives, ctx = this.activeCtx) {
     if (!pointActives || pointActives.length <= 0) return;
 
     for (const pointKey in pointActives) {
@@ -404,10 +387,12 @@ export class Draw {
       rowIndex = Number(rowIndex);
       columnIndex = Number(columnIndex);
       const text = this.getNumber(rowIndex, columnIndex);
-      this.drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text);
+      this.drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text, ctx);
     }
   }
-  drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text) {
+  drawPoint(rowIndex, columnIndex, color, isSolid, isRound, text, ctx) {
+    const drawShape = new DrawShape(ctx);
+
     const columnStyle = columns[columnIndex];
     // 绘制背景
     if (isSolid) {
@@ -420,8 +405,8 @@ export class Draw {
         const size = minSize - padding * 2;
         const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding;
 
-        if (isRound) this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, colors[index]);
-        else this.drawShapeActive.drawSolidRect(x, y, size, size, colors[index]);
+        if (isRound) drawShape.drawSolidCircle(x, y, x + size, y + size, colors[index]);
+        else drawShape.drawSolidRect(x, y, size, size, colors[index]);
       }
     } else {
       const minSize = Math.min(columnStyle.width, rowHeight);
@@ -433,12 +418,11 @@ export class Draw {
       const y = rowIndex * rowHeight + (rowHeight - minSize) / 2 + padding;
 
       if (isRound) {
-        if (theme !== "其他")
-          this.drawShapeActive.drawSolidCircle(x, y, x + size, y + size, "#fff");
-        this.drawShapeActive.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio);
+        if (theme !== "其他") drawShape.drawSolidCircle(x, y, x + size, y + size, "#fff");
+        drawShape.drawHollowCircle(x, y, x + size, y + size, color, 5 * ratio);
       } else {
-        if (theme !== "其他") this.drawShapeActive.drawSolidRect(x, y, size, size, "#fff");
-        this.drawShapeActive.drawHollowRect(x, y, size, size, color, 5 * ratio);
+        if (theme !== "其他") drawShape.drawSolidRect(x, y, size, size, "#fff");
+        drawShape.drawHollowRect(x, y, size, size, color, 5 * ratio);
       }
     }
 
@@ -446,14 +430,7 @@ export class Draw {
     if (text === undefined) return;
     let fontSize = columnStyle.fontSize;
     if (text.length >= 3) fontSize = fontSize * 0.8;
-    this.drawCenterText(
-      this.drawShapeActive,
-      rowIndex,
-      columnIndex,
-      text,
-      fontSize,
-      isSolid ? "#fff" : color
-    );
+    this.drawCenterText(drawShape, rowIndex, columnIndex, text, fontSize, isSolid ? "#fff" : color);
   }
   getNumber(rowIndex, columnIndex) {
     if (theme === "其他") {
@@ -483,7 +460,9 @@ export class Draw {
       return this.data.value[rowIndex]?.number[index];
     }
   }
-  drawMark(marks) {
+  drawMark(marks, ctx = this.activeCtx) {
+    const drawShape = new DrawShape(ctx);
+
     for (const key in marks) {
       const item = marks[key];
       const mark = item.mark;
@@ -508,19 +487,13 @@ export class Draw {
 
         if (isSolid) {
           fontColor = "#fff";
-          this.drawShapeActive.drawSolidRect(x, y, width, height, color);
+          drawShape.drawSolidRect(x, y, width, height, color);
         } else {
           fontColor = color;
-          this.drawShapeActive.drawSolidRect(
-            x,
-            y,
-            width,
-            height,
-            columns[startIndex].backgroundColor
-          );
-          this.drawShapeActive.drawHollowRect(x, y, width, height, color, 3 * ratio);
+          drawShape.drawSolidRect(x, y, width, height, columns[startIndex].backgroundColor);
+          drawShape.drawHollowRect(x, y, width, height, color, 3 * ratio);
         }
-        this.drawShapeActive.drawText(
+        drawShape.drawText(
           `稳上一码：${mark.numbers.join("")}`,
           centerX,
           centerY,
@@ -543,11 +516,11 @@ export class Draw {
         let fontColor;
         if (isSolid) {
           fontColor = "#fff";
-          this.drawShapeActive.drawSolidRect(x, y, size, size, color);
+          drawShape.drawSolidRect(x, y, size, size, color);
         } else {
           fontColor = color;
-          this.drawShapeActive.drawSolidRect(x, y, size, size, columns[column].backgroundColor);
-          this.drawShapeActive.drawHollowRect(x, y, size, size, color, 3 * ratio);
+          drawShape.drawSolidRect(x, y, size, size, columns[column].backgroundColor);
+          drawShape.drawHollowRect(x, y, size, size, color, 3 * ratio);
         }
         // 更改字号
         let fontSize = 30 * ratio;
@@ -577,7 +550,7 @@ export class Draw {
 
         // 第一行文字
         mark.condition &&
-          this.drawShapeActive.drawText(
+          drawShape.drawText(
             mark.condition,
             centerX,
             fontY1,
@@ -588,7 +561,7 @@ export class Draw {
           );
         // 第二行数字
         if (mark.numbers.length > 0) {
-          this.drawShapeActive.drawText(
+          drawShape.drawText(
             mark.numbers.slice(0, 3).join(""),
             centerX,
             fontY2,
@@ -600,7 +573,7 @@ export class Draw {
         }
         // 第三行数字
         if (mark.numbers.length > 3) {
-          this.drawShapeActive.drawText(
+          drawShape.drawText(
             mark.numbers.slice(3, 5).join(""),
             centerX,
             fontY3,
@@ -611,7 +584,7 @@ export class Draw {
           );
         }
       } else {
-        this.drawPoint(row, column, color, isSolid, true, mark.condition);
+        this.drawPoint(row, column, color, isSolid, true, mark.condition, ctx);
       }
     }
   }
@@ -620,7 +593,7 @@ export class Draw {
     this.reset(this.paintCtx);
   }
   // 将canvas绘制到另一个canvas上,耗时较长
-  drawToCanvas(sourseCtx, targetCtx, top, bottom) {
+  drawToCanvas(sourseCtx, targetCtx, top, bottom, scale = 1) {
     const sourseCtxId = sourseCtx.id || sourseCtx.canvasId;
     const targetCtxId = targetCtx.id || targetCtx.canvasId;
 
@@ -638,23 +611,27 @@ export class Draw {
         canvasId: sourseCtxId,
         x: 0,
         y: top,
-        width,
-        height,
+        width: width / scale,
+        height: height / scale,
         success(res) {
           uni.canvasPutImageData({
             canvasId: targetCtxId,
             x: 0,
             y: top,
-            width,
-            height,
+            width: width / scale,
+            height: height / scale,
             data: res.data,
             success(res) {
               resolve(res);
             },
             fail(err) {
+              console.log(sourseCtxId, err);
               reject(err);
             },
           });
+        },
+        fail(err) {
+          console.log(sourseCtxId, err);
         },
       });
     });
@@ -665,7 +642,7 @@ export class Draw {
     ctx.draw();
   }
   // 保存所有绘制内容
-  async save(record, scrolltop) {
+  async save(record, scrolltop, pointActives, scale) {
     const getMin = (min, item) => {
       if (Array.isArray(item)) {
         return item.reduce(getMin, min);
@@ -726,10 +703,18 @@ export class Draw {
     }
 
     const imageCtx = this.imageCtx;
-    imageCtx.scale(0.5, 0.5);
-    const sourseCtxes = [this.bgCtx, this.baseCtx, this.contentCtx, this.activeCtx];
-    const promiseMap = sourseCtxes.map((ctx) => this.drawToCanvas(ctx, imageCtx, top, bottom));
-    await Promise.all(promiseMap);
+    if (theme === "其他") {
+      const drawShape = new DrawShape(imageCtx);
+      drawShape.drawSolidRect(0, 0, this.canvasSize.width / scale, this.canvasSize.height, "#fff");
+      imageCtx.draw();
+    }
+    this.drawGrid(imageCtx);
+    this.drawContent(imageCtx);
+    this.drawLine(record, imageCtx);
+    this.drawActiveNumber(pointActives, imageCtx);
+    this.drawMark(this.marks.value, imageCtx);
+    this.imageCtx.draw(true);
+
     this.drawHoverText();
     this.drawWatermark();
 

@@ -2,7 +2,7 @@
   <view class="predict-item">
     <!-- 帖子头部 -->
     <view class="post-header">
-      <view class="user-info">
+      <view class="user-info" @click="gotoUserSpace(item.account)">
         <image :src="item.avatar" class="avatar"></image>
         <view class="username-and-url">
           <text class="username">{{ item.username }}</text>
@@ -187,6 +187,7 @@ export default {
       }
     },
     toggleMoreOptions() {
+      return;
       uni.showActionSheet({
         itemList: ["举报"],
         success: (res) => {
@@ -210,9 +211,34 @@ export default {
           // }
           if (res.tapIndex === 0) {
             // 举报
+            if (this.item.account == getAccount()) {
+              uni.showModal({
+                title: "不能举报自己的帖子哦~",
+                content: "如果需要变动，可以通过追贴的方式进行补充~",
+                showCancel: false,
+              });
+              return;
+            }
+
             this.$emit("report", this.item.id);
           }
         },
+      });
+    },
+    gotoUserSpace(account) {
+      const myAccount = getAccount();
+      if (account == myAccount) {
+        return;
+      }
+      if (myAccount == "") {
+        uni.showToast({
+          title: "请先登录",
+          icon: "none",
+        });
+        return;
+      }
+      uni.navigateTo({
+        url: `/pages/user/space?account=${account}`,
       });
     },
   },
@@ -291,7 +317,7 @@ export default {
 .post-content {
   margin-bottom: 20rpx;
   line-height: 1.6;
-  font-size: 28rpx;
+  font-size: 36rpx;
   color: #333;
   white-space: pre-wrap;
   word-break: break-word;

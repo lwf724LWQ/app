@@ -206,7 +206,7 @@ export default {
             payType: payType,
           });
           await this.zfbPay(payInfo);
-		  break;
+          break;
         case "4": // 掉起微信支付
           payInfo = await this.getPayInfo({
             orderNo: orderNo,
@@ -282,8 +282,7 @@ export default {
             resolve();
           },
           fail: function (res) {
-			  
-			  console.log("支付失败",res)
+            console.log("支付失败", res);
             uni.showToast({
               title: "支付失败",
               content: JSON.stringify(res),
@@ -304,7 +303,7 @@ export default {
             resolve();
           },
           fail: function (res) {
-			  console.log("支付失败",res)
+            console.log("支付失败", res);
             uni.showToast({
               title: "支付失败",
               content: JSON.stringify(res),
@@ -319,7 +318,7 @@ export default {
       const balanceResponse = await apiGetUserBalance({
         account: getAccount(),
       });
-      const userBalance = parseFloat(balanceResponse.data || 0);
+      const userBalance = parseFloat(balanceResponse.data.gold || 0);
       const paymentAmount = parseFloat(amount);
 
       // 2. 检查余额是否足够

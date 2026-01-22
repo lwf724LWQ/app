@@ -5,6 +5,7 @@ interface UserInfo {
     nickname: string
     avatar: string
     account: string
+    agent: number
 }
 
 function hanldeAvatar(str: string): string {
@@ -28,6 +29,9 @@ export const useUserStore = defineStore('user', {
 
     getters: {
         getUserInfo(): UserInfo | null {
+            if (this.userInfo && this.userInfo.agent == null) {
+                this.userInfo.agent = 1
+            }
             return Object.assign({}, this.userInfo, {avatar: hanldeAvatar(this.userInfo?.avatar)})
         },
 
@@ -46,16 +50,22 @@ export const useUserStore = defineStore('user', {
          * @param info 用户信息对象
          */
         updateUserInfo(info: UserInfo, token?: string) {
-            this.userInfo = info
+            this.userInfo = {...this.userInfo,...info}
             this.isLoggedIn = true
             if (token) {
                 this.setToken(token)
             }
             // 使用 uni.setStorageSync 持久化存储用户信息
             try {
-				uni.setStorageSync('userInfo', info)
+				uni.setStorageSync('userInfo', this.userInfo)
             } catch (error) {
 				console.error('存储用户信息失败:', error)
+            }
+        },
+        upUserAgent(agent: number) {
+            if (this.userInfo) {
+                this.userInfo.agent = agent
+                this.updateUserInfo(this.userInfo)
             }
         },
 

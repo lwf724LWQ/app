@@ -197,4 +197,8 @@ page {
   color: #999;
   font-size: 28rpx;
 }
+.notice-banner-swiper {
+  margin: 10rpx 0;
+  height: 105rpx;
+}
 </style>

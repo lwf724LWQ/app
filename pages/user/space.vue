@@ -60,12 +60,13 @@ const userAvatar = computed(() => {
 const getUserInfo = async (account) => {
   const res = await apiUserimg({ account });
   userInfo.value = res.data;
+  followStatus.value = res.data.isForllow ? 1 : 0;
 };
 let account;
 const followStatus = ref(0);
 onLoad(async (options) => {
   account = options.account;
-  followStatus.value = Number(options.follow);
+  // followStatus.value = Number(options.follow);
   getUserInfo(account);
   videoList.value = await getVideo(1);
 });

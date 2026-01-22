@@ -2,6 +2,7 @@ import { client, initOSS, uploadForApp } from "./alioss.js";
 import { nanoid } from "nanoid/non-secure";
 import { apiAppversionQuery } from "../api/apis.js";
 import h5wxsdk from "./uniwxsdk/h5.js";
+import { useUserStore } from "../stores/userStore";
 
 const tool = {
   oss: {
@@ -153,7 +154,7 @@ const tool = {
                     url: dowUrl,
                     success: function (res) {
                       uni.hideLoading();
-                      
+
                       console.log("下载成功");
                       plus.runtime.install(
                         res.tempFilePath,
@@ -205,7 +206,7 @@ const tool = {
       // #endif
 
       // #ifdef APP-PLUS
-      
+
       // #endif
     });
   },
@@ -215,9 +216,40 @@ const tool = {
   formatUrlParams(params) {
     return Object.keys(params)
       .filter((key) => params[key] !== null && params[key] !== "")
-      .map((key) => `${key}=${params[key]}`)
+      .map((key) => `${key}=${encodeURIComponent(params[key])}`)
       .join("&");
   },
+  optionsParamsDecode(options) {
+    const newObj = {};
+
+    if (typeof options === 'object') {
+      for (const key in options) {
+        if (Object.prototype.hasOwnProperty.call(options, key)) {
+          newObj[key] = decodeURIComponent(options[key]);
+        }
+      }
+    }
+
+    return newObj;
+  },
+  isLogin(text) {
+    const userStore = useUserStore();
+    if (userStore.getUserInfo.account) {
+      return true;
+    } else {
+      uni.showModal({
+        title: "提示",
+        content: text || "该功能需要登录，是否前往",
+        success: async (res) => {
+          if (res.confirm) {
+            uni.navigateTo({ url: "/pages/login/login" });
+          }
+        },
+        showCancel: true,
+      });
+      return false;
+    }
+  }
 };
 
 export default tool;

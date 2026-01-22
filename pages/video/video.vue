@@ -2,6 +2,7 @@
   <view class="video-page-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 为了适配小程序顶部高度的盒子-->
     <StatusBarPlaceholder v-show="useOldManModeStore.enabled"></StatusBarPlaceholder>
+
     <!-- 图片 -->
     <image
       v-show="useOldManModeStore.enabled"
@@ -87,41 +88,22 @@
 </template>
 
 <script setup>
-import { onPullDownRefresh, onShow } from "@dcloudio/uni-app";
-import { ref, reactive, onMounted, inject } from "vue";
-import {
-  apiGetVideo,
-  apiGetLikelist,
-  apiGetIsLike,
-  apiCheckVideoPayment,
-  apiGetIssueNo,
-} from "../../api/apis";
-import { getToken, getAccount } from "@/utils/request.js"; // 导入setToken，账号
+import { onShow, onPullDownRefresh } from "@dcloudio/uni-app";
+import { ref, onMounted, inject } from "vue";
+import { apiGetIssueNo } from "../../api/apis";
+import { getToken } from "@/utils/request.js"; // 导入setToken，账号
 // 导入 Pinia store
-import { useVideoStore } from "@/stores/video.js";
 const useOldManModeStore = inject("useOldManModeStore");
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
+import { useUserStore } from "@/stores/userStore";
+import VideoList from "@/components/video-list/video-list.vue";
+import StatusBarPlaceholder from "@/components/StatusBarPlaceholder/StatusBarPlaceholder.vue";
 
-// 初始化 store
-const videoStore = useVideoStore();
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
-const pickerOptions = ref(["排列五", "排列三", "七星彩", "福彩3D", "精彩回顾"]);
-const pickerIndex = ref(0);
+const pickerIndex = ref(2);
 
 // 响应式数据
 const currentTab = ref("plw");
-const upcomingTab = ref("plw");
-const currentNav = ref("home");
-const plwNumbers = ref(["8", "6", "8", "5", "7"]);
-const qxcNumbers = ref(["2", "0", "4", "9", "3", "8", "8"]);
-const plwUpcomingIssue = ref("25214期");
-const qxcUpcomingIssue = ref("3225期");
-const upcomingAction = ref("follow");
-
-// 视频列表数据
-const videoList = ref([]);
-//点赞列表数据
-const likeList = ref([]);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
 const lotteryTypes = ref([
@@ -262,230 +244,112 @@ const loadLotteryDataByType = async (lotteryType) => {
   }
 };
 
+const fc3dVideoListRef = ref(null);
+const plsVideoListRef = ref(null);
+const plwVideoListRef = ref(null);
+const qxcVideoListRef = ref(null);
+
+onPullDownRefresh(refreshCurrentTab);
+
+function refreshCurrentTab() {
+  switch (pickerIndex.value) {
+    case 0:
+      fc3dVideoListRef.value.refreshVideoList();
+      break;
+    case 1:
+      plsVideoListRef.value.refreshVideoList();
+      break;
+    case 2:
+      plwVideoListRef.value.refreshVideoList();
+      break;
+    case 3:
+      qxcVideoListRef.value.refreshVideoList();
+      break;
+  }
+}
+
+function swiperChange(e) {
+  switchTabByIndex(e.detail.current);
+}
+
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index) => {
   pickerIndex.value = index;
   switch (index) {
     case 0:
-      currentTab.value = "plw";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "plw") || lotteryTypes.value[0];
+      currentTab.value = "fc";
+      currentLotteryType.value = {
+        id: 12,
+        name: "福彩3D",
+        code: "fc",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
     case 1:
       currentTab.value = "pls";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "pls") || lotteryTypes.value[0];
+      currentLotteryType.value = {
+        id: 16,
+        name: "排列三",
+        code: "pls",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
     case 2:
-      currentTab.value = "qxc";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "qxc") || lotteryTypes.value[0];
+      currentTab.value = "plw";
+      currentLotteryType.value = {
+        id: 17,
+        name: "排列五",
+        code: "plw",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
     case 3:
-      currentTab.value = "fc";
-      currentLotteryType.value =
-        lotteryTypes.value.find((t) => t.code === "fc") || lotteryTypes.value[0];
+      currentTab.value = "qxc";
+      currentLotteryType.value = {
+        id: 15,
+        name: "七星彩",
+        code: "qxc",
+        status: "待开奖",
+        time: "今天 21:30",
+      };
       break;
+
     case 4:
       currentTab.value = "review";
       break;
   }
+  refreshCurrentTab();
 
   // 与论坛相同：切换时请求期号信息
-  if (currentTab.value !== "review") {
-    loadLotteryDataByType(currentLotteryType.value);
-  }
-  // 切换标签时重新获取对应类型的视频列表
-  fetchVideoList();
-};
-
-// 方法
-const switchTab = (tab) => {
-  currentTab.value = tab;
-};
-
-const switchUpcomingTab = (tab) => {
-  upcomingTab.value = tab;
-};
-
-const switchUpcomingAction = (action) => {
-  upcomingAction.value = action;
-  console.log("切换到:", action);
-};
-
-const handleSwiperChange = (e) => {
-  currentTab.value = e.detail.current === 0 ? "plw" : "qxc";
-};
-
-const switchNav = (nav) => {
-  currentNav.value = nav;
-};
-
-// 播放视频方法 - 新增付费检查
-const playVideo = async (video) => {
-  // 检查是否登录
-  const token = getToken();
-  if (!token) {
-    uni.showModal({
-      title: "提示",
-      content: "该操作需要登录，是否前往",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
-
-  // 将当前视频保存到 Pinia store
-  videoStore.setCurrentVideo(video);
-
-  // 如果视频是免费的（price为0或flag为false），直接播放
-  if (!video.flag || video.price === 0) {
-    // 免费视频直接播放
-    uni.navigateTo({
-      url: `/pages/video/play?id=${video.id}`,
-    });
-    return;
-  }
-
-  // 检查视频是否收费
-  try {
-    // 查询用户是否已付费
-    const paymentCheck = await apiCheckVideoPayment({
-      videoId: video.id,
-      account: getAccount(),
-    });
-
-    if (paymentCheck.data) {
-      if (paymentCheck.data) {
-        // 用户已付费，直接播放
-        uni.navigateTo({
-          url: `/pages/video/play?id=${video.id}`,
-        });
-      } else {
-        // 用户未付费，显示付费提示
-        uni.showModal({
-          title: "付费视频",
-          content: `观看此视频需要支付${video.price}金币`,
-          confirmText: "立即支付",
-          cancelText: "取消",
-          success: async (res) => {
-            if (res.confirm) {
-              // 这里调用支付接口
-              await payForVideo(video);
-            }
-          },
-        });
-      }
-    } else {
-      uni.navigateTo({
-        url: `/pages/video/play?id=${video.id}`,
-      });
-    }
-  } catch (error) {
-    uni.showToast({
-      title: error.message || "查询失败",
-      icon: "none",
-    });
-  }
-};
-
-// 支付视频方法
-const payForVideo = async (video) => {
-  try {
-    // 这里调用支付接口
-    // const paymentResult = await apiPayForVideo({...});
-
-    // 支付成功后更新视频状态
-    video.hasPaid = true;
-
-    uni.showToast({
-      title: "支付成功，开始播放",
-      icon: "success",
-    });
-
-    // 播放视频
-    uni.navigateTo({
-      url: `/pages/video/play?id=${video.id}`,
-    });
-  } catch (error) {
-    uni.showToast({
-      title: "支付失败",
-      icon: "none",
-    });
-  }
-};
-
-// 检查视频付费状态
-const checkVideoPaymentStatus = async () => {
-  try {
-    const account = getAccount();
-    if (!account) return;
-
-    // 批量检查视频付费状态
-    const videoIds = videoList.value.map((video) => video.id).filter((id) => id);
-    if (videoIds.length === 0) return;
-
-    const paymentStatus = await apiCheckVideoPayment({
-      videoIds: videoIds.join(","),
-      account: account,
-    });
-
-    if (paymentStatus.success) {
-      // 更新视频付费状态
-      videoList.value.forEach((video) => {
-        const paidVideo = paymentStatus.data.find((item) => item.videoId === video.id);
-        if (paidVideo) {
-          video.hasPaid = paidVideo.hasPaid;
-        }
-      });
-    }
-  } catch (error) {
-    console.error("检查视频付费状态失败:", error);
-  }
-};
-
-//是否点赞
-// 点赞功能
-const toggleLike = async (video) => {
-  try {
-    // 保存原始状态，以便在请求失败时恢复
-    const originalIsLiked = video.isLiked;
-    const originalLikeCount = video.likeCount;
-    // console.log(originalLikeCount)
-
-    // 立即更新UI，提供更好的用户体验
-    video.isLiked = !video.isLiked;
-    video.likeCount = video.isLiked ? video.likeCount + 1 : video.likeCount - 1;
-
-    // 调用点赞API
-    console.log(video, "====过来的数据=====");
-    const response = await apiGetIsLike(video);
-    console.log("点赞操作成功");
-
-    const a = await apiGetLikelist(getAccount());
-
-    console.log(a);
-  } catch (error) {
-    console.error("点赞操作失败:", error);
-
-    // 恢复原始状态
-    video.isLiked = originalIsLiked;
-    video.likeCount = originalLikeCount;
-
-    uni.showToast({
-      title: "操作失败，请重试",
-      icon: "none",
-    });
-  }
+  // if (currentTab.value !== "review") {
+  //   loadLotteryDataByType(currentLotteryType.value);
+  // }
+  // 切换标签时重置并获取对应类型的视频列表
+  // await fetchVideoList(1); // 重置到第一页
 };
 
 const gotoOss = () => {
   // 判断当前有没有登录
   if (getToken()) {
+    // 判断当前用户是否是为博主
+    const userStore = useUserStore();
+    if (userStore.getUserInfo.agent == 0) {
+      uni.showModal({
+        title: "提示",
+        content: "目前不是博主身份，请先联系管理员注册成为博主",
+        confirmText: "去联系管理员",
+        success: async (res) => {
+          if (res.confirm) {
+            uni.navigateTo({ url: "/pages/share/wxchat" });
+          }
+        },
+      });
+      return;
+    }
+
     // 传递当前彩票类型名称（tname）到 oss.vue
     let url = `/pages/video/oss`;
     if (currentLotteryType.value && currentLotteryType.value.name) {
@@ -508,8 +372,10 @@ const gotoOss = () => {
   }
 };
 
+const isShowPublishBtn = ref(false);
+
 onShow(async () => {
-  fetchVideoList();
+  refreshCurrentTab();
 });
 
 // 生命周期钩子
@@ -520,125 +386,10 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.old-man-mode {
-  .video-title {
-    font-size: 30rpx;
-    font-weight: 600;
-    color: #333;
-    line-height: 1.3;
-    text-align: center;
-    margin: 12rpx 0 8rpx;
-    padding: 0 15rpx;
-
-    background-image: linear-gradient(180deg, #58db8e, #1abc9c);
-  }
-
-  .video-free {
-    font-size: 40rpx;
-    color: #27ae60;
-    font-weight: bold;
-    padding: 4rpx 12rpx;
-    background-color: #e8f6ef;
-    border-radius: 12rpx;
-  }
-
-  .video-info {
-    margin: 10rpx 0;
-    text-align: center;
-  }
-
-  .video-price {
-    font-size: 40rpx;
-    color: #e74c3c;
-    font-weight: bold;
-    padding: 4rpx 12rpx;
-    background-color: #ffeaea;
-    border-radius: 12rpx;
-  }
-
-  .tab-text {
-    font-size: 40rpx;
-    font-weight: bold;
-  }
-
-  .title {
-    display: block;
-    flex: 0 0 calc(50% - 30px);
-    width: 100%;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.95);
-    border: 4rpx solid rgba(85, 255, 255, 0.9);
-  }
-
-  .video-image {
-    flex: 1 1 calc(50% - 30px);
-    width: 100%;
-    height: 80px;
-    /* 设置固定高度 */
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    object-fit: cover;
-    /* 确保图片填充整个容器 */
-    cursor: pointer;
-    /* 添加指针样式，表示可点击 */
-  }
-}
-
-.area {
-  padding: 10rpx;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  /* 两列等宽 */
-  gap: 10rpx;
-  /* 间距 */
-}
-
-.video-page-container:not(.old-man-mode) {
-  .title {
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-    font-size: 26rpx;
-    padding-bottom: 20rpx;
-
-    .video-image {
-      width: 100%;
-      height: 200rpx;
-    }
-
-    .video-title {
-      padding: 10rpx 20rpx 5rpx 20rpx;
-    }
-
-    .video-info {
-      padding: 5rpx 20rpx;
-
-      > text {
-        padding: 5rpx;
-        border-radius: 6rpx;
-        color: #fff;
-        font-size: 22rpx;
-      }
-
-      .video-price {
-        background-color: #e74c3c;
-      }
-
-      .video-free {
-        background-color: #2ecc71;
-      }
-    }
-  }
-
-  .switch-tabs {
-    padding-top: var(--status-bar-height);
-  }
-}
-
-.video-page-container.old-man-mode {
-  min-height: 100vh;
-  font-weight: bold;
+// 公共样式
+.photo {
+  width: 100%;
+  height: 90px;
 }
 
 .current-lottery-type {
@@ -653,11 +404,6 @@ onMounted(async () => {
 .current-lottery-type text {
   display: block;
   margin: 5rpx 0;
-}
-
-.photo {
-  width: 100%;
-  height: 90px;
 }
 
 /* 头部容器 - 水平排列 */
@@ -721,6 +467,7 @@ onMounted(async () => {
   background-color: #fff;
   z-index: 10;
   display: flex;
+  padding-top: var(--status-bar-height);
 }
 
 .tab-item {
@@ -731,6 +478,7 @@ onMounted(async () => {
   position: relative;
   border-bottom: 4rpx solid transparent;
   transition: all 0.2s ease;
+  font-weight: bold;
 }
 
 .tab-item.active {
@@ -739,9 +487,8 @@ onMounted(async () => {
 
 .tab-text {
   color: #000000;
-
-  font-weight: lighter;
-  font-size: 32rpx;
+  font-weight: bold;
+  font-size: 36rpx;
 }
 
 .tab-item.active .tab-text {
@@ -803,9 +550,6 @@ onMounted(async () => {
   background-color: #b3d35a;
   border-radius: 50%;
   padding: 10rpx;
-  // display: flex;
-  // align-items: center;
-  // justify-content: center;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
   z-index: 999;
@@ -823,4 +567,126 @@ onMounted(async () => {
     margin-top: 50rpx;
   }
 }
+
+// 非old-man-mode样式 :not(.old-man-mode)
+.video-page-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh + 90px + var(--status-bar-height));
+  overflow: hidden;
+  .title {
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+    font-size: 26rpx;
+    padding-bottom: 20rpx;
+
+    display: flex;
+    flex-direction: column;
+
+    .video-image {
+      width: 100%;
+      height: 200rpx;
+    }
+
+    .video-title {
+      padding: 10rpx 20rpx 5rpx 20rpx;
+      flex: 1;
+    }
+
+    .video-info {
+      padding: 5rpx 20rpx;
+
+      > text {
+        padding: 5rpx;
+        border-radius: 6rpx;
+        color: #fff;
+        font-size: 22rpx;
+      }
+
+      .video-price {
+        background-color: #e74c3c;
+      }
+
+      .video-free {
+        background-color: #2ecc71;
+      }
+    }
+  }
+}
+
+.video-swiper {
+  height: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+// old-man-mode样式
+// .old-man-mode {
+//   min-height: 100vh;
+//   font-weight: bold;
+
+//   .video-title {
+//     font-size: 30rpx;
+//     font-weight: 600;
+//     color: #333;
+//     line-height: 1.3;
+//     text-align: center;
+//     margin: 12rpx 0 8rpx;
+//     padding: 0 15rpx;
+
+//     background-image: linear-gradient(180deg, #58db8e, #1abc9c);
+//   }
+
+//   .video-free {
+//     font-size: 40rpx;
+//     color: #27ae60;
+//     font-weight: bold;
+//     padding: 4rpx 12rpx;
+//     background-color: #e8f6ef;
+//     border-radius: 12rpx;
+//   }
+
+//   .video-info {
+//     margin: 10rpx 0;
+//     text-align: center;
+//   }
+
+//   .video-price {
+//     font-size: 40rpx;
+//     color: #e74c3c;
+//     font-weight: bold;
+//     padding: 4rpx 12rpx;
+//     background-color: #ffeaea;
+//     border-radius: 12rpx;
+//   }
+
+//   .tab-text {
+//     font-size: 40rpx;
+//     font-weight: bold;
+//   }
+
+//   .title {
+//     display: block;
+//     flex: 0 0 calc(50% - 30px);
+//     width: 100%;
+//     text-align: center;
+//     background: rgba(255, 255, 255, 0.95);
+//     border: 4rpx solid rgba(85, 255, 255, 0.9);
+//   }
+
+//   .video-image {
+//     flex: 1 1 calc(50% - 30px);
+//     width: 100%;
+//     height: 80px;
+//     /* 设置固定高度 */
+//     background: rgba(255, 255, 255, 0.95);
+//     border-radius: 16px;
+//     overflow: hidden;
+//     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+//     transition: transform 0.3s ease, box-shadow 0.3s ease;
+//     object-fit: cover;
+//     /* 确保图片填充整个容器 */
+//     cursor: pointer;
+//     /* 添加指针样式，表示可点击 */
+//   }
+// }
 </style>

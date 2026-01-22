@@ -1,29 +1,18 @@
 <template>
   <view class="publish-container">
     <!-- 导航栏 -->
-    <TopNavigationBar
-      title="预测"
-      bgColor="#28b389"
-      color="#fff"
-      @back="handlePageBack"
-    />
+    <TopNavigationBar title="预测" bgColor="#28b389" color="#fff" @back="handlePageBack" />
 
     <!-- 主要内容区域 -->
     <scroll-view class="main-content" scroll-y>
       <!-- 我的方案标题 -->
       <view class="title-section">
-        <text class="title-text">{{
-          isAppendMode ? "追加方案" : "我的方案"
-        }}</text>
+        <text class="title-text">{{ isAppendMode ? "追加方案" : "我的方案" }}</text>
       </view>
 
       <!-- 方案列表 -->
       <view class="scheme-list">
-        <view
-          class="scheme-item"
-          v-for="(scheme, index) in schemes"
-          :key="index"
-        >
+        <view class="scheme-item" v-for="(scheme, index) in schemes" :key="index">
           <view class="scheme-content">
             <view class="scheme-header">
               <text class="scheme-name">{{ scheme[0] }}</text>
@@ -37,12 +26,8 @@
                   :key="index"
                 >
                   <text>{{ info[0] }}：</text>
-                  <text
-                    >{{ postTool.numberFormat(info[1].numbers, info[0]) }}
-                  </text>
-                  <text v-if="info[1].mainAttack">
-                    主攻{{ info[1].mainAttack }}
-                  </text>
+                  <text>{{ postTool.numberFormat(info[1].numbers, info[0]) }}</text>
+                  <text v-if="info[1].mainAttack">主攻{{ info[1].mainAttack }}</text>
                 </view>
               </view>
             </view>
@@ -57,10 +42,8 @@
 
       <!-- 期号信息 -->
       <view class="period-info">
-        <text class="period-text"
-          >{{ lotteryType ? lotteryType.name : "彩票类型" }} 第{{
-            getIssueNumber()
-          }}期
+        <text class="period-text">
+          {{ lotteryType ? lotteryType.name : "彩票类型" }} 第{{ getIssueNumber() }}期
         </text>
         <text class="period-status">{{ issueInfo.status }}</text>
       </view>
@@ -81,24 +64,14 @@
     <view class="bottom-section">
       <!-- 警告信息 -->
       <view class="warning-section">
-        <text class="warning-text" v-if="isAppendMode"
-          >追帖模式：追加内容到已发布的帖子</text
-        >
-        <text class="warning-text" v-else>
-          注:帖子一旦发布,将不能进行修改或删除操作
-        </text>
+        <text class="warning-text" v-if="isAppendMode">追帖模式：追加内容到已发布的帖子</text>
+        <text class="warning-text" v-else>注:帖子一旦发布,将不能进行修改或删除操作</text>
       </view>
 
       <!-- 操作按钮 -->
       <view class="action-buttons">
         <button class="modify-btn" @click="modifyScheme">修改</button>
-        <button
-          class="publish-btn"
-          v-if="isAppendMode"
-          @click="handleAppendPost"
-        >
-          追加发帖
-        </button>
+        <button class="publish-btn" v-if="isAppendMode" @click="handleAppendPost">追加发帖</button>
         <button class="publish-btn" v-else @click="publishScheme">发布</button>
       </view>
     </view>
@@ -115,16 +88,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { getAccount } from "@/utils/request.js";
-import {
-  apiPost,
-  apiGetIssueNo,
-  apiPostUpdate,
-  apiPostListQuery,
-} from "@/api/apis.js";
+import { apiPost, apiGetIssueNo, apiPostUpdate, apiPostListQuery } from "@/api/apis.js";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import postTool from "./post-tool";
 import { onLoad } from "@dcloudio/uni-app";
 import moment from "moment";
+import tool from "@/utils/tool.js";
 
 // 方案数据
 const schemes = ref([]);
@@ -327,23 +296,15 @@ const loadIssueInfo = async () => {
 
     // uni.hideLoading();
 
-    if (
-      response.code === 200 &&
-      response.data !== null &&
-      response.data !== undefined
-    ) {
+    if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
       let issueStatus = "待开奖";
       let issueTime = "今天 21:30";
 
-      if (
-        typeof response.data === "number" ||
-        typeof response.data === "string"
-      ) {
+      if (typeof response.data === "number" || typeof response.data === "string") {
         issueNumber = response.data.toString();
       } else if (typeof response.data === "object") {
-        issueNumber =
-          response.data.issueno || response.data.number || response.data.id;
+        issueNumber = response.data.issueno || response.data.number || response.data.id;
         issueStatus = response.data.status || "待开奖";
         issueTime = response.data.time || "今天 21:30";
       }
@@ -391,6 +352,8 @@ const handlePageBack = (event) => {
   });
 };
 onLoad(async (options) => {
+  options = tool.optionsParamsDecode(options);
+
   if (!options.lotteryType) {
     uni.reLaunch({ url: "/pages/forum/forum" });
     return;
@@ -408,7 +371,7 @@ onLoad(async (options) => {
   // 检查是否有帖子ID（用于追帖功能）
   if (options.id) {
     postId.value = options.id;
-    console.log("接收到帖子ID，进入追帖模式:", options.postId);
+    console.log("接收到帖子ID，进入追帖模式:", options.id);
 
     // 进入追帖模式，隐藏发帖相关功能
     isAppendMode.value = true;
@@ -418,12 +381,7 @@ onLoad(async (options) => {
     originalContent.value = appendPostData.postContent;
   }
 
-  console.log(
-    "最终状态 - 帖子ID:",
-    postId.value,
-    "追帖模式:",
-    isAppendMode.value
-  );
+  console.log("最终状态 - 帖子ID:", postId.value, "追帖模式:", isAppendMode.value);
   schemes.value = await postTool.loadSchemesData();
 });
 </script>

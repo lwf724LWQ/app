@@ -42,7 +42,7 @@
         </label>
         <label class="payment-method">
           <radio value="1" :checked="orderData.payType === 1" />
-          <text class="method-text">账户余额</text>
+          <text class="method-text">账户余额（{{ Gold }}金币）</text>
         </label>
       </radio-group>
     </view>
@@ -128,8 +128,9 @@ const orderData = ref({
   channel: 1, // 默认微信小程序
 });
 
+const Gold = ref(0);
 // 获取路由参数
-onLoad((options) => {
+onLoad(async (options) => {
   // 从路由参数中获取订单数据
   if (options.info) orderData.value.info = decodeURIComponent(options.info);
   if (options.amount) orderData.value.amount = options.amount;
@@ -143,7 +144,19 @@ onLoad((options) => {
   if (!orderData.value.account) {
     orderData.value.account = getAccount();
   }
+
+  Gold.value = await GetUserBalance();
+  if (Gold.value >= orderData.value.amount) {
+    orderData.value.payType = 1;
+  }
 });
+
+async function GetUserBalance() {
+  const res = await apiGetUserBalance({
+    account: getAccount(),
+  });
+  return res.data.gold;
+}
 
 // 获取订单类型文本
 const getOrderTypeText = (type) => {
@@ -191,9 +204,6 @@ const handlePayment = () => {
   });
 };
 const processPayment = async () => {
-  uni.showLoading({
-    title: "处理中...",
-  });
   // 准备充值数据
   const rechargeData = {
     info: `付费${orderData.value.amount.toString()}元观看视频:` + orderData.value.info,

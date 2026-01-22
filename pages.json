@@ -271,6 +271,13 @@
       }
     },
     {
+      "path": "pages/user/video-list",
+      "style": {
+        "navigationBarTitleText": "视频列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/forum/post/created-scheme",
       "style": {
         "navigationBarTitleText": "创建方案",
@@ -313,10 +320,70 @@
       }
     },
     {
+      "path": "pages/share/wxchat",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/index/searchUser",
       "style": {
         "navigationBarTitleText": "",
         "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-page/activity-page",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/activity-page/activity-dowapp",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/my-income",
+      "style": {
+        "navigationBarTitleText": "我的收益",
+        "navigationBarBackgroundColor": "#ff401c",
+        "navigationBarTextStyle": "white",
+        "app-plus": {
+          "titleNView": {
+            "buttons": [
+              {
+                "text": "绑定银行卡",
+                "type": "none",
+                "color": "white",
+                "fontSize": "16px",
+                "width": "auto"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "path": "pages/user/bank-card",
+      "style": {
+        "navigationBarTitleText": "银行卡"
+      }
+    },
+    {
+      "path": "pages/user/withdraw-record",
+      "style": {
+        "navigationBarTitleText": "提现记录"
+      }
+    },
+    {
+      "path": "pages/user/income-record",
+      "style": {
+        "navigationBarTitleText": "收益记录"
       }
     }
   ],
@@ -325,7 +392,7 @@
     "navigationBarTitleText": "咸虾米壁纸",
     "navigationBarBackgroundColor": "#fff",
     "backgroundColor": "#F8F8F8",
-	"pageOrientation": "auto",
+    "pageOrientation": "auto",
     "bounce": "none"
   },
   "tabBar": {

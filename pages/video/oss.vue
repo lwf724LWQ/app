@@ -4,28 +4,20 @@
 
     <!-- 视频信息表单 -->
     <view class="form-area">
-      <view class="form-item">
+      <!-- <view class="form-item">
         <text class="form-label">视频标题</text>
-        <input
-          class="form-input"
-          v-model="videoTitle"
-          placeholder="请输入视频标题"
-        />
-      </view>
+        <input class="form-input" v-model="videoTitle" placeholder="请输入视频标题" />
+      </view> -->
 
       <view class="form-item">
         <text class="form-label">是否收费</text>
         <view class="radio-group">
           <label class="radio-label">
-            <radio value="1" :checked="isCharge === 1" @click="isCharge = 1"
-              >免费</radio
-            >
+            <radio value="1" :checked="isCharge === 1" @click="setIsCharge(1)">免费</radio>
           </label>
 
           <label class="radio-label">
-            <radio value="2" :checked="isCharge === 2" @click="isCharge = 2"
-              >收费</radio
-            >
+            <radio value="2" :checked="isCharge === 2" @click="setIsCharge(2)">收费</radio>
           </label>
         </view>
       </view>
@@ -40,17 +32,12 @@
 
     <!-- 视频上传区域 -->
     <view class="upload-area" @click="chooseFile">
-      <video
-        v-if="selectedVideoUrl"
-        :src="selectedVideoUrl"
-        class="video-preview"
-        controls
-      ></video>
+      <video v-if="selectedVideoUrl" :src="selectedVideoUrl" class="video-preview" controls></video>
       <view v-if="selectedVideoName" class="video-info">
         <text class="video-name">{{ selectedVideoName }}</text>
-        <text class="video-size" v-if="selectedVideoSize">{{
-          formatFileSize(selectedVideoSize)
-        }}</text>
+        <text class="video-size" v-if="selectedVideoSize">
+          {{ formatFileSize(selectedVideoSize) }}
+        </text>
       </view>
       <view v-else class="upload-placeholder">
         <uni-icons name="plus" size="50" color="#3498db"></uni-icons>
@@ -83,26 +70,14 @@
 
     <!-- 操作按钮 -->
     <view class="action-buttons">
-      <button type="primary" @click="startUpload" :disabled="isUploading">
-        开始上传
-      </button>
-      <button
-        type="default"
-        @click="clearFiles"
-        :disabled="fileList.length === 0"
-      >
-        清空文件
-      </button>
+      <button type="primary" @click="startUpload" :disabled="isUploading">开始上传</button>
+      <button type="default" @click="clearFiles" :disabled="fileList.length === 0">清空文件</button>
     </view>
 
     <!-- 上传结果 -->
     <view class="result-area" v-if="uploadResults.length > 0">
       <view class="file-list">
-        <view
-          v-for="(result, index) in uploadResults"
-          :key="index"
-          class="file-item"
-        >
+        <view v-for="(result, index) in uploadResults" :key="index" class="file-item">
           <view class="file-icon">
             <uni-icons name="file" size="24" color="#409eff"></uni-icons>
           </view>
@@ -128,6 +103,9 @@ import { getAccount } from "@/utils/request.js";
 
 import NumberInput from "../../components/number-input.vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
+import { useUserStore } from "@/stores/userStore";
+
+import dayjs from "dayjs";
 // 接收从 video.vue 传递的 tname 参数
 const routeParams = ref({
   tname: "",
@@ -135,6 +113,7 @@ const routeParams = ref({
 
 // 页面加载时接收参数
 onLoad((options) => {
+  options = tool.optionsParamsDecode(options);
   if (options.tname) {
     routeParams.value.tname = decodeURIComponent(options.tname);
   }
@@ -142,18 +121,23 @@ onLoad((options) => {
   apiUserimg({
     account: getAccount(),
   }).then((res) => {
-    videoTitle.value = `${res.data.uname}于${getCurrentDate()}上传的视频`;
-    coverFile.value = res.data.himg ? `himg/${res.data.himg}` : 'himg/user.png';
+    coverFile.value = res.data.himg ? `himg/${res.data.himg}` : "himg/user.png";
   });
+
+  setVideo();
 });
 
-function getCurrentDate() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0"); // 月份从0开始，所以需要+1
-  const day = String(today.getDate()).padStart(2, "0");
+function setIsCharge(value) {
+  isCharge.value = value;
+  setVideo();
+}
 
-  return `${year}-${month}-${day}`;
+function setVideo() {
+  const userStore = useUserStore();
+  videoTitle.value = `${userStore.getUserInfo?.nickname || " "} - ${dayjs().format("MM月DD日")}第${
+    isCharge.value
+  }`;
+  console.log(videoTitle.value);
 }
 
 //导航栏
@@ -260,10 +244,7 @@ const startUpload = async () => {
     return;
   }
 
-  if (
-    isCharge.value === 2 &&
-    (!chargePrice.value || Number(chargePrice.value) <= 0)
-  ) {
+  if (isCharge.value === 2 && (!chargePrice.value || Number(chargePrice.value) <= 0)) {
     statusMessage.value = "请输入有效的收费价格";
     statusClass.value = "status-error";
     return;
@@ -359,14 +340,71 @@ const startUpload = async () => {
         coverUrl: coverUrl,
       });
 
-      statusMessage.value = `文件"${
-        fileItem.name || selectedVideoName.value
-      }"上传成功`;
+      statusMessage.value = `文件"${fileItem.name || selectedVideoName.value}"上传成功`;
       statusClass.value = "status-success";
 
       // 如果是付费视频，保存数据并跳转到表单页面
-      // 免费视频：重置表单
-      videoTitle.value = "";
+      if (isCharge.value === 2 && submitResult.code === 200) {
+        // 从 video.vue 的本地存储获取期号和彩票类型
+        // let issueno = "";
+        // let tname = "";
+        // let opendate = "";
+
+        try {
+          // const currentIssueInfo = uni.getStorageSync("currentIssueInfo");
+          // const currentLotteryType = uni.getStorageSync("currentLotteryType");
+          // if (currentIssueInfo && currentIssueInfo.number) {
+          //   issueno = currentIssueInfo.number;
+          // }
+          // if (currentLotteryType && currentLotteryType.name) {
+          //   tname = currentLotteryType.name;
+          // }
+          // 开奖日期：如果没有，使用今天的日期
+          // const today = new Date();
+          // const year = today.getFullYear();
+          // const month = String(today.getMonth() + 1).padStart(2, "0");
+          // const day = String(today.getDate()).padStart(2, "0");
+          // opendate = `${year}-${month}-${day}`;
+        } catch (error) {
+          // 静默处理错误
+        }
+
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          const paramStr = tool.formatUrlParams({
+            videoId: submitResult.data,
+            tname: tname,
+          });
+
+          // 通过 URL 参数传递 videoId（作为备用）
+          let url = `/pages/video/biaodan?${paramStr}`;
+
+          uni.redirectTo({
+            url: url,
+            success: () => {
+              // 重置表单
+              videoTitle.value = "";
+              isCharge.value = 1;
+              chargePrice.value = "";
+              coverImage.value = "";
+              coverFile.value = null;
+              selectedVideoUrl.value = "";
+              selectedVideoName.value = "";
+              selectedVideoSize.value = 0;
+              fileList.value = [];
+              uploadResults.value = [];
+            },
+            fail: () => {
+              uni.showToast({
+                title: "跳转失败",
+                icon: "none",
+              });
+            },
+          });
+        }, 1500);
+      } else {
+        // 免费视频：重置表单
+        videoTitle.value = "";
         isCharge.value = 1;
         chargePrice.value = "";
         coverImage.value = "";
@@ -380,9 +418,9 @@ const startUpload = async () => {
           goBack();
         }, 1500);
     } catch (error) {
-      statusMessage.value = `文件"${
-        fileItem.name || selectedVideoName.value || "视频"
-      }"上传失败: ${error.message}`;
+      statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || "视频"}"上传失败: ${
+        error.message
+      }`;
       statusClass.value = "status-error";
     }
     isUploading.value = false;

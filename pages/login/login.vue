@@ -78,9 +78,9 @@
       <!-- 链接区域 -->
       <view class="links-section">
         <text class="register-link" @click="goToReg">还没账户?去注册</text>
-        <text class="forgot-link" @click="swLoginMode">{{
-          loginMode === "sms-code" ? "使用密码登录" : "使用验证码登录"
-        }}</text>
+        <text class="forgot-link" @click="swLoginMode">
+          {{ loginMode === "sms-code" ? "使用密码登录" : "使用验证码登录" }}
+        </text>
         <text class="forgot-link" @click="goForgetPwdPage1">忘记密码</text>
       </view>
 
@@ -92,28 +92,20 @@
       <!-- 用户协议 -->
       <view class="agreement-section">
         <view class="checkbox-container">
-          <view
-            class="checkbox"
-            :class="{ checked: isAgreed }"
-            @click="toggleAgreement"
-          >
+          <view class="checkbox" :class="{ checked: isAgreed }" @click="toggleAgreement">
             <text class="checkmark" v-if="isAgreed">✓</text>
           </view>
           <text class="agreement-text">
             我已阅读并同意
-            <text class="link-text" @click="showUserAgreement"
-              >《用户协议》</text
-            >
+            <text class="link-text" @click="showUserAgreement">《用户协议》</text>
             和
-            <text class="link-text" @click="showPrivacyPolicy"
-              >《隐私授权》</text
-            >
+            <text class="link-text" @click="showPrivacyPolicy">《隐私授权》</text>
           </text>
         </view>
       </view>
 
       <!-- 第三方登录分隔线 -->
-<!--      <view class="divider">
+      <!--      <view class="divider">
         <view class="divider-line"></view>
         <text class="divider-text">第三方账号登录</text>
         <view class="divider-line"></view>
@@ -157,7 +149,7 @@ const privacyPopupRef = ref(null);
 const account = ref("");
 const password = ref("");
 const code = ref("");
-const isAgreed = ref(false);
+const isAgreed = ref(true);
 const showPassword = ref(false);
 
 // 切换登录方式
@@ -271,10 +263,9 @@ const handleAgree = async () => {
     };
     const success = await apilogin(loginData);
 
-    // #ifdef APP-PLUS
     uni.setStorageSync("account", account.value);
     uni.setStorageSync("password", password.value);
-    // #endif
+
     // 隐藏加载提示
     uni.hideLoading();
 
@@ -294,12 +285,12 @@ const handleAgree = async () => {
 
       // 从登录返回的数据中提取用户信息
       const loginData = success.data || {};
-
       // 保存用户信息到本地存储
       const userInfo = {
         nickname: loginData.uname || "用户",
         avatar: loginData.himg,
         account: account.value,
+        agent: loginData.agent || 0,
       };
       userStore.updateUserInfo(userInfo, success.data.token);
       console.log("登录成功，用户信息已保存:", userInfo);

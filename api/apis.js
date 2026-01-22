@@ -132,6 +132,11 @@ export function apiUserimg(data) {
   return request({
     url: "/web/user/find_info",
     data,
+  }).then((res) => {
+    if (res?.data) {
+      return { ...res, data: { ...res.data, ...res.data.user, isForllow: res.data.flag } };
+    }
+    return res;
   });
 }
 //余额支付
@@ -489,7 +494,86 @@ export const sendReport = ({ title, content, rpid, type }) => {
     url: "/web/report/insert",
     method: "POST",
     data: {
-      title, content, rpid, type
+      title,
+      content,
+      rpid,
+      type,
     },
+  });
+};
+
+// 查询用户银行卡列表
+export const getUserBankListApi = () => {
+  return request({
+    url: "/web/bank/query",
+    method: "GET",
+  });
+};
+
+// 添加银行卡
+export const addBankCardApi = ({ bankNo, bname, uname }) => {
+  return request({
+    url: "/web/bank/insert",
+    method: "POST",
+    data: { bankNo, bname, uname },
+  });
+};
+
+// 删除银行卡
+export const deleteBankCardApi = (bid) => {
+  return request({
+    url: "/web/bank/delete?id=" + bid,
+    method: "GET",
+  });
+};
+
+// 提现
+export const withdrawApi = ({ amount, bankNo, bname, uname }) => {
+  return request({
+    url: "/web/withdraw/insert",
+    method: "POST",
+    data: { amount, bankNo, bname, uname },
+  });
+};
+
+// 查询提现记录
+export const getWithdrawListApi = (page, limit) => {
+  return request({
+    url: `/web/withdraw/query?page=${page}&limit=${limit}`,
+    method: "GET",
+  });
+};
+
+// 获取收益记录
+export const getIncomeListApi = (page, limit) => {
+  return request({
+    url: `/web/withdraw/find_income?page=${page}&limit=${limit}`,
+    method: "GET",
+  });
+};
+
+export const vcodeConfiont = (account, vcode) => {
+  return request({
+    url: "/web/vcode/insert",
+    method: "POST",
+    data: {
+      account,
+      vcode,
+    },
+  });
+};
+
+export const delVideo = (id) => {
+  return request({
+    url: "/web/video/delete?id=" + id,
+    method: "GET",
+  });
+};
+
+export const post_select_by_follow = (data) => {
+  return request({
+    url: "/web/post/select_by_follow",
+    method: "POST",
+    data,
   });
 };

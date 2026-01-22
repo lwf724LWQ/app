@@ -19,19 +19,13 @@
               :class="x == 'X' ? 'tag-color-x' : 'tag-color-a'"
               v-for="x in tag.name"
               :key="x"
-              >{{ x }}</span
             >
+              {{ x }}
+            </span>
           </text>
-          <view
-            class="tag-isInScheme-icon isInScheme"
-            v-if="isInScheme(tag.name)"
-            ><uni-icons
-              class="tag-icon"
-              type="checkmarkempty"
-              size="10"
-              color="#fff"
-            ></uni-icons
-          ></view>
+          <view class="tag-isInScheme-icon isInScheme" v-if="isInScheme(tag.name)">
+            <uni-icons class="tag-icon" type="checkmarkempty" size="10" color="#fff"></uni-icons>
+          </view>
         </view>
       </scroll-view>
     </view>
@@ -41,15 +35,8 @@
       <scroll-view class="tags-scroll" scroll-y :show-scrollbar="false">
         <!-- 根据标签类型显示对应的位数 -->
         <view class="digit-sections">
-          <template
-            v-for="name in activeTag.positions"
-            :key="`${activeTag.name}-${name}`"
-          >
-            <numSelected
-              :name="name"
-              :maxNum="activeTag.maxNum"
-              v-model="selectedNumbers[name]"
-            />
+          <template v-for="name in activeTag.positions" :key="`${activeTag.name}-${name}`">
+            <numSelected :name="name" :maxNum="activeTag.maxNum" v-model="selectedNumbers[name]" />
           </template>
         </view>
 
@@ -93,6 +80,8 @@ const lotteryType = ref("");
 const isLoadCompner = ref(false);
 const from = ref("");
 onLoad(async (options) => {
+  options = tool.optionsParamsDecode(options);
+
   lotteryType.value = options.lotteryType;
   from.value = options.from || "";
 
@@ -102,13 +91,17 @@ onLoad(async (options) => {
   if (!options.id) {
     uni.setStorageSync("postContent", "");
   }
-
   try {
     const postData = await postTool.getTodayNewPost(lotteryType.value);
     const content = uni.getStorageSync("postContent") || postData?.content;
     const postid = options.id || postData?.id;
     if (content) {
       // 追贴
+      uni.showModal({
+        title: "提示",
+        content: "您本期已经发布过帖子了,目前为追贴模式，新增的内容将作为补充添加到本期帖子中！",
+        showCancel: false,
+      });
       id.value = postid;
 
       disabledTag.value = tags.value
@@ -121,9 +114,7 @@ onLoad(async (options) => {
     }
 
     // 默认选中第一个没有被禁用的标签
-    activeTag.value = tags.value.filter(
-      (tag) => !disabledTag.value.includes(tag.name)
-    )[0];
+    activeTag.value = tags.value.filter((tag) => !disabledTag.value.includes(tag.name))[0];
 
     const schemeData = postTool.loadSchemesData();
     schemeData.forEach(([tagName, tagData]) => {
@@ -259,9 +250,7 @@ const selectedNumbersDisplay = computed(() => {
     const { numbers, mainAttack } = item;
     if (numbers.length > 0) {
       result.push(
-        `${position}: ${numbers.join(",")} ${
-          mainAttack ? ` 主攻：(${mainAttack})` : ""
-        }`
+        `${position}: ${numbers.join(",")} ${mainAttack ? ` 主攻：(${mainAttack})` : ""}`
       );
     }
   });
@@ -284,9 +273,7 @@ function dataIsGood(scheme) {
       return true;
     }
     if (["任选二", "任选三"].includes(position)) {
-      return item.numbers.find(
-        (item) => item.length != { 任选二: 2, 任选三: 3 }[position]
-      );
+      return item.numbers.find((item) => item.length != { 任选二: 2, 任选三: 3 }[position]);
     }
   });
 }

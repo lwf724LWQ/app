@@ -25,10 +25,11 @@
           controls="true"
           autoplay="false"
           show-fullscreen-btn="true"
-          object-fit="cover"
+          object-fit="contain"
           class="video-player"
           :class="{ 'video-full-screen': isFullScreen }"
           id="videoPlayer"
+          direction="0"
           @play="onVideoPlay"
           @pause="onVideoPause"
           @ended="onVideoEnded"
@@ -42,7 +43,11 @@
         <!-- 播放按钮遮罩层 -->
         <view class="play-overlay" v-if="showPlayButton && !hasPaid" @click="playVideo">
           <view class="play-button">
-            <uni-icons type="videocam" size="60" color="#fff"></uni-icons>
+            <uni-icons
+              :type="videoData.price > 0 ? 'locked' : 'videocam'"
+              size="60"
+              color="#fff"
+            ></uni-icons>
           </view>
         </view>
 
@@ -53,7 +58,7 @@
           @click="handleBuyClick"
         >
           <view class="buy-button">
-            <view class="buy-text">¥{{ videoData.price }}购买</view>
+            <view class="buy-text">¥{{ videoData.price }}去付款</view>
           </view>
         </view>
       </view>
@@ -88,7 +93,7 @@
       <view class="interaction-bar">
         <view class="reward-interaction" @click="goToRewardPage">
           <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
-          <text class="interaction-text">打赏 0</text>
+          <text class="interaction-text">打赏</text>
         </view>
         <view
           class="like-interaction"
@@ -749,9 +754,9 @@ const toggleLike = async () => {
 };
 
 function toUserSpace() {
-  // uni.navigateTo({
-  // 	url: '/pages/user/space?id='
-  // });
+  uni.navigateTo({
+    url: `/pages/user/space?account=${videoData.value.account}&follow=${followStatus.value}`,
+  });
 }
 
 const reportPopupRef = ref(null);
@@ -774,12 +779,14 @@ function handleReport(postId) {
     id: postId,
   });
 }
+function reportSubmitted() {
+  uni.navigateBack();
+}
 </script>
 
 <style lang="scss" scoped>
-.container.old-man-mode {
-  background-color: #f5f5f5;
-  font-weight: bold;
+/* 基础样式 - 适用于所有模式 */
+.container {
   padding-top: var(--status-bar-height);
 
   .wrapper {
@@ -791,8 +798,6 @@ function handleReport(postId) {
 
   .navbar {
     height: 44px;
-    background-color: #1677ff;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -812,13 +817,12 @@ function handleReport(postId) {
   }
 
   .navbar-left .uni-icons {
-    color: #fff !important;
     font-size: 22px !important;
   }
 
   .navbar-title {
     width: 500rpx;
-    font-size: 48rpx;
+    font-size: 28rpx;
     font-weight: 500;
     text-align: center;
     position: absolute;
@@ -842,7 +846,7 @@ function handleReport(postId) {
 
   .video-player {
     width: 100%;
-    height: 100%;
+    height: 300px;
   }
 
   .video-full-screen {
@@ -884,377 +888,25 @@ function handleReport(postId) {
   /* 购买按钮遮罩 */
   .buy-overlay {
     position: absolute;
-    bottom: 30rpx;
-    right: 30rpx;
+    left: 40rpx;
+    right: 40rpx;
+    bottom: 100rpx;
     z-index: 11;
   }
 
   .buy-button {
     background-color: #ff9500;
     padding: 12rpx 24rpx;
-    border-radius: 8rpx;
-  }
-
-  .buy-text {
-    color: #fff;
-    font-size: 26rpx;
-    font-weight: 600;
-  }
-
-  /* 打赏和点赞交互栏 */
-  .interaction-bar {
-    display: flex;
-    padding: 20rpx 0;
-    background-color: #fff;
-    gap: 40rpx;
-    justify-content: center;
-  }
-
-  .reward-interaction,
-  .like-interaction {
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
-  }
-
-  .interaction-text {
-    color: #ff9500;
-    font-size: 26rpx;
-  }
-
-  .like-interaction.liked .interaction-text {
-    color: #ff4757;
-  }
-
-  /* 视频信息卡片 */
-  .video-info-card {
-    background-color: #fff;
-    padding: 30rpx;
-  }
-
-  .info-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 30rpx;
-  }
-
-  .author-avatar {
-    width: 60rpx;
-    height: 60rpx;
-    border-radius: 50%;
-    margin-right: 20rpx;
-  }
-
-  .author-info {
-    flex: 1;
-  }
-
-  .author-name {
-    font-size: 28rpx;
-    font-weight: 600;
-    color: #333;
-    display: block;
-  }
-
-  .video-count {
-    font-size: 24rpx;
-    color: #999;
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 20rpx;
-  }
-
-  .teacher-btn,
-  .follow-btn {
-    padding: 8rpx 16rpx;
-    font-size: 24rpx;
-    border-radius: 8rpx;
-  }
-
-  .teacher-btn {
-    background-color: transparent;
-    border: 1rpx solid #000;
-    color: #000;
-    font-size: 40rpx;
-    font-weight: bold;
-  }
-
-  .follow-btn {
-    color: #000;
-    font-size: 40rpx;
-    font-weight: bold;
-    border: none;
-  }
-
-  /* 视频标题区域 */
-  .video-title-section {
-    display: flex;
-    align-items: flex-start;
-    gap: 20rpx;
-  }
-
-  .price-tag {
-    background-color: #ff4757;
-    padding: 6rpx 12rpx;
-    border-radius: 4rpx;
-    color: #fff;
-    font-size: 24rpx;
-    font-weight: 600;
-  }
-
-  .video-title-text {
-    flex: 1;
-    font-size: 30rpx;
-    font-weight: 600;
-    color: #333;
-    line-height: 1.5;
-  }
-
-  /* 底部购买栏 */
-  .bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    background-color: #fff;
-    padding: 20rpx;
-    box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
-  }
-
-  .bottom-left {
-    display: flex;
-    gap: 40rpx;
-  }
-
-  .icon-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4rpx;
-  }
-
-  .icon-label {
-    font-size: 40rpx;
-    font-size: bold;
-    color: #000;
-  }
-
-  .bottom-buy-btn {
-    flex: 1;
-    background-color: #ff9500;
-    color: #fff;
-    border: none;
-    border-radius: 50rpx;
-    font-size: 42rpx;
-    font-weight: 600;
-    margin-left: 40rpx;
-  }
-
-  /* 视频加载占位符 */
-  .video-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    background-color: #000;
-    box-sizing: border-box;
-    padding-bottom: 30rpx;
-  }
-
-  .placeholder-text {
-    color: #fff;
-    font-size: 28rpx;
-  }
-
-  /* 表单图片显示 */
-  .form-image-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  .form-image-container {
-    width: 90%;
-    min-width: 600rpx;
-    background-color: #fff;
-    border-radius: 20rpx;
-    overflow: hidden;
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-image-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 30rpx;
-    border-bottom: 1rpx solid #f0f0f0;
-  }
-
-  .form-image-title {
-    font-size: 32rpx;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .save-image-button {
-    width: 100%;
-    height: 48rpx;
-    line-height: 48rpx;
-    padding: 20rpx;
-    border-radius: 10rpx;
-    font-size: 38rpx;
-    text-align: center;
-    background-color: #ff623a;
-  }
-
-  .form-image-close {
-    width: 48rpx;
-    height: 48rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .form-image {
-    width: 100%;
-    height: 70vh;
-  }
-
-  .form-image-loading {
-    padding: 60rpx;
-    text-align: center;
-    color: #666;
-    font-size: 28rpx;
-  }
-}
-
-.container:not(.old-man-mode) {
-  background-color: #f5f5f5;
-
-  .wrapper {
-    height: 100vh;
-    box-sizing: border-box;
-    background-color: #f5f5f5;
-    padding-bottom: 120rpx;
-  }
-
-  .navbar {
-    height: 44px;
-    background-color: #ffffff;
-    color: #111;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    margin-bottom: 3rpx;
-    position: relative;
-    z-index: 10;
-    padding-top: var(--status-bar-height);
-  }
-
-  .navbar-left {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    z-index: 11;
-  }
-
-  .navbar-left .uni-icons {
-    color: #111 !important;
-    font-size: 22px !important;
-  }
-
-  .navbar-title {
-    width: 500rpx;
-    font-size: 28rpx;
-    font-weight: 500;
-    text-align: center;
-    position: absolute;
-    left: calc(50% - 250rpx);
-    pointer-events: none;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* 视频容器样式 */
-  .video-container {
-    position: relative;
-    width: 100%;
-    // height: 600rpx;
-    border-radius: 0;
-    overflow: hidden;
-    background-color: #000;
-  }
-
-  .video-player {
-    width: 100%;
-    height: 300px;
-  }
-
-  /* 播放按钮遮罩层 */
-  .play-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-
-  .play-button {
-    width: 80rpx;
+    border-radius: 80rpx;
     height: 80rpx;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease;
-  }
-
-  .play-button:active {
-    transform: scale(0.9);
-  }
-
-  /* 购买按钮遮罩 */
-  .buy-overlay {
-    position: absolute;
-    bottom: 30rpx;
-    right: 30rpx;
-    z-index: 11;
-  }
-
-  .buy-button {
-    background-color: #ff9500;
-    padding: 12rpx 24rpx;
-    border-radius: 8rpx;
   }
 
   .buy-text {
     color: #fff;
-    font-size: 26rpx;
+    font-size: 40rpx;
     font-weight: 600;
+    text-align: center;
+    line-height: 80rpx;
   }
 
   /* 打赏和点赞交互栏 */
@@ -1327,18 +979,6 @@ function handleReport(postId) {
     padding: 8rpx 16rpx;
     font-size: 24rpx;
     border-radius: 10px;
-  }
-
-  .teacher-btn {
-    background-color: transparent;
-    border: 1rpx solid #ff9500;
-    color: #ff9500;
-  }
-
-  .follow-btn {
-    background-color: #ff9500;
-    color: #fff;
-    border: none;
   }
 
   /* 视频标题区域 */
@@ -1477,6 +1117,100 @@ function handleReport(postId) {
     text-align: center;
     color: #666;
     font-size: 28rpx;
+  }
+}
+
+/* 大字体模式样式 */
+.container.old-man-mode {
+  font-weight: bold;
+
+  .navbar {
+    background-color: #1677ff;
+    color: white;
+  }
+
+  .navbar-left .uni-icons {
+    color: #fff !important;
+  }
+
+  .navbar-title {
+    font-size: 48rpx;
+  }
+
+  .teacher-btn {
+    background-color: transparent;
+    border: 1rpx solid #000;
+    color: #000;
+    font-size: 40rpx;
+    font-weight: bold;
+  }
+
+  .follow-btn {
+    color: #000;
+    font-size: 40rpx;
+    font-weight: bold;
+    border: none;
+  }
+
+  .icon-label {
+    font-size: 40rpx;
+    font-size: bold;
+    color: #000;
+  }
+
+  .bottom-buy-btn {
+    font-size: 42rpx;
+    font-weight: 600;
+  }
+
+  .video-player {
+    height: 100%;
+  }
+
+  .save-image-button {
+    width: 100%;
+    height: 48rpx;
+    line-height: 48rpx;
+    padding: 20rpx;
+    border-radius: 10rpx;
+    font-size: 38rpx;
+    text-align: center;
+    background-color: #ff623a;
+  }
+
+  .form-image {
+    height: 70vh;
+  }
+
+  .form-image-container {
+    min-width: 600rpx;
+    min-height: 80vh;
+  }
+}
+
+/* 普通模式样式 */
+.container:not(.old-man-mode) {
+  background-color: #f5f5f5;
+
+  .navbar {
+    background-color: #ffffff;
+    color: #111;
+  }
+
+  .navbar-left .uni-icons {
+    color: #111 !important;
+  }
+
+  .teacher-btn {
+    background-color: transparent;
+    border: 1rpx solid #ff9500;
+    color: #ff9500;
+  }
+
+  .follow-btn {
+    background-color: #ff9500;
+    color: #fff;
+    border: none;
   }
 }
 </style>
