@@ -149,7 +149,7 @@ const privacyPopupRef = ref(null);
 const account = ref("");
 const password = ref("");
 const code = ref("");
-const isAgreed = ref(false);
+const isAgreed = ref(true);
 const showPassword = ref(false);
 
 // 切换登录方式
