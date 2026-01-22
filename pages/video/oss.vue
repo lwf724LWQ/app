@@ -103,6 +103,7 @@ import { getAccount } from "@/utils/request.js";
 
 import NumberInput from "../../components/number-input.vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
+import { useUserStore } from "@/stores/userStore";
 
 import dayjs from "dayjs";
 // 接收从 video.vue 传递的 tname 参数
@@ -120,9 +121,10 @@ onLoad((options) => {
   apiUserimg({
     account: getAccount(),
   }).then((res) => {
-    videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
     coverFile.value = res.data.himg ? `himg/${res.data.himg}` : "himg/user.png";
   });
+
+  setVideo();
 });
 
 function setIsCharge(value) {
@@ -131,7 +133,11 @@ function setIsCharge(value) {
 }
 
 function setVideo() {
-  videoTitle.value = `${res.data.uname} - ${dayjs().format("MM月DD日")}第${isCharge.value}`;
+  const userStore = useUserStore();
+  videoTitle.value = `${userStore.getUserInfo?.nickname} - ${dayjs().format("MM月DD日")}第${
+    isCharge.value
+  }`;
+  console.log(videoTitle.value);
 }
 
 //导航栏
