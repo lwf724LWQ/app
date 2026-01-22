@@ -87,11 +87,13 @@ const onRefresh = async () => {
 const getStatusText = (flag) => {
   switch (flag) {
     case 0:
-      return "待审核";
-    case 3:
-      return "提现成功";
+      return "审核中";
+    case 1:
+      return "提现中";
     case 2:
       return "提现失败";
+    case 3:
+      return "提现成功";
     default:
       return "未知状态";
   }
@@ -101,10 +103,12 @@ const getStatusClass = (flag) => {
   switch (flag) {
     case 0:
       return "status-pending";
-    case 3:
-      return "status-success";
+    case 1:
+      return "status-pending";
     case 2:
       return "status-fail";
+    case 3:
+      return "status-success";
     default:
       return "";
   }
