@@ -386,8 +386,8 @@ onMounted(async () => {
 
 .tab-text {
   color: #000000;
-  font-weight: lighter;
-  font-size: 32rpx;
+  font-weight: bold;
+  font-size: 36rpx;
 }
 
 .tab-item.active .tab-text {
