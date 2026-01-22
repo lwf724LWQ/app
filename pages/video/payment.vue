@@ -204,9 +204,6 @@ const handlePayment = () => {
   });
 };
 const processPayment = async () => {
-  uni.showLoading({
-    title: "处理中...",
-  });
   // 准备充值数据
   const rechargeData = {
     info: `付费${orderData.value.amount.toString()}元观看视频:` + orderData.value.info,

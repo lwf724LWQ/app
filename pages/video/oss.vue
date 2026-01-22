@@ -134,7 +134,7 @@ function setIsCharge(value) {
 
 function setVideo() {
   const userStore = useUserStore();
-  videoTitle.value = `${userStore.getUserInfo?.nickname} - ${dayjs().format("MM月DD日")}第${
+  videoTitle.value = `${userStore.getUserInfo?.nickname || " "} - ${dayjs().format("MM月DD日")}第${
     isCharge.value
   }`;
   console.log(videoTitle.value);
