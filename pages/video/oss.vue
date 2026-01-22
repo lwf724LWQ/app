@@ -112,6 +112,7 @@ const routeParams = ref({
 
 // 页面加载时接收参数
 onLoad((options) => {
+  options = tool.optionsParamsDecode(options);
   if (options.tname) {
     routeParams.value.tname = decodeURIComponent(options.tname);
   }
@@ -339,82 +340,38 @@ const startUpload = async () => {
       // 如果是付费视频，保存数据并跳转到表单页面
       if (isCharge.value === 2 && submitResult.code === 200) {
         // 从 video.vue 的本地存储获取期号和彩票类型
-        let issueno = "";
-        let tname = "";
-        let opendate = "";
+        // let issueno = "";
+        // let tname = "";
+        // let opendate = "";
 
         try {
-          const currentIssueInfo = uni.getStorageSync("currentIssueInfo");
-          const currentLotteryType = uni.getStorageSync("currentLotteryType");
-
-          if (currentIssueInfo && currentIssueInfo.number) {
-            issueno = currentIssueInfo.number;
-          }
-
-          if (currentLotteryType && currentLotteryType.name) {
-            tname = currentLotteryType.name;
-          }
-
+          // const currentIssueInfo = uni.getStorageSync("currentIssueInfo");
+          // const currentLotteryType = uni.getStorageSync("currentLotteryType");
+          // if (currentIssueInfo && currentIssueInfo.number) {
+          //   issueno = currentIssueInfo.number;
+          // }
+          // if (currentLotteryType && currentLotteryType.name) {
+          //   tname = currentLotteryType.name;
+          // }
           // 开奖日期：如果没有，使用今天的日期
-          const today = new Date();
-          const year = today.getFullYear();
-          const month = String(today.getMonth() + 1).padStart(2, "0");
-          const day = String(today.getDate()).padStart(2, "0");
-          opendate = `${year}-${month}-${day}`;
-        } catch (error) {
-          // 静默处理错误
-        }
-
-        // 提取 videoId（支持多种响应格式）
-        let videoId = null;
-        if (submitResult.data) {
-          // 尝试多种可能的字段名
-          videoId =
-            submitResult.data.id ||
-            submitResult.data.videoId ||
-            submitResult.data.video_id ||
-            submitResult.data.vId ||
-            submitResult.id ||
-            (typeof submitResult.data === "number" ? submitResult.data : null) ||
-            (typeof submitResult.data === "string" ? submitResult.data : null) ||
-            null;
-        }
-
-        // 如果 videoId 为空，尝试从响应体的其他位置获取
-        if (!videoId && submitResult.code === 200) {
-          // 有些接口直接返回 ID 字符串或数字
-          if (typeof submitResult.data === "string" || typeof submitResult.data === "number") {
-            videoId = submitResult.data;
-          }
-        }
-
-        // 保存视频数据到本地存储，供 biaodan.vue 使用
-        const videoInfo = {
-          videoId: videoId,
-          title: videoTitle.value,
-          price: Number(chargePrice.value) || 0,
-          account: getAccount(),
-          videoUrl: videoResult.url || `http://video.caimizm.com/${videoResult.name}`,
-          coverUrl: coverUrl || "",
-          issueno: issueno, // 期号
-          tname: tname, // 彩票名称
-          opendate: opendate, // 开奖日期
-          timestamp: Date.now(),
-        };
-
-        try {
-          uni.setStorageSync("paidVideoInfo", videoInfo);
+          // const today = new Date();
+          // const year = today.getFullYear();
+          // const month = String(today.getMonth() + 1).padStart(2, "0");
+          // const day = String(today.getDate()).padStart(2, "0");
+          // opendate = `${year}-${month}-${day}`;
         } catch (error) {
           // 静默处理错误
         }
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
+          const paramStr = tool.formatUrlParams({
+            videoId: submitResult.data,
+            tname: tname,
+          });
+
           // 通过 URL 参数传递 videoId（作为备用）
-          let url = "/pages/video/biaodan";
-          if (videoId) {
-            url += `?videoId=${videoId}&tname=${tname}`;
-          }
+          let url = `/pages/video/biaodan?${paramStr}`;
 
           uni.redirectTo({
             url: url,
