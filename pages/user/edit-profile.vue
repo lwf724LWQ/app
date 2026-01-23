@@ -84,6 +84,7 @@
         </button>
       </view>
     </view>
+	<himgEditPopupVue ref="himgEditPopupVueRef"/>
   </view>
 </template>
 
@@ -93,6 +94,7 @@ import { getToken, getAccount } from "@/utils/request.js";
 import { apiUpdateUserProfile, getCOSSecretKey } from "@/api/apis.js";
 import tool from "../../utils/tool.js";
 import { useUserStore } from "@/stores/userStore";
+import himgEditPopupVue from "./components/himgEditPopup.vue";
 
 const userStore = useUserStore();
 // 用户信息
@@ -115,6 +117,7 @@ const handleImageError = () => {
   userInfo.avatar = "http://video.caimizm.com/himg/user.png";
 };
 
+const himgEditPopupVueRef = ref(null)
 // 处理头像点击事件
 const handleAvatarClick = async () => {
   // 选择图片
@@ -125,7 +128,10 @@ const handleAvatarClick = async () => {
   });
   if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
     const tempFilePath = chooseResult.tempFilePaths[0];
-    userInfo.avatar = tempFilePath;
+    
+	himgEditPopupVueRef.value.open(tempFilePath, function(url){
+		userInfo.avatar = url;
+	})
   }
   return;
   // 显示上传进度
@@ -289,7 +295,7 @@ onMounted(() => {
   right: 0;
   height: 88rpx;
   background-color: #28b389;
-  z-index: 999;
+  z-index: 99;
   padding-top: var(--status-bar-height);
 }
 
