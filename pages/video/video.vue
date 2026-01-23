@@ -13,16 +13,32 @@
 
     <!-- 切换标签栏（参考 forum.vue 风格） -->
     <view class="switch-tabs">
-      <view class="tab-item" :class="{ active: pickerIndex === 0 }" @click="switchTabByIndex(0)">
+      <view
+        class="tab-item"
+        :class="{ active: pickerIndex === 0 }"
+        @click="switchTabByIndex(0, true)"
+      >
         <text class="tab-text">福彩3D</text>
       </view>
-      <view class="tab-item" :class="{ active: pickerIndex === 1 }" @click="switchTabByIndex(1)">
+      <view
+        class="tab-item"
+        :class="{ active: pickerIndex === 1 }"
+        @click="switchTabByIndex(1, true)"
+      >
         <text class="tab-text">排列三</text>
       </view>
-      <view class="tab-item" :class="{ active: pickerIndex === 2 }" @click="switchTabByIndex(2)">
+      <view
+        class="tab-item"
+        :class="{ active: pickerIndex === 2 }"
+        @click="switchTabByIndex(2, true)"
+      >
         <text class="tab-text">排列五</text>
       </view>
-      <view class="tab-item" :class="{ active: pickerIndex === 3 }" @click="switchTabByIndex(3)">
+      <view
+        class="tab-item"
+        :class="{ active: pickerIndex === 3 }"
+        @click="switchTabByIndex(3, true)"
+      >
         <text class="tab-text">七星彩</text>
       </view>
     </view>
@@ -169,7 +185,7 @@ function swiperChange(e) {
 }
 
 // 标签切换（与 forum.vue 的交互一致）
-const switchTabByIndex = async (index) => {
+const switchTabByIndex = async (index, isRefresh) => {
   pickerIndex.value = index;
   switch (index) {
     case 0:
@@ -223,7 +239,9 @@ const switchTabByIndex = async (index) => {
   //   loadLotteryDataByType(currentLotteryType.value);
   // }
   // 切换标签时重置并获取对应类型的视频列表
-  // await fetchVideoList(1); // 重置到第一页
+  if (isRefresh) {
+    await refreshCurrentTab(1); // 重置到第一页
+  }
 };
 
 const isGotoOSS = ref(false);
