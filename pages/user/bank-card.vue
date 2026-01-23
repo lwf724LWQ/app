@@ -44,7 +44,7 @@
         <text class="add-text">添加银行卡</text>
       </view>
     </view>
-    <uni-popup ref="popup" type="center">
+    <Popup ref="popup" type="center">
       <view class="add-card-popup">
         <text class="popup-title">添加银行卡</text>
         <view class="form-item">
@@ -66,13 +66,14 @@
           <button class="confirm-btn" @click="addCard">确认添加</button>
         </view>
       </view>
-    </uni-popup>
+    </Popup>
   </view>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import { getUserBankListApi, addBankCardApi, deleteBankCardApi } from "@/api/apis";
+import Popup from "@/components/Popup.vue";
 
 const bankCards = ref([]);
 
