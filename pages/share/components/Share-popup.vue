@@ -55,7 +55,7 @@ function getConfig() {
     return {
       provider: "weixin",
       type: 0,
-      href: "http://caimizm.com/",
+      href: "http://www.caimizm.com/",
       title: "五七仔下载链接",
       summary: "",
       imageUrl: logo,

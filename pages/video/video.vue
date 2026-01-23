@@ -49,12 +49,10 @@
         <VideoList ref="qxcVideoListRef" video-type="七星彩" />
       </swiper-item>
     </swiper>
+	
 
     <!-- 发布按钮 -->
-    <view class="publish-btn" @click="gotoOss()">
-      投稿
-      <uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
-    </view>
+    <view class="publish-btn" @click="gotoOss()">点我上传视频</view>
     <bottomBar current-path="/pages/video/video" />
   </view>
 </template>
@@ -282,6 +280,7 @@ onMounted(async () => {
   // 初次进入按默认标签请求期号和视频列表
   await loadLotteryDataByType(currentLotteryType.value);
 });
+
 </script>
 
 <style lang="scss" scoped>
@@ -446,14 +445,14 @@ onMounted(async () => {
   gap: 10rpx;
   right: 30rpx;
   bottom: calc(120rpx + var(--window-bottom));
-  width: 190rpx;
+  width: 250rpx;
   height: 60rpx;
   line-height: 60rpx;
   text-align: center;
   color: #fff;
   font-size: 40rpx;
   font-weight: bold;
-  background-color: #b3d35a;
+  background-color: #1642e3;
   border-radius: 10px;
   padding: 10rpx;
   border: 6rpx solid #ffffff;
@@ -478,7 +477,7 @@ onMounted(async () => {
 .video-page-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh + 90px + var(--status-bar-height));
+  height: 100vh;
   overflow: hidden;
   .title {
     box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
