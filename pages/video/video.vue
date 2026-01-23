@@ -49,7 +49,6 @@
         <VideoList ref="qxcVideoListRef" video-type="七星彩" />
       </swiper-item>
     </swiper>
-	
 
     <!-- 发布按钮 -->
     <view class="publish-btn" @click="gotoOss()">点我上传视频</view>
@@ -151,16 +150,16 @@ onPullDownRefresh(refreshCurrentTab);
 function refreshCurrentTab() {
   switch (pickerIndex.value) {
     case 0:
-      fc3dVideoListRef.value.refreshVideoList();
+      fc3dVideoListRef.value?.refreshVideoList();
       break;
     case 1:
-      plsVideoListRef.value.refreshVideoList();
+      plsVideoListRef.value?.refreshVideoList();
       break;
     case 2:
-      plwVideoListRef.value.refreshVideoList();
+      plwVideoListRef.value?.refreshVideoList();
       break;
     case 3:
-      qxcVideoListRef.value.refreshVideoList();
+      qxcVideoListRef.value?.refreshVideoList();
       break;
   }
 }
@@ -218,7 +217,6 @@ const switchTabByIndex = async (index) => {
       currentTab.value = "review";
       break;
   }
-  refreshCurrentTab();
 
   // 与论坛相同：切换时请求期号信息
   // if (currentTab.value !== "review") {
@@ -228,6 +226,7 @@ const switchTabByIndex = async (index) => {
   // await fetchVideoList(1); // 重置到第一页
 };
 
+const isGotoOSS = ref(false);
 const gotoOss = () => {
   // 判断当前有没有登录
   if (getToken()) {
@@ -252,6 +251,7 @@ const gotoOss = () => {
     if (currentLotteryType.value && currentLotteryType.value.name) {
       url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`;
     }
+    isGotoOSS.value = true;
     uni.navigateTo({
       url: url,
     });
@@ -269,10 +269,11 @@ const gotoOss = () => {
   }
 };
 
-const isShowPublishBtn = ref(false);
-
-onShow(async () => {
-  refreshCurrentTab();
+onShow(async (e) => {
+  if (isGotoOSS.value) {
+    isGotoOSS.value = false;
+    refreshCurrentTab();
+  }
 });
 
 // 生命周期钩子
@@ -280,7 +281,6 @@ onMounted(async () => {
   // 初次进入按默认标签请求期号和视频列表
   await loadLotteryDataByType(currentLotteryType.value);
 });
-
 </script>
 
 <style lang="scss" scoped>

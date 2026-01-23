@@ -2,11 +2,15 @@
   <!-- 视频列表 -->
   <scroll-view
     class="scroll-view"
-    scroll-y
-    :refresher-enabled="false"
+    :scroll-y="true"
+    :show-scrollbar="false"
+    :refresher-enabled="true"
     :refresher-triggered="isLoading"
+    :lower-threshold="150"
+    :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
     @scrolltolower="loadMore"
+    @scroll="scroll"
   >
     <view v-if="videoList.length === 0">
       <view class="no-data-container">
@@ -50,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { apiGetVideo, apiCheckVideoPayment, delVideo } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
@@ -91,13 +95,22 @@ const loadMore = async () => {
   await fetchVideoList(currentPage.value);
 };
 
+const oldScrollTop = ref(0);
+function scroll(e) {
+  oldScrollTop.value = e.detail.scrollTop;
+}
+const scrollTop = ref(0);
 // 获取视频列表的函数
 const fetchVideoList = async (page = 1) => {
   try {
     if (isLoading.value) return;
-
     isLoading.value = true;
-
+    if (page == 1) {
+      scrollTop.value = oldScrollTop.value;
+      nextTick(() => {
+        scrollTop.value = 0;
+      });
+    }
     // 构建请求参数
     const videoinfo = {
       page: page,
@@ -164,7 +177,10 @@ const fetchVideoList = async (page = 1) => {
       });
     }
   } finally {
-    isLoading.value = false;
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 300);
+
     // 停止下拉刷新
     uni.stopPullDownRefresh();
   }
@@ -391,5 +407,6 @@ defineExpose({
   padding: 20rpx;
   color: #999;
   font-size: 28rpx;
+  padding-bottom: 150rpx;
 }
 </style>
