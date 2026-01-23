@@ -447,7 +447,7 @@ const handleFeatureClick = (featureName) => {
 
 const chengPasswordRef = ref(null);
 function showChangePassword() {
-  chengPasswordRef.value.open();
+  chengPasswordRef.value.open(true);
 }
 
 // 菜单项点击事件

@@ -1,5 +1,5 @@
 <template>
-  <uni-popup ref="popup" type="center" :mask-click="false">
+  <uni-popup ref="popup" type="center" :mask-click="isClose">
     <view class="password-container">
       <view class="title">设置新密码</view>
 
@@ -30,6 +30,7 @@ export default {
     return {
       password: "",
       confirmPassword: "",
+      isClose: false,
     };
   },
   computed: {
@@ -38,8 +39,9 @@ export default {
     },
   },
   methods: {
-    open() {
+    open(isClose) {
       this.$refs.popup.open();
+      this.isClose = isClose;
     },
     close() {
       this.$refs.popup.close();
@@ -78,6 +80,9 @@ export default {
           icon: "success",
         });
       }
+
+      this.password = "";
+      this.confirmPassword = "";
 
       // 关闭弹窗
       this.close();
