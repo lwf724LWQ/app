@@ -15,7 +15,11 @@
             <text class="value">{{ record.id }}</text>
           </view>
           <view class="row">
-            <text class="label">类型:</text>
+            <text class="label">彩票名称:</text>
+            <text class="value type">{{ record.tname || "暂无" }}</text>
+          </view>
+          <view class="row">
+            <text class="label">收支类型:</text>
             <text class="value type">{{ getType(record.type) }}</text>
           </view>
           <view class="row">
