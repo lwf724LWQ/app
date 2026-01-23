@@ -159,6 +159,10 @@
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">常见问题</text>
         </view> -->
+        <view class="service-item" @click="showChangePassword">
+          <uni-icons type="locked" size="24" color="#222"></uni-icons>
+          <text class="service-text">修改密码</text>
+        </view>
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
@@ -179,6 +183,7 @@
       <view>备案号：粤ICP备2024303153号-3A</view>
       <view>广州梓梅网络科技有限公司 版权所有</view>
     </view>
+    <chengPassword ref="chengPasswordRef" />
     <bottomBar current-path="/pages/user/user" />
   </view>
 </template>
@@ -193,6 +198,7 @@ import tool from "../../utils/tool";
 import { useUserStore } from "@/stores/userStore";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import { getUserFollowCountApi } from "@/api/apis";
+import chengPassword from "@/pages/login/component/chengPassword.vue";
 
 const userStore = useUserStore();
 
@@ -438,6 +444,11 @@ const handleFeatureClick = (featureName) => {
     });
   }
 };
+
+const chengPasswordRef = ref(null);
+function showChangePassword() {
+  chengPasswordRef.value.open();
+}
 
 // 菜单项点击事件
 const handleMenuClick = (item) => {
