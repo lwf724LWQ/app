@@ -106,9 +106,9 @@ const loadLotteryDataByType = async (lotteryType) => {
   if (isLoadingLottery.value || !lotteryType || !lotteryType.name) return;
   try {
     isLoadingLottery.value = true;
-    uni.showLoading({ title: "加载中..." });
+    // uni.showLoading({ title: "加载中..." });
     const response = await apiGetIssueNo({ tname: lotteryType.name });
-    uni.hideLoading();
+    // uni.hideLoading();
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
       let issueStatus = "待开奖";
