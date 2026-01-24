@@ -200,6 +200,7 @@
 
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
     <bottomBar current-path="/pages/index/index" />
+    <updateAppPupop ref="updateAppPupopRef" />
   </view>
 </template>
 
@@ -210,9 +211,10 @@ import PrivacyPolicyModal from "../../components/PrivacyPolicyModal.vue";
 import { useUserStore } from "../../stores/userStore";
 import tool from "../../utils/tool";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
+import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop },
   data() {
     return {
       currentTab: "plw",
@@ -296,11 +298,11 @@ export default {
 
       try {
         this.isLoadingResults = true;
-        uni.showLoading({ title: "加载中..." });
+        // uni.showLoading({ title: "加载中..." });
 
         const response = await apiFindResult();
 
-        uni.hideLoading();
+        // uni.hideLoading();
 
         if (response.code === 200 && response.data) {
           const results = response.data;
@@ -457,8 +459,11 @@ export default {
     // 加载开奖结果
     this.loadLotteryResults();
   },
+  mounted() {
+    this.$refs.updateAppPupopRef.check();
+  },
   onLoad() {
-    tool.checkAppUpdate();
+    // tool.checkAppUpdate();
   },
 };
 </script>

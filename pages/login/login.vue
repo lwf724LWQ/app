@@ -190,7 +190,6 @@ const loginShow = ref(false);
 let pageOptions = {};
 onLoad((options) => {
   pageOptions = options;
-  tool.checkAppUpdate();
   if (!getToken()) {
     loginShow.value = true;
     return;

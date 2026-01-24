@@ -185,6 +185,7 @@
     </view>
     <chengPassword ref="chengPasswordRef" />
     <bottomBar current-path="/pages/user/user" />
+    <updateAppPupop ref="updateAppPupopRef" />
   </view>
 </template>
 
@@ -199,6 +200,7 @@ import { useUserStore } from "@/stores/userStore";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import { getUserFollowCountApi } from "@/api/apis";
 import chengPassword from "@/pages/login/component/chengPassword.vue";
+import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
 
 const userStore = useUserStore();
 
@@ -481,13 +483,14 @@ function toggleoldManMode() {
   useOldManModeStore.toggleMode();
 }
 
+const updateAppPupopRef = ref(null);
 function checkUpdate() {
-  tool.checkAppUpdate().then((msg) => {
-    if (msg) {
-      uni.showToast({
-        title: msg,
-      });
-    }
+  updateAppPupopRef.value.check().then((msg) => {
+    if (!msg) return;
+    uni.showToast({
+      title: msg,
+      icon: "none",
+    });
   });
 }
 
