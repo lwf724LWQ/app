@@ -9,16 +9,7 @@
         </view>
         <view class="qr-body">
           <view class="qr-code-container">
-            <image
-              v-if="qrCodeUrl"
-              :src="qrCodeUrl"
-              class="qr-image"
-              :style="{ width: qrSize + 'px', height: qrSize + 'px' }"
-              mode="aspectFit"
-            ></image>
-            <view v-else class="qr-loading">
-              <text class="loading-text">生成二维码中...</text>
-            </view>
+            <l-qrcode class="qr-image" :value="qrCodeUrl" />
           </view>
           <text class="qr-tip">请使用微信扫描二维码完成支付</text>
           <text class="qr-amount">支付金额：¥{{ paymentAmount }}元</text>
@@ -245,7 +236,10 @@ export default {
     },
     generateQRCode(url) {
       return new Promise((resolve) => {
-        this.generateQRCodeOnline(url);
+        // this.generateQRCodeOnline(url);
+        this.qrCodeUrl = url;
+        this.showQRModal = true;
+        resolve();
         return;
       });
     },
@@ -342,7 +336,7 @@ export default {
     },
     startPaymentCheck(orderNo, count = 0) {
       const checkTime = 1000 * 1; // 1秒检查一次
-      const maxCheckCount = 60;
+      const maxCheckCount = 300;
       clearTimeout(this.timer);
 
       if (count >= maxCheckCount) {
@@ -354,16 +348,16 @@ export default {
         return;
       }
       if (count == 0) {
-        uni.showLoading({
-          title: "检查支付状态中...",
-        });
+        // uni.showLoading({
+        //   title: "检查支付状态中...",
+        // });
       }
 
       this.timer = setTimeout(() => {
         if (orderNo) {
           this.checkPayStatusApi(orderNo).then((flat) => {
             if (flat) {
-              uni.hideLoading();
+              // uni.hideLoading();
               uni.showToast({
                 title: "支付成功！！！",
               });
