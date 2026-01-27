@@ -1,7 +1,7 @@
 <template>
   <view class="video-page-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <!-- 为了适配小程序顶部高度的盒子-->
-    <StatusBarPlaceholder v-show="useOldManModeStore.enabled"></StatusBarPlaceholder>
+    <StatusBarPlaceholder></StatusBarPlaceholder>
 
     <!-- 图片 -->
     <image
