@@ -83,7 +83,7 @@ const pickerIndex = ref(2);
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
 const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "七星彩", "精彩回顾"]);
 
-const currentLotteryType = ref(lotteryTypes.value[0]);
+const currentLotteryType = ref(lotteryTypes.value[2]);
 
 const fc3dVideoListRef = ref(null);
 const plsVideoListRef = ref(null);
