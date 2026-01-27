@@ -570,3 +570,31 @@ export const post_select_by_follow = (data) => {
     data,
   });
 };
+
+export const getReviewPostList = (data) => {
+  return request({
+    url: "/web/look/query",
+    method: "POST",
+    data,
+  });
+};
+
+export const putReviewPost = (data) => {
+  return request({
+    url: "/web/look/insert",
+    method: "POST",
+    data,
+  });
+};
+export const getReviewPostDetail = (id) => {
+  return request({
+    url: "/web/look/find?id=" + id,
+    method: "GET",
+  });
+};
+export const delReviewPost = (id) => {
+  return request({
+    url: "/web/look/delete?id=" + id,
+    method: "GET",
+  });
+};

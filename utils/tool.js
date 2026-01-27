@@ -57,6 +57,9 @@ const tool = {
       } else if (file && file.path) {
         const pathParts = file.path.split("/");
         fileName = pathParts[pathParts.length - 1];
+        // #ifdef APP-PLUS
+        file = file.path
+        // #endif
       } else if (typeof file === "string") {
         fileName = file;
       } else {
@@ -140,8 +143,12 @@ const tool = {
   initWxSDK() {
     h5wxsdk.wxInit();
   },
-  formatUrlParams(params) {
-    return Object.keys(params)
+  formatUrlParams(params, url = "") {
+    let s = ""
+    if (url) {
+      s = url + (url.indexOf('?') > -1 ? '&' : '?')
+    }
+    return s + Object.keys(params)
       .filter((key) => params[key] !== null && params[key] !== "")
       .map((key) => `${key}=${encodeURIComponent(params[key])}`)
       .join("&");

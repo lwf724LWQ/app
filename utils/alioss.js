@@ -59,34 +59,42 @@ function uploadForApp(remoteFileName, file, options = {}) {
         'key': remoteFileName,
         'x-oss-security-token': STS.security_token
       }
-      console.log("formData", formData)
-      const uploadTask = uni.uploadFile({
-        url: `http://cjvd.oss-cn-guangzhou.aliyuncs.com`, //仅为示例，非真实的接口地址
-        filePath: file,
-        timeout: 9999999999,
-        name: 'file',
-        formData,
-        success: (uploadFileRes) => {
-          console.log("上传完成")
-          console.log(uploadFileRes);
-          resolve({
-            name: remoteFileName, // 文件名
-          })
-        },
-        error: (err) => {
-          console.log(err);
-          reject(err)
-        }
-      });
-      console.log("上传任务", uploadTask)
-      uploadTask.onProgressUpdate((res) => {
-        console.log('上传进度:', res.progress)
-        console.log('已经上传的数据长度:', res.totalBytesSent)
-        console.log('预期需要上传的数据总长度:', res.totalBytesExpectedToSend)
-        if (options.progress instanceof Function) {
-          options.progress(res.progress / 100)
-        }
-      })
+      console.log("formData", formData, file)
+      try {
+
+
+        const uploadTask = uni.uploadFile({
+          url: `http://cjvd.oss-cn-guangzhou.aliyuncs.com`, //仅为示例，非真实的接口地址
+          filePath: file,
+          timeout: 9999999999,
+          name: 'file',
+          formData,
+          success: (uploadFileRes) => {
+            console.log("上传完成")
+            console.log(uploadFileRes);
+            resolve({
+              name: remoteFileName, // 文件名
+            })
+          },
+          error: (err) => {
+            console.log(err);
+            reject(err)
+          }
+        });
+        console.log("上传任务", uploadTask)
+        uploadTask.onProgressUpdate((res) => {
+          console.log('上传进度:', res.progress)
+          console.log('已经上传的数据长度:', res.totalBytesSent)
+          console.log('预期需要上传的数据总长度:', res.totalBytesExpectedToSend)
+          if (options.progress instanceof Function) {
+            options.progress(res.progress / 100)
+          }
+        })
+      } catch (error) {
+        //TODO handle the exception
+        console.log(error)
+        reject()
+      }
     })
   });
 

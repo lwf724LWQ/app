@@ -27,16 +27,16 @@
       >
         <image
           mode="aspectFill"
-          :src="video.imgurl"
+          :src="getFullUrl(video.himg)"
           class="video-image"
-          :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
+          :class="{ 'free-video': !video.flag }"
         />
-        <view class="video-title">{{ video.title }}</view>
+        <view class="video-title">{{ getTitle(video) }}</view>
         <view class="video-info">
           <text class="video-price" v-if="video.flag && video.price > 0">
             {{ video.hasPaid ? "已付费" : `付费视频 ${video.price}金币` }}
           </text>
-          <text class="video-free" v-else>免费视频</text>
+          <text class="video-free" v-else>免费</text>
         </view>
       </view>
     </view>
@@ -55,9 +55,11 @@
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from "vue";
-import { apiGetVideo, apiCheckVideoPayment, delVideo } from "@/api/apis";
+import { getReviewPostList, delReviewPost } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
+import tool from "../../../utils/tool";
+import dayjs from "dayjs";
 
 // 接收的props
 const props = defineProps({
@@ -112,67 +114,27 @@ const fetchVideoList = async (page = 1) => {
       });
     }
     // 构建请求参数
-    const videoinfo = {
+    const formdata = {
       page: page,
       limit: props.limit,
+      tname: props.videoType,
     };
 
-    // 添加视频类型参数
-    if (props.videoType && props.videoType !== "") {
-      videoinfo.tname = props.videoType;
-    }
     currentPage.value = page;
-    const Videoinfo = await apiGetVideo(videoinfo);
-
-    if (
-      Videoinfo.code === 200 &&
-      Videoinfo.data &&
-      Videoinfo.data.records &&
-      Array.isArray(Videoinfo.data.records)
-    ) {
-      let reportList = [];
-
-      // 屏蔽被举报的视频
-      const r = uni.getStorageSync("reportList") || [];
-      reportList = r.filter((item) => item.type == "video").map((item) => item.id);
-
-      const newVideos = Videoinfo.data.records
-        .map((item) => ({
-          title: item.title,
-          src: "http://video.caimizm.com/" + item.url,
-          id: item.id,
-          account: item.account,
-          likeCount: item.likeCount,
-          createTime: item.createTime,
-          flag: item.price > 0 ? item.flag : false,
-          price: item.price,
-          updateTime: item.updateTime,
-          imgurl: "http://video.caimizm.com/" + item.vimg,
-        }))
-        .filter((item) => !reportList.includes(item.id));
-
-      if (page === 1) {
-        videoList.value = newVideos;
-      } else {
-        videoList.value.push(...newVideos);
-      }
-
-      // 判断是否还有更多数据
-      hasMore.value = videoList.value.length < Videoinfo.data.total;
+    const postlistRes = await getReviewPostList(formdata);
+    if (page === 1) {
+      videoList.value = postlistRes.data.list;
     } else {
-      console.warn("API 返回数据格式不符合预期:", Videoinfo);
-      if (page === 1) {
-        uni.showToast({
-          title: Videoinfo.msg || "数据格式错误",
-          icon: "none",
-        });
-      }
+      videoList.value.push(...postlistRes.data.list);
     }
+
+    // 判断是否还有更多数据
+    hasMore.value = videoList.value.length < postlistRes.data.total;
   } catch (error) {
-    console.error("获取视频失败:", error);
+    console.error("获取精彩回顾失败:", error);
     if (currentPage.value === 1) {
       uni.showToast({
-        title: "获取视频失败，请检查网络",
+        title: "获取精彩回顾失败，请检查网络",
         icon: "none",
       });
     }
@@ -185,7 +147,13 @@ const fetchVideoList = async (page = 1) => {
     uni.stopPullDownRefresh();
   }
 };
-
+function getFullUrl(url) {
+  return tool.oss.getFullUrl("himg/" + url);
+}
+function getTitle(video) {
+  // return `${video.uname} ${dayjs(video.create_time).format("MM月DD日")}精彩回顾`;
+  return video.title;
+}
 // 播放视频方法 - 新增付费检查
 const playVideo = async (video) => {
   // 检查是否登录
@@ -203,12 +171,10 @@ const playVideo = async (video) => {
     });
     return;
   }
-
-  // 将当前视频保存到 Pinia store
-  videoStore.setCurrentVideo(video);
   uni.navigateTo({
-    url: `/pages/video/play?id=${video.id}`,
+    url: `/pages/video/review-post-detial?id=${video.id}`,
   });
+  return;
 };
 
 function videoMenu(video) {
@@ -220,7 +186,7 @@ function videoMenu(video) {
           uni.showLoading({
             title: "正在处理...",
           });
-          await delVideo(video.id)
+          await delReviewPost(video.id)
             .then((res) => {
               uni.showToast({
                 title: "删除成功",

@@ -1,5 +1,5 @@
 <template>
-  <view class="container">
+  <view class="container-eqwejoj12123fsf">
     <top-navigation-bar :title="pageTitle" />
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <slot></slot>
@@ -20,7 +20,7 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.container-eqwejoj12123fsf {
   display: flex;
   flex-direction: column;
   height: 100vh;

@@ -14,32 +14,13 @@
     <!-- 切换标签栏（参考 forum.vue 风格） -->
     <view class="switch-tabs">
       <view
+        v-for="(item, index) in lotteryTypes"
+        :key="index"
         class="tab-item"
-        :class="{ active: pickerIndex === 0 }"
-        @click="switchTabByIndex(0, true)"
+        :class="{ active: pickerIndex === index }"
+        @click="switchTabByIndex(index, true)"
       >
-        <text class="tab-text">福彩3D</text>
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: pickerIndex === 1 }"
-        @click="switchTabByIndex(1, true)"
-      >
-        <text class="tab-text">排列三</text>
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: pickerIndex === 2 }"
-        @click="switchTabByIndex(2, true)"
-      >
-        <text class="tab-text">排列五</text>
-      </view>
-      <view
-        class="tab-item"
-        :class="{ active: pickerIndex === 3 }"
-        @click="switchTabByIndex(3, true)"
-      >
-        <text class="tab-text">七星彩</text>
+        <text class="tab-text">{{ item }}</text>
       </view>
     </view>
     <swiper
@@ -64,10 +45,20 @@
       <swiper-item>
         <VideoList ref="qxcVideoListRef" video-type="七星彩" />
       </swiper-item>
+      <swiper-item>
+        <reviewContainer ref="reviewContainerRef" />
+      </swiper-item>
     </swiper>
 
     <!-- 发布按钮 -->
-    <view class="publish-btn" @click="gotoOss()">点我上传视频</view>
+    <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoOss()">点我上传视频</view>
+    <view
+      v-else-if="pickerIndex == 4"
+      class="publish-btn publish-btn-putreview"
+      @click="goPutreview()"
+    >
+      点我上传精彩回顾
+    </view>
     <bottomBar current-path="/pages/video/video" />
   </view>
 </template>
@@ -75,91 +66,30 @@
 <script setup>
 import { onShow, onPullDownRefresh } from "@dcloudio/uni-app";
 import { ref, onMounted, inject } from "vue";
-import { apiGetIssueNo } from "../../api/apis";
-import { getToken } from "@/utils/request.js"; // 导入setToken，账号
+
 // 导入 Pinia store
 const useOldManModeStore = inject("useOldManModeStore");
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
-import { useUserStore } from "@/stores/userStore";
+
 import VideoList from "@/components/video-list/video-list.vue";
 import StatusBarPlaceholder from "@/components/StatusBarPlaceholder/StatusBarPlaceholder.vue";
+import reviewContainer from "./components/review-container.vue";
+import tool from "../../utils/tool.js";
+import videoTool from "./video-tool.js";
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(2);
 
-// 响应式数据
-const currentTab = ref("plw");
-
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref([
-  { id: 17, name: "排列五", code: "plw", status: "待开奖", time: "今天 21:30" },
-  { id: 16, name: "排列三", code: "pls", status: "待开奖", time: "今天 21:30" },
-  { id: 15, name: "七星彩", code: "qxc", status: "待开奖", time: "今天 21:30" },
-  { id: 12, name: "福彩3D", code: "fc", status: "待开奖", time: "今天 21:30" },
-]);
+const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "七星彩", "精彩回顾"]);
 
 const currentLotteryType = ref(lotteryTypes.value[0]);
-const isLoadingLottery = ref(false);
-const currentIssueInfo = ref({ id: null, number: null, status: "待开奖", time: "今天 21:30" });
-
-const loadLotteryDataByType = async (lotteryType) => {
-  if (isLoadingLottery.value || !lotteryType || !lotteryType.name) return;
-  try {
-    isLoadingLottery.value = true;
-    // uni.showLoading({ title: "加载中..." });
-    const response = await apiGetIssueNo({ tname: lotteryType.name });
-    // uni.hideLoading();
-    if (response.code === 200 && response.data !== null && response.data !== undefined) {
-      let issueNumber = null;
-      let issueStatus = "待开奖";
-      let issueTime = "今天 21:30";
-      if (typeof response.data === "number" || typeof response.data === "string") {
-        issueNumber = response.data.toString();
-      } else if (typeof response.data === "object") {
-        issueNumber = response.data.issueno || response.data.number || response.data.id;
-        issueStatus = response.data.status || "待开奖";
-        issueTime = response.data.time || "今天 21:30";
-      }
-      lotteryType.status = issueStatus;
-      lotteryType.time = issueTime;
-      const idx = lotteryTypes.value.findIndex((t) => t.code === lotteryType.code);
-      if (idx !== -1) {
-        lotteryTypes.value[idx].status = issueStatus;
-        lotteryTypes.value[idx].time = issueTime;
-      }
-      currentIssueInfo.value = {
-        id: issueNumber,
-        number: issueNumber,
-        status: issueStatus,
-        time: issueTime,
-      };
-
-      // 保存到本地存储，供 biaodan.vue 使用
-      try {
-        uni.setStorageSync("currentIssueInfo", currentIssueInfo.value);
-        uni.setStorageSync("currentLotteryType", lotteryType);
-      } catch (error) {
-        console.error("保存期号信息失败:", error);
-      }
-    } else {
-      uni.showToast({ title: response.msg || "数据加载失败", icon: "none" });
-    }
-  } catch (error) {
-    uni.hideLoading();
-    uni.showToast({
-      title: error?.msg || error?.message || "网络错误，请重试",
-      icon: "none",
-      duration: 3000,
-    });
-  } finally {
-    isLoadingLottery.value = false;
-  }
-};
 
 const fc3dVideoListRef = ref(null);
 const plsVideoListRef = ref(null);
 const plwVideoListRef = ref(null);
 const qxcVideoListRef = ref(null);
+const reviewContainerRef = ref(null);
 
 onPullDownRefresh(refreshCurrentTab);
 
@@ -177,128 +107,73 @@ function refreshCurrentTab() {
     case 3:
       qxcVideoListRef.value?.refreshVideoList();
       break;
+    case 4:
+      reviewContainerRef.value?.refreshVideoList();
+      break;
   }
 }
 
 function swiperChange(e) {
   switchTabByIndex(e.detail.current);
+  if (e.detail.current === 4) {
+    // 这里重置一下子swiper
+    reviewContainerRef.value?.resetSwipe();
+  }
 }
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index, isRefresh) => {
   pickerIndex.value = index;
-  switch (index) {
-    case 0:
-      currentTab.value = "fc";
-      currentLotteryType.value = {
-        id: 12,
-        name: "福彩3D",
-        code: "fc",
-        status: "待开奖",
-        time: "今天 21:30",
-      };
-      break;
-    case 1:
-      currentTab.value = "pls";
-      currentLotteryType.value = {
-        id: 16,
-        name: "排列三",
-        code: "pls",
-        status: "待开奖",
-        time: "今天 21:30",
-      };
-      break;
-    case 2:
-      currentTab.value = "plw";
-      currentLotteryType.value = {
-        id: 17,
-        name: "排列五",
-        code: "plw",
-        status: "待开奖",
-        time: "今天 21:30",
-      };
-      break;
-    case 3:
-      currentTab.value = "qxc";
-      currentLotteryType.value = {
-        id: 15,
-        name: "七星彩",
-        code: "qxc",
-        status: "待开奖",
-        time: "今天 21:30",
-      };
-      break;
+  currentLotteryType.value = lotteryTypes.value[index];
 
-    case 4:
-      currentTab.value = "review";
-      break;
-  }
-
-  // 与论坛相同：切换时请求期号信息
-  // if (currentTab.value !== "review") {
-  //   loadLotteryDataByType(currentLotteryType.value);
-  // }
   // 切换标签时重置并获取对应类型的视频列表
   if (isRefresh) {
     await refreshCurrentTab(1); // 重置到第一页
   }
 };
 
-const isGotoOSS = ref(false);
+let isNeedRefresh = false;
 const gotoOss = () => {
-  // 判断当前有没有登录
-  if (getToken()) {
-    // 判断当前用户是否是为博主
-    const userStore = useUserStore();
-    if (userStore.getUserInfo.agent == 0) {
-      uni.showModal({
-        title: "提示",
-        content: "目前不是博主身份，请先联系管理员注册成为博主",
-        confirmText: "去联系管理员",
-        success: async (res) => {
-          if (res.confirm) {
-            uni.navigateTo({ url: "/pages/share/wxchat" });
-          }
-        },
-      });
-      return;
-    }
+  if (videoTool.checkIsBozhu()) {
+    const url = tool.formatUrlParams(
+      {
+        tname: currentLotteryType.value,
+      },
+      "/pages/video/oss"
+    );
 
-    // 传递当前彩票类型名称（tname）到 oss.vue
-    let url = `/pages/video/oss`;
-    if (currentLotteryType.value && currentLotteryType.value.name) {
-      url += `?tname=${encodeURIComponent(currentLotteryType.value.name)}`;
-    }
-    isGotoOSS.value = true;
+    isNeedRefresh = true;
     uni.navigateTo({
       url: url,
-    });
-  } else {
-    uni.showModal({
-      title: "提示",
-      content: "该操作需要登录，是否前往",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
     });
   }
 };
 
+function goPutreview() {
+  if (videoTool.checkIsBozhu()) {
+    const url = tool.formatUrlParams(
+      {
+        tname: reviewContainerRef.value.getNowTagName(),
+      },
+      "/pages/video/put-review-post"
+    );
+
+    isNeedRefresh = true;
+    uni.navigateTo({
+      url: url,
+    });
+  }
+}
+
 onShow(async (e) => {
-  if (isGotoOSS.value) {
-    isGotoOSS.value = false;
+  if (isNeedRefresh) {
+    isNeedRefresh = false;
     refreshCurrentTab();
   }
 });
 
 // 生命周期钩子
-onMounted(async () => {
-  // 初次进入按默认标签请求期号和视频列表
-  await loadLotteryDataByType(currentLotteryType.value);
-});
+onMounted(async () => {});
 </script>
 
 <style lang="scss" scoped>
@@ -384,6 +259,8 @@ onMounted(async () => {
   z-index: 10;
   display: flex;
   padding-top: var(--status-bar-height);
+
+  padding: 0 10rpx;
 }
 
 .tab-item {
@@ -476,6 +353,10 @@ onMounted(async () => {
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
   z-index: 999;
+
+  &.publish-btn-putreview {
+    width: 330rpx;
+  }
 }
 
 .publish-btn:active {
