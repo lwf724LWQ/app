@@ -32,14 +32,16 @@
     </scroll-view>
 
     <flipModal :show.sync="showModal" title="确认操作" @update:show="showModal = $event" />
+    <updateAppPupop ref="updateAppPupopRef" />
   </view>
 </template>
 
 <script>
 import mockData from "./mock.js";
 import flipModal from "./flip-modal.vue";
+import updateAppPupop from "@/components/updateAppPupop.vue";
 export default {
-  components: { flipModal },
+  components: { flipModal, updateAppPupop },
   data() {
     return {
       posts: [],
@@ -121,6 +123,9 @@ export default {
         url: `/pages/post-detail/post-detail?id=${postId}`,
       });
     },
+  },
+  mounted() {
+    this.$refs.updateAppPupopRef.check();
   },
 };
 </script>

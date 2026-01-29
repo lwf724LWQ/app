@@ -2,11 +2,15 @@
   <!-- 视频列表 -->
   <scroll-view
     class="scroll-view"
-    scroll-y
-    :refresher-enabled="false"
+    :scroll-y="true"
+    :show-scrollbar="false"
+    :refresher-enabled="true"
     :refresher-triggered="isLoading"
+    :lower-threshold="150"
+    :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
     @scrolltolower="loadMore"
+    @scroll="scroll"
   >
     <view v-if="videoList.length === 0">
       <view class="no-data-container">
@@ -50,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { apiGetVideo, apiCheckVideoPayment, delVideo } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
@@ -91,13 +95,22 @@ const loadMore = async () => {
   await fetchVideoList(currentPage.value);
 };
 
+const oldScrollTop = ref(0);
+function scroll(e) {
+  oldScrollTop.value = e.detail.scrollTop;
+}
+const scrollTop = ref(0);
 // 获取视频列表的函数
 const fetchVideoList = async (page = 1) => {
   try {
     if (isLoading.value) return;
-
     isLoading.value = true;
-
+    if (page == 1) {
+      scrollTop.value = oldScrollTop.value;
+      nextTick(() => {
+        scrollTop.value = 0;
+      });
+    }
     // 构建请求参数
     const videoinfo = {
       page: page,
@@ -164,7 +177,10 @@ const fetchVideoList = async (page = 1) => {
       });
     }
   } finally {
-    isLoading.value = false;
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 300);
+
     // 停止下拉刷新
     uni.stopPullDownRefresh();
   }
@@ -190,85 +206,9 @@ const playVideo = async (video) => {
 
   // 将当前视频保存到 Pinia store
   videoStore.setCurrentVideo(video);
-
-  // 如果视频是免费的（price为0或flag为false），直接播放
-  if (!video.flag || video.price === 0) {
-    // 免费视频直接播放
-    uni.navigateTo({
-      url: `/pages/video/play?id=${video.id}`,
-    });
-    return;
-  }
-
-  // 检查视频是否收费
-  try {
-    // 查询用户是否已付费
-    const paymentCheck = await apiCheckVideoPayment({
-      videoId: video.id,
-      account: getAccount(),
-    });
-
-    if (paymentCheck.data) {
-      if (paymentCheck.data) {
-        // 用户已付费，直接播放
-        uni.navigateTo({
-          url: `/pages/video/play?id=${video.id}`,
-        });
-      } else {
-        // 用户未付费，显示付费提示
-        uni.showModal({
-          title: "付费视频",
-          content: `观看此视频需要支付${video.price}金币`,
-          confirmText: "立即支付",
-          cancelText: "取消",
-          success: async (res) => {
-            if (res.confirm) {
-              // 这里调用支付接口
-              await payForVideo(video);
-            }
-          },
-        });
-      }
-    } else {
-      uni.navigateTo({
-        url: `/pages/video/play?id=${video.id}`,
-      });
-    }
-  } catch (error) {
-    uni.showToast({
-      title: error.message || "查询失败",
-      icon: "none",
-    });
-  }
-
-  // 触发点击事件
-  emit("video-click", video);
-};
-
-// 支付视频方法
-const payForVideo = async (video) => {
-  try {
-    // 这里调用支付接口
-    // const paymentResult = await apiPayForVideo({...});
-
-    // 支付成功后更新视频状态
-    video.hasPaid = true;
-
-    uni.showToast({
-      title: "支付成功，开始播放",
-      icon: "success",
-    });
-
-    // 播放视频
-    uni.navigateTo({
-      url: `/pages/video/play?id=${video.id}`,
-    });
-  } catch (error) {
-    uni.showToast({
-      title: "支付失败",
-      icon: "none",
-    });
-  }
+  uni.navigateTo({
+    url: `/pages/video/play?id=${video.id}`,
+  });
 };
 
 function videoMenu(video) {
@@ -391,5 +331,6 @@ defineExpose({
   padding: 20rpx;
   color: #999;
   font-size: 28rpx;
+  padding-bottom: 150rpx;
 }
 </style>

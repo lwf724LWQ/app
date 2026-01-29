@@ -513,7 +513,6 @@ function onRefresh() {
     total: 0,
     maxPage: 1,
   };
-  debugger;
   loadLotteryData(currentLotteryType.value.code);
 }
 
@@ -579,9 +578,9 @@ const loadLotteryDataByType = async (lotteryType) => {
   }
   try {
     isLoadingLottery.value = true;
-    uni.showLoading({ title: "加载中..." });
+    // uni.showLoading({ title: "加载中..." });
     const response = await apiGetIssueNo({ tname: lotteryType.name });
-    uni.hideLoading();
+    // uni.hideLoading();
 
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
@@ -1162,9 +1161,11 @@ const loadPredictPosts = async () => {
     predictList.value = [];
   } finally {
   }
-  isLoadingPosts.value = false;
-  currentQueryKey.value = null;
-  refreshing.value = false;
+  setTimeout(() => {
+    isLoadingPosts.value = false;
+    currentQueryKey.value = null;
+    refreshing.value = false;
+  }, 500);
 };
 
 // 加载分页

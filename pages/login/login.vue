@@ -124,6 +124,8 @@
     <privacyPopup ref="privacyPopupRef" @agree="handleAgree" />
     <!-- 底部指示器 -->
     <view class="bottom-indicator"></view>
+
+    <chengPassword ref="chengPasswordRef" @password-set="jumpToComePage" />
   </view>
 </template>
 
@@ -137,6 +139,7 @@ import tool from "../../utils/tool.js";
 import { useUserStore } from "../../stores/userStore";
 import VerificationCode from "../../components/VerificationCode.vue";
 import privacyPopup from "./component/privacyPopup.vue";
+import chengPassword from "./component/chengPassword.vue";
 
 // 声明uni类型
 declare const uni: any;
@@ -187,7 +190,6 @@ const loginShow = ref(false);
 let pageOptions = {};
 onLoad((options) => {
   pageOptions = options;
-  tool.checkAppUpdate();
   if (!getToken()) {
     loginShow.value = true;
     return;
@@ -205,6 +207,7 @@ onLoad((options) => {
 });
 
 // 点击登录从这里拿到tocken信息
+
 const gologin = async () => {
   // 检查是否同意用户协议
   if (!isAgreed.value) {
@@ -295,25 +298,17 @@ const handleAgree = async () => {
       userStore.updateUserInfo(userInfo, success.data.token);
       console.log("登录成功，用户信息已保存:", userInfo);
 
-      // 显示登录成功提示
-      uni.showToast({
-        title: "登录成功",
-        icon: "success",
-        duration: 1500,
-      });
-
-      // 延迟跳转，让用户看到成功提示
-      setTimeout(() => {
-        // 跳转到用户页面
-        if (pageOptions.redirect) {
-          uni.navigateBack({
-            url: pageOptions.redirect,
-            animationType: "none",
-          });
-        } else {
-          uni.reLaunch({ url: "/pages/index/index", animationType: "none" });
-        }
-      }, 1500);
+      if (success.data.bozhu == 1) {
+        chengPasswordRef.value.open();
+      } else {
+        // 显示登录成功提示
+        uni.showToast({
+          title: "登录成功",
+          icon: "success",
+          duration: 1500,
+        });
+        jumpToComePage();
+      }
     } else {
       uni.showModal({
         title: "登录失败",
@@ -332,6 +327,23 @@ const handleAgree = async () => {
     });
   }
 };
+
+function jumpToComePage() {
+  // 延迟跳转，让用户看到成功提示
+  setTimeout(() => {
+    // 跳转到用户页面
+    if (pageOptions.redirect) {
+      uni.navigateBack({
+        url: pageOptions.redirect,
+        animationType: "none",
+      });
+    } else {
+      uni.reLaunch({ url: "/pages/index/index", animationType: "none" });
+    }
+  }, 500);
+}
+
+const chengPasswordRef = ref(null);
 
 //-------------------------------------------------------------
 //上传文件

@@ -173,6 +173,10 @@
           <uni-icons type="help" size="24" color="#222"></uni-icons>
           <text class="service-text">注销用户</text>
         </view>
+        <view class="service-item" @click="showChangePassword">
+          <uni-icons type="locked" size="24" color="#222"></uni-icons>
+          <text class="service-text">修改密码</text>
+        </view>
         <view class="service-item" @click="showAboutAs">
           <uni-icons type="link" size="24" color="#222"></uni-icons>
           <text class="service-text">关于我们</text>
@@ -194,7 +198,9 @@
       <view>广州梓梅网络科技有限公司 版权所有</view>
     </view>
     <userCloseConfirmation ref="userCloseConfirmationRef" />
-    <bottomBar current-path="/pages/user/user" />
+    <chengPassword ref="chengPasswordRef" />
+    <!-- <bottomBar current-path="/pages/user/user" /> -->
+    <updateAppPupop ref="updateAppPupopRef" />
   </view>
 </template>
 
@@ -209,6 +215,8 @@ import { useUserStore } from "@/stores/userStore";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import { getUserFollowCountApi } from "@/api/apis";
 import userCloseConfirmation from "./components/user-close-confirmation.vue";
+import chengPassword from "@/pages/login/component/chengPassword.vue";
+import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
 
 const userStore = useUserStore();
 
@@ -455,6 +463,11 @@ const handleFeatureClick = (featureName) => {
   }
 };
 
+const chengPasswordRef = ref(null);
+function showChangePassword() {
+  chengPasswordRef.value.open(true);
+}
+
 // 菜单项点击事件
 const handleMenuClick = (item) => {
   if (item.title === "设置") {
@@ -486,13 +499,14 @@ function toggleoldManMode() {
   useOldManModeStore.toggleMode();
 }
 
+const updateAppPupopRef = ref(null);
 function checkUpdate() {
-  tool.checkAppUpdate().then((msg) => {
-    if (msg) {
-      uni.showToast({
-        title: msg,
-      });
-    }
+  updateAppPupopRef.value.check().then((msg) => {
+    if (!msg) return;
+    uni.showToast({
+      title: msg,
+      icon: "none",
+    });
   });
 }
 

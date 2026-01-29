@@ -15,7 +15,11 @@
             <text class="value">{{ record.id }}</text>
           </view>
           <view class="row">
-            <text class="label">类型:</text>
+            <text class="label">彩票名称:</text>
+            <text class="value type">{{ record.tname || "暂无" }}</text>
+          </view>
+          <view class="row">
+            <text class="label">收支类型:</text>
             <text class="value type">{{ getType(record.type) }}</text>
           </view>
           <view class="row">
@@ -44,6 +48,9 @@
       <view class="empty-state" v-if="incomeList.length === 0">
         <text class="empty-text">暂无收益记录</text>
       </view>
+      <view class="empty-state" v-else-if="!isHasMore">
+        <text class="empty-text">暂无更多记录</text>
+      </view>
     </view>
   </scroll-view>
 </template>
@@ -65,20 +72,29 @@ const getIncomeList = () => {
 const setIncomeList = async () => {
   const res = await getIncomeList();
   incomeList.value = res.data.records;
+
+  // 判断一下是否是最后一页，并设置是否有更多标识
+  if (res.data.total <= incomeList.value.length) {
+    isHasMore.value = false;
+  }
 };
 
 setIncomeList();
 
 // 追加收益记录
 let isAppend = false;
+let isHasMore = ref(true);
 const addIncomeRecord = async () => {
-  if (isAppend) return;
+  if (isAppend || !isHasMore.value) return;
   isAppend = true;
 
   page++;
   const res = await getIncomeList();
   incomeList.value = [...incomeList.value, ...res.data.records];
 
+  if (res.data.total <= incomeList.value.length) {
+    isHasMore.value = false;
+  }
   isAppend = false;
 };
 
@@ -97,7 +113,9 @@ const triggered = ref(false);
 
 const onRefresh = async () => {
   triggered.value = true;
+  page = 1;
   await setIncomeList();
+
   triggered.value = false;
 };
 

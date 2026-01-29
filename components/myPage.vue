@@ -1,10 +1,10 @@
 <template>
   <view class="container">
-    <top-navigation-bar :title="pageTitle" >
-		<template v-if="$slots.navRight" #right>
-			<slot name="navRight"></slot>
-		</template>
-	</top-navigation-bar>
+    <top-navigation-bar :title="pageTitle">
+      <template v-if="$slots.navRight" #right>
+        <slot name="navRight"></slot>
+      </template>
+    </top-navigation-bar>
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <slot></slot>
     </scroll-view>
@@ -24,7 +24,7 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.container-eqwejoj12123fsf {
   display: flex;
   flex-direction: column;
   height: 100vh;

@@ -1,5 +1,5 @@
 <template>
-  <uni-popup ref="share" type="bottom">
+  <Popup ref="share" type="bottom">
     <view class="container">
       <view class="title">选择要分享的平台</view>
       <view class="btns">
@@ -30,72 +30,73 @@
       </view>
       <view class="close">取消</view>
     </view>
-  </uni-popup>
+  </Popup>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
+import Popup from "@/components/Popup.vue";
 
-const share = ref(null)
+const share = ref(null);
 
 const props = defineProps({
   getImageUrl: {
-    type: Promise
-  }
-})
+    type: Promise,
+  },
+});
 
 const open = () => {
-  share.value.open()
-}
+  share.value.open();
+};
 defineExpose({
-  open
-})
+  open,
+});
 
 const shareWx = async () => {
   // #ifdef APP
-  const imageUrl = await props.getImageUrl
+  const imageUrl = await props.getImageUrl;
 
   uni.share({
-    provider: 'weixin',
+    provider: "weixin",
     type: 2,
-    scene: 'WXSceneSession',
+    scene: "WXSceneSession",
     imageUrl,
     success(res) {
       uni.showToast({
-        title: '分享成功',
-        icon: 'success'
-      })
+        title: "分享成功",
+        icon: "success",
+      });
     },
     fail(err) {},
     complete() {
-      share.value.close()
-    }
-  })
+      share.value.close();
+    },
+  });
   // #endif
-}
+};
 
 const shareWxpyq = async () => {
   // #ifdef APP
-  const imageUrl = await props.getImageUrl
+  const imageUrl = await props.getImageUrl;
 
   uni.share({
-    provider: 'weixin',
+    provider: "weixin",
     type: 2,
-    scene: 'WXSceneTimeline',
+    scene: "WXSceneTimeline",
     imageUrl,
     success(res) {
       uni.showToast({
-        title: '分享成功',
-        icon: 'success'
-      })
+        title: "分享成功",
+        icon: "success",
+      });
     },
     fail(err) {},
     complete() {
-      share.value.close()
-    }
-  })
+      share.value.close();
+    },
+  });
   // #endif
-}
+};
 </script>
 
 <style lang="scss" scoped>

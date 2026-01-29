@@ -159,7 +159,7 @@
       "path": "pages/video/video",
       "style": {
         "navigationBarTitleText": "视频",
-        "enablePullDownRefresh": true,
+        "enablePullDownRefresh": false,
         "navigationStyle": "custom"
       }
     },
@@ -384,6 +384,20 @@
       "path": "pages/user/income-record",
       "style": {
         "navigationBarTitleText": "收益记录"
+      }
+    },
+    {
+      "path": "pages/video/put-review-post",
+      "style": {
+        "navigationBarTitleText": "发布精彩回顾帖子",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/video/review-post-detial",
+      "style": {
+        "navigationBarTitleText": "精彩回顾详情",
+        "navigationStyle": "custom"
       }
     }
   ],
