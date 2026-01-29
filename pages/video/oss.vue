@@ -417,6 +417,7 @@ const startUpload = async () => {
         setTimeout(() => {
           goBack();
         }, 1500);
+      }
     } catch (error) {
       statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || "视频"}"上传失败: ${
         error.message

@@ -39,7 +39,7 @@
 <script>
 import mockData from "./mock.js";
 import flipModal from "./flip-modal.vue";
-import updateAppPupop from "@/components/updateAppPupop.vue";
+import updateAppPupop from "@/components/updateApp-pupop/updateApp-pupop.vue";
 export default {
   components: { flipModal, updateAppPupop },
   data() {

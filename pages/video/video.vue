@@ -13,74 +13,52 @@
 
     <!-- 切换标签栏（参考 forum.vue 风格） -->
     <view class="switch-tabs">
-      <view class="tab-item" :class="{ active: currentTab === 'fc' }" @click="switchTabByIndex(3)">
-        <text class="tab-text">娱乐</text>
-      </view>
-      <view class="tab-item" :class="{ active: currentTab === 'pls' }" @click="switchTabByIndex(1)">
-        <text class="tab-text">教育</text>
-      </view>
-      <view class="tab-item" :class="{ active: currentTab === 'plw' }" @click="switchTabByIndex(0)">
-        <text class="tab-text">生活</text>
-      </view>
-      <view class="tab-item" :class="{ active: currentTab === 'qxc' }" @click="switchTabByIndex(2)">
-        <text class="tab-text">其他</text>
-      </view>
-    </view>
-    <view v-if="videoList.length === 0">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
-      </view>
-    </view>
-
-    <!-- 功能图标区 -->
-    <view class="area" v-if="currentTab !== 'review'">
       <view
-        class="title"
-        v-for="(video, index) in videoList"
+        v-for="(item, index) in lotteryTypes"
         :key="index"
-        @click="playVideo(video)"
+        class="tab-item"
+        :class="{ active: pickerIndex === index }"
+        @click="switchTabByIndex(index, true)"
       >
-        <view class="video-title" v-if="useOldManModeStore.enabled">{{ video.title }}</view>
-        <!-- 将 video 标签改为 img 标签 -->
-        <image
-          mode="aspectFill"
-          :src="video.imgurl"
-          class="video-image"
-          :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
-        />
-        <view class="video-title" v-if="!useOldManModeStore.enabled">{{ video.title }}</view>
-        <view class="video-info">
-          <text class="video-price" v-if="video.flag && video.price > 0">
-            {{ video.hasPaid ? "已付费" : `付费视频 ${video.price}金币` }}
-          </text>
-          <text class="video-free" v-else>免费视频</text>
-        </view>
+        <text class="tab-text">{{ item }}</text>
       </view>
     </view>
-
-    <!-- 精彩回顾内容 -->
-    <view class="area" v-else>
-      <view class="title" v-for="(video, index) in videoList" :key="index">
-        <view class="video-title">{{ video.title }}</view>
-        <img
-          :src="video.imgurl"
-          class="video-image"
-          @click="playVideo(video)"
-          :class="{ 'paid-video': video.hasPaid, 'free-video': !video.flag }"
-        />
-
-        <view class="video-info">
-          <text class="video-price" v-if="video.flag && video.price > 0">
-            {{ video.hasPaid ? "已付费" : `付费视频 ${video.price}金币` }}
-          </text>
-          <text class="video-free" v-else>免费视频</text>
-        </view>
-      </view>
-    </view>
+    <swiper
+      class="video-swiper"
+      :indicator-dots="false"
+      :autoplay="false"
+      :circular="false"
+      :vertical="false"
+      :current="pickerIndex"
+      easing-function="default"
+      @change="swiperChange"
+    >
+      <swiper-item>
+        <VideoList ref="fc3dVideoListRef" video-type="福彩3D" />
+      </swiper-item>
+      <swiper-item>
+        <VideoList ref="plsVideoListRef" video-type="排列三" />
+      </swiper-item>
+      <swiper-item>
+        <VideoList ref="plwVideoListRef" video-type="排列五" />
+      </swiper-item>
+      <swiper-item>
+        <VideoList ref="qxcVideoListRef" video-type="七星彩" />
+      </swiper-item>
+      <swiper-item>
+        <reviewContainer ref="reviewContainerRef" />
+      </swiper-item>
+    </swiper>
 
     <!-- 发布按钮 -->
-    <!-- <view class="publish-btn" @click="gotoOss()">
-      <uni-icons type="plusempty" size="30" color="#fff"></uni-icons>
+    <!-- 这里安卓上架版本不展示上传按钮 -->
+    <!-- <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoOss()">点我上传视频</view>
+    <view
+      v-else-if="pickerIndex == 4"
+      class="publish-btn publish-btn-putreview"
+      @click="goPutreview()"
+    >
+      点我上传精彩回顾
     </view> -->
     <bottomBar current-path="/pages/video/video" />
   </view>
@@ -104,138 +82,9 @@ import videoTool from "./video-tool.js";
 const pickerIndex = ref(2);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "七星彩", "精彩回顾"]);
+const lotteryTypes = ref(["娱乐", "教育", "生活", "其他", "精彩回顾"]);
 
-const currentLotteryType = ref(lotteryTypes.value[0]);
-const isLoadingLottery = ref(false);
-const currentIssueInfo = ref({ id: null, number: null, status: "待开奖", time: "今天 21:30" });
-
-// 下拉刷新钩子
-onPullDownRefresh(async () => {
-  console.log("下拉刷新触发");
-  // 执行刷新数据的函数
-  await fetchVideoList();
-  // 停止下拉刷新
-  uni.stopPullDownRefresh();
-});
-
-// 获取视频列表的函数(页面开始加载的数据)
-const fetchVideoList = async () => {
-  try {
-    // 构建请求参数
-    const videoinfo = {
-      page: 1,
-      limit: 10,
-    };
-
-    // 添加彩票类型参数
-    if (
-      currentTab.value !== "review" &&
-      currentLotteryType.value &&
-      currentLotteryType.value.name
-    ) {
-      videoinfo.tname = currentLotteryType.value.name;
-    } else if (currentTab.value === "review") {
-      console.log("精彩回顾模式，不限制彩票类型");
-    } else {
-      console.warn("无法获取彩票类型信息");
-    }
-
-    const Videoinfo = await apiGetVideo(videoinfo);
-
-    if (
-      Videoinfo.code === 200 &&
-      Videoinfo.data &&
-      Videoinfo.data.records &&
-      Array.isArray(Videoinfo.data.records)
-    ) {
-      videoList.value = Videoinfo.data.records.map((item) => ({
-        title: item.title,
-        src: "http://video.caimizm.com/" + item.url,
-        id: item.id,
-        account: item.account,
-        likeCount: item.likeCount,
-        createTime: item.createTime,
-        flag: item.price > 0 ? item.flag : false,
-        price: item.price,
-        updateTime: item.updateTime,
-        imgurl: "http://video.caimizm.com/" + item.vimg,
-      }));
-
-      uni.showToast({
-        title: `已加载 ${videoList.value.length} 个视频`,
-        position: "bottom",
-        icon: "none",
-      });
-    } else {
-      console.warn("API 返回数据格式不符合预期:", Videoinfo);
-      uni.showToast({
-        title: Videoinfo.msg || "数据格式错误",
-        icon: "none",
-      });
-    }
-  } catch (error) {
-    console.error("获取视频失败:", error);
-    uni.showToast({
-      title: "获取视频失败，请检查网络",
-      icon: "none",
-    });
-  }
-};
-
-const loadLotteryDataByType = async (lotteryType) => {
-  if (isLoadingLottery.value || !lotteryType || !lotteryType.name) return;
-  try {
-    isLoadingLottery.value = true;
-    uni.showLoading({ title: "加载中..." });
-    const response = await apiGetIssueNo({ tname: lotteryType.name });
-    uni.hideLoading();
-    if (response.code === 200 && response.data !== null && response.data !== undefined) {
-      let issueNumber = null;
-      let issueStatus = "待开奖";
-      let issueTime = "今天 21:30";
-      if (typeof response.data === "number" || typeof response.data === "string") {
-        issueNumber = response.data.toString();
-      } else if (typeof response.data === "object") {
-        issueNumber = response.data.issueno || response.data.number || response.data.id;
-        issueStatus = response.data.status || "待开奖";
-        issueTime = response.data.time || "今天 21:30";
-      }
-      lotteryType.status = issueStatus;
-      lotteryType.time = issueTime;
-      const idx = lotteryTypes.value.findIndex((t) => t.code === lotteryType.code);
-      if (idx !== -1) {
-        lotteryTypes.value[idx].status = issueStatus;
-        lotteryTypes.value[idx].time = issueTime;
-      }
-      currentIssueInfo.value = {
-        id: issueNumber,
-        number: issueNumber,
-        status: issueStatus,
-        time: issueTime,
-      };
-
-      // 保存到本地存储，供 biaodan.vue 使用
-      try {
-        uni.setStorageSync("currentIssueInfo", currentIssueInfo.value);
-        uni.setStorageSync("currentLotteryType", lotteryType);
-      } catch (error) {
-        console.error("保存期号信息失败:", error);
-      }
-    } else {
-      uni.showToast({ title: response.msg || "数据加载失败", icon: "none" });
-    }
-  } catch (error) {
-    uni.hideLoading();
-    uni.showToast({
-      title: error?.msg || error?.message || "网络错误，请重试",
-      icon: "none",
-      duration: 3000,
-    });
-  } finally {
-    isLoadingLottery.value = false;
-  }
-};
+const currentLotteryType = ref(lotteryTypes.value[2]);
 
 const fc3dVideoListRef = ref(null);
 const plsVideoListRef = ref(null);
@@ -440,6 +289,12 @@ onMounted(async () => {});
   color: #ff4757;
 }
 
+/* 鼠标悬停效果 */
+.video-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
 /* ----------------------------------------------------------------- */
 /* 点赞区域 */
 .like-btn {
@@ -486,14 +341,15 @@ onMounted(async () => {});
   gap: 10rpx;
   right: 30rpx;
   bottom: calc(120rpx + var(--window-bottom));
-  width: 80rpx;
+  width: 250rpx;
+  height: 60rpx;
+  line-height: 60rpx;
   text-align: center;
-  height: 80rpx;
   color: #fff;
   font-size: 40rpx;
   font-weight: bold;
-  background-color: #b3d35a;
-  border-radius: 50%;
+  background-color: #1642e3;
+  border-radius: 10px;
   padding: 10rpx;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
