@@ -5,7 +5,7 @@
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="true"
-    :refresher-triggered="isLoading"
+    :refresher-triggered="isLoading && currentPage == 1"
     :lower-threshold="150"
     :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
