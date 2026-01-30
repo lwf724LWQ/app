@@ -260,7 +260,10 @@ const handleReward = async () => {
 };
 function payOver({ flag }) {
   if (flag) {
-    goBack();
+    setTimeout(() => {
+      // 延迟2秒后返回，让用户看到打赏成功的提示
+      goBack();
+    }, 2000);
   }
 }
 </script>
