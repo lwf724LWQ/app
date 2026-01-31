@@ -111,17 +111,43 @@ export default {
     hideRulePopup() {
       this.showRule = false;
     },
-    shareToWechatFriend() {
-      uni.share({
-        ...getConfig(this.userInfo.nickname, this.inviteCode),
-        scene: "WXSceneSession",
+    copyLink() {
+      const config = getConfig(this.userInfo.nickname, this.inviteCode);
+      uni.setClipboardData({
+        data: config.href,
+        success: function (res) {
+          uni.showModal({
+            title: "复制成功",
+            content: "请分享后让好友将链接复制到浏览器中打开",
+            showCancel: false,
+            success: function (res) {
+              if (res.confirm) {
+                plus.runtime.openURL(`weixin://`);
+              }
+            },
+          });
+        },
+        fail: function (err) {
+          uni.showToast({
+            title: "复制失败",
+            icon: "error",
+          });
+        },
       });
     },
+    shareToWechatFriend() {
+      this.copyLink();
+      // uni.share({
+      //   ...getConfig(this.userInfo.nickname, this.inviteCode),
+      //   scene: "WXSceneSession",
+      // });
+    },
     shareToWechatMoments() {
-      uni.share({
-        ...getConfig(this.userInfo.nickname, this.inviteCode),
-        scene: "WXSceneTimeline",
-      });
+      this.copyLink();
+      // uni.share({
+      //   ...getConfig(this.userInfo.nickname, this.inviteCode),
+      //   scene: "WXSceneTimeline",
+      // });
     },
   },
   onLoad() {
@@ -151,6 +177,7 @@ export default {
     font-size: 35rpx;
     color: #fff;
     .wx,
+    .copyLink,
     .wxpyq {
       .icon {
         width: 100rpx;
@@ -174,7 +201,7 @@ export default {
       align-items: center;
       flex-direction: column;
 
-      width: 180rpx;
+      width: 230rpx;
       font-weight: bold;
     }
   }
