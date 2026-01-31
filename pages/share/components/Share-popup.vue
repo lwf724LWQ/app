@@ -35,15 +35,13 @@
 
 <script setup>
 import { ref } from "vue";
-import logo from "/static/logo.png";
-import dowRqcode from "/static/dowRqcode.png"
 
 const share = ref(null);
 
 // 'link' 'rqcode'
 const shareType = ref("link");
 const open = (type) => {
-	shareType.value = type
+  shareType.value = type;
   share.value.open();
 };
 defineExpose({
@@ -51,23 +49,26 @@ defineExpose({
 });
 
 function getConfig() {
-  if (shareType.value === 'link') {
+  if (shareType.value === "link") {
     return {
       provider: "weixin",
-      type: 0,
-      href: "http://www.caimizm.com/",
-      title: "五七仔下载链接",
-      summary: "",
-      imageUrl: logo,
+      type: 1,
+      title: "http://www.caimizm.com/",
+      summary: "http://www.caimizm.com/",
     };
-  }else{
+  } else if (shareType.value === "rqcode") {
     return {
       provider: "weixin",
       type: 2,
       imageUrl: "/static/dowRqcode.png",
     };
+  } else if (shareType.value === "jiaocheng") {
+    return {
+      provider: "weixin",
+      type: 2,
+      imageUrl: "http://video.caimizm.com/changtiao/fileqIXDuBnAcozQ.png",
+    };
   }
-  
 }
 const shareWx = async () => {
   // #ifdef APP
@@ -81,7 +82,9 @@ const shareWx = async () => {
         icon: "success",
       });
     },
-    fail(err) {console.log(err)},
+    fail(err) {
+      console.log(err);
+    },
     complete() {
       share.value.close();
     },

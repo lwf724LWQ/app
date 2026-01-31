@@ -16,30 +16,40 @@
       </view>
     </view> -->
     <!-- #ifdef APP-PLUS -->
-    <view class="card">
+    <!-- <view class="card">
       <view class="card-header">
         <view class="card-title">
           <uni-icons class="card-icon" type="link"></uni-icons>
           <text class="title-text">二维码下载</text>
         </view>
-        <view class="card-description"
-          >分享二维码到微信，好友扫描二维码即可下载</view
-        >
+        <view class="card-description">分享二维码到微信，好友扫描二维码即可下载</view>
       </view>
       <view class="card-footer">
         <view class="share-button" @click="share('rqcode')">分享二维码</view>
-        <!-- <view class="copy-button" @click="copyLink()">复制地址</view> -->
+      </view>
+    </view> -->
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">
+          <uni-icons class="card-icon" type="link"></uni-icons>
+          <text class="title-text">教程分享</text>
+        </view>
+        <view class="card-description">分享下载教程到微信</view>
+      </view>
+      <view class="card-footer">
+        <view class="share-button" @click="share('jiaocheng')">分享教程</view>
       </view>
     </view>
     <!-- #endif -->
+	
     <view class="card">
       <view class="card-header">
         <view class="card-title">
           <uni-icons class="card-icon" type="link"></uni-icons>
           <text class="title-text">官网下载</text>
         </view>
-        <view class="card-description"
-          >在手机浏览器，输入官网地址，即可下载。
+        <view class="card-description">
+          在手机浏览器，输入官网地址，即可下载。
           <uni-link
             class="link"
             href="http://www.caimizm.com/"
@@ -49,7 +59,7 @@
       </view>
       <view class="card-footer">
         <!-- #ifdef APP-PLUS -->
-        <view class="share-button" @click="share('link')">分享链接</view>
+        <!-- <view class="share-button" @click="share('link')">分享链接</view> -->
         <!-- #endif -->
         <view class="copy-button" @click="copyLink()">复制地址</view>
       </view>
@@ -105,6 +115,7 @@ function openUrl() {}
 
     margin-bottom: 30rpx;
     gap: 10rpx;
+    flex: 1;
 
     .card-title {
       display: flex;

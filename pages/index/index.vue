@@ -183,8 +183,12 @@
           <text>联系我们</text>
         </view>
         <view class="icon-item" @click="showAboutAs">
-          <uni-icons type="link" size="24" color="#4A90E2"></uni-icons>
+          <uni-icons type="link" size="20" color="#4A90E2"></uni-icons>
           <text>关于我们</text>
+        </view>
+        <view class="icon-item" @click="toShare">
+          <uni-icons type="redo" size="20" color="#4A90E2"></uni-icons>
+          <text>分享</text>
         </view>
         <!-- <view class="icon-item icon-item-message">
           <image src="/static/icons/color.png" mode="aspectFit"></image>
@@ -288,6 +292,9 @@ export default {
       uni.navigateTo({
         url: "/pages/login/agreement?type=AboutAs",
       });
+    },
+    toShare() {
+      uni.navigateTo({ url: "/pages/share/share" });
     },
     // 加载开奖结果
     async loadLotteryResults() {

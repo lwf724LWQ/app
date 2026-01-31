@@ -64,18 +64,18 @@ import logo from "/static/logo.png";
 function getConfig(username, inviteCode) {
   return {
     provider: "weixin",
-    type: 0,
-    href: `http://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
+    type: 1,
+    summary: `http://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
       inviteCode
     )}&username=${encodeURIComponent(username)}`,
-    title: "送您金币，免费查看大师预测！",
-    summary: "内含排列三排列五，福彩3D七星彩开奖+大师预测，抓局画规分享",
-    imageUrl: logo,
+    // title: "送您金币，免费查看大师预测！",
+    // summary: "内含排列三排列五，福彩3D七星彩开奖+大师预测，抓局画规分享",
+    // imageUrl: logo,
     success(res) {
-      uni.showToast({
-        title: "分享成功",
-        icon: "success",
-      });
+      // uni.showToast({
+      //   title: "分享成功",
+      //   icon: "success",
+      // });
     },
     fail(err) {},
   };
@@ -136,18 +136,30 @@ export default {
       });
     },
     shareToWechatFriend() {
-      this.copyLink();
-      // uni.share({
-      //   ...getConfig(this.userInfo.nickname, this.inviteCode),
-      //   scene: "WXSceneSession",
-      // });
+      uni.showModal({
+        title: "提示",
+        content: "请分享后让好友将链接复制到浏览器中打开",
+        showCancel: false,
+        success: function (res) {
+          uni.share({
+            ...getConfig(this.userInfo.nickname, this.inviteCode),
+            scene: "WXSceneSession",
+          });
+        },
+      });
     },
     shareToWechatMoments() {
-      this.copyLink();
-      // uni.share({
-      //   ...getConfig(this.userInfo.nickname, this.inviteCode),
-      //   scene: "WXSceneTimeline",
-      // });
+      uni.showModal({
+        title: "提示",
+        content: "请分享后让好友将链接复制到浏览器中打开",
+        showCancel: false,
+        success: function (res) {
+          uni.share({
+            ...getConfig(this.userInfo.nickname, this.inviteCode),
+            scene: "WXSceneTimeline",
+          });
+        },
+      });
     },
   },
   onLoad() {
