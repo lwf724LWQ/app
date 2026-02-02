@@ -140,7 +140,7 @@ export default {
         title: "提示",
         content: "请分享后让好友将链接复制到浏览器中打开",
         showCancel: false,
-        success: function (res) {
+        success: (res) => {
           uni.share({
             ...getConfig(this.userInfo.nickname, this.inviteCode),
             scene: "WXSceneSession",
@@ -153,7 +153,7 @@ export default {
         title: "提示",
         content: "请分享后让好友将链接复制到浏览器中打开",
         showCancel: false,
-        success: function (res) {
+        success: (res) => {
           uni.share({
             ...getConfig(this.userInfo.nickname, this.inviteCode),
             scene: "WXSceneTimeline",
