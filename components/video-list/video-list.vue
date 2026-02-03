@@ -190,13 +190,13 @@ const fetchVideoList = async (page = 1) => {
 const playVideo = async (video) => {
   // 检查是否登录
   const token = getToken();
-  if (!token) {
+  if (!token && video.flag) {
     uni.showModal({
       title: "提示",
-      content: "该操作需要登录，是否前往",
+      content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
       success: async (res) => {
         if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
+          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
         }
       },
       showCancel: true,
