@@ -31,8 +31,14 @@
           </view>
           <text class="country-code">+86</text>
           <view class="separator"></view>
-          <input type="text" name="account" placeholder="请输入手机号" placeholder-class="input-placeholder" v-model="account"
-            class="phone-input" />
+          <input
+            type="text"
+            name="account"
+            placeholder="请输入手机号"
+            placeholder-class="input-placeholder"
+            v-model="account"
+            class="phone-input"
+          />
         </view>
       </view>
 
@@ -43,7 +49,12 @@
             <view class="code-icon-svg"></view>
           </view>
           <!-- <view class="code-container"> -->
-          <VerificationCode ref="codeRef" placeholder="请输入验证码" @getCode="sendLoginCode" @input="handleCodeInput" />
+          <VerificationCode
+            ref="codeRef"
+            placeholder="请输入验证码"
+            @getCode="sendLoginCode"
+            @input="handleCodeInput"
+          />
           <!-- </view> -->
         </view>
       </view>
@@ -54,8 +65,14 @@
           <view class="input-icon user-icon">
             <view class="user-icon-svg"></view>
           </view>
-          <input type="text" name="username" placeholder="请输入用户名" placeholder-class="input-placeholder" v-model="uname"
-            class="username-input" />
+          <input
+            type="text"
+            name="username"
+            placeholder="请输入用户名"
+            placeholder-class="input-placeholder"
+            v-model="uname"
+            class="username-input"
+          />
         </view>
       </view>
 
@@ -65,8 +82,14 @@
           <view class="input-icon lock-icon">
             <view class="lock-icon-svg"></view>
           </view>
-          <input :type="showPassword ? 'text' : 'password'" name="password" placeholder="请输入密码"
-            placeholder-class="input-placeholder" v-model="password" class="password-input" />
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            name="password"
+            placeholder="请输入密码"
+            placeholder-class="input-placeholder"
+            v-model="password"
+            class="password-input"
+          />
           <view class="eye-icon" @click="togglePasswordVisibility">
             <view class="eye-icon-svg" :class="{ 'eye-open': showPassword }">
               <view class="eye-ball"></view>
@@ -84,123 +107,123 @@
       <view class="reg-btn-container">
         <button type="submit" class="reg-btn" @click="doReg">注册</button>
       </view>
-
-
-
-
     </form>
   </view>
 </template>
 
 <script lang="ts" setup>
 // @ts-ignore
-import VerificationCode from '../../components/VerificationCode.vue'
-import { ref, reactive, watch } from 'vue'
-import { apiRegInfo } from '../../api/apis.js'
-import { apiSendCode } from '../../api/apis.js'
+import VerificationCode from "../../components/VerificationCode.vue";
+import { ref, reactive, watch } from "vue";
+import { apiRegInfo } from "../../api/apis.js";
+import { apiSendCode } from "../../api/apis.js";
 
-declare const uni: any
+declare const uni: any;
 
 // 跳转到登录页面
 const goToLogin = () => {
-  uni.navigateBack()
-}
+  // uni.navigateBack()
+  uni.redirectTo({ url: "/pages/login/login" });
+};
 
 // 切换密码显示/隐藏
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
-
-
-
-
-
-const account = ref('')
-const code = ref('')
-const codeRef = ref(null)
-const uname = ref('')
-const password = ref('')
-const showPassword = ref(false)
+const account = ref("");
+const code = ref("");
+const codeRef = ref(null);
+const uname = ref("");
+const password = ref("");
+const showPassword = ref(false);
 
 const Reginfo = reactive({
-  account: '',
-  code: '',
-  uname: '',
-  password: ''
-})
+  account: "",
+  code: "",
+  uname: "",
+  password: "",
+});
 
 // 输入验证码时更新值
 const handleCodeInput = (value) => {
-  code.value = value
-}
+  code.value = value;
+};
 
 // 发送验证码
 const sendLoginCode = async () => {
   if (!account.value) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入手机号", icon: "none" });
+    return;
   }
   try {
-    const response = await apiSendCode({ phone: account.value })
+    const response = await apiSendCode({ phone: account.value });
     if (response.code === 200) {
-      codeRef.value.startCountdown()
+      codeRef.value.startCountdown();
     } else {
-      uni.showToast({ title: response.errMsg, icon: 'none' })
+      uni.showToast({ title: response.errMsg, icon: "none" });
     }
   } catch (error) {
-    uni.showToast({ title: '发送验证码失败', icon: 'none' })
+    uni.showToast({ title: "发送验证码失败", icon: "none" });
   }
-}
+};
 
-watch([account, code, uname, password], ([newAccount, newCode, newUname, newPassword]) => {
-  Reginfo.account = newAccount
-  Reginfo.code = newCode
-  Reginfo.uname = newUname
-  Reginfo.password = newPassword
-}, { immediate: true })
+watch(
+  [account, code, uname, password],
+  ([newAccount, newCode, newUname, newPassword]) => {
+    Reginfo.account = newAccount;
+    Reginfo.code = newCode;
+    Reginfo.uname = newUname;
+    Reginfo.password = newPassword;
+  },
+  { immediate: true }
+);
 
 // 注册逻辑
 const doReg = async () => {
   if (!account.value) {
-    uni.showToast({ title: '请输入手机号', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入手机号", icon: "none" });
+    return;
   }
 
   if (!code.value) {
-    uni.showToast({ title: '请输入验证码', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入验证码", icon: "none" });
+    return;
   }
 
   if (!uname.value) {
-    uni.showToast({ title: '请输入用户名', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入用户名", icon: "none" });
+    return;
   }
 
   if (!password.value) {
-    uni.showToast({ title: '请输入密码', icon: 'none' })
-    return
+    uni.showToast({ title: "请输入密码", icon: "none" });
+    return;
   }
 
-  uni.showLoading({ title: '注册中...' })
+  uni.showLoading({ title: "注册中..." });
 
   try {
-    const success = await apiRegInfo(Reginfo)
-    uni.hideLoading()
+    const success = await apiRegInfo(Reginfo);
+    uni.hideLoading();
 
     if (success) {
-      uni.showToast({ title: '注册成功', icon: 'success' })
+      uni.showToast({ title: "注册成功", icon: "success" });
       setTimeout(() => {
-        uni.redirectTo({ url: '/pages/login/login' })
-      }, 1500)
+        uni.redirectTo({ url: "/pages/login/login" });
+      }, 1500);
     } else {
-      uni.showModal({ title: '注册失败', content: '注册失败，请重试', showCancel: false })
+      uni.showModal({ title: "注册失败", content: "注册失败，请重试", showCancel: false });
     }
   } catch (error) {
-    uni.hideLoading()
-    uni.showModal({ title: '注册失败', content: '网络错误，请检查网络连接后重试', showCancel: false })
+    uni.hideLoading();
+    uni.showModal({
+      title: "注册失败",
+      content: "网络错误，请检查网络连接后重试",
+      showCancel: false,
+    });
   }
-}
+};
 </script>
 
 <style>
@@ -251,7 +274,7 @@ const doReg = async () => {
         left: 50%;
         transform: translate(-50%, -50%);
         font-size: 32rpx;
-        color: #28B389;
+        color: #28b389;
         font-weight: bold;
         z-index: 2;
       }
@@ -264,7 +287,7 @@ const doReg = async () => {
 
         .line {
           position: absolute;
-          background: #28B389;
+          background: #28b389;
           border-radius: 2rpx;
           opacity: 0.3;
 
@@ -328,30 +351,30 @@ const doReg = async () => {
         .phone-icon-svg {
           width: 32rpx;
           height: 48rpx;
-          border: 3rpx solid #28B389;
+          border: 3rpx solid #28b389;
           border-radius: 8rpx;
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 4rpx;
             left: 4rpx;
             right: 4rpx;
             bottom: 8rpx;
-            border: 2rpx solid #28B389;
+            border: 2rpx solid #28b389;
             border-radius: 4rpx;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 2rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 8rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
         }
@@ -359,29 +382,29 @@ const doReg = async () => {
         .code-icon-svg {
           width: 32rpx;
           height: 32rpx;
-          border: 3rpx solid #28B389;
+          border: 3rpx solid #28b389;
           border-radius: 6rpx;
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 4rpx;
             left: 4rpx;
             width: 6rpx;
             height: 6rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 4rpx;
             right: 4rpx;
             width: 8rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
         }
@@ -389,31 +412,31 @@ const doReg = async () => {
         .user-icon-svg {
           width: 32rpx;
           height: 32rpx;
-          border: 3rpx solid #28B389;
+          border: 3rpx solid #28b389;
           border-radius: 50%;
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 6rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 8rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 50%;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 4rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 16rpx;
             height: 8rpx;
-            background: #28B389;
+            background: #28b389;
             border-radius: 8rpx 8rpx 0 0;
           }
         }
@@ -424,27 +447,27 @@ const doReg = async () => {
           position: relative;
 
           &::before {
-            content: '';
+            content: "";
             position: absolute;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 20rpx;
             height: 16rpx;
-            border: 3rpx solid #28B389;
+            border: 3rpx solid #28b389;
             border-bottom: none;
             border-radius: 10rpx 10rpx 0 0;
           }
 
           &::after {
-            content: '';
+            content: "";
             position: absolute;
             top: 12rpx;
             left: 50%;
             transform: translateX(-50%);
             width: 24rpx;
             height: 20rpx;
-            border: 3rpx solid #28B389;
+            border: 3rpx solid #28b389;
             border-radius: 4rpx;
           }
         }
@@ -506,10 +529,10 @@ const doReg = async () => {
           }
 
           &.eye-open {
-            border-color: #28B389;
+            border-color: #28b389;
 
             .eye-ball {
-              background: #28B389;
+              background: #28b389;
               width: 10rpx;
               height: 10rpx;
             }
@@ -527,7 +550,7 @@ const doReg = async () => {
 
     .login-link {
       font-size: 28rpx;
-      color: #28B389;
+      color: #28b389;
     }
   }
 
@@ -538,7 +561,7 @@ const doReg = async () => {
     .reg-btn {
       width: 80%;
       height: 80rpx;
-      background: #28B389;
+      background: #28b389;
       border-radius: 16rpx;
       border: none;
       color: #fff;
@@ -571,8 +594,8 @@ const doReg = async () => {
         margin-top: 4rpx;
 
         &.checked {
-          background: #28B389;
-          border-color: #28B389;
+          background: #28b389;
+          border-color: #28b389;
 
           .checkmark {
             color: #fff;
@@ -589,7 +612,7 @@ const doReg = async () => {
         line-height: 1.5;
 
         .link-text {
-          color: #28B389;
+          color: #28b389;
         }
       }
     }
@@ -625,7 +648,7 @@ const doReg = async () => {
       height: 100rpx;
       background: #fff;
       border-radius: 50rpx;
-      border: 2rpx solid #E5E5E5;
+      border: 2rpx solid #e5e5e5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -642,27 +665,27 @@ const doReg = async () => {
             position: relative;
 
             &::before {
-              content: '';
+              content: "";
               position: absolute;
               top: 8rpx;
               left: 4rpx;
               width: 16rpx;
               height: 16rpx;
-              background: #07C160;
+              background: #07c160;
               border-radius: 50%;
-              border: 2rpx solid #07C160;
+              border: 2rpx solid #07c160;
             }
 
             &::after {
-              content: '';
+              content: "";
               position: absolute;
               top: 4rpx;
               right: 4rpx;
               width: 20rpx;
               height: 20rpx;
-              background: #07C160;
+              background: #07c160;
               border-radius: 50%;
-              border: 2rpx solid #07C160;
+              border: 2rpx solid #07c160;
             }
           }
         }
