@@ -88,6 +88,9 @@
       <view class="login-btn-container">
         <button class="login-btn" @click="gologin">登录</button>
       </view>
+      <view class="login-btn-container">
+        <button class="login-btn" @click="goToReg">去注册</button>
+      </view>
 
       <!-- 用户协议 -->
       <view class="agreement-section">
