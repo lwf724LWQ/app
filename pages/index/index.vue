@@ -781,7 +781,7 @@ export default {
   /* 轮播图样式 */
   .ad-swiper {
     width: 100%;
-    height: 280rpx;
+    height: 600rpx;
   }
 
   .swiper-item {
