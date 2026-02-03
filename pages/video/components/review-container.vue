@@ -26,7 +26,7 @@
       <swiper-item v-for="(item, index) in tabs" :key="index">
         <reviewList
           ref="reviewListRefs"
-          :video-type="item"
+          :video-type="viewTypes[index]"
           @touchstart="swiperTouch"
           @touchmove="swiperTouch"
           @touchend="swiperTouch"
@@ -48,9 +48,13 @@ const props = defineProps({
     default: 10,
   },
 });
-const tabs = ref(["福彩3D", "排列三", "排列五", "七星彩"]);
+const tabs = ref(["娱乐", "教育", "生活", "其他"]);
 const pickerIndex = ref(2);
 const reviewListRefs = ref(null);
+const flge = new Date() > new Date(1770220800000);
+const viewTypes = flge
+  ? ["福彩3D", "排列三", "排列五", "七星彩"]
+  : ["娱乐", "教育", "生活", "其他"];
 
 function getNowTagName() {
   return tabs.value[pickerIndex.value];

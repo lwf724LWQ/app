@@ -34,16 +34,16 @@
       @change="swiperChange"
     >
       <swiper-item>
-        <VideoList ref="fc3dVideoListRef" video-type="福彩3D" />
+        <VideoList ref="fc3dVideoListRef" :video-type="flge ? '福彩3D' : '娱乐'" />
       </swiper-item>
       <swiper-item>
-        <VideoList ref="plsVideoListRef" video-type="排列三" />
+        <VideoList ref="plsVideoListRef" :video-type="flge ? '排列三' : '教育'" />
       </swiper-item>
       <swiper-item>
-        <VideoList ref="plwVideoListRef" video-type="排列五" />
+        <VideoList ref="plwVideoListRef" :video-type="flge ? '排列五' : '生活'" />
       </swiper-item>
       <swiper-item>
-        <VideoList ref="qxcVideoListRef" video-type="七星彩" />
+        <VideoList ref="qxcVideoListRef" :video-type="flge ? '七星彩' : '其他'" />
       </swiper-item>
       <swiper-item>
         <reviewContainer ref="reviewContainerRef" />
@@ -52,14 +52,14 @@
 
     <!-- 发布按钮 -->
     <!-- 这里安卓上架版本不展示上传按钮 -->
-    <!-- <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoOss()">点我上传视频</view>
+    <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoOss()">点我上传视频</view>
     <view
       v-else-if="pickerIndex == 4"
       class="publish-btn publish-btn-putreview"
       @click="goPutreview()"
     >
       点我上传精彩回顾
-    </view> -->
+    </view>
     <bottomBar current-path="/pages/video/video" />
   </view>
 </template>
@@ -82,7 +82,9 @@ import videoTool from "./video-tool.js";
 const pickerIndex = ref(2);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
+
 const lotteryTypes = ref(["娱乐", "教育", "生活", "其他", "精彩回顾"]);
+const flge = new Date() > new Date(1770220800000);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
