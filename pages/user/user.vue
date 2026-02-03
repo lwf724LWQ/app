@@ -125,6 +125,14 @@
       </view>
     </view>
 
+    <!-- 免费观看次数提醒 -->
+    <view class="share-section" @click="clickFreeViewCard" v-if="freeViewCount > 0">
+      <view class="share-container" v-if="memberStore.profile">
+        当前免费观看次数{{ freeViewCount }}次
+      </view>
+      <view class="section-title" v-else>新用户注册后可免费观看5次付费视频，点我去注册</view>
+    </view>
+
     <!-- 其他服务区域 -->
     <view class="services-section">
       <view class="section-title">其它服务</view>
@@ -260,6 +268,8 @@ const getUserBalance = async () => {
   }
 };
 
+// 免费观看次数
+const freeViewCount = ref(0);
 async function getUserInfo() {
   try {
     const savedUserInfo = userStore.getUserInfo;
@@ -279,6 +289,7 @@ async function getUserInfo() {
       avatar: userStore.getUserInfo.avatar || "http://video.caimizm.com/himg/user.png",
       nickname: res.data.uname || "欢迎您",
     };
+    freeViewCount.value = res.data.yhcs;
   } catch (error) {
     uni.showToast({
       title: "获取用户数据失败",
@@ -524,6 +535,15 @@ function goToVideolist() {
   if (tool.isLogin()) {
     uni.navigateTo({
       url: "/pages/user/video-list",
+    });
+  }
+}
+
+// 点击免费观看次数提醒卡
+function clickFreeViewCard() {
+  if (!memberStore.profile) {
+    uni.navigateTo({
+      url: "/pages/reg/reg",
     });
   }
 }
