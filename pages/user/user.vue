@@ -50,15 +50,15 @@
           </view>
           <view class="user-details">
             <text class="username">未登录</text>
-            <view class="login-btn">
+            <!-- <view class="login-btn">
               <navigator url="/pages/login/login" hover-class="none">
                 <text class="login-text">点击登录</text>
               </navigator>
-            </view>
+            </view> -->
           </view>
         </view>
         <view class="edit-btn" @click="goToLogin">
-          <text class="edit-text">点击登录</text>
+          <text class="edit-text">注册登录</text>
         </view>
       </view>
     </view>
@@ -1010,11 +1010,11 @@ function clickFreeViewCard() {
 
       .edit-btn {
         background-color: #ffa726;
-        padding: 12rpx 20rpx;
+        padding: 22rpx 40rpx;
         border-radius: 20rpx;
 
         .edit-text {
-          font-size: 24rpx;
+          font-size: 34rpx;
           color: #fff;
         }
       }
