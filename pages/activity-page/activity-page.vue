@@ -168,6 +168,10 @@ export default {
 
     this.inviteCode = this.encrypt(this.userInfo.account);
   },
+  onUnload() {
+    console.log("关闭页面");
+    uni.setStorageSync("isOpened", true);
+  },
 };
 </script>
 
