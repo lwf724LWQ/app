@@ -90,7 +90,7 @@
       </cover-view>
 
       <!-- 打赏和点赞区域 -->
-      <view class="interaction-bar">
+      <view class="interaction-bar" v-if="isLogin">
         <view class="reward-interaction" @click="goToRewardPage">
           <uni-icons type="gift-filled" size="20" color="#FF9500"></uni-icons>
           <text class="interaction-text">打赏</text>
@@ -110,7 +110,7 @@
       </view>
 
       <!-- 作者和视频信息 -->
-      <view class="video-info-card">
+      <view class="video-info-card" v-if="isLogin">
         <view class="info-header">
           <image
             v-if="userInfo.himg || userInfo.uname"
@@ -168,6 +168,7 @@ import {
   apiGetVideoDetail,
   cancelUserFollowApi,
   userFollowApi,
+  offFreeViewCountApi,
 } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
@@ -214,6 +215,13 @@ const userInfo = ref({
   uname: "",
   himg: "",
 });
+const isLogin = !!getAccount();
+// 登录的用户数据
+const loginUserInfo = ref({
+  uname: "",
+  himg: "",
+  freeViewCount: 0,
+});
 
 // 表单图片相关数据
 const showFormImage = ref(false); // 控制表单图片显示
@@ -233,13 +241,16 @@ const loadVideoData = async (videoId) => {
   }
   try {
     uni.showLoading({ title: "加载中..." });
-    const [likeList, response] = await Promise.all([
-      apiGetLikelist(getAccount()),
-      apiGetVideoDetail({ videoId: videoId }),
-    ]);
-
+    const promiseList = [apiGetVideoDetail({ videoId: videoId })];
+    if (getAccount()) {
+      promiseList.push(apiGetLikelist(getAccount()));
+    }
+    const [response, likeList] = await Promise.all(promiseList);
+    let isLiked = false;
     // 判断是否有点赞过
-    const isLiked = likeList.data.find((item) => item.videoId == videoId);
+    if (getAccount()) {
+      isLiked = likeList.data.find((item) => item.videoId == videoId);
+    }
 
     let currentVideo = {};
 
@@ -299,6 +310,19 @@ const loadVideoData = async (videoId) => {
         videoContext.value = uni.createVideoContext("videoPlayer");
       }
     }
+
+    // 提示是否使用免费观看次数
+    const freeViewCount = loginUserInfo.value.freeViewCount;
+    if (freeViewCount > 0 && hasPaid.value === false) {
+      const result = await uni.showModal({
+        title: "提示",
+        content: `当前还有${freeViewCount}次免费观看次数，是否使用`,
+      });
+      if (result.confirm) {
+        offFreeViewCount();
+        return;
+      }
+    }
   } catch (error) {
     console.error(error);
     uni.showToast({
@@ -340,33 +364,35 @@ const toBlobUrlVideo = (videoUrl) => {
   });
 };
 async function followUser() {
-  uni.showLoading({
-    title: "正在处理",
-  });
-  try {
-    if (followStatus.value == 0) {
-      await userFollowApi({
-        account2: videoData.value.account,
-      });
-      followStatus.value = 1;
-    } else if (followStatus.value == 1) {
-      await cancelUserFollowApi({
-        account2: videoData.value.account,
-      });
-      followStatus.value = 0;
-    }
+  if (tool.isLogin()) {
+    uni.showLoading({
+      title: "正在处理",
+    });
+    try {
+      if (followStatus.value == 0) {
+        await userFollowApi({
+          account2: videoData.value.account,
+        });
+        followStatus.value = 1;
+      } else if (followStatus.value == 1) {
+        await cancelUserFollowApi({
+          account2: videoData.value.account,
+        });
+        followStatus.value = 0;
+      }
 
-    uni.showToast({
-      title: "操作成功",
-      icon: "success",
-    });
-  } catch {
-    uni.showToast({
-      title: "操作失败",
-      icon: "success",
-    });
+      uni.showToast({
+        title: "操作成功",
+        icon: "success",
+      });
+    } catch {
+      uni.showToast({
+        title: "操作失败",
+        icon: "success",
+      });
+    }
+    uni.hideLoading();
   }
-  uni.hideLoading();
 }
 
 // 跳转到首页
@@ -415,6 +441,8 @@ onLoad(async (options) => {
 
 // 页面显示时重新加载数据（刷新时触发）
 onShow(async () => {
+  // 获取当前用户信息
+  getLoginUserInfo();
   // 重新检查付费状态
   await loadVideoData(videoId);
 });
@@ -679,6 +707,20 @@ const handleBuyClick = async () => {
       showPlayButton.value = false;
     }
   } else {
+    // 提示是否要使用免费观看次数
+    let result = {};
+    const freeViewCount = loginUserInfo.value.freeViewCount;
+    if (freeViewCount > 0) {
+      result = await uni.showModal({
+        title: "提示",
+        content: `当前还有${freeViewCount}次免费观看次数，是否使用`,
+      });
+    }
+    if (result.confirm) {
+      offFreeViewCount();
+      return;
+    }
+    console.log(result);
     // 付费视频且未付费，跳转到支付
     await payForVideo();
   }
@@ -754,9 +796,11 @@ const toggleLike = async () => {
 };
 
 function toUserSpace() {
-  uni.navigateTo({
-    url: `/pages/user/space?account=${videoData.value.account}&follow=${followStatus.value}`,
-  });
+  if (tool.isLogin()) {
+    uni.navigateTo({
+      url: `/pages/user/space?account=${videoData.value.account}&follow=${followStatus.value}`,
+    });
+  }
 }
 
 const reportPopupRef = ref(null);
@@ -781,6 +825,41 @@ function handleReport(postId) {
 }
 function reportSubmitted() {
   uni.navigateBack();
+}
+
+// 减去免费观看次数
+// 并刷新视频状态
+async function offFreeViewCount() {
+  try {
+    await offFreeViewCountApi(videoData.value.id);
+    await loadVideoData(videoId);
+  } catch (error) {
+    console.log(error);
+    uni.showModal({
+      title: "提示",
+      content: error?.msg || "未知错误",
+      showCancel: false,
+      confirmText: "确定",
+      success: function (res) {
+        if (res.confirm) {
+          // 点击确定
+        }
+      },
+    });
+  }
+}
+// 获取当前登录用户信息
+async function getLoginUserInfo() {
+  if (getAccount()) {
+    try {
+      const res = await apiUserimg({ account: getAccount() });
+      loginUserInfo.value = {
+        uname: res.data.uname,
+        himg: res.data.himg,
+        freeViewCount: res.data.yhcs,
+      };
+    } catch (error) {}
+  }
 }
 </script>
 
