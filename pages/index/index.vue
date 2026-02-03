@@ -186,6 +186,10 @@
           <uni-icons type="link" size="24" color="#4A90E2"></uni-icons>
           <text>关于我们</text>
         </view>
+        <view class="icon-item" @click="toFollowList">
+          <uni-icons type="staff" size="24" color="#4A90E2"></uni-icons>
+          <text>我的关注</text>
+        </view>
         <!-- <view class="icon-item icon-item-message">
           <image src="/static/icons/color.png" mode="aspectFit"></image>
           <text>我的消息</text>
@@ -446,6 +450,13 @@ export default {
       if (tool.isLogin("登录后邀请对方注册后双方可得8金币！")) {
         uni.navigateTo({
           url: "/pages/activity-page/activity-page",
+        });
+      }
+    },
+    toFollowList() {
+      if (tool.isLogin("当前未登录，请先登录")) {
+        uni.navigateTo({
+          url: "/pages/user/follow-list?type=follow",
         });
       }
     },
