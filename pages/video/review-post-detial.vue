@@ -71,9 +71,11 @@ export default {
       });
     },
     toUserDetail() {
-      uni.navigateTo({
-        url: "/pages/user/space?account=" + this.account,
-      });
+      if (tool.isLogin("登录后即可免费查看大师过往视频学习")) {
+        uni.navigateTo({
+          url: "/pages/user/space?account=" + this.account,
+        });
+      }
     },
   },
   onLoad(options) {

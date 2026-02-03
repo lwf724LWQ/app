@@ -154,23 +154,8 @@ function getTitle(video) {
   // return `${video.uname} ${dayjs(video.create_time).format("MM月DD日")}精彩回顾`;
   return video.title;
 }
-// 播放视频方法 - 新增付费检查
+// 跳转到帖子详情
 const playVideo = async (video) => {
-  // 检查是否登录
-  const token = getToken();
-  if (!token) {
-    uni.showModal({
-      title: "提示",
-      content: "该操作需要登录，是否前往",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
   uni.navigateTo({
     url: `/pages/video/review-post-detial?id=${video.id}`,
   });
