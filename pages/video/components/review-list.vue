@@ -24,6 +24,7 @@
         :key="index"
         @longpress="videoMenu(video)"
         @click="playVideo(video)"
+        :class="{ 'video-clicked': video.isClicked }"
       >
         <image
           mode="aspectFill"
@@ -122,6 +123,15 @@ const fetchVideoList = async (page = 1) => {
 
     currentPage.value = page;
     const postlistRes = await getReviewPostList(formdata);
+
+    try {
+      const r = uni.getStorageSync("postClickList") || [];
+      postlistRes.data.list = postlistRes.data.list.map((item) => ({
+        ...item,
+        isClicked: r.includes(item.id),
+      }));
+    } catch (error) {}
+
     if (page === 1) {
       videoList.value = postlistRes.data.list;
     } else {
@@ -156,11 +166,22 @@ function getTitle(video) {
 }
 // 跳转到帖子详情
 const playVideo = async (video) => {
+  recodePostId(video);
   uni.navigateTo({
     url: `/pages/video/review-post-detial?id=${video.id}`,
   });
   return;
 };
+
+// 记录帖子已经点击过了
+function recodePostId(post) {
+  try {
+    const r = uni.getStorageSync("postClickList") || [];
+    r.push(post.id);
+    post.isClicked = true;
+    uni.setStorageSync("postClickList", r);
+  } catch (error) {}
+}
 
 function videoMenu(video) {
   if (video.account == getAccount()) {
@@ -228,6 +249,11 @@ defineExpose({
     flex-direction: column;
     margin-bottom: 10rpx;
     box-sizing: border-box;
+  }
+}
+.video-clicked {
+  .video-title {
+    color: #192afe;
   }
 }
 
