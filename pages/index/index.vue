@@ -12,17 +12,17 @@
     >
       <swiper-item>
         <view class="swiper-item">
-          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="aspectFill"></image>
+          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
         </view>
       </swiper-item>
       <swiper-item>
         <view class="swiper-item">
-          <image src="/static/aoRed.jpg" mode="aspectFill"></image>
+          <image src="/static/aoRed.jpg" mode="scaleToFill"></image>
         </view>
       </swiper-item>
       <swiper-item>
         <view class="swiper-item" @click="toWxchat">
-          <image src="/static/banner3.jpg" mode="aspectFill"></image>
+          <image src="/static/banner3.jpg" mode="scaleToFill"></image>
         </view>
       </swiper-item>
     </swiper>
