@@ -24,6 +24,7 @@
         :key="index"
         @longpress="videoMenu(video)"
         @click="playVideo(video)"
+        :class="{ 'video-clicked': video.isClicked }"
       >
         <image
           mode="aspectFill"
@@ -136,6 +137,8 @@ const fetchVideoList = async (page = 1) => {
       const r = uni.getStorageSync("reportList") || [];
       reportList = r.filter((item) => item.type == "video").map((item) => item.id);
 
+      // 检查是否有已经点击过的视频
+      const clickedVideos = uni.getStorageSync("videoClickList") || [];
       const newVideos = Videoinfo.data.records
         .map((item) => ({
           title: item.title,
@@ -148,6 +151,7 @@ const fetchVideoList = async (page = 1) => {
           price: item.price,
           updateTime: item.updateTime,
           imgurl: "http://video.caimizm.com/" + item.vimg,
+          isClicked: clickedVideos.includes(item.id),
         }))
         .filter((item) => !reportList.includes(item.id));
 
@@ -204,6 +208,9 @@ const playVideo = async (video) => {
     return;
   }
 
+  // 记录视频已经点击过
+  recodeVideoId(video);
+
   // 将当前视频保存到 Pinia store
   videoStore.setCurrentVideo(video);
   uni.navigateTo({
@@ -211,6 +218,15 @@ const playVideo = async (video) => {
   });
 };
 
+// 记录视频已经点击过
+function recodeVideoId(video) {
+  try {
+    const r = uni.getStorageSync("videoClickList") || [];
+    r.push(video.id);
+    video.isClicked = true;
+    uni.setStorageSync("videoClickList", r);
+  } catch (error) {}
+}
 function videoMenu(video) {
   if (video.account == getAccount()) {
     uni.showActionSheet({
@@ -292,9 +308,14 @@ defineExpose({
   font-weight: bold;
 }
 
+.video-clicked {
+  .video-title {
+    color: #192afe;
+  }
+}
+
 .video-info {
   padding: 5rpx 20rpx;
-
   > text {
     padding: 5rpx 10rpx;
     border-radius: 6rpx;
