@@ -186,7 +186,6 @@ const followHandle = async (flag, account2, uname) => {
 }
 
 .empty-text {
-  font-size: 28rpx;
-  color: #999;
+  font-size: 35rpx;
 }
 </style>

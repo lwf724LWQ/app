@@ -7,8 +7,8 @@
           <text class="back-arrow">‹</text>
         </view>
         <text class="nav-title">编辑资料</text>
-        <view class="nav-right" @click="saveProfile">
-          <text class="save-text">保存</text>
+        <view class="nav-right">
+          <text class="save-text"></text>
         </view>
       </view>
     </view>
@@ -58,6 +58,7 @@
             type="text"
             v-model="userInfo.nickname"
             placeholder="请输入昵称"
+            placeholder-style="color: var(--light-text-color)"
             class="form-input"
             maxlength="20"
           />
@@ -69,6 +70,7 @@
             type="text"
             v-model="userInfo.phone"
             placeholder="手机号"
+            placeholder-style="color: var(--light-text-color)"
             class="form-input disabled"
             maxlength="11"
             disabled
@@ -84,7 +86,7 @@
         </button>
       </view>
     </view>
-	<himgEditPopupVue ref="himgEditPopupVueRef"/>
+    <himgEditPopupVue ref="himgEditPopupVueRef" />
   </view>
 </template>
 
@@ -117,7 +119,7 @@ const handleImageError = () => {
   userInfo.avatar = "http://video.caimizm.com/himg/user.png";
 };
 
-const himgEditPopupVueRef = ref(null)
+const himgEditPopupVueRef = ref(null);
 // 处理头像点击事件
 const handleAvatarClick = async () => {
   // 选择图片
@@ -128,10 +130,10 @@ const handleAvatarClick = async () => {
   });
   if (chooseResult.tempFilePaths && chooseResult.tempFilePaths.length > 0) {
     const tempFilePath = chooseResult.tempFilePaths[0];
-    
-	himgEditPopupVueRef.value.open(tempFilePath, function(url){
-		userInfo.avatar = url;
-	})
+
+    himgEditPopupVueRef.value.open(tempFilePath, function (url) {
+      userInfo.avatar = url;
+    });
   }
   return;
   // 显示上传进度
@@ -417,8 +419,8 @@ onMounted(() => {
 
 .form-label {
   display: block;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 40rpx;
+  /* color: #333; */
   font-weight: 500;
   margin-bottom: 20rpx;
 }

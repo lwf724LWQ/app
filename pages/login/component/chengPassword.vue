@@ -4,17 +4,24 @@
       <view class="title">设置新密码</view>
 
       <view class="input-group">
-        <input type="password" v-model="password" placeholder="请输入新密码" class="input-field" />
+        <input
+          type="password"
+          v-model="password"
+          placeholder="请输入新密码"
+          class="input-field"
+          placeholder-style="color: var(--light-text-color);font-size: 35rpx"
+        />
       </view>
       <view class="input-group">
         <input
           type="password"
           v-model="confirmPassword"
           placeholder="请再次输入密码"
+          placeholder-style="color: var(--light-text-color);font-size: 35rpx"
           class="input-field"
         />
       </view>
-      <view v-if="!canSubmit" style="color: red">最短6位数</view>
+      <view v-if="!canSubmit" style="color: red; font-size: 35rpx">最短6位数</view>
       <view class="btn-group">
         <button @click="submitPassword" :disabled="!canSubmit" class="submit-btn">确认设置</button>
       </view>

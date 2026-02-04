@@ -234,8 +234,8 @@ const lower = async () => {
     }
     .no-post {
       text-align: center;
-      font-size: 30rpx;
-      color: #999;
+      font-size: 40rpx;
+      // color: #999;
       margin-top: 50rpx;
     }
   }

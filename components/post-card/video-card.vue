@@ -132,20 +132,21 @@ function recodeVideoId() {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 24rpx;
-    color: #999;
+    font-size: 30rpx;
+    // color: #999;
   }
 
   .video-type {
     padding: 4rpx 12rpx;
     background-color: #f0f0f0;
     border-radius: 6rpx;
-    color: #666;
+    // color: #666;
   }
 
   .meta-right {
     display: flex;
     align-items: center;
+    color: var(--light-text-color);
   }
 
   .divider {

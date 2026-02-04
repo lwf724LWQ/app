@@ -209,6 +209,8 @@
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
     <bottomBar current-path="/pages/index/index" />
     <updateAppPupop ref="updateAppPupopRef" />
+
+    <ActivityPopup></ActivityPopup>
   </view>
 </template>
 
@@ -220,9 +222,11 @@ import { useUserStore } from "../../stores/userStore";
 import tool from "../../utils/tool";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
+import ActivityPopup from "./components/activity-popup.vue";
+
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityPopup },
   data() {
     return {
       currentTab: "plw",

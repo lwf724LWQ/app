@@ -11,6 +11,7 @@
           placeholder="搜索用户"
           @confirm="filterUser(searchInputValue)"
           v-model.trim="searchInputValue"
+          placeholder-style="color: var(--light-text-color)"
         />
       </view>
       <button class="search-button" type="primary" @click="filterUser(searchInputValue)">

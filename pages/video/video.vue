@@ -60,6 +60,8 @@
       点我上传精彩回顾
     </view>
     <bottomBar current-path="/pages/video/video" />
+
+    <ActivityHover :src="image" @click="gotoRegister" v-if="isActivityHover"></ActivityHover>
   </view>
 </template>
 
@@ -76,6 +78,9 @@ import StatusBarPlaceholder from "@/components/StatusBarPlaceholder/StatusBarPla
 import reviewContainer from "./components/review-container.vue";
 import tool from "../../utils/tool.js";
 import videoTool from "./video-tool.js";
+import ActivityHover from "@/components/activity-hover.vue";
+import image from "@/static/images/activity-registered.png";
+import { useUserStore } from "@/stores/userStore";
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(2);
@@ -174,6 +179,15 @@ onShow(async (e) => {
 
 // 生命周期钩子
 onMounted(async () => {});
+
+const userStore = useUserStore();
+const isActivityHover = ref(!userStore.getUserInfo.account);
+// 跳转到注册页面
+const gotoRegister = () => {
+  uni.navigateTo({
+    url: "/pages/reg/reg",
+  });
+};
 </script>
 
 <style lang="scss" scoped>

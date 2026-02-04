@@ -44,12 +44,12 @@
           </view>
         </scroll-view>
       </view>
-      <view class="nav-right" @click="showPublishModal">
+      <!-- <view class="nav-right" @click="showPublishModal">
         <view class="post-icon">
           <uni-icons type="plus" size="20" color="#fff"></uni-icons>
         </view>
         <text class="nav-text">发帖</text>
-      </view>
+      </view> -->
     </view>
 
     <!-- 切换标签栏 -->
@@ -88,6 +88,7 @@
         <input
           type="text"
           placeholder="搜索头尾、芝麻、靓规等帖"
+          placeholder-style="color: var(--light-text-color);font-size: 33rpx;"
           class="search-input"
           v-model="searchKeyword"
           @input="handleSearchInput"
@@ -1581,7 +1582,7 @@ textarea {
 }
 
 .search-label {
-  font-size: 24rpx;
+  font-size: 35rpx;
   color: #333;
   margin-right: 20rpx;
 }
@@ -1861,8 +1862,8 @@ textarea {
 .no-posts-tip {
   text-align: center;
   padding: 40rpx;
-  color: #999;
-  font-size: 28rpx;
+  color: var(--light-text-color);
+  font-size: 35rpx;
 }
 
 /* 鸡汤样式 */
@@ -2092,7 +2093,7 @@ textarea {
 }
 
 .btn-text {
-  font-size: 24rpx;
+  font-size: 35rpx;
   color: #333;
   text-align: center;
   line-height: 1.4;

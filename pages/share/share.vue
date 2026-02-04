@@ -35,13 +35,13 @@
           <text class="title-text">教程分享</text>
         </view>
         <view class="card-description">分享下载教程到微信</view>
-      </view>
-      <view class="card-footer">
-        <view class="share-button" @click="share('jiaocheng')">分享教程</view>
+        <view class="card-footer">
+          <view class="share-button" @click="share('jiaocheng')">分享教程</view>
+        </view>
       </view>
     </view>
     <!-- #endif -->
-	
+
     <view class="card">
       <view class="card-header">
         <view class="card-title">
@@ -56,12 +56,12 @@
             text="官网地址：http://www.caimizm.com"
           ></uni-link>
         </view>
-      </view>
-      <view class="card-footer">
-        <!-- #ifdef APP-PLUS -->
-        <!-- <view class="share-button" @click="share('link')">分享链接</view> -->
-        <!-- #endif -->
-        <view class="copy-button" @click="copyLink()">复制地址</view>
+        <view class="card-footer">
+          <!-- #ifdef APP-PLUS -->
+          <!-- <view class="share-button" @click="share('link')">分享链接</view> -->
+          <!-- #endif -->
+          <view class="copy-button" @click="copyLink()">复制地址</view>
+        </view>
       </view>
     </view>
 
@@ -120,7 +120,7 @@ function openUrl() {}
     .card-title {
       display: flex;
       align-items: center;
-      font-size: 32rpx;
+      font-size: 40rpx;
       font-weight: bold;
       color: #333333;
 
@@ -137,12 +137,14 @@ function openUrl() {}
 
     .card-description {
       margin-top: 10rpx;
-      font-size: 26rpx;
-      color: #999999;
+      font-size: 35rpx;
+      // color: #999999;
     }
     .link {
       display: block;
-      color: #007aff;
+      color: #007aff !important;
+      font-size: 35rpx !important;
+      margin-top: 20rpx;
     }
   }
 
@@ -154,12 +156,13 @@ function openUrl() {}
 
     min-width: 180rpx;
     gap: 10rpx;
+    margin-top: 30rpx;
 
     .share-button {
       padding: 12rpx 16rpx;
       background-color: #fd2d2d;
       color: #ffffff;
-      font-size: 26rpx;
+      font-size: 35rpx;
       border-radius: 8rpx;
 
       width: 100%;
@@ -171,12 +174,13 @@ function openUrl() {}
       padding: 12rpx 16rpx;
       background-color: #007aff;
       color: #ffffff;
-      font-size: 26rpx;
+      font-size: 35rpx;
       border-radius: 8rpx;
 
       width: 100%;
       box-sizing: content-box;
       text-align: center;
+      margin-top: 30rpx;
     }
   }
 }

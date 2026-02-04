@@ -195,8 +195,8 @@ const onScrolltolower = () => {
 
   .empty-text {
     display: block;
-    font-size: 32rpx;
-    color: #999;
+    font-size: 40rpx;
+    // color: #999;
   }
 }
 </style>
