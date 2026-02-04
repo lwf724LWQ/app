@@ -564,7 +564,7 @@ function clickFreeViewCard() {
     .user-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       margin-bottom: 30rpx;
 
       .avatar-section {
@@ -953,7 +953,7 @@ function clickFreeViewCard() {
     .user-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       margin-bottom: 30rpx;
 
       .avatar-section {

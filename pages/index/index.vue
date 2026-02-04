@@ -12,7 +12,7 @@
     >
       <swiper-item>
         <view class="swiper-item">
-          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
+          <image src="/static/banner1.jpg" mode="scaleToFill"></image>
         </view>
       </swiper-item>
       <swiper-item>
