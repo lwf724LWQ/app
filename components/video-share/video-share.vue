@@ -18,7 +18,7 @@ function share(url: string) {
     const p = plus.io.convertLocalFileSystemURL(localPath);
     // 判断是否为ios
     if (uni.getSystemInfoSync().platform === "ios") {
-		// 这个插件在安卓会打包失败
+      // 这个插件在安卓会打包失败
       const FileShare = uni.requireNativePlugin("life-FileShare");
       FileShare.render(
         {
@@ -27,32 +27,18 @@ function share(url: string) {
         },
         (result) => {}
       );
-
-      // const shareModule = uni.requireNativePlugin("ZYJ-IOS-Share");
-      // shareModule.share({
-      //   path: p, // 本地文件地址
-      //   type: 3, // 1 分享文字  2 分享链接  3 分享文件 音频视频
-      // });
     } else {
-      const FileShare = uni.requireNativePlugin("life-FileShare");
-      FileShare.render(
+      const shareModule = uni.requireNativePlugin("ZYJ-Android-Share");
+      shareModule.shareFile(
         {
-          type: "WX", //QQ为QQ，微信为WX，系统默认是SYSTEM，不填写默认SYSTEM
-          filePath: p,
+          packetName: "com.caimizm.app.wuqizaic", // 当前应用包名
+          filePath: p, // 本地文件地址
+          wxShare: true, // 是否分享微信
         },
-        (result) => {}
+        (result: any) => {
+          console.log(result);
+        }
       );
-      // const shareModule = uni.requireNativePlugin("ZYJ-Android-Share");
-      // shareModule.shareFile(
-      //   {
-      //     packetName: "com.caimizm.app.wuqizaic", // 当前应用包名
-      //     filePath: p, // 本地文件地址
-      //     wxShare: true, // 是否分享微信
-      //   },
-      //   (result: any) => {
-      //     console.log(result);
-      //   }
-      // );
     }
   });
 }

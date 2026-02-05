@@ -149,7 +149,7 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
-        <button class="bottom-buy-btn" @click="shareVideo">分享</button>
+        <!-- <button v-if="isHaveShareSdk" class="bottom-buy-btn" @click="shareVideo">分享</button> -->
       </view>
     </view>
     <reportPopup ref="reportPopupRef" @reportSubmitted="reportSubmitted" />
@@ -871,6 +871,12 @@ function shareVideo() {
   const videoUrl = videoData.value.src;
   videoShareRef.value.share(videoUrl);
 }
+
+const isHaveShareSdk = ref(
+  !!uni.requireNativePlugin("ZYJ-Android-Share") ||
+    !!uni.requireNativePlugin("life-FileShare") ||
+    false
+);
 </script>
 
 <style lang="scss" scoped>
