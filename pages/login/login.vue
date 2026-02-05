@@ -301,6 +301,8 @@ const handleAgree = async () => {
       userStore.updateUserInfo(userInfo, success.data.token);
       console.log("登录成功，用户信息已保存:", userInfo);
 
+      userStore.addVideoCount(loginData.yhcs || 0);
+
       if (success.data.bozhu == 1) {
         chengPasswordRef.value.open();
       } else {
