@@ -117,6 +117,7 @@ import VerificationCode from "../../components/VerificationCode.vue";
 import { ref, reactive, watch } from "vue";
 import { apiRegInfo } from "../../api/apis.js";
 import { apiSendCode } from "../../api/apis.js";
+import tool from "../../utils/tool.js";
 
 declare const uni: any;
 
@@ -209,8 +210,17 @@ const doReg = async () => {
 
     if (success) {
       uni.showToast({ title: "注册成功", icon: "success" });
+
+      const url = tool.formatUrlParams(
+        {
+          account: Reginfo.account,
+          password: Reginfo.password,
+        },
+        "/pages/login/login"
+      );
+
       setTimeout(() => {
-        uni.redirectTo({ url: "/pages/login/login" });
+        uni.redirectTo({ url: url });
       }, 1500);
     } else {
       uni.showModal({ title: "注册失败", content: "注册失败，请重试", showCancel: false });

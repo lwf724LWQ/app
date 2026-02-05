@@ -192,6 +192,16 @@ const sendLoginCode = async () => {
 const loginShow = ref(false);
 let pageOptions = {};
 onLoad((options) => {
+  options = tool.optionsParamsDecode(options);
+  console.log("options:", options);
+  // 携带账号密码时，自动登录
+  if (options.account && options.password) {
+    account.value = options.account;
+    password.value = options.password;
+    isAgreed.value = true;
+    gologin();
+    return;
+  }
   pageOptions = options;
   if (!getToken()) {
     loginShow.value = true;
