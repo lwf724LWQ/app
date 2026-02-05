@@ -62,7 +62,11 @@
     <bottomBar current-path="/pages/video/video" />
 
     <ActivityHover
-      :src="userStore.getUserInfo.account ? inviteImage : regImage"
+      :src="
+        userStore.getUserInfo.account
+          ? '/static/images/activity-invite-2.png'
+          : '/static/images/activity-registered.png'
+      "
       @click="onHoverClick"
       v-if="userStore.videoCount <= 0"
     ></ActivityHover>
@@ -83,8 +87,6 @@ import reviewContainer from "./components/review-container.vue";
 import tool from "../../utils/tool.js";
 import videoTool from "./video-tool.js";
 import ActivityHover from "@/components/activity-hover.vue";
-import regImage from "@/static/images/activity-registered.png";
-import inviteImage from "@/static/images/activity-invite-2.png";
 import { useUserStore } from "@/stores/userStore";
 import { createShareUrl } from "../../utils/createShareUrl.js";
 
