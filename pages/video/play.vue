@@ -177,6 +177,7 @@ import { useVideoStore } from "@/stores/video.js";
 import tool from "../../utils/tool";
 import reportPopup from "../../components/report-popup/report-popup.vue";
 import videoShare from "../../components/video-share/video-share.vue";
+import { useUserStore } from "../../stores/userStore";
 
 const useOldManModeStore = inject("useOldManModeStore");
 
@@ -237,6 +238,8 @@ const getAvatarUrl = (himg) => {
 };
 
 const followStatus = ref(2);
+
+const userStore = useUserStore();
 // 加载视频数据的统一方法
 const loadVideoData = async (videoId) => {
   if (!videoId) {
@@ -272,7 +275,7 @@ const loadVideoData = async (videoId) => {
     };
     let isPay = true;
     // 检查付费状态（仅对付费视频）
-    if (item.flag) {
+    if (item.flag && !userStore.videoCount) {
       isPay = await checkPaymentStatus();
     } else {
       hasPaid.value = true;
