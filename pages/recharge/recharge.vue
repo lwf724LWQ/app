@@ -77,6 +77,7 @@
           <input
             type="number"
             placeholder="自定义金额"
+            placeholder-style="color: var(--light-text-color)"
             class="custom-input"
             v-model="customAmount"
             @input="updateCustomAmount"
@@ -395,7 +396,7 @@ onMounted(async () => {
 
 .user-text {
   font-size: 28rpx;
-  color: #666;
+  color: var(--light-text-color);
   margin-bottom: 20rpx;
 }
 
@@ -418,10 +419,10 @@ onMounted(async () => {
 
 .record-btn {
   background-color: #f8f9fa;
-  color: #666;
+  // color: #666;
   padding: 10rpx 20rpx;
   border-radius: 20rpx;
-  font-size: 24rpx;
+  font-size: 30rpx;
   border: none;
 }
 
@@ -476,7 +477,7 @@ onMounted(async () => {
 .price-text {
   display: block;
   font-size: 24rpx;
-  color: #666;
+  color: var(--light-text-color);
 }
 
 .check-icon {
@@ -514,7 +515,7 @@ onMounted(async () => {
 
 .conversion-text {
   font-size: 24rpx;
-  color: #666;
+  // color: #666;
 }
 
 /* 服务协议 */
@@ -552,7 +553,7 @@ onMounted(async () => {
 
 .agreement-text {
   font-size: 24rpx;
-  color: #666;
+  // color: #666;
 }
 
 .link-text {
@@ -571,7 +572,7 @@ onMounted(async () => {
 .rule-item {
   display: block;
   font-size: 24rpx;
-  color: #666;
+  // color: #666;
   line-height: 1.6;
   margin-bottom: 15rpx;
 }

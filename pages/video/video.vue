@@ -61,6 +61,12 @@
       点我上传精彩回顾
     </view>
     <bottomBar current-path="/pages/video/video" />
+
+    <ActivityHover
+      :src="userStore.getUserInfo.account ? inviteImage : regImage"
+      @click="onHoverClick"
+      v-if="userStore.videoCount <= 0"
+    ></ActivityHover>
   </view>
 </template>
 
@@ -77,6 +83,11 @@ import StatusBarPlaceholder from "@/components/StatusBarPlaceholder/StatusBarPla
 import reviewContainer from "./components/review-container.vue";
 import tool from "../../utils/tool.js";
 import videoTool from "./video-tool.js";
+import ActivityHover from "@/components/activity-hover.vue";
+import regImage from "@/static/images/activity-registered.png";
+import inviteImage from "@/static/images/activity-invite-2.png";
+import { useUserStore } from "@/stores/userStore";
+import { createShareUrl } from "../../utils/createShareUrl.js";
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(2);
@@ -177,6 +188,33 @@ onShow(async (e) => {
 
 // 生命周期钩子
 onMounted(async () => {});
+
+const userStore = useUserStore();
+
+// 跳转到注册页面
+const onHoverClick = () => {
+  if (userStore.getUserInfo.account) {
+    uni.showModal({
+      title: "提示",
+      content: "请分享后让好友将链接复制到浏览器中打开",
+      showCancel: false,
+      success: (res) => {
+        uni.share({
+          provider: "weixin",
+          type: 1,
+          summary: createShareUrl(),
+          scene: "WXSceneSession",
+          success(res) {},
+          fail(err) {},
+        });
+      },
+    });
+  } else {
+    uni.navigateTo({
+      url: "/pages/reg/reg",
+    });
+  }
+};
 </script>
 
 <style lang="scss" scoped>

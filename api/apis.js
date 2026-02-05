@@ -605,3 +605,13 @@ export const delReviewPost = (id) => {
     method: "GET",
   });
 };
+
+export const offFreeViewCountApi = (videoId) => {
+  return request({
+    url: "/web/user/yhcs",
+    method: "GET",
+    data: {
+      videoId: videoId,
+    },
+  });
+};

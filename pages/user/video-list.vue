@@ -47,7 +47,7 @@
       </uni-swipe-action-item>
       <!-- <view>
 
-        
+
       </view> -->
     </z-paging>
   </view>
@@ -109,6 +109,15 @@ function queryList(pageNo, pageSize) {
 
   getUserVideoListApi(params)
     .then((res) => {
+      try {
+        // 获取已点击的记录
+        const clickedVideos = uni.getStorageSync("videoClickList") || [];
+        res.data.records = res.data.records.map((item) => ({
+          ...item,
+          isClicked: clickedVideos.includes(item.id),
+        }));
+      } catch (error) {}
+
       pagingRef.value.complete(res.data.records);
     })
     .catch((res) => {

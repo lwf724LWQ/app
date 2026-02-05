@@ -8,7 +8,7 @@
             focus
             @confirm="searchUser(searchInputValue)"
             v-model.trim="searchInputValue"
-			class="flex-1"
+            class="flex-1"
           />
           <uni-icons
             type="close"
@@ -161,7 +161,7 @@ const goToUserDetail = (account, isFollow) => {
     justify-content: space-between;
     align-items: center;
     padding: 20rpx;
-    font-size: 25rpx;
+    font-size: 35rpx;
     margin-top: 20rpx;
   }
   .search-history-list {
@@ -173,6 +173,7 @@ const goToUserDetail = (account, isFollow) => {
       border-radius: 10rpx;
       background-color: #eee;
       margin: 10rpx;
+      font-size: 35rpx;
     }
   }
 }
@@ -180,7 +181,7 @@ const goToUserDetail = (account, isFollow) => {
 .user-list {
   margin-top: 20rpx;
 }
-.flex-1{
-	flex:1;
+.flex-1 {
+  flex: 1;
 }
 </style>

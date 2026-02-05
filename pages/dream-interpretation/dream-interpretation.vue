@@ -20,6 +20,7 @@
           <input
             type="text"
             placeholder="梦境关键词或者号码"
+            placeholder-style="color:var(--light-text-color);font-size:35rpx"
             class="search-input"
             v-model="searchKeyword"
             @confirm="searchDream"
@@ -291,10 +292,10 @@ const queryDreamAPI = async (content, page = "1", limit = "10", isLoadMore = fal
       isLoading.value = true;
     }
 
-    // if (!checkLoginStatus()) {
-    //   uni.showToast({ title: "请先登录", icon: "none" });
-    //   return;
-    // }
+    if (!checkLoginStatus()) {
+      uni.showToast({ title: "请先登录", icon: "none" });
+      return;
+    }
 
     const hasNetwork = await checkNetworkStatus();
     if (!hasNetwork) {
@@ -366,10 +367,10 @@ const searchDream = async () => {
     return;
   }
 
-  // if (!checkLoginStatus()) {
-  //   uni.showToast({ title: "请先登录", icon: "none" });
-  //   return;
-  // }
+  if (!checkLoginStatus()) {
+    uni.showToast({ title: "请先登录", icon: "none" });
+    return;
+  }
 
   showSearchOverlay.value = false;
   await queryDreamAPI(searchKeyword.value, "1", pageSize.value.toString(), false);
@@ -462,10 +463,10 @@ const loadDefaultData = async () => {
   try {
     isLoading.value = true;
 
-    // if (!checkLoginStatus()) {
-    //   uni.showToast({ title: "请先登录", icon: "none" });
-    //   return;
-    // }
+    if (!checkLoginStatus()) {
+      uni.showToast({ title: "请先登录", icon: "none" });
+      return;
+    }
 
     const hasNetwork = await checkNetworkStatus();
     if (!hasNetwork) {
@@ -615,8 +616,8 @@ const loadDefaultData = async () => {
 }
 
 .result-count {
-  font-size: 32rpx;
-  color: #666;
+  font-size: 40rpx;
+  /* color: #666; */
   margin-bottom: 20rpx;
   padding: 0 10rpx;
   display: block;

@@ -81,7 +81,7 @@
 import myPage from "../../components/myPage.vue";
 import cryptoJs from "crypto-js";
 import { vcodeConfiont } from "@/api/apis.js";
-const dowAppUrl = "http://video.caimizm.com/upload/filehXIjhcmS3hMH.apk";
+const dowAppUrl = "http://video.caimizm.com/upload/fileGESlN4u4Ncna.apk";
 
 export default {
   components: {

@@ -5,7 +5,7 @@
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="true"
-    :refresher-triggered="isLoading"
+    :refresher-triggered="isLoading && currentPage == 1"
     :lower-threshold="150"
     :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
@@ -24,6 +24,7 @@
         :key="index"
         @longpress="videoMenu(video)"
         @click="playVideo(video)"
+        :class="{ 'video-clicked': video.isClicked }"
       >
         <image
           mode="aspectFill"
@@ -122,6 +123,15 @@ const fetchVideoList = async (page = 1) => {
 
     currentPage.value = page;
     const postlistRes = await getReviewPostList(formdata);
+
+    try {
+      const r = uni.getStorageSync("postClickList") || [];
+      postlistRes.data.list = postlistRes.data.list.map((item) => ({
+        ...item,
+        isClicked: r.includes(item.id),
+      }));
+    } catch (error) {}
+
     if (page === 1) {
       videoList.value = postlistRes.data.list;
     } else {
@@ -154,28 +164,24 @@ function getTitle(video) {
   // return `${video.uname} ${dayjs(video.create_time).format("MM月DD日")}精彩回顾`;
   return video.title;
 }
-// 播放视频方法 - 新增付费检查
+// 跳转到帖子详情
 const playVideo = async (video) => {
-  // 检查是否登录
-  const token = getToken();
-  if (!token) {
-    uni.showModal({
-      title: "提示",
-      content: "该操作需要登录，是否前往",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
+  recodePostId(video);
   uni.navigateTo({
     url: `/pages/video/review-post-detial?id=${video.id}`,
   });
   return;
 };
+
+// 记录帖子已经点击过了
+function recodePostId(post) {
+  try {
+    const r = uni.getStorageSync("postClickList") || [];
+    r.push(post.id);
+    post.isClicked = true;
+    uni.setStorageSync("postClickList", r);
+  } catch (error) {}
+}
 
 function videoMenu(video) {
   if (video.account == getAccount()) {
@@ -243,6 +249,11 @@ defineExpose({
     flex-direction: column;
     margin-bottom: 10rpx;
     box-sizing: border-box;
+  }
+}
+.video-clicked {
+  .video-title {
+    color: #192afe;
   }
 }
 

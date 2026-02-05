@@ -16,7 +16,7 @@
       </view>
     </view> -->
     <!-- #ifdef APP-PLUS -->
-    <view class="card" v-if="false">
+    <!-- <view class="card">
       <view class="card-header">
         <view class="card-title">
           <uni-icons class="card-icon" type="link"></uni-icons>
@@ -26,10 +26,22 @@
       </view>
       <view class="card-footer">
         <view class="share-button" @click="share('rqcode')">分享二维码</view>
-        <!-- <view class="copy-button" @click="copyLink()">复制地址</view> -->
+      </view>
+    </view> -->
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">
+          <uni-icons class="card-icon" type="link"></uni-icons>
+          <text class="title-text">教程分享</text>
+        </view>
+        <view class="card-description">分享下载教程到微信</view>
+        <view class="card-footer">
+          <view class="share-button" @click="share('jiaocheng')">分享教程</view>
+        </view>
       </view>
     </view>
     <!-- #endif -->
+
     <view class="card">
       <view class="card-header">
         <view class="card-title">
@@ -38,18 +50,20 @@
         </view>
         <view class="card-description">
           在手机浏览器，输入官网地址，即可下载。
-          <uni-link
-            class="link"
-            href="http://www.caimizm.com/"
-            text="官网地址：http://www.caimizm.com"
-          ></uni-link>
+          <view style="width: 600rpx">
+            <uni-link
+              class="link"
+              href="http://www.caimizm.com/"
+              text="官网地址：http://www.caimizm.com"
+            ></uni-link>
+          </view>
         </view>
-      </view>
-      <view class="card-footer">
-        <!-- #ifdef APP-PLUS -->
-        <view class="share-button" @click="share('link')" v-if="false">分享链接</view>
-        <!-- #endif -->
-        <view class="copy-button" @click="copyLink()">复制地址</view>
+        <view class="card-footer">
+          <!-- #ifdef APP-PLUS -->
+          <!-- <view class="share-button" @click="share('link')">分享链接</view> -->
+          <!-- #endif -->
+          <view class="copy-button" @click="copyLink()">复制地址</view>
+        </view>
       </view>
     </view>
 
@@ -103,11 +117,12 @@ function openUrl() {}
 
     margin-bottom: 30rpx;
     gap: 10rpx;
+    flex: 1;
 
     .card-title {
       display: flex;
       align-items: center;
-      font-size: 32rpx;
+      font-size: 60rpx;
       font-weight: bold;
       color: #333333;
 
@@ -124,12 +139,15 @@ function openUrl() {}
 
     .card-description {
       margin-top: 10rpx;
-      font-size: 26rpx;
-      color: #999999;
+      font-size: 50rpx;
+      // color: #999999;
     }
     .link {
-      display: block;
-      color: #007aff;
+      // display: block;
+      color: #007aff !important;
+      font-size: 60rpx !important;
+      // margin-top: 20rpx;
+      word-wrap: break-word;
     }
   }
 
@@ -141,12 +159,13 @@ function openUrl() {}
 
     min-width: 180rpx;
     gap: 10rpx;
+    margin-top: 30rpx;
 
     .share-button {
       padding: 12rpx 16rpx;
       background-color: #fd2d2d;
       color: #ffffff;
-      font-size: 26rpx;
+      font-size: 50rpx;
       border-radius: 8rpx;
 
       width: 100%;
@@ -158,12 +177,13 @@ function openUrl() {}
       padding: 12rpx 16rpx;
       background-color: #007aff;
       color: #ffffff;
-      font-size: 26rpx;
+      font-size: 50rpx;
       border-radius: 8rpx;
 
       width: 100%;
       box-sizing: content-box;
       text-align: center;
+      margin-top: 30rpx;
     }
   }
 }

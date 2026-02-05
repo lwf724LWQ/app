@@ -93,7 +93,15 @@ const getVideo = async (page) => {
       mask: true,
     });
     const res = await getUserVideoListApi({ page, limit: 10, account });
-    return res.data.records;
+    try {
+      const clickedVideos = uni.getStorageSync("videoClickList") || [];
+      return res.data.records.map((item) => ({
+        ...item,
+        isClicked: clickedVideos.includes(item.id),
+      }));
+    } catch (error) {
+      return res.data.records;
+    }
   } finally {
     uni.hideLoading();
   }
@@ -226,8 +234,8 @@ const lower = async () => {
     }
     .no-post {
       text-align: center;
-      font-size: 30rpx;
-      color: #999;
+      font-size: 40rpx;
+      // color: #999;
       margin-top: 50rpx;
     }
   }

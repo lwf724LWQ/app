@@ -597,8 +597,8 @@ const formatFileSize = (bytes) => {
 }
 
 .upload-hint {
-  font-size: 14px;
-  color: #7f8c8d;
+  font-size: 35rpx;
+  color: var(--light-text-color);
 }
 
 /* 新增：封面选择区域 */

@@ -5,7 +5,7 @@
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="true"
-    :refresher-triggered="isLoading"
+    :refresher-triggered="isLoading && currentPage == 1"
     :lower-threshold="150"
     :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
@@ -24,6 +24,7 @@
         :key="index"
         @longpress="videoMenu(video)"
         @click="playVideo(video)"
+        :class="{ 'video-clicked': video.isClicked }"
       >
         <image
           mode="aspectFill"
@@ -58,6 +59,7 @@ import { ref, onMounted, watch, nextTick } from "vue";
 import { apiGetVideo, apiCheckVideoPayment, delVideo } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
+import { useUserStore } from "@/stores/userStore";
 
 // 接收的props
 const props = defineProps({
@@ -136,6 +138,8 @@ const fetchVideoList = async (page = 1) => {
       const r = uni.getStorageSync("reportList") || [];
       reportList = r.filter((item) => item.type == "video").map((item) => item.id);
 
+      // 检查是否有已经点击过的视频
+      const clickedVideos = uni.getStorageSync("videoClickList") || [];
       const newVideos = Videoinfo.data.records
         .map((item) => ({
           title: item.title,
@@ -148,6 +152,7 @@ const fetchVideoList = async (page = 1) => {
           price: item.price,
           updateTime: item.updateTime,
           imgurl: "http://video.caimizm.com/" + item.vimg,
+          isClicked: clickedVideos.includes(item.id),
         }))
         .filter((item) => !reportList.includes(item.id));
 
@@ -187,22 +192,42 @@ const fetchVideoList = async (page = 1) => {
 };
 
 // 播放视频方法 - 新增付费检查
+const userStore = useUserStore();
 const playVideo = async (video) => {
-  // 检查是否登录
   const token = getToken();
-  if (!token) {
+
+  if (userStore.videoCount <= 0 && !token && video.flag) {
     uni.showModal({
       title: "提示",
-      content: "该操作需要登录，是否前往",
+      content: "付费视频观看次数已用完，需要注册才能继续观看",
       success: async (res) => {
         if (res.confirm) {
-          uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/video/video" });
+          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
         }
       },
       showCancel: true,
     });
     return;
   }
+  if (video.flag) userStore.reduceVideoCount();
+
+  // 检查是否登录
+  // if (!token && video.flag) {
+  //   uni.showModal({
+  //     title: "提示",
+  //     content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
+  //     success: async (res) => {
+  //       if (res.confirm) {
+  //         uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
+  //       }
+  //     },
+  //     showCancel: true,
+  //   });
+  //   return;
+  // }
+
+  // 记录视频已经点击过
+  recodeVideoId(video);
 
   // 将当前视频保存到 Pinia store
   videoStore.setCurrentVideo(video);
@@ -211,6 +236,15 @@ const playVideo = async (video) => {
   });
 };
 
+// 记录视频已经点击过
+function recodeVideoId(video) {
+  try {
+    const r = uni.getStorageSync("videoClickList") || [];
+    r.push(video.id);
+    video.isClicked = true;
+    uni.setStorageSync("videoClickList", r);
+  } catch (error) {}
+}
 function videoMenu(video) {
   if (video.account == getAccount()) {
     uni.showActionSheet({
@@ -292,9 +326,14 @@ defineExpose({
   font-weight: bold;
 }
 
+.video-clicked {
+  .video-title {
+    color: #192afe;
+  }
+}
+
 .video-info {
   padding: 5rpx 20rpx;
-
   > text {
     padding: 5rpx 10rpx;
     border-radius: 6rpx;

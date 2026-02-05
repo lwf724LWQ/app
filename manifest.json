@@ -123,6 +123,22 @@
                     }
                 }
             }
+        },
+        "nativePlugins" : {
+            "ZYJ-Android-Share" : {
+                "__plugin_info__" : {
+                    "name" : "Android-Share",
+                    "description" : "安卓原生分享插件，调起安卓系统自带分享，支持分享文字、链接、本地音频视频等文件",
+                    "platforms" : "Android",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=15518",
+                    "android_package_name" : "com.caimizm.app.wuqizaic",
+                    "ios_bundle_id" : "com.caimizm.app.wuqizaic",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "15518",
+                    "parameters" : {}
+                }
+            }
         }
     },
     /* 快应用特有相关 */

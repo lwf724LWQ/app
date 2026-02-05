@@ -88,6 +88,9 @@
       <view class="login-btn-container">
         <button class="login-btn" @click="gologin">登录</button>
       </view>
+      <view class="login-btn-container">
+        <button class="login-btn" @click="goToReg">去注册</button>
+      </view>
 
       <!-- 用户协议 -->
       <view class="agreement-section">
@@ -189,6 +192,16 @@ const sendLoginCode = async () => {
 const loginShow = ref(false);
 let pageOptions = {};
 onLoad((options) => {
+  options = tool.optionsParamsDecode(options);
+  console.log("options:", options);
+  // 携带账号密码时，自动登录
+  if (options.account && options.password) {
+    account.value = options.account;
+    password.value = options.password;
+    isAgreed.value = true;
+    gologin();
+    return;
+  }
   pageOptions = options;
   if (!getToken()) {
     loginShow.value = true;
@@ -298,6 +311,8 @@ const handleAgree = async () => {
       userStore.updateUserInfo(userInfo, success.data.token);
       console.log("登录成功，用户信息已保存:", userInfo);
 
+      userStore.addVideoCount(loginData.yhcs || 0);
+
       if (success.data.bozhu == 1) {
         chengPasswordRef.value.open();
       } else {
@@ -331,6 +346,12 @@ const handleAgree = async () => {
 function jumpToComePage() {
   // 延迟跳转，让用户看到成功提示
   setTimeout(() => {
+    // 判断是否为第一次打开app
+    const isFirstOpen = !uni.getStorageSync("isOpened");
+    if (isFirstOpen) {
+      uni.redirectTo({ url: "/pages/activity-page/activity-page" });
+      return;
+    }
     // 跳转到用户页面
     if (pageOptions.redirect) {
       uni.navigateBack({
@@ -371,6 +392,14 @@ const goForgetPwdPage1 = () => {
 
 // 跳转到首页
 const login = () => {
+  console.log("login");
+  // 判断是否为第一次打开app
+  const isFirstOpen = !uni.getStorageSync("isOpened");
+  if (isFirstOpen) {
+    uni.redirectTo({ url: "/pages/activity-page/activity-page" });
+    return;
+  }
+
   if (pageOptions.redirect) {
     uni.navigateBack({ url: pageOptions.redirect, animationType: "none" });
   } else {

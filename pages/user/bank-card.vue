@@ -311,15 +311,15 @@ const addCard = async () => {
 
   .empty-text {
     display: block;
-    font-size: 32rpx;
-    color: #999;
+    font-size: 40rpx;
+    // color: #999;
     margin-bottom: 16rpx;
   }
 
   .empty-hint {
     display: block;
-    font-size: 24rpx;
-    color: #ccc;
+    font-size: 35rpx;
+    color: var(--light-text-color);
   }
 }
 

@@ -195,8 +195,7 @@ view {
     justify-content: space-between;
 
     .title {
-      color: #666;
-      font-size: 28rpx;
+      font-size: 40rpx;
       font-weight: 500;
     }
 
@@ -217,7 +216,7 @@ view {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: #666;
+      // color: #666;
       .withdraw-btn-item {
         display: flex;
         align-items: center;
@@ -235,7 +234,7 @@ view {
 
   .title {
     color: #333;
-    font-size: 30rpx;
+    font-size: 40rpx;
     font-weight: 600;
     margin-bottom: 30rpx;
   }

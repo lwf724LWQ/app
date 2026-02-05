@@ -7,8 +7,8 @@
           <text class="back-arrow">‹</text>
         </view>
         <text class="nav-title">编辑资料</text>
-        <view class="nav-right" @click="saveProfile">
-          <text class="save-text">保存</text>
+        <view class="nav-right">
+          <text class="save-text"></text>
         </view>
       </view>
     </view>
@@ -58,6 +58,7 @@
             type="text"
             v-model="userInfo.nickname"
             placeholder="请输入昵称"
+            placeholder-style="color: var(--light-text-color)"
             class="form-input"
             maxlength="20"
           />
@@ -69,6 +70,7 @@
             type="text"
             v-model="userInfo.phone"
             placeholder="手机号"
+            placeholder-style="color: var(--light-text-color)"
             class="form-input disabled"
             maxlength="11"
             disabled
@@ -420,8 +422,8 @@ onMounted(() => {
 
 .form-label {
   display: block;
-  font-size: 28rpx;
-  color: #333;
+  font-size: 40rpx;
+  /* color: #333; */
   font-weight: 500;
   margin-bottom: 20rpx;
 }

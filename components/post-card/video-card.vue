@@ -1,6 +1,10 @@
 <template>
   <!-- 单个视频列表项容器 -->
-  <view class="video-card" @click="toVideoDetail(video.id)">
+  <view
+    class="video-card"
+    @click="toVideoDetail(video.id)"
+    :class="{ 'video-clicked': video.isClicked }"
+  >
     <!-- 视频缩略图 -->
     <view class="video-thumb">
       <image
@@ -38,7 +42,7 @@
 <script setup>
 import dayjs from "dayjs";
 
-defineProps({
+const props = defineProps({
   video: {
     type: Object,
     default: () => ({}),
@@ -51,17 +55,34 @@ const formatDate = (date) => {
 
 // 跳转视频详情页
 const toVideoDetail = (videoId) => {
+  recodeVideoId();
+
   uni.navigateTo({
     url: `/pages/video/play?id=${videoId}`,
   });
 };
+
+// 记录视频已经点击过
+function recodeVideoId() {
+  try {
+    const video = props.video;
+    const r = uni.getStorageSync("videoClickList") || [];
+    r.push(video.id);
+    video.isClicked = true;
+    uni.setStorageSync("videoClickList", r);
+  } catch (error) {}
+}
 </script>
 
 <style lang="scss" scoped>
 .video-card {
   display: flex;
   background-color: #fff;
-
+  &.video-clicked {
+    .video-title {
+      color: #004cff;
+    }
+  }
   .video-thumb {
     width: 240rpx;
     height: 160rpx;
@@ -111,20 +132,21 @@ const toVideoDetail = (videoId) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 24rpx;
-    color: #999;
+    font-size: 30rpx;
+    // color: #999;
   }
 
   .video-type {
     padding: 4rpx 12rpx;
     background-color: #f0f0f0;
     border-radius: 6rpx;
-    color: #666;
+    // color: #666;
   }
 
   .meta-right {
     display: flex;
     align-items: center;
+    color: var(--light-text-color);
   }
 
   .divider {

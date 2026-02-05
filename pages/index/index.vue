@@ -33,6 +33,8 @@
 
     <flipModal :show.sync="showModal" title="确认操作" @update:show="showModal = $event" />
     <updateAppPupop ref="updateAppPupopRef" />
+
+    <ActivityHover src="/static/images/activity-invite.png" @click="share"></ActivityHover>
   </view>
 </template>
 

@@ -19,18 +19,35 @@
       <view class="search-section">
         <view class="search-bar" @click="focusSearch">
           <text class="search-icon">🔍</text>
-          <input v-if="isSearching" v-model="searchKeyword" class="search-input" placeholder="输入订单号搜索"
-            @blur="handleSearchBlur" @input="handleSearchInput" @confirm="performSearch" :focus="isSearching" />
+          <input
+            v-if="isSearching"
+            v-model="searchKeyword"
+            class="search-input"
+            placeholder="输入订单号搜索"
+            @blur="handleSearchBlur"
+            @input="handleSearchInput"
+            @confirm="performSearch"
+            :focus="isSearching"
+          />
           <text v-else class="search-text">输入订单号搜索</text>
-          <text v-if="isSearching && searchKeyword" class="clear-icon" @click.stop="clearSearch">×</text>
+          <text v-if="isSearching && searchKeyword" class="clear-icon" @click.stop="clearSearch">
+            ×
+          </text>
           <button v-if="isSearching" class="search-btn" @click.stop="performSearch">搜索</button>
         </view>
 
         <!-- 搜索建议 -->
-        <view class="search-suggestions" v-if="isSearching && searchHistory.length > 0 && !searchKeyword">
+        <view
+          class="search-suggestions"
+          v-if="isSearching && searchHistory.length > 0 && !searchKeyword"
+        >
           <view class="suggestions-title">最近搜索</view>
-          <view class="suggestion-item" v-for="(item, index) in searchHistory" :key="index"
-            @click="selectSuggestion(item)">
+          <view
+            class="suggestion-item"
+            v-for="(item, index) in searchHistory"
+            :key="index"
+            @click="selectSuggestion(item)"
+          >
             <text class="suggestion-text">{{ item }}</text>
           </view>
         </view>
@@ -45,22 +62,34 @@
       <!-- 订单统计 -->
       <view class="orders-stats" v-if="orders.length > 0">
         <text class="stats-text">
-          <text v-if="searchKeyword.trim()">搜索"{{ searchKeyword }}"结果：{{ filteredOrders.length }} 个订单</text>
+          <text v-if="searchKeyword.trim()">
+            搜索"{{ searchKeyword }}"结果：{{ filteredOrders.length }} 个订单
+          </text>
           <text v-else-if="startDate && endDate">
             <text v-if="formatDate(startDate) === formatDate(endDate)">
               {{ formatDate(startDate) }}：{{ filteredOrders.length }} 个订单
             </text>
             <text v-else>
-              时间段 {{ formatDate(startDate) }} 至 {{ formatDate(endDate) }}：{{ filteredOrders.length }} 个订单
+              时间段 {{ formatDate(startDate) }} 至 {{ formatDate(endDate) }}：{{
+                filteredOrders.length
+              }}
+              个订单
             </text>
           </text>
-          <text v-else>{{ currentYear }}年{{ currentMonth }}月：{{ filteredOrders.length }} 个订单</text>
+          <text v-else>
+            {{ currentYear }}年{{ currentMonth }}月：{{ filteredOrders.length }} 个订单
+          </text>
         </text>
       </view>
 
       <!-- 订单列表 -->
       <view class="orders-list" v-if="orders.length > 0">
-        <view class="order-card" v-for="order in filteredOrders" :key="order.orderNo" @click="viewOrderDetail(order)">
+        <view
+          class="order-card"
+          v-for="order in filteredOrders"
+          :key="order.orderNo"
+          @click="viewOrderDetail(order)"
+        >
           <view class="order-header">
             <view class="order-info">
               <text class="order-no">订单号：{{ order.orderNo }}</text>
@@ -73,7 +102,7 @@
 
           <view class="order-content">
             <view class="order-desc">
-              <text class="order-title">{{ order.info || '订单详情' }}</text>
+              <text class="order-title">{{ order.info || "订单详情" }}</text>
               <text class="order-amount">¥{{ order.amount }}</text>
             </view>
           </view>
@@ -100,7 +129,7 @@
       <!-- 加载更多按钮 -->
       <view class="load-more-section" v-if="orders.length > 0 && hasMore">
         <button class="load-more-btn" @click="loadMoreOrders" :disabled="loading">
-          {{ loading ? '加载中...' : '加载更多' }}
+          {{ loading ? "加载中..." : "加载更多" }}
         </button>
       </view>
 
@@ -123,13 +152,25 @@
 
           <!-- 选择模式标签 -->
           <view class="selection-tabs">
-            <view class="tab-item" :class="{ active: selectionMode === 'all' }" @click="setSelectionMode('all')">
+            <view
+              class="tab-item"
+              :class="{ active: selectionMode === 'all' }"
+              @click="setSelectionMode('all')"
+            >
               <text class="tab-text">全部</text>
             </view>
-            <view class="tab-item" :class="{ active: selectionMode === 'month' }" @click="setSelectionMode('month')">
+            <view
+              class="tab-item"
+              :class="{ active: selectionMode === 'month' }"
+              @click="setSelectionMode('month')"
+            >
               <text class="tab-text">选择月份</text>
             </view>
-            <view class="tab-item" :class="{ active: selectionMode === 'range' }" @click="setSelectionMode('range')">
+            <view
+              class="tab-item"
+              :class="{ active: selectionMode === 'range' }"
+              @click="setSelectionMode('range')"
+            >
               <text class="tab-text">选择时间段</text>
             </view>
           </view>
@@ -139,12 +180,12 @@
             <view class="date-range-display">
               <view class="date-item">
                 <text class="date-label">开始日期</text>
-                <text class="date-value">{{ startDate ? formatDate(startDate) : '请选择' }}</text>
+                <text class="date-value">{{ startDate ? formatDate(startDate) : "请选择" }}</text>
               </view>
               <text class="date-separator">至</text>
               <view class="date-item">
                 <text class="date-label">结束日期</text>
-                <text class="date-value">{{ endDate ? formatDate(endDate) : '请选择' }}</text>
+                <text class="date-value">{{ endDate ? formatDate(endDate) : "请选择" }}</text>
               </view>
             </view>
           </view>
@@ -158,8 +199,13 @@
               <!-- 年份选择 -->
               <view class="year-picker">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="yearScrollTop">
-                  <view class="picker-item" v-for="year in yearList" :key="year"
-                    :class="{ active: selectedYear === year }" @click="selectYear(year)">
+                  <view
+                    class="picker-item"
+                    v-for="year in yearList"
+                    :key="year"
+                    :class="{ active: selectedYear === year }"
+                    @click="selectYear(year)"
+                  >
                     <text class="picker-text">{{ year }}年</text>
                   </view>
                 </scroll-view>
@@ -168,8 +214,13 @@
               <!-- 月份选择 -->
               <view class="month-picker-list">
                 <scroll-view class="picker-scroll" scroll-y="true" :scroll-top="monthScrollTop">
-                  <view class="picker-item" v-for="month in monthList" :key="month"
-                    :class="{ active: selectedMonth === month }" @click="selectMonth(month)">
+                  <view
+                    class="picker-item"
+                    v-for="month in monthList"
+                    :key="month"
+                    :class="{ active: selectedMonth === month }"
+                    @click="selectMonth(month)"
+                  >
                     <text class="picker-text">{{ month }}月</text>
                   </view>
                 </scroll-view>
@@ -194,8 +245,12 @@
             </view>
 
             <!-- 日历网格 -->
-            <view class="calendar-grid" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd">
+            <view
+              class="calendar-grid"
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
+            >
               <!-- 星期标题 -->
               <view class="weekdays">
                 <text class="weekday" v-for="day in weekdays" :key="day">{{ day }}</text>
@@ -203,8 +258,13 @@
 
               <!-- 日期网格 -->
               <view class="days-grid">
-                <view class="day-item" v-for="(day, index) in calendarDays" :key="index" :class="getDayClass(day)"
-                  @click="selectDate(day)">
+                <view
+                  class="day-item"
+                  v-for="(day, index) in calendarDays"
+                  :key="index"
+                  :class="getDayClass(day)"
+                  @click="selectDate(day)"
+                >
                   <text class="day-number">{{ day.date }}</text>
                   <text v-if="day.isStart" class="day-label">开始</text>
                   <text v-if="day.isToday" class="day-label">今天</text>
@@ -229,119 +289,138 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
-import { getToken, getAccount } from '@/utils/request.js'
-import { apiOrderQuery } from '@/api/apis.js'
+import { ref, computed, onMounted, inject } from "vue";
+import { getToken, getAccount } from "@/utils/request.js";
+import { apiOrderQuery } from "@/api/apis.js";
 // 老人模式
-const useOldManModeStore = inject('useOldManModeStore')
+const useOldManModeStore = inject("useOldManModeStore");
 
 // 响应式数据
-const searchKeyword = ref('')
-const isSearching = ref(false)
-const orders = ref([])
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(20)
-const hasMore = ref(true)
-const totalOrders = ref(0)
-const searchHistory = ref([])
+const searchKeyword = ref("");
+const isSearching = ref(false);
+const orders = ref([]);
+const loading = ref(false);
+const currentPage = ref(1);
+const pageSize = ref(20);
+const hasMore = ref(true);
+const totalOrders = ref(0);
+const searchHistory = ref([]);
 
 // 日历相关数据
-const date = new Date()
+const date = new Date();
 
-const showCalendar = ref(false)
-const selectionMode = ref('all') // 'month' 或 'range' 或 all
-const currentYear = ref(date.getFullYear())
-const currentMonth = ref(date.getMonth() + 1)
-const startDate = ref(null)
-const endDate = ref(null)
-const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+const showCalendar = ref(false);
+const selectionMode = ref("all"); // 'month' 或 'range' 或 all
+const currentYear = ref(date.getFullYear());
+const currentMonth = ref(date.getMonth() + 1);
+const startDate = ref(null);
+const endDate = ref(null);
+const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
 // 月份选择相关数据
-const selectedYear = ref(2023)
-const selectedMonth = ref(10)
-const yearScrollTop = ref(0)
-const monthScrollTop = ref(0)
+const selectedYear = ref(2023);
+const selectedMonth = ref(10);
+const yearScrollTop = ref(0);
+const monthScrollTop = ref(0);
 
 // 滑动相关数据
-const touchStartY = ref(0)
-const touchStartX = ref(0)
-const isSwipeEnabled = ref(true)
+const touchStartY = ref(0);
+const touchStartX = ref(0);
+const isSwipeEnabled = ref(true);
 
 // 计算属性
 const filteredOrders = computed(() => {
-  let result = orders.value
+  let result = orders.value;
   // 先按日期范围过滤
   if (startDate.value && endDate.value) {
     // 日期范围模式 - 只比较日期部分，忽略时间
-    result = result.filter(order => {
-      const orderTimeStr = order.updateTime || order.createTime
-      if (!orderTimeStr) return false
+    result = result.filter((order) => {
+      const orderTimeStr = order.updateTime || order.createTime;
+      if (!orderTimeStr) return false;
 
       // 解析订单时间，只取日期部分
-      const orderDate = new Date(orderTimeStr)
-      const orderDateOnly = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate())
+      const orderDate = new Date(orderTimeStr);
+      const orderDateOnly = new Date(
+        orderDate.getFullYear(),
+        orderDate.getMonth(),
+        orderDate.getDate()
+      );
 
       // 解析选择日期，只取日期部分
-      const startDateOnly = new Date(startDate.value.getFullYear(), startDate.value.getMonth(), startDate.value.getDate())
-      const endDateOnly = new Date(endDate.value.getFullYear(), endDate.value.getMonth(), endDate.value.getDate())
+      const startDateOnly = new Date(
+        startDate.value.getFullYear(),
+        startDate.value.getMonth(),
+        startDate.value.getDate()
+      );
+      const endDateOnly = new Date(
+        endDate.value.getFullYear(),
+        endDate.value.getMonth(),
+        endDate.value.getDate()
+      );
 
-      return orderDateOnly.getTime() >= startDateOnly.getTime() &&
+      return (
+        orderDateOnly.getTime() >= startDateOnly.getTime() &&
         orderDateOnly.getTime() <= endDateOnly.getTime()
-    })
-  } else if (selectionMode.value === 'month') {
+      );
+    });
+  } else if (selectionMode.value === "month") {
     // 月份模式
-    result = result.filter(order => {
-      const orderTimeStr = order.updateTime || order.createTime
-      if (!orderTimeStr) return false
+    result = result.filter((order) => {
+      const orderTimeStr = order.updateTime || order.createTime;
+      if (!orderTimeStr) return false;
 
-      const orderDate = new Date(orderTimeStr)
-      return orderDate.getFullYear() === currentYear.value &&
+      const orderDate = new Date(orderTimeStr);
+      return (
+        orderDate.getFullYear() === currentYear.value &&
         orderDate.getMonth() + 1 === currentMonth.value
-    })
-  } else if (selectionMode.value === 'all') {
-
+      );
+    });
+  } else if (selectionMode.value === "all") {
   }
 
   // 再按搜索关键词过滤
   if (searchKeyword.value.trim()) {
-    result = result.filter(order =>
-      order.orderNo.includes(searchKeyword.value) ||
-      (order.info && order.info.includes(searchKeyword.value))
-    )
+    result = result.filter(
+      (order) =>
+        order.orderNo.includes(searchKeyword.value) ||
+        (order.info && order.info.includes(searchKeyword.value))
+    );
   }
 
-  return result
-})
+  return result;
+});
 
 // 日历计算属性
 const calendarDays = computed(() => {
-  const year = currentYear.value
-  const month = currentMonth.value
-  const firstDay = new Date(year, month - 1, 1)
-  const lastDay = new Date(year, month, 0)
-  const firstDayOfWeek = firstDay.getDay()
-  const daysInMonth = lastDay.getDate()
+  const year = currentYear.value;
+  const month = currentMonth.value;
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  const firstDayOfWeek = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
 
-  const days = []
+  const days = [];
 
   // 添加上个月的空白日期
   for (let i = 0; i < firstDayOfWeek; i++) {
-    days.push({ date: '', isEmpty: true })
+    days.push({ date: "", isEmpty: true });
   }
 
   // 添加当前月的日期
   for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month - 1, day)
-    const today = new Date()
-    const isToday = date.getFullYear() === today.getFullYear() &&
+    const date = new Date(year, month - 1, day);
+    const today = new Date();
+    const isToday =
+      date.getFullYear() === today.getFullYear() &&
       date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
-    const isStart = startDate.value && date.getTime() === startDate.value.getTime()
-    const isEnd = endDate.value && date.getTime() === endDate.value.getTime()
-    const isInRange = startDate.value && endDate.value &&
+      date.getDate() === today.getDate();
+    const isStart = startDate.value && date.getTime() === startDate.value.getTime();
+    const isEnd = endDate.value && date.getTime() === endDate.value.getTime();
+    const isInRange =
+      startDate.value &&
+      endDate.value &&
       date.getTime() >= startDate.value.getTime() &&
-      date.getTime() <= endDate.value.getTime()
+      date.getTime() <= endDate.value.getTime();
 
     days.push({
       date: day,
@@ -350,572 +429,584 @@ const calendarDays = computed(() => {
       isEnd,
       isInRange,
       isToday,
-      isEmpty: false
-    })
+      isEmpty: false,
+    });
   }
 
-  return days
-})
+  return days;
+});
 
 // 年份和月份列表
 const yearList = computed(() => {
-  const currentYear = new Date().getFullYear()
-  const years = []
+  const currentYear = new Date().getFullYear();
+  const years = [];
   for (let year = currentYear - 5; year <= currentYear + 2; year++) {
-    years.push(year)
+    years.push(year);
   }
-  return years
-})
+  return years;
+});
 
 const monthList = computed(() => {
-  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-})
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+});
 
 // 动态显示日期文本
 const displayedDateText = computed(() => {
-  if (selectionMode.value === 'all') {
-    return '全部'
-  }
-  else if (selectionMode.value === 'range' && startDate.value && endDate.value) {
+  if (selectionMode.value === "all") {
+    return "全部";
+  } else if (selectionMode.value === "range" && startDate.value && endDate.value) {
     // 选择了具体日期范围
-    const startDateStr = formatDate(startDate.value)
-    const endDateStr = formatDate(endDate.value)
+    const startDateStr = formatDate(startDate.value);
+    const endDateStr = formatDate(endDate.value);
 
     // 如果是同一天，只显示一个日期
     if (startDateStr === endDateStr) {
-      return startDateStr
+      return startDateStr;
     } else {
-      return `${startDateStr} - ${endDateStr}`
+      return `${startDateStr} - ${endDateStr}`;
     }
-  } else if (selectionMode.value === 'range' && startDate.value) {
+  } else if (selectionMode.value === "range" && startDate.value) {
     // 只选择了开始日期
-    return formatDate(startDate.value)
+    return formatDate(startDate.value);
   } else {
     // 月份模式或未选择具体日期
-    return `${currentYear.value}年${currentMonth.value}月`
+    return `${currentYear.value}年${currentMonth.value}月`;
   }
-})
+});
 
 // 判断是否选择了具体日期范围
 const isDateRangeSelected = computed(() => {
-  return selectionMode.value === 'range' && (startDate.value || endDate.value)
-})
+  return selectionMode.value === "range" && (startDate.value || endDate.value);
+});
 
 // 方法
 const goBack = () => {
-  uni.navigateBack()
-}
+  uni.navigateBack();
+};
 
 // 日历相关方法
 const showMonthPicker = () => {
   // 显示日历弹出层
-  showCalendar.value = true
+  showCalendar.value = true;
   // 初始化选中的年月为当前显示的年月
-  selectedYear.value = currentYear.value
-  selectedMonth.value = currentMonth.value
+  selectedYear.value = currentYear.value;
+  selectedMonth.value = currentMonth.value;
   // 设置默认日期范围（仅在时间段模式下）
-  if (selectionMode.value === 'range') {
+  if (selectionMode.value === "range") {
     if (!startDate.value) {
-      startDate.value = new Date(2025, 8, 3) // 2025年9月3日
+      startDate.value = new Date(2025, 8, 3); // 2025年9月3日
     }
     if (!endDate.value) {
-      endDate.value = new Date(2025, 9, 2) // 2025年10月2日
+      endDate.value = new Date(2025, 9, 2); // 2025年10月2日
     }
   }
-}
+};
 
 const closeCalendar = () => {
-  showCalendar.value = false
-}
+  showCalendar.value = false;
+};
 
 const setSelectionMode = (mode) => {
-  selectionMode.value = mode
-}
+  selectionMode.value = mode;
+};
 
 const selectDate = (day) => {
-  if (day.isEmpty) return
+  if (day.isEmpty) return;
 
-  if (selectionMode.value === 'range') {
+  if (selectionMode.value === "range") {
     if (!startDate.value || (startDate.value && endDate.value)) {
       // 选择开始日期
-      startDate.value = day.fullDate
-      endDate.value = null
+      startDate.value = day.fullDate;
+      endDate.value = null;
     } else if (startDate.value && !endDate.value) {
       // 选择结束日期
       if (day.fullDate.getTime() >= startDate.value.getTime()) {
-        endDate.value = day.fullDate
+        endDate.value = day.fullDate;
       } else {
         // 如果选择的日期早于开始日期，则重新设置开始日期
-        endDate.value = startDate.value
-        startDate.value = day.fullDate
+        endDate.value = startDate.value;
+        startDate.value = day.fullDate;
       }
     }
   }
-}
+};
 
 const getDayClass = (day) => {
-  if (day.isEmpty) return 'empty'
-  if (day.isStart) return 'start-date'
-  if (day.isEnd) return 'end-date'
-  if (day.isInRange) return 'in-range'
-  return 'normal'
-}
+  if (day.isEmpty) return "empty";
+  if (day.isStart) return "start-date";
+  if (day.isEnd) return "end-date";
+  if (day.isInRange) return "in-range";
+  return "normal";
+};
 
 const formatDate = (date) => {
-  if (!date) return ''
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
-}
+  if (!date) return "";
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+};
 
 // 格式化日期为API需要的格式
 const formatDateForAPI = (date) => {
-  if (!date) return ''
-  const year = date.getFullYear()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const confirmSelection = async () => {
   // 确认选择，更新月份显示
-  if (selectionMode.value === 'month') {
-    currentYear.value = selectedYear.value
-    currentMonth.value = selectedMonth.value
+  if (selectionMode.value === "month") {
+    currentYear.value = selectedYear.value;
+    currentMonth.value = selectedMonth.value;
     // 清除日期范围选择
-    startDate.value = null
-    endDate.value = null
-  } else if (selectionMode.value === 'range') {
+    startDate.value = null;
+    endDate.value = null;
+  } else if (selectionMode.value === "range") {
     // 日期范围选择模式
     if (startDate.value && !endDate.value) {
       // 如果只选择了开始日期，将结束日期设置为同一天（单日期选择）
-      endDate.value = new Date(startDate.value)
+      endDate.value = new Date(startDate.value);
     }
 
     // 更新为开始日期所在的月份
     if (startDate.value) {
-      currentYear.value = startDate.value.getFullYear()
-      currentMonth.value = startDate.value.getMonth() + 1
+      currentYear.value = startDate.value.getFullYear();
+      currentMonth.value = startDate.value.getMonth() + 1;
     }
   }
 
-  closeCalendar()
+  closeCalendar();
 
   // 重新获取数据
-  currentPage.value = 1
-  await getOrders(true)
-}
+  currentPage.value = 1;
+  await getOrders(true);
+};
 
 // 月份选择相关方法
 const selectYear = (year) => {
-  selectedYear.value = year
+  selectedYear.value = year;
   // 滚动到选中位置
-  const yearIndex = yearList.value.indexOf(year)
-  yearScrollTop.value = yearIndex * 60 // 每个项目高度约60rpx
-}
+  const yearIndex = yearList.value.indexOf(year);
+  yearScrollTop.value = yearIndex * 60; // 每个项目高度约60rpx
+};
 
 const selectMonth = (month) => {
-  selectedMonth.value = month
+  selectedMonth.value = month;
   // 滚动到选中位置
-  const monthIndex = monthList.value.indexOf(month)
-  monthScrollTop.value = monthIndex * 60 // 每个项目高度约60rpx
-}
+  const monthIndex = monthList.value.indexOf(month);
+  monthScrollTop.value = monthIndex * 60; // 每个项目高度约60rpx
+};
 
 // 月份导航相关方法
 const previousMonth = () => {
   if (currentMonth.value === 1) {
-    currentMonth.value = 12
-    currentYear.value -= 1
+    currentMonth.value = 12;
+    currentYear.value -= 1;
   } else {
-    currentMonth.value -= 1
+    currentMonth.value -= 1;
   }
-}
+};
 
 const nextMonth = () => {
   if (currentMonth.value === 12) {
-    currentMonth.value = 1
-    currentYear.value += 1
+    currentMonth.value = 1;
+    currentYear.value += 1;
   } else {
-    currentMonth.value += 1
+    currentMonth.value += 1;
   }
-}
+};
 
 const showMonthYearPicker = () => {
   // 切换到月份选择模式
-  selectionMode.value = 'month'
+  selectionMode.value = "month";
   // 设置当前年月为选中状态
-  selectedYear.value = currentYear.value
-  selectedMonth.value = currentMonth.value
-}
+  selectedYear.value = currentYear.value;
+  selectedMonth.value = currentMonth.value;
+};
 
 // 滑动处理方法
 const handleTouchStart = (e) => {
-  if (!isSwipeEnabled.value) return
-  const touch = e.touches[0]
-  touchStartY.value = touch.clientY
-  touchStartX.value = touch.clientX
-}
+  if (!isSwipeEnabled.value) return;
+  const touch = e.touches[0];
+  touchStartY.value = touch.clientY;
+  touchStartX.value = touch.clientX;
+};
 
 const handleTouchMove = (e) => {
   // 不处理触摸移动事件，避免性能警告
   // 滑动检测在 touchend 事件中处理
-}
+};
 
 const handleTouchEnd = (e) => {
-  if (!isSwipeEnabled.value) return
-  const touch = e.changedTouches[0]
-  const deltaY = touch.clientY - touchStartY.value
-  const deltaX = touch.clientX - touchStartX.value
+  if (!isSwipeEnabled.value) return;
+  const touch = e.changedTouches[0];
+  const deltaY = touch.clientY - touchStartY.value;
+  const deltaX = touch.clientX - touchStartX.value;
 
   // 判断是否为垂直滑动（上下滑动）
   if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
     if (deltaY > 0) {
       // 向下滑动，显示上一个月
-      previousMonth()
+      previousMonth();
     } else {
       // 向上滑动，显示下一个月
-      nextMonth()
+      nextMonth();
     }
   }
-}
+};
 
 // 获取订单列表
 const getOrders = async (isRefresh = false) => {
   try {
-    loading.value = true
-    const token = getToken()
-    const account = getAccount()
+    loading.value = true;
+    const token = getToken();
+    const account = getAccount();
 
     if (!token) {
       uni.showToast({
-        title: '请先登录',
-        icon: 'none'
-      })
+        title: "请先登录",
+        icon: "none",
+      });
       setTimeout(() => {
-        uni.navigateTo({ url: '/pages/login/login' })
-      }, 1500)
-      return
+        uni.navigateTo({ url: "/pages/login/login" });
+      }, 1500);
+      return;
     }
 
     if (!account) {
       // 如果account为空，尝试使用token作为account（临时解决方案）
-      const tokenAccount = token || 'default_user'
+      const tokenAccount = token || "default_user";
 
       // 构建查询参数
       const queryParams = {
         account: tokenAccount,
         page: currentPage.value.toString(),
-        limit: pageSize.value.toString()
-      }
+        limit: pageSize.value.toString(),
+      };
 
       // 如果有搜索关键词，添加订单号查询
       if (searchKeyword.value.trim()) {
-        queryParams.orderNo = searchKeyword.value.trim()
+        queryParams.orderNo = searchKeyword.value.trim();
       }
 
       // 添加日期范围查询参数
       if (startDate.value && endDate.value) {
         // 日期范围模式
-        queryParams.startDate = formatDateForAPI(startDate.value)
-        queryParams.endDate = formatDateForAPI(endDate.value)
+        queryParams.startDate = formatDateForAPI(startDate.value);
+        queryParams.endDate = formatDateForAPI(endDate.value);
       } else {
         // 月份模式
-        queryParams.year = currentYear.value.toString()
-        queryParams.month = currentMonth.value.toString()
+        queryParams.year = currentYear.value.toString();
+        queryParams.month = currentMonth.value.toString();
       }
 
-      const response = await apiOrderQuery(queryParams)
+      const response = await apiOrderQuery(queryParams);
 
       if (response.code === 200) {
         // 修复数据结构：从 response.data.records 获取订单列表
-        const newOrders = response.data?.records || []
+        const newOrders = response.data?.records || [];
 
         if (isRefresh) {
           // 刷新时替换数据
-          orders.value = newOrders
-          currentPage.value = 1
+          orders.value = newOrders;
+          currentPage.value = 1;
         } else {
           // 加载更多时追加数据
           if (currentPage.value === 1) {
-            orders.value = newOrders
+            orders.value = newOrders;
           } else {
-            orders.value = [...orders.value, ...newOrders]
+            orders.value = [...orders.value, ...newOrders];
           }
         }
 
         // 判断是否还有更多数据 - 使用接口返回的分页信息
-        const totalPages = response.data?.pages || 1
-        hasMore.value = currentPage.value < totalPages
+        const totalPages = response.data?.pages || 1;
+        hasMore.value = currentPage.value < totalPages;
 
         // 保存总订单数
-        totalOrders.value = response.data?.total || 0
+        totalOrders.value = response.data?.total || 0;
       } else {
         uni.showToast({
-          title: response.msg || '获取订单失败',
-          icon: 'none'
-        })
+          title: response.msg || "获取订单失败",
+          icon: "none",
+        });
       }
 
-      loading.value = false
-      return
+      loading.value = false;
+      return;
     }
 
     // 构建查询参数
     const queryParams = {
       account: account,
       page: currentPage.value.toString(),
-      limit: pageSize.value.toString()
-    }
+      limit: pageSize.value.toString(),
+    };
 
     // 如果有搜索关键词，添加订单号查询
     if (searchKeyword.value.trim()) {
-      queryParams.orderNo = searchKeyword.value.trim()
+      queryParams.orderNo = searchKeyword.value.trim();
     }
 
     // 获取所有数据后在前端过滤，确保数据完整性
-    const response = await apiOrderQuery(queryParams)
+    const response = await apiOrderQuery(queryParams);
 
     if (response.code === 200) {
       // 修复数据结构：从 response.data.records 获取订单列表
-      const newOrders = response.data?.records || []
+      const newOrders = response.data?.records || [];
 
       if (isRefresh) {
         // 刷新时替换数据
-        orders.value = newOrders
-        currentPage.value = 1
+        orders.value = newOrders;
+        currentPage.value = 1;
       } else {
         // 加载更多时追加数据
         if (currentPage.value === 1) {
-          orders.value = newOrders
+          orders.value = newOrders;
         } else {
-          orders.value = [...orders.value, ...newOrders]
+          orders.value = [...orders.value, ...newOrders];
         }
       }
 
       // 判断是否还有更多数据 - 使用接口返回的分页信息
-      const totalPages = response.data?.pages || 1
-      hasMore.value = currentPage.value < totalPages
+      const totalPages = response.data?.pages || 1;
+      hasMore.value = currentPage.value < totalPages;
 
       // 保存总订单数
-      totalOrders.value = response.data?.total || 0
+      totalOrders.value = response.data?.total || 0;
     } else {
       uni.showToast({
-        title: response.msg || '获取订单失败',
-        icon: 'none'
-      })
+        title: response.msg || "获取订单失败",
+        icon: "none",
+      });
     }
   } catch (error) {
     uni.showToast({
-      title: '网络错误，请重试',
-      icon: 'none'
-    })
+      title: "网络错误，请重试",
+      icon: "none",
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 格式化时间
 const formatTime = (timeStr) => {
-  if (!timeStr) return ''
-  const date = new Date(timeStr)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-}
+  if (!timeStr) return "";
+  const date = new Date(timeStr);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes()
+  ).padStart(2, "0")}`;
+};
 
 // 获取订单状态文本
 const getStatusText = (status) => {
   const statusMap = {
-    0: '待支付',
-    1: '已支付',
-    2: '已取消',
-    3: '已完成'
-  }
-  return statusMap[status] || '未知状态'
-}
+    0: "待支付",
+    1: "已支付",
+    2: "已取消",
+    3: "已完成",
+  };
+  return statusMap[status] || "未知状态";
+};
 
 // 获取订单状态样式类
 const getStatusClass = (status) => {
   const classMap = {
-    0: 'status-pending',
-    1: 'status-paid',
-    2: 'status-cancelled',
-    3: 'status-completed'
-  }
-  return classMap[status] || 'status-unknown'
-}
+    0: "status-pending",
+    1: "status-paid",
+    2: "status-cancelled",
+    3: "status-completed",
+  };
+  return classMap[status] || "status-unknown";
+};
 
 // 查看订单详情
 const viewOrderDetail = (order) => {
   uni.showModal({
-    title: '订单详情',
-    content: `订单号：${order.orderNo}\n金额：¥${order.amount}\n状态：${getStatusText(order.status)}\n时间：${formatTime(order.updateTime || order.createTime)}`,
-	showCancel: false,
+    title: "订单详情",
+    content: `订单号：${order.orderNo}\n金额：¥${order.amount}\n状态：${getStatusText(
+      order.status
+    )}\n时间：${formatTime(order.updateTime || order.createTime)}`,
+    showCancel: false,
     // showCancel: order.status == 0 ? true : false,
-	// confirmText: order.status == 0 ? "去支付" : "关闭",
-	// success: (res) => {
-	// 	if(res.confirm){
-	// 		PaymentWrapperRef.value.payFromOrdreId(order.orderNo, 4)
-	// 	}
-	// }
-  })
-}
-
+    // confirmText: order.status == 0 ? "去支付" : "关闭",
+    // success: (res) => {
+    // 	if(res.confirm){
+    // 		PaymentWrapperRef.value.payFromOrdreId(order.orderNo, 4)
+    // 	}
+    // }
+  });
+};
 
 // 搜索相关方法
 const focusSearch = () => {
-  isSearching.value = true
-}
+  isSearching.value = true;
+};
 
 const handleSearchBlur = () => {
   // 延迟失焦，让用户有时间点击清除按钮
   setTimeout(() => {
     if (!searchKeyword.value.trim()) {
-      isSearching.value = false
+      isSearching.value = false;
     }
-  }, 200)
-}
+  }, 200);
+};
 
 const handleSearchInput = () => {
   // 搜索输入时的处理
-  console.log('搜索关键词:', searchKeyword.value)
+  console.log("搜索关键词:", searchKeyword.value);
 
   // 如果输入框为空，自动获取所有订单
   if (!searchKeyword.value.trim()) {
-    currentPage.value = 1
-    getOrders(true)
+    currentPage.value = 1;
+    getOrders(true);
   }
-}
+};
 
 const clearSearch = () => {
-  searchKeyword.value = ''
-  isSearching.value = false
+  searchKeyword.value = "";
+  isSearching.value = false;
   // 清空搜索后重新获取所有订单
-  currentPage.value = 1
-  getOrders(true)
-}
+  currentPage.value = 1;
+  getOrders(true);
+};
 
 // 执行搜索
 const performSearch = async () => {
   if (!searchKeyword.value.trim()) {
     // 如果搜索框为空，获取所有订单
     uni.showToast({
-      title: '请输入订单号',
-      icon: 'none'
-    })
-    return
+      title: "请输入订单号",
+      icon: "none",
+    });
+    return;
   }
 
   // 添加到搜索历史
-  addToSearchHistory(searchKeyword.value.trim())
+  addToSearchHistory(searchKeyword.value.trim());
 
   // 执行搜索
-  console.log('执行订单搜索:', searchKeyword.value.trim())
-  currentPage.value = 1
-  await getOrders(true)
-}
+  console.log("执行订单搜索:", searchKeyword.value.trim());
+  currentPage.value = 1;
+  await getOrders(true);
+};
 
 // 添加到搜索历史
 const addToSearchHistory = (keyword) => {
-  if (!keyword || keyword.length < 3) return
+  if (!keyword || keyword.length < 3) return;
 
   // 移除重复项
-  const index = searchHistory.value.indexOf(keyword)
+  const index = searchHistory.value.indexOf(keyword);
   if (index > -1) {
-    searchHistory.value.splice(index, 1)
+    searchHistory.value.splice(index, 1);
   }
 
   // 添加到开头
-  searchHistory.value.unshift(keyword)
+  searchHistory.value.unshift(keyword);
 
   // 限制历史记录数量
   if (searchHistory.value.length > 5) {
-    searchHistory.value = searchHistory.value.slice(0, 5)
+    searchHistory.value = searchHistory.value.slice(0, 5);
   }
 
   // 保存到本地存储
-  uni.setStorageSync('orderSearchHistory', searchHistory.value)
-}
+  uni.setStorageSync("orderSearchHistory", searchHistory.value);
+};
 
 // 从本地存储加载搜索历史
 const loadSearchHistory = () => {
   try {
-    const history = uni.getStorageSync('orderSearchHistory')
+    const history = uni.getStorageSync("orderSearchHistory");
     if (history && Array.isArray(history)) {
-      searchHistory.value = history
+      searchHistory.value = history;
     }
   } catch (error) {
-    console.error('加载搜索历史失败:', error)
+    console.error("加载搜索历史失败:", error);
   }
-}
+};
 
 // 选择搜索建议
 const selectSuggestion = (keyword) => {
-  searchKeyword.value = keyword
-  performSearch()
-}
+  searchKeyword.value = keyword;
+  performSearch();
+};
 
 // 加载更多订单
 const loadMoreOrders = async () => {
-  if (!hasMore.value || loading.value) return
+  if (!hasMore.value || loading.value) return;
 
-  currentPage.value++
-  await getOrders(false)
-}
+  currentPage.value++;
+  await getOrders(false);
+};
 
 // 页面加载时检查登录状态并获取订单
 onMounted(async () => {
-  const token = getToken()
-  const account = getAccount()
+  const token = getToken();
+  const account = getAccount();
 
   if (!token) {
     uni.showToast({
-      title: '请先登录',
-      icon: 'none'
-    })
+      title: "请先登录",
+      icon: "none",
+    });
     setTimeout(() => {
-      uni.navigateTo({ url: '/pages/login/login' })
-    }, 1500)
+      uni.navigateTo({ url: "/pages/login/login" });
+    }, 1500);
   } else if (!account) {
     uni.showToast({
-      title: '用户信息异常，请重新登录',
-      icon: 'none'
-    })
+      title: "用户信息异常，请重新登录",
+      icon: "none",
+    });
     setTimeout(() => {
-      uni.navigateTo({ url: '/pages/login/login' })
-    }, 1500)
+      uni.navigateTo({ url: "/pages/login/login" });
+    }, 1500);
   } else {
     // 加载搜索历史
-    loadSearchHistory()
+    loadSearchHistory();
     // 获取订单列表
-    await getOrders()
+    await getOrders();
   }
-})
-
+});
 </script>
 
 <style lang="scss" scoped>
 .orders-container {
   min-height: 100vh;
   background-color: #f5f5f5;
-  
-	&.old-man-mode {
-		.calendar-title,.btn-text{
-			font-size: 42rpx;
-			font-weight: bold;
-		}
-		.order-no,.order-title,.order-amount,.stats-text,.search-bar,.search-text,.month-text{
-			font-size: 38rpx;
-			font-weight: bold;
-		}
-		.order-time,.tab-text,.picker-text{
-			font-size: 34rpx;
-			font-weight: bold;
-		}
-		.order-status{
-			font-size: 32rpx;
-			font-weight: bold;
-		}
-	}
-  
-    &:not(.old-man-mode) {}
-	
+
+  &.old-man-mode {
+    .calendar-title,
+    .btn-text {
+      font-size: 42rpx;
+      font-weight: bold;
+    }
+    .order-no,
+    .order-title,
+    .order-amount,
+    .stats-text,
+    .search-bar,
+    .search-text,
+    .month-text {
+      font-size: 38rpx;
+      font-weight: bold;
+    }
+    .order-time,
+    .tab-text,
+    .picker-text {
+      font-size: 34rpx;
+      font-weight: bold;
+    }
+    .order-status {
+      font-size: 32rpx;
+      font-weight: bold;
+    }
+  }
+
+  &:not(.old-man-mode) {
+  }
 }
 
 /* 导航栏 */
@@ -995,7 +1086,7 @@ onMounted(async () => {
 
 .search-text {
   font-size: 28rpx;
-  color: #999;
+  // color: #999;
 }
 
 .search-input {
@@ -1243,14 +1334,14 @@ onMounted(async () => {
 }
 
 .empty-text {
-  font-size: 32rpx;
-  color: #666;
+  font-size: 40rpx;
+  // color: #666;
   margin-bottom: 10rpx;
 }
 
 .empty-desc {
-  font-size: 24rpx;
-  color: #999;
+  font-size: 35rpx;
+  color: var(--light-text-color);
 }
 
 /* 加载状态 */
@@ -1358,14 +1449,14 @@ onMounted(async () => {
 }
 
 .tab-item.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 60rpx;
   height: 4rpx;
-  background-color: #28B389;
+  background-color: #28b389;
   border-radius: 2rpx;
 }
 
@@ -1375,7 +1466,7 @@ onMounted(async () => {
 }
 
 .tab-item.active .tab-text {
-  color: #28B389;
+  color: #28b389;
   font-weight: 600;
 }
 
@@ -1472,7 +1563,7 @@ onMounted(async () => {
 }
 
 .picker-item.active .picker-text {
-  color: #28B389;
+  color: #28b389;
   font-weight: 600;
 }
 
@@ -1582,7 +1673,7 @@ onMounted(async () => {
 
 .day-label {
   font-size: 18rpx;
-  color: #28B389;
+  color: #28b389;
   margin-top: 2rpx;
 }
 
@@ -1592,7 +1683,7 @@ onMounted(async () => {
 }
 
 .day-item.start-date {
-  background-color: #28B389;
+  background-color: #28b389;
   border-radius: 50%;
 }
 
@@ -1601,7 +1692,7 @@ onMounted(async () => {
 }
 
 .day-item.end-date {
-  background-color: #28B389;
+  background-color: #28b389;
   border-radius: 50%;
 }
 
@@ -1614,7 +1705,7 @@ onMounted(async () => {
 }
 
 .day-item.in-range .day-number {
-  color: #28B389;
+  color: #28b389;
 }
 
 /* 日历底部 */
@@ -1645,7 +1736,7 @@ onMounted(async () => {
 }
 
 .confirm-btn {
-  background-color: #28B389;
+  background-color: #28b389;
   border: none;
 }
 

@@ -34,6 +34,7 @@
           id="contactInfo"
           v-model="feedbackForm.title"
           placeholder="请输入标题"
+          placeholder-style="color:var(--light-text-color)"
           class="form-control"
         />
       </view>
@@ -45,6 +46,7 @@
           id="feedbackContent"
           v-model="feedbackForm.content"
           placeholder="请输入您的反馈内容..."
+          placeholder-style="color:var(--light-text-color)"
           rows="5"
           required
           class="form-control content"
@@ -59,6 +61,7 @@
           id="contactInfo"
           v-model="feedbackForm.contact"
           placeholder="请输入邮箱或手机号（可选）"
+          placeholder-style="color:var(--light-text-color)"
           class="form-control"
         />
       </view>
