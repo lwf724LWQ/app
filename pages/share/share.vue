@@ -50,11 +50,13 @@
         </view>
         <view class="card-description">
           在手机浏览器，输入官网地址，即可下载。
-          <uni-link
-            class="link"
-            href="http://www.caimizm.com/"
-            text="官网地址：http://www.caimizm.com"
-          ></uni-link>
+          <view style="width: 600rpx">
+            <uni-link
+              class="link"
+              href="http://www.caimizm.com/"
+              text="官网地址：http://www.caimizm.com"
+            ></uni-link>
+          </view>
         </view>
         <view class="card-footer">
           <!-- #ifdef APP-PLUS -->
@@ -120,7 +122,7 @@ function openUrl() {}
     .card-title {
       display: flex;
       align-items: center;
-      font-size: 40rpx;
+      font-size: 60rpx;
       font-weight: bold;
       color: #333333;
 
@@ -137,14 +139,15 @@ function openUrl() {}
 
     .card-description {
       margin-top: 10rpx;
-      font-size: 35rpx;
+      font-size: 50rpx;
       // color: #999999;
     }
     .link {
-      display: block;
+      // display: block;
       color: #007aff !important;
-      font-size: 35rpx !important;
-      margin-top: 20rpx;
+      font-size: 60rpx !important;
+      // margin-top: 20rpx;
+      word-wrap: break-word;
     }
   }
 
@@ -162,7 +165,7 @@ function openUrl() {}
       padding: 12rpx 16rpx;
       background-color: #fd2d2d;
       color: #ffffff;
-      font-size: 35rpx;
+      font-size: 50rpx;
       border-radius: 8rpx;
 
       width: 100%;
@@ -174,7 +177,7 @@ function openUrl() {}
       padding: 12rpx 16rpx;
       background-color: #007aff;
       color: #ffffff;
-      font-size: 35rpx;
+      font-size: 50rpx;
       border-radius: 8rpx;
 
       width: 100%;

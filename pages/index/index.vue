@@ -210,7 +210,7 @@
     <bottomBar current-path="/pages/index/index" />
     <updateAppPupop ref="updateAppPupopRef" />
 
-    <ActivityPopup></ActivityPopup>
+    <ActivityHover src="/static/images/activity-invite.png" @click="share"></ActivityHover>
   </view>
 </template>
 
@@ -222,11 +222,12 @@ import { useUserStore } from "../../stores/userStore";
 import tool from "../../utils/tool";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
-import ActivityPopup from "./components/activity-popup.vue";
+import ActivityHover from "@/components/activity-hover.vue";
+import { createShareUrl } from "@/utils/createShareUrl";
 
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityPopup },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover },
   data() {
     return {
       currentTab: "plw",
@@ -474,6 +475,23 @@ export default {
     toWxchat() {
       uni.navigateTo({
         url: "/pages/share/wxchat",
+      });
+    },
+    share() {
+      uni.showModal({
+        title: "提示",
+        content: "请分享后让好友将链接复制到浏览器中打开",
+        showCancel: false,
+        success: (res) => {
+          uni.share({
+            provider: "weixin",
+            type: 1,
+            summary: createShareUrl(),
+            scene: "WXSceneSession",
+            success(res) {},
+            fail(err) {},
+          });
+        },
       });
     },
   },

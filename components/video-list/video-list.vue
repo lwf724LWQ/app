@@ -59,6 +59,7 @@ import { ref, onMounted, watch, nextTick } from "vue";
 import { apiGetVideo, apiCheckVideoPayment, delVideo } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
+import { useUserStore } from "@/stores/userStore";
 
 // 接收的props
 const props = defineProps({
@@ -191,13 +192,14 @@ const fetchVideoList = async (page = 1) => {
 };
 
 // 播放视频方法 - 新增付费检查
+const userStore = useUserStore();
 const playVideo = async (video) => {
-  // 检查是否登录
   const token = getToken();
-  if (!token && video.flag) {
+
+  if (userStore.videoCount <= 0 && !token && video.flag) {
     uni.showModal({
       title: "提示",
-      content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
+      content: "付费视频观看次数已用完，需要注册才能继续观看",
       success: async (res) => {
         if (res.confirm) {
           uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
@@ -207,6 +209,22 @@ const playVideo = async (video) => {
     });
     return;
   }
+  if (video.flag) userStore.reduceVideoCount();
+
+  // 检查是否登录
+  // if (!token && video.flag) {
+  //   uni.showModal({
+  //     title: "提示",
+  //     content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
+  //     success: async (res) => {
+  //       if (res.confirm) {
+  //         uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
+  //       }
+  //     },
+  //     showCancel: true,
+  //   });
+  //   return;
+  // }
 
   // 记录视频已经点击过
   recodeVideoId(video);
