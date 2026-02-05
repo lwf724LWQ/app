@@ -149,9 +149,11 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
+        <button class="bottom-buy-btn" @click="shareVideo">分享</button>
       </view>
     </view>
     <reportPopup ref="reportPopupRef" @reportSubmitted="reportSubmitted" />
+    <videoShare ref="videoShareRef" />
   </view>
 </template>
 
@@ -174,6 +176,7 @@ import { getToken, getAccount } from "@/utils/request.js";
 import { useVideoStore } from "@/stores/video.js";
 import tool from "../../utils/tool";
 import reportPopup from "../../components/report-popup/report-popup.vue";
+import videoShare from "../../components/video-share/video-share.vue";
 
 const useOldManModeStore = inject("useOldManModeStore");
 
@@ -860,6 +863,13 @@ async function getLoginUserInfo() {
       };
     } catch (error) {}
   }
+}
+
+// 分享视频
+const videoShareRef = ref(null);
+function shareVideo() {
+  const videoUrl = videoData.value.src;
+  videoShareRef.value.share(videoUrl);
 }
 </script>
 
