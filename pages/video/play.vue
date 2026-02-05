@@ -874,12 +874,12 @@ function shareVideo() {
 
 const isHaveShareSdk = ref(false);
 
-// #ifdef APP-PUSH
+// #ifdef APP-PLUS
 isHaveShareSdk.value =
   !!uni.requireNativePlugin("ZYJ-Android-Share") ||
   !!uni.requireNativePlugin("life-FileShare") ||
   false;
-// #endef
+// #endif
 </script>
 
 <style lang="scss" scoped>
