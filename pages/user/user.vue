@@ -42,7 +42,7 @@
       </view>
     </view>
     <!-- 情况2：未登录 -->
-    <view class="userInfo" v-if="!memberStore.profile">
+    <view class="userInfo" v-if="!memberStore.profile" @click="goToLogin">
       <view class="user-header">
         <view class="avatar-section">
           <view class="avatar gray">
