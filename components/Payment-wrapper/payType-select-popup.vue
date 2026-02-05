@@ -25,7 +25,7 @@
             </label>
             <!-- APP 平台 -->
             <template v-if="platform === 'app-plus'">
-              <label class="pay-option" value="alipay-app">
+              <label class="pay-option" value="alipay-app" v-if="haveAlipay">
                 <view class="option-icon alipay-app-icon"></view>
                 <text class="option-text">支付宝APP支付</text>
                 <radio
@@ -70,6 +70,7 @@ export default {
       selectedMethod: selectedMethod,
       amount: 0,
       orderId: "",
+      haveAlipay: false,
     };
   },
   methods: {
@@ -98,6 +99,16 @@ export default {
 
       this.closePayModal();
     },
+  },
+  created() {
+    const self = this;
+    uni.getProvider({
+      service: "payment",
+      success: function (res) {
+        console.log(res);
+        self.haveAlipay = res.provider.includes("alipay");
+      },
+    });
   },
 };
 </script>
