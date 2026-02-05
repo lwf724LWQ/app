@@ -144,20 +144,6 @@
                     "pid" : "15518",
                     "parameters" : {}
                 }
-            },
-            "life-FileShare" : {
-                "__plugin_info__" : {
-                    "name" : "安卓ios分享任意类型文件",
-                    "description" : "ios和安卓任意分享文件",
-                    "platforms" : "Android,iOS",
-                    "url" : "https://ext.dcloud.net.cn/plugin?id=2307",
-                    "android_package_name" : "com.caimizm.app.wuqizaic",
-                    "ios_bundle_id" : "com.caimizm.app.wuqizaic",
-                    "isCloud" : true,
-                    "bought" : 1,
-                    "pid" : "2307",
-                    "parameters" : {}
-                }
             }
         }
     },
