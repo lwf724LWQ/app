@@ -209,8 +209,6 @@ const playVideo = async (video) => {
     });
     return;
   }
-  if (video.flag) userStore.reduceVideoCount();
-
   // 检查是否登录
   // if (!token && video.flag) {
   //   uni.showModal({
