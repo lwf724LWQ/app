@@ -119,10 +119,10 @@ export class Draw {
     for (let index = 0; index < this.data.value.length + this.options.bottomRow; index++) {
       let width;
       if (theme !== "其他") {
-        if (index % 4 == 0) width = 4 * ratio;
+        if (index % 4 == 3) width = 4 * ratio;
         else width = 2 * ratio;
       } else {
-        if (index % 4 == 0) width = 1 * ratio;
+        if (index % 4 == 3) width = 1 * ratio;
         else continue;
       }
       drawShape.drawnStraightLine(
