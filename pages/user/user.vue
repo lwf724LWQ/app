@@ -109,9 +109,9 @@
           <view class="recharge-icon yellow">¥</view>
           <text class="recharge-text">消费明细</text>
         </view>
-        <view class="recharge-item">
+        <view class="recharge-item" @click="goToMyIncome">
           <view class="recharge-icon red">🎁</view>
-          <text class="recharge-text">收藏</text>
+          <text class="recharge-text">提现</text>
         </view>
       </view>
     </view>

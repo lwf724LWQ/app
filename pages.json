@@ -341,7 +341,7 @@
     {
       "path": "pages/user/my-income",
       "style": {
-        "navigationBarTitleText": "我的收益",
+        "navigationBarTitleText": "提现",
         "navigationBarBackgroundColor": "#ff401c",
         "navigationBarTextStyle": "white",
         "app-plus": {
