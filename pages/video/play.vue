@@ -279,7 +279,7 @@ const loadVideoData = async (videoId) => {
       isPay = await checkPaymentStatus();
     } else {
       hasPaid.value = true;
-      userStore.reduceVideoCount();
+      if (!userStore.userInfo.account) userStore.reduceVideoCount();
     }
 
     // 如果是本人，则放行

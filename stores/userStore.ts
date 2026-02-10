@@ -127,8 +127,8 @@ export const useUserStore = defineStore("user", {
       }
     },
     // 增加视频观看次数
-    addVideoCount(count) {
-      this.videoCount += count;
+    setVideoCount(count) {
+      this.videoCount = count;
       uni.setStorageSync("videoCount", this.videoCount);
     },
   },
