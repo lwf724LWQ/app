@@ -81,7 +81,7 @@ const getBankList = async () => {
 // 刷新页面数据
 onShow(async () => {
   await Promise.all([getUserIncomeCount(), getBankList()]);
-  if (!bankList.value.length) currentBankCard.value = bankList.value[0];
+  if (bankList.value.length) currentBankCard.value = bankList.value[0];
 });
 
 const currentBankCard = ref(null);
