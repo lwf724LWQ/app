@@ -504,11 +504,11 @@ export const getUserBankListApi = () => {
 };
 
 // 添加银行卡
-export const addBankCardApi = ({ bankNo, bname, uname }) => {
+export const addBankCardApi = ({ bankNo, bname, uname, btype }) => {
   return request({
     url: "/web/bank/insert",
     method: "POST",
-    data: { bankNo, bname, uname },
+    data: { bankNo, bname, uname, btype },
   });
 };
 
@@ -521,11 +521,11 @@ export const deleteBankCardApi = (bid) => {
 };
 
 // 提现
-export const withdrawApi = ({ amount, bankNo, bname, uname }) => {
+export const withdrawApi = ({ amount, bankNo, bname, uname, btype }) => {
   return request({
     url: "/web/withdraw/insert",
     method: "POST",
-    data: { amount, bankNo, bname, uname },
+    data: { amount, bankNo, bname, uname, btype },
   });
 };
 

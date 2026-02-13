@@ -348,7 +348,7 @@
           "titleNView": {
             "buttons": [
               {
-                "text": "绑定银行卡",
+                "text": "绑定提现账户",
                 "type": "none",
                 "color": "white",
                 "fontSize": "16px",
@@ -362,7 +362,7 @@
     {
       "path": "pages/user/bank-card",
       "style": {
-        "navigationBarTitleText": "银行卡"
+        "navigationBarTitleText": "提现账户"
       }
     },
     {

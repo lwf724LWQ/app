@@ -26,7 +26,7 @@
         :placeholder="`最多可提现${incomeCount}收益`"
         v-model="withdrawAmount"
       />
-      <view class="title">选择银行卡</view>
+      <view class="title">选择提现账户</view>
       <picker
         v-if="bankList.length"
         :range="bankList.map((item) => `${item.bname}(${item.bankNo.slice(-4)})`)"
@@ -37,7 +37,7 @@
           {{ `${bankList[pickIndex]?.bname}(${bankList[pickIndex]?.bankNo.slice(-4)})` }}
         </view>
       </picker>
-      <view class="picker" v-else @click="navigateToBankCard">请先绑定银行卡</view>
+      <view class="picker" v-else @click="navigateToBankCard">请先绑定提现账户</view>
     </view>
     <view class="btn" @click="withdraw">立即提现</view>
   </view>
@@ -61,7 +61,7 @@ const getUserIncomeCount = async () => {
 getUserIncomeCount();
 
 onNavigationBarButtonTap((e) => {
-  if (e.text !== "绑定银行卡") return;
+  if (e.text !== "绑定提现账户") return;
   navigateToBankCard();
 });
 // 跳转银行卡页面
@@ -76,7 +76,9 @@ const pickIndex = ref(0);
 const withdrawAmount = ref(0);
 const getBankList = async () => {
   const res = await getUserBankListApi();
-  bankList.value = res.data;
+  bankList.value = res.data.toSorted((a, b) => {
+    if (a.btype === 1) return -1;
+  });
 };
 // 刷新页面数据
 onShow(async () => {
@@ -129,7 +131,7 @@ const withdraw = async () => {
   if (bankList.value.length === 0) {
     uni.showModal({
       title: "提示",
-      content: "请先绑定银行卡",
+      content: "请先绑定提现账户",
       success: (res) => {
         if (res.confirm) {
           uni.navigateTo({ url: "/pages/user/bank-card" });
@@ -146,9 +148,9 @@ const withdraw = async () => {
       icon: "success",
     });
     await getUserIncomeCount();
-  } catch {
+  } catch (error) {
     uni.showToast({
-      title: "提交失败",
+      title: error.msg,
       icon: "none",
     });
   }

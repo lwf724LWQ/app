@@ -15,7 +15,7 @@
             <text class="value">¥{{ record.amount.toFixed(2) }}</text>
           </view>
           <view class="bank-info">
-            <text class="label">提现银行:</text>
+            <text class="label">提现账户</text>
             <text class="value">{{ record.bname }} ({{ record.bankNo.slice(-4) }})</text>
           </view>
           <view class="time">

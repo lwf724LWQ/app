@@ -1,7 +1,7 @@
 <template>
   <view class="bank-card-page">
     <view class="header">
-      <text class="title">银行卡管理</text>
+      <text class="title">提现账户管理</text>
     </view>
 
     <view class="card-list">
@@ -15,7 +15,7 @@
             <text v-else>**** **** **** {{ card.bankNo.slice(-4) }}</text>
           </view>
           <view class="card-holder">
-            <text>持卡人：{{ card.uname }}</text>
+            <text>持有人：{{ card.uname }}</text>
           </view>
         </view>
         <view class="card-actions">
@@ -33,33 +33,44 @@
       </view>
 
       <view class="empty-state" v-if="bankCards.length === 0">
-        <text class="empty-text">暂无银行卡</text>
-        <text class="empty-hint">点击下方按钮添加银行卡</text>
+        <text class="empty-text">暂无</text>
+        <text class="empty-hint">点击下方按钮添加银行卡、微信支付、支付宝</text>
       </view>
     </view>
 
     <view class="add-btn-container">
       <view class="add-btn" @click="openPopup">
         <uni-icons type="plus-filled" size="24" color="#fff"></uni-icons>
-        <text class="add-text">添加银行卡</text>
+        <text class="add-text">添加提现账户</text>
       </view>
     </view>
     <Popup ref="popup" type="center">
       <view class="add-card-popup">
-        <text class="popup-title">添加银行卡</text>
+        <text class="popup-title">添加提现账户</text>
         <view class="form-item">
+          <text class="label">提现账户类型</text>
+          <picker class="picker" :range="withdrawType" :value="withdrawIndex" @change="onPayChange">
+            <view class="uni-input">{{ withdrawType[withdrawIndex] }}</view>
+          </picker>
+        </view>
+        <view class="form-item" v-if="withdrawIndex === 0">
           <text class="label">银行名称</text>
           <picker class="picker" :range="bankList" :value="pickIndex" @change="onPickerChange">
             <view class="uni-input">{{ bankList[pickIndex] }}</view>
           </picker>
         </view>
         <view class="form-item">
-          <text class="label">银行卡号</text>
-          <input class="input" placeholder="请输入银行卡号" type="number" v-model="bankNo" />
+          <text class="label">{{ bankNoMap[withdrawIndex] }}</text>
+          <input
+            class="input"
+            :placeholder="`请输入${bankNoMap[withdrawIndex]}`"
+            type="number"
+            v-model="bankNo"
+          />
         </view>
         <view class="form-item">
-          <text class="label">持卡人姓名</text>
-          <input class="input" placeholder="请输入持卡人姓名" v-model="uname" />
+          <text class="label">{{ unameMap[withdrawIndex] }}</text>
+          <input class="input" :placeholder="`请输入${unameMap[withdrawIndex]}`" v-model="uname" />
         </view>
         <view class="popup-actions">
           <button class="cancel-btn" @click="popup.close()">取消</button>
@@ -101,7 +112,7 @@ const toggleCardVisibility = (index) => {
 const deleteCard = (id) => {
   uni.showModal({
     title: "确认删除",
-    content: "确定要删除这张银行卡吗？",
+    content: "确定要删除这个账户吗？",
     success: async (res) => {
       if (res.confirm) {
         try {
@@ -166,15 +177,51 @@ const bname = computed(() => bankList[pickIndex.value]);
 const bankNo = ref("");
 const uname = ref("");
 const addCard = async () => {
-  if (!bankNo.value || !bname.value || !uname.value) {
-    uni.showToast({
-      title: "请填写完整信息",
-      icon: "none",
-    });
-    return;
+  const form = {
+    bankNo: bankNo.value,
+    bname: bname.value,
+    uname: uname.value,
+  };
+  switch (withdrawIndex.value) {
+    case 0: {
+      if (!bankNo.value || !bname.value || !uname.value) {
+        uni.showToast({
+          title: "请填写完整信息",
+          icon: "none",
+        });
+        return;
+      }
+      break;
+    }
+    case 1: {
+      if (!bankNo.value || !uname.value) {
+        uni.showToast({
+          title: "请填写完整信息",
+          icon: "none",
+        });
+        return;
+      }
+      form.bname = "微信";
+      break;
+    }
+    case 2: {
+      if (!bankNo.value || !uname.value) {
+        uni.showToast({
+          title: "请填写完整信息",
+          icon: "none",
+        });
+        return;
+      }
+      form.bname = "支付宝";
+      break;
+    }
   }
+
   try {
-    await addBankCardApi({ bankNo: bankNo.value, bname: bname.value, uname: uname.value });
+    await addBankCardApi({
+      ...form,
+      btype: withdrawIndex.value,
+    });
     uni.showToast({
       title: "添加成功",
       icon: "success",
@@ -187,6 +234,25 @@ const addCard = async () => {
       icon: "none",
     });
   }
+};
+
+// 提现类型
+const withdrawType = ["银行卡", "微信", "支付宝"];
+const withdrawIndex = ref(0);
+const onPayChange = (e) => {
+  withdrawIndex.value = e.detail.value;
+};
+
+const bankNoMap = {
+  0: "银行卡号",
+  1: "微信账号",
+  2: "支付宝账号",
+};
+
+const unameMap = {
+  0: "持卡人姓名",
+  1: "微信昵称",
+  2: "支付宝昵称",
 };
 </script>
 
