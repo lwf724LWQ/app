@@ -28,16 +28,18 @@
       />
       <view class="title">选择提现账户</view>
       <picker
+        class="picker"
         v-if="bankList.length"
         :range="bankList.map((item) => `${item.bname}(${item.bankNo.slice(-4)})`)"
         :value="pickIndex"
         @change="onPickerChange"
       >
-        <view class="picker">
+        <view class="picker-item">
           {{ `${bankList[pickIndex]?.bname}(${bankList[pickIndex]?.bankNo.slice(-4)})` }}
         </view>
+        <uni-icons type="down" size="25" class="picker-down"></uni-icons>
       </picker>
-      <view class="picker" v-else @click="navigateToBankCard">请先绑定提现账户</view>
+      <view class="picker picker-text" v-else @click="navigateToBankCard">请先绑定微信账户</view>
     </view>
     <view class="btn" @click="withdraw">立即提现</view>
   </view>
@@ -76,9 +78,12 @@ const pickIndex = ref(0);
 const withdrawAmount = ref(0);
 const getBankList = async () => {
   const res = await getUserBankListApi();
-  bankList.value = res.data.toSorted((a, b) => {
+  // 将微信账户放到第一个
+  res.data = res.data.sort((a, b) => {
     if (a.btype === 1) return -1;
+    return 1;
   });
+  bankList.value = res.data;
 };
 // 刷新页面数据
 onShow(async () => {
@@ -131,7 +136,7 @@ const withdraw = async () => {
   if (bankList.value.length === 0) {
     uni.showModal({
       title: "提示",
-      content: "请先绑定提现账户",
+      content: "请先绑定微信账户",
       success: (res) => {
         if (res.confirm) {
           uni.navigateTo({ url: "/pages/user/bank-card" });
@@ -261,12 +266,25 @@ view {
   }
 
   .picker {
+    position: relative;
+    font-size: 40rpx;
+  }
+  .picker-text {
+    color: red;
+  }
+  .picker-item {
     height: 100rpx;
     line-height: 100rpx;
     background-color: #f8f8f8;
     border-radius: 12rpx;
     padding: 0 30rpx;
     box-sizing: border-box;
+  }
+  .picker-down {
+    position: absolute;
+    right: 30rpx;
+    top: 50%;
+    transform: translateY(-50%);
   }
 }
 

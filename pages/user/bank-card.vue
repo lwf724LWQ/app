@@ -51,12 +51,14 @@
           <text class="label">提现账户类型</text>
           <picker class="picker" :range="withdrawType" :value="withdrawIndex" @change="onPayChange">
             <view class="uni-input">{{ withdrawType[withdrawIndex] }}</view>
+            <uni-icons type="down" size="25" class="picker-down"></uni-icons>
           </picker>
         </view>
         <view class="form-item" v-if="withdrawIndex === 0">
           <text class="label">银行名称</text>
           <picker class="picker" :range="bankList" :value="pickIndex" @change="onPickerChange">
             <view class="uni-input">{{ bankList[pickIndex] }}</view>
+            <uni-icons type="down" size="25" class="picker-down"></uni-icons>
           </picker>
         </view>
         <view class="form-item">
@@ -66,11 +68,17 @@
             :placeholder="`请输入${bankNoMap[withdrawIndex]}`"
             type="number"
             v-model="bankNo"
+            placeholder-style="color:var(--light-text-color)"
           />
         </view>
         <view class="form-item">
           <text class="label">{{ unameMap[withdrawIndex] }}</text>
-          <input class="input" :placeholder="`请输入${unameMap[withdrawIndex]}`" v-model="uname" />
+          <input
+            class="input"
+            :placeholder="`请输入${unameMap[withdrawIndex]}`"
+            v-model="uname"
+            placeholder-style="color:var(--light-text-color)"
+          />
         </view>
         <view class="popup-actions">
           <button class="cancel-btn" @click="popup.close()">取消</button>
@@ -238,7 +246,7 @@ const addCard = async () => {
 
 // 提现类型
 const withdrawType = ["银行卡", "微信", "支付宝"];
-const withdrawIndex = ref(0);
+const withdrawIndex = ref(1);
 const onPayChange = (e) => {
   withdrawIndex.value = e.detail.value;
 };
@@ -312,7 +320,7 @@ const unameMap = {
   margin-bottom: 20rpx;
 
   .bank-name {
-    font-size: 32rpx;
+    font-size: 35rpx;
     font-weight: 600;
     color: #fff;
   }
@@ -332,7 +340,7 @@ const unameMap = {
 
 .card-holder {
   text {
-    font-size: 24rpx;
+    font-size: 30rpx;
     color: rgba(255, 255, 255, 0.8);
   }
 }
@@ -431,7 +439,7 @@ const unameMap = {
   align-items: center;
 
   .popup-title {
-    font-size: 36rpx;
+    font-size: 40rpx;
     font-weight: 600;
     color: #333;
     margin-bottom: 40rpx;
@@ -442,8 +450,7 @@ const unameMap = {
     margin-bottom: 30rpx;
 
     .label {
-      font-size: 28rpx;
-      color: #666;
+      font-size: 35rpx;
       margin-bottom: 10rpx;
       display: block;
     }
@@ -454,12 +461,22 @@ const unameMap = {
       border: 2rpx solid #eee;
       border-radius: 12rpx;
       padding: 0 20rpx;
-      font-size: 30rpx;
-      color: #333;
+      font-size: 35rpx;
     }
 
     .uni-input {
       line-height: 80rpx;
+    }
+
+    .picker {
+      position: relative;
+    }
+
+    .picker-down {
+      position: absolute;
+      right: 30rpx;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 
