@@ -149,7 +149,7 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
-        <!-- <button v-if="isHaveShareSdk" class="bottom-buy-btn" @click="shareVideo">分享</button> -->
+        <button v-if="isHaveShareSdk && videoData.price == 0" class="bottom-buy-btn" @click="shareVideo">分享</button>
       </view>
     </view>
     <reportPopup ref="reportPopupRef" @reportSubmitted="reportSubmitted" />
