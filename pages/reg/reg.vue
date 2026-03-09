@@ -162,10 +162,10 @@ const sendLoginCode = async () => {
     if (response.code === 200) {
       codeRef.value.startCountdown();
     } else {
-      uni.showToast({ title: response.errMsg, icon: "none" });
+      uni.showToast({ title: response.msg, icon: "none" });
     }
   } catch (error) {
-    uni.showToast({ title: "发送验证码失败", icon: "none" });
+    uni.showToast({ title: error?.msg || "发送验证码失败", icon: "none" });
   }
 };
 
@@ -223,13 +223,13 @@ const doReg = async () => {
         uni.redirectTo({ url: url });
       }, 1500);
     } else {
-      uni.showModal({ title: "注册失败", content: "注册失败，请重试", showCancel: false });
+      uni.showModal({ title: "注册失败", content: success.msg, showCancel: false });
     }
   } catch (error) {
     uni.hideLoading();
     uni.showModal({
       title: "注册失败",
-      content: "网络错误，请检查网络连接后重试",
+      content: error?.msg || "网络错误，请检查网络连接后重试",
       showCancel: false,
     });
   }
