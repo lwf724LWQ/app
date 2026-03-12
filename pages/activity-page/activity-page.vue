@@ -39,7 +39,7 @@
           </view>
           <view class="rule-content">
             <text class="rule-text">
-              邀请新用户注册五七仔，通过邀请链接下载app并注册成功后，双方都可获得8金币，多邀多得。
+              邀请新用户注册五七仔，通过邀请链接下载app并注册成功后，双方都可获得10金币，多邀多得。
             </text>
           </view>
           <view class="popup-footer">

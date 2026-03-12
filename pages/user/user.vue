@@ -524,7 +524,7 @@ function toWxchat() {
 }
 
 function toActivity() {
-  if (tool.isLogin("登录后邀请对方注册后双方可得8金币！")) {
+  if (tool.isLogin("登录后邀请对方注册后双方可得10金币！")) {
     uni.navigateTo({
       url: "/pages/activity-page/activity-page",
     });
