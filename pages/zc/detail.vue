@@ -11,16 +11,12 @@
     </TopNavigationBar>
     <scroll-view class="scroll-view" scroll-y>
       <matchHead :data="matchHeadData" />
-      <dualAxis :data="matchFeature" />
-
-      <historyTable
-        :statis="matchHistory.value.statistics"
-        :homeTeam="matchHeadData.homeTeamShortName"
-        :matches="matchHistory.value.matchList"
-      />
-      <pointTable />
-      <!-- <detailTable /> -->
-      <!-- <detailTable /> -->
+      <LotteryResultsTable />
+      <WlBonus />
+      <HandicapTable />
+      <score-fixed-bonus-table />
+      <TotalGoalFixedBonusTable />
+      <half-time-wl-table />
     </scroll-view>
   </view>
 </template>
@@ -32,8 +28,14 @@ import dualAxis from "./components/dual-axis.vue";
 import pointTable from "./components/point-table.vue";
 import matchHead from "./components/match-head.vue";
 import historyTable from "./components/history-table.vue";
+import LotteryResultsTable from "./components/Lottery-results-table.vue";
+import WlBonus from "./components/Wl-bonus.vue";
+import HandicapTable from "./components/Handicap-table.vue";
+import ScoreFixedBonusTable from "./components/Score-fixed-bonus-table.vue";
+import TotalGoalFixedBonusTable from "./components/Total-goal-fixed-bonus-table.vue";
+import HalfTimeWlTable from "./components/Half-time-wl-table.vue";
 
-import zqApi from "../../api/zq.js";
+// import zqApi from "../../api/zq.js";
 import mock from "./mock.js";
 import { reactive, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
@@ -86,10 +88,8 @@ function loadHistory() {
 }
 
 // 积分榜的数据
-const matchTables = ref(mock.MatchTables)
-function loadMatchTables(){
-	
-}
+const matchTables = ref(mock.MatchTables);
+function loadMatchTables() {}
 
 // 比赛近况
 const matchResult = reactive({
@@ -98,27 +98,19 @@ const matchResult = reactive({
   homeAwayFlag: 0, // 是否相同主客 0 = 不分 , 1= 相同主次
   value: mock.MatchResult,
 });
-function loadMatchResult(){
-	
-}
+function loadMatchResult() {}
 
 // 未来赛事
-const futureMatches = ref(mock.FutureMatches)
-function loadFutureMatches(){
-	
-}
+const futureMatches = ref(mock.FutureMatches);
+function loadFutureMatches() {}
 
 // 射手信息
-const matchPlayer = ref(mock.MatchPlayer)
-function loadMatchPlayer(){
-	
-}
+const matchPlayer = ref(mock.MatchPlayer);
+function loadMatchPlayer() {}
 
 // 伤停一览
-const injurySuspension = ref(mock.InjurySuspension)
-function loadInjurySuspension(){
-	
-}
+const injurySuspension = ref(mock.InjurySuspension);
+function loadInjurySuspension() {}
 
 onLoad(() => {
   // loadtMatchHead();

@@ -1,8 +1,5 @@
 <template>
-  <view
-    class="container"
-    :class="useOldManModeStore.enabled ? 'old-man-mode' : ''"
-  >
+  <view class="container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
     <view class="StatusBarPlaceholder"></view>
     <!-- 顶部导航栏 -->
     <!-- <view class="header">
@@ -42,12 +39,7 @@
 
     <!-- 赛事列表 -->
     <scroll-view class="match-list" scroll-y>
-      <view
-        v-for="(match, index) in matches"
-        :key="index"
-        class="match-item"
-        @click="toDetail"
-      >
+      <view v-for="(match, index) in matches" :key="index" class="match-item" @click="toDetail">
         <view class="match-content">
           <view class="match-info">
             <view class="match-teams">
@@ -59,8 +51,9 @@
                   live: match.status === '进行中',
                   upcoming: match.status === '即将开始',
                 }"
-                >{{ match.time }}</text
               >
+                {{ match.time }}
+              </text>
               <text class="vs">未开</text>
               <text class="team-name"></text>
             </view>
@@ -77,10 +70,11 @@
     <bottomBar current-path="/pages/zc/index" />
   </view>
 </template>
-  
-  <script>
+
+<script>
 import moment from "moment";
 import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
+import { matchInfoList } from "./mock.js";
 export default {
   inject: ["useOldManModeStore"],
   components: {
@@ -95,8 +89,7 @@ export default {
       selectedStatus: "赛程",
       statuses: ["即时", "进行中", "赛果", "赛程", "关注"],
 
-      dateList: (() =>
-        new Array(8).fill(null).map((_, i) => moment().add(i, "days")))(),
+      dateList: (() => new Array(8).fill(null).map((_, i) => moment().add(i, "days")))(),
 
       matches: [
         {
@@ -201,8 +194,8 @@ export default {
   },
 };
 </script>
-  
-  <style lang="scss" scoped>
+
+<style lang="scss" scoped>
 .old-man-mode.container {
   .tab-item,
   .status-item {
@@ -223,8 +216,8 @@ export default {
   flex-direction: column;
   height: 100vh;
   background-color: #191919;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica,
-    "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
 
   box-sizing: border-box;
 }

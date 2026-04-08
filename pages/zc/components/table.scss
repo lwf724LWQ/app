@@ -63,8 +63,7 @@
 
 .table-header {
     display: flex;
-    background-color: #2a2a2a;
-    padding: 15rpx 10rpx;
+    align-items: stretch;
     font-weight: bold;
     color: #ffffff;
     font-size: 28rpx;
@@ -73,15 +72,17 @@
   .header-cell {
     flex: 1;
     text-align: center;
-  
+    padding: 15rpx 10rpx;
+    background-color: #2a2a2a;
     font-size: 20rpx;
+
   }
   
   .table-row {
     display: flex;
-    padding: 15rpx 10rpx;
-    border-bottom: 1rpx solid #333333;
-    &:nth-child(2n){
+    align-items: stretch;
+    
+    &:nth-child(2n) .header-cell{
         background-color: #212121;
     }
   }
@@ -91,8 +92,27 @@
     text-align: center;
     font-size: 28rpx;
     color: #fff;
+    
+    padding: 15rpx 10rpx;
+    border-bottom: 1rpx solid #333333;
   
     font-size: 20rpx;
     justify-content: center;
     align-items: center;
   }
+
+  /* 滚动容器 */
+.table-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+.table-scroll-container {
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+}
+
+.matches-table{
+  display: flex;
+  flex-direction: column;
+}

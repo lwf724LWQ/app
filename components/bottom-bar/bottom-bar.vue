@@ -18,6 +18,7 @@
         <image
           v-else
           :src="currentPath === item.path ? item.selectedIcon : item.icon"
+          mode="aspectFit"
           class="tab-icon"
         ></image>
         <text :class="['tab-text', currentPath === item.path ? 'active' : '']">
@@ -63,12 +64,12 @@ export default {
           icon: homeimg,
           selectedIcon: homeselectimg,
         },
-        // {
-        //   text: "体彩",
-        //   path: "/pages/zc/index",
-        //   icon: zc,
-        //   selectedIcon: zcselectimg,
-        // },
+        {
+          text: "体彩",
+          path: "/pages/zc/index",
+          icon: zc,
+          selectedIcon: zcselectimg,
+        },
         {
           text: "视频",
           path: "/pages/video/video",
@@ -123,6 +124,16 @@ export default {
   .tab-text {
     font-size: 30rpx;
   }
+
+  .tab-icon {
+    flex-basis: 70rpx;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 70rpx;
+    height: 70rpx;
+    margin-bottom: 2rpx;
+    display: block;
+  }
 }
 
 .tab-bar-reserved-grid {
@@ -153,12 +164,13 @@ export default {
 }
 
 .tab-icon {
-  width: 48rpx;
-  /* 24px * 2 = 48rpx */
-  height: 48rpx;
-  /* 24px * 2 = 48rpx */
+  flex-basis: 50rpx;
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 50rpx;
+  height: 50rpx;
   margin-bottom: 4rpx;
-  /* 2px * 2 = 4rpx */
+  display: block;
 }
 
 .tab-text {
