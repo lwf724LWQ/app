@@ -12,7 +12,7 @@
     >
       <swiper-item>
         <view class="swiper-item">
-          <image src="/static/banner1.jpg" mode="scaleToFill"></image>
+          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
         </view>
       </swiper-item>
       <swiper-item>
@@ -207,7 +207,7 @@
     </view>
 
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
-    <bottomBar current-path="/pages/index/index" />
+    <!-- <bottomBar current-path="/pages/index/index" /> -->
     <updateAppPupop ref="updateAppPupopRef" />
 
     <ActivityHover src="/static/images/activity-invite.png" @click="share"></ActivityHover>
@@ -803,7 +803,7 @@ export default {
   /* 轮播图样式 */
   .ad-swiper {
     width: 100%;
-    height: 600rpx;
+    height: 300rpx;
   }
 
   .swiper-item {
