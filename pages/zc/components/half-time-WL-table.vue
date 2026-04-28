@@ -9,14 +9,14 @@
     <!-- 比赛数据表格 -->
     <view class="matches-table">
       <view class="table-header">
-        <view class="header-cell">发布时间</view>
+        <view class="header-cell header-time-cell">发布时间</view>
         <view class="header-cell flex-3" v-for="fieldName in listhtwlTag" :key="fieldName">
           {{ fieldName }}
         </view>
       </view>
 
       <view class="table-row" v-for="(match, index) in matches" :key="index">
-        <view class="cell">{{ match.updateTime }}</view>
+        <view class="cell header-time-cell">{{ match.updateTime }}</view>
         <view class="cell flex-3" v-for="fieldName in listHafu" :key="fieldName">
           {{ match[fieldName] }}
           <uni-icons
@@ -135,7 +135,12 @@ export default {
 .detail-container {
   background-color: #121212;
 }
-
+.header-time-cell {
+  flex-basis: 100rpx;
+  width: 100rpx;
+  padding: 15rpx 10rpx;
+  box-sizing: border-box;
+}
 @import url("./table.scss");
 
 .header {

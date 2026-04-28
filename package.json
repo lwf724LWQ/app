@@ -10,6 +10,7 @@
     "nanoid": "^5.1.6",
     "qrcode": "^1.5.4",
     "uview-ui": "^2.0.38",
+    "vconsole": "^3.15.1",
     "weixin-js-sdk": "^1.6.5"
   },
   "devDependencies": {

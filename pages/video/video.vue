@@ -59,7 +59,7 @@
     >
       点我上传精彩回顾
     </view>
-    <bottomBar current-path="/pages/video/video" />
+    <!-- <bottomBar current-path="/pages/video/video" /> -->
 
     <ActivityHover
       :src="

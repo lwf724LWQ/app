@@ -7,7 +7,6 @@
     </view>
 
     <!-- 比赛数据表格 -->
-
     <template v-for="(item, index) in matches">
       <view class="header">
         <text class="title">发布时间：{{ item.updateDate }} {{ item.updateTime }}</text>

@@ -608,3 +608,60 @@ export const offFreeViewCountApi = (videoId) => {
     },
   });
 };
+
+export const getFootBallList = (fdate) => {
+  return request({
+    url: "/web/football/query",
+    method: "GET",
+    data: { fdate },
+  });
+};
+
+export const addFootBallPost = (data) => {
+  return request({
+    url: "/web/fbpost/insert",
+    method: "POST",
+    data: data,
+  });
+};
+
+export const getFootBallNewList = () => {
+  return request({
+    url: "/web/football/select",
+    method: "GET",
+  });
+};
+
+// 获取指定足球比赛详情
+export const getFootBallDetail = (id) => {
+  return request({
+    url: "/web/football/find?matchId=" + id,
+    method: "GET",
+  });
+};
+
+export const getFootBallPostList = (data) => {
+  return request({
+    url: "/web/fbpost/query",
+    method: "POST",
+    data,
+  });
+};
+
+export const CheckFootBallIsPay = (postId, account) => {
+  return request({
+    url: "/web/fbpost/find_pay",
+    method: "GET",
+    data: {
+      fbpostId: postId,
+      account: account,
+    },
+  });
+};
+
+export const getFootBallPostDetail = (fbpostId) => {
+  return request({
+    url: "/web/fbpost/find?fbpostId=" + fbpostId,
+    method: "GET",
+  });
+};

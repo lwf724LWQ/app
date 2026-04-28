@@ -313,7 +313,7 @@
         </view>
       </view>
     </view>
-    <bottomBar current-path="/pages/forum/forum" />
+    <!-- <bottomBar current-path="/pages/forum/forum" /> -->
     <reportPopup ref="reportPopupRef" @reportSubmitted="refreshReportList" />
   </view>
 </template>

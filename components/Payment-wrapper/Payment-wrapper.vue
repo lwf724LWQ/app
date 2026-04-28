@@ -22,8 +22,16 @@
     </view>
     <pay-type-select-popup
       ref="payMethodSelectorRef"
+      :enableIntegralPay="enableIntegralPay"
       @payMethodSelected="confirmPayMethod"
-    ></pay-type-select-popup>
+    >
+      <template v-slot:payMethodSelector-header>
+        <slot name="payMethodSelector-header"></slot>
+      </template>
+      <template v-slot:payMethodSelector-footer>
+        <slot name="payMethodSelector-footer"></slot>
+      </template>
+    </pay-type-select-popup>
   </view>
 </template>
 
@@ -48,6 +56,11 @@ export default {
     },
     amount: {
       type: [String, Number],
+    },
+    enableIntegralPay: {
+      // 是否启用弹出框的积分支付选项
+      type: Boolean,
+      default: false,
     },
     type: {
       // 0：充值 1提现,2打赏，3视频付费
@@ -82,12 +95,13 @@ export default {
         // 积分支付
         this.createOrder(data);
       } else {
-        this.$refs.payMethodSelectorRef.openPayModal();
+        this.$refs.payMethodSelectorRef.openPayModal(data);
       }
     },
     confirmPayMethod(payMethod) {
       console.log("payMethod:", payMethod);
       const payType = {
+        integral: 1,
         "wechat-qr": 0,
         "alipay-app": 3,
         "wechat-app": 4,
@@ -148,6 +162,7 @@ export default {
       try {
         // 调用充值接口
         const response = await apiUserRecharge(rechargeData);
+        console.log("订单创建成功:", response);
         this.payFromOrdreId(response.data, payType);
       } catch (error) {
         const errStr = (error && typeof error.toString === "function" && error.toString()) || "";
@@ -339,6 +354,10 @@ export default {
       const maxCheckCount = 300;
       clearTimeout(this.timer);
 
+      if (this.orderNo === "") {
+        return;
+      }
+
       if (count >= maxCheckCount) {
         uni.showModal({
           title: "检查支付状态异常",
@@ -380,6 +399,7 @@ export default {
         }
         throw new Error();
       } catch (error) {
+        console.log("支付失败", error);
         return false;
       }
     },

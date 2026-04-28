@@ -1,455 +1,195 @@
 <template>
-  <view class="container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-    <view class="StatusBarPlaceholder"></view>
-    <!-- 顶部导航栏 -->
-    <!-- <view class="header">
-      <view class="tabs">
-        <view
-          v-for="(tab, index) in categories"
-          :key="index"
-          class="tab-item"
-          :class="{ 'active-tab': selectedCategory === tab }"
-          @click="selectCategory(tab)"
-        >
-          {{ tab }}
+  <view class="container">
+    <!-- 比赛列表 -->
+    <!-- <scroll-view scroll-y class="match-list" refresher-enabled @refresherrefresh="onRefresh"> -->
+    <scroll-view scroll-y class="match-list">
+      <view class="load-more-history-button" @click="loadMoreHistory">点击加载更多历史</view>
+      <view v-for="(matchDay, index) in matchInfoList" :key="index" class="day-group">
+        <view class="day-header">
+          <text class="day-title">
+            {{ matchDay.weekday }} {{ formatDate(matchDay.businessDate) }}
+          </text>
+          <text class="day-count">{{ matchDay.matchCount }}场</text>
         </view>
-      </view>
-    </view> -->
-
-    <!-- 赛事状态标签 -->
-    <!-- <view class="status-tabs">
-      <view
-        v-for="(status, index) in statuses"
-        :key="index"
-        class="status-item"
-        :class="{ 'active-status': selectedStatus === status }"
-        @click="selectStatus(status)"
-      >
-        {{ status }}
-      </view>
-    </view> -->
-    <view class="date-tabs">
-      <view class="date-item" v-for="date in dateList" :key="date">
-        <view>
-          <view>{{ formatTime(date, "MM:DD") }}</view>
-          <view>{{ formatTime(date, "周d") }}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 赛事列表 -->
-    <scroll-view class="match-list" scroll-y>
-      <view v-for="(match, index) in matches" :key="index" class="match-item" @click="toDetail">
-        <view class="match-content">
-          <view class="match-info">
-            <view class="match-teams">
-              <text
-                class="team-name left-team-name"
-                :class="{
-                  time: match.status === '未开始',
-                  score: match.status === '赛果',
-                  live: match.status === '进行中',
-                  upcoming: match.status === '即将开始',
-                }"
-              >
-                {{ match.time }}
-              </text>
-              <text class="vs">未开</text>
-              <text class="team-name"></text>
-            </view>
-
-            <view class="match-teams">
-              <text class="team-name left-team-name">{{ match.home }}</text>
-              <text class="vs">VS</text>
-              <text class="team-name">{{ match.away }}</text>
-            </view>
-          </view>
-        </view>
+        <MatchCard v-for="match in matchDay.subMatchList" :key="match.matchId" :match="match" />
       </view>
     </scroll-view>
-    <bottomBar current-path="/pages/zc/index" />
   </view>
 </template>
 
-<script>
-import moment from "moment";
-import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
-import { matchInfoList } from "./mock.js";
-export default {
-  inject: ["useOldManModeStore"],
-  components: {
-    bottomBar,
-  },
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import MatchCard from "./components/MatchCard.vue";
+import type { Match, MatchInfoList, SubMatchList, PoolStatus } from "./types";
+import dayjs from "dayjs";
+// import mock from "./mock.js";
+import { getFootBallList, getFootBallNewList } from "@/api/apis";
 
-  data() {
-    return {
-      selectedCategory: "足球",
-      categories: ["热门", "足球", "篮球"],
+const matchInfoList = ref<MatchInfoList[]>([]);
 
-      selectedStatus: "赛程",
-      statuses: ["即时", "进行中", "赛果", "赛程", "关注"],
-
-      dateList: (() => new Array(8).fill(null).map((_, i) => moment().add(i, "days")))(),
-
-      matches: [
-        {
-          type: "日职联",
-          home: "阪南大学",
-          away: "熊本深海大学",
-          score: "1:0",
-          time: "11:00",
-          status: "赛果",
-          isFavorite: false,
-        },
-        {
-          type: "日大学",
-          home: "大阪大学体育",
-          away: "高松大学",
-          score: "0:0",
-          time: "74:45",
-          status: "进行中",
-          isFavorite: false,
-        },
-        {
-          type: "澳女联",
-          home: "纽卡斯尔喷气机",
-          away: "布里斯本狮吼女足",
-          score: "0:0",
-          time: "11:00",
-          status: "即将开始",
-          isFavorite: false,
-        },
-        {
-          type: "日职乙",
-          home: "千叶市原",
-          away: "德岛漩涡",
-          score: "VS",
-          time: "12:05",
-          status: "未开始",
-          isFavorite: false,
-        },
-        {
-          type: "中女甲",
-          home: "阳信汇竞女足",
-          away: "台中樱花女足",
-          score: "VS",
-          time: "15:00",
-          status: "未开始",
-          isFavorite: false,
-        },
-        {
-          type: "中女甲",
-          home: "新北航源女足",
-          away: "女武神女足",
-          score: "VS",
-          time: "15:00",
-          status: "未开始",
-          isFavorite: false,
-        },
-        {
-          type: "日女乙",
-          home: "墨尔联运动会",
-          away: "奥克兰城",
-          score: "VS",
-          time: "15:30",
-          status: "未开始",
-          isFavorite: false,
-        },
-        {
-          type: "日女乙",
-          home: "筑波大学",
-          away: "帝台大学",
-          score: "VS",
-          time: "15:30",
-          status: "未开始",
-          isFavorite: false,
-        },
-        {
-          type: "日女乙",
-          home: "关西学院大学",
-          away: "仙台大学",
-          score: "VS",
-          time: "15:30",
-          status: "未开始",
-          isFavorite: false,
-        },
-      ],
-    };
-  },
-  methods: {
-    formatTime(time, formatStr) {
-      return moment(time).format(formatStr);
-    },
-    selectCategory(tab) {
-      this.selectedCategory = tab;
-    },
-    selectStatus(status) {
-      this.selectedStatus = status;
-    },
-    toDetail() {
-      uni.navigateTo({
-        url: "/pages/zc/detail",
-      });
-    },
-  },
+// 方法
+const formatDate = (date: Date | string) => {
+  const d = new Date(date);
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
 };
+
+const getMatchData = async (fdateStr: string) => {
+  try {
+    uni.showLoading({ title: "加载中..." });
+    const res = await getFootBallList(fdateStr);
+    const newArr = [
+      ...matchInfoList.value,
+      {
+        businessDate: fdateStr,
+        weekday: dayjs(fdateStr).format("dddd"),
+        matchCount: res.data.length,
+        subMatchList: res.data,
+      },
+    ];
+
+    matchInfoList.value = newArr.sort(
+      (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
+    );
+  } catch (error) {
+    console.error("获取比赛数据失败:", error);
+    uni.showToast({ title: "获取比赛数据失败", icon: "none" });
+  }
+  uni.hideLoading();
+};
+
+const getMatchDataNew = async () => {
+  try {
+    uni.showLoading({ title: "加载中..." });
+    console.log(0)
+	const res = await getFootBallNewList();
+    const newArr = [];
+	console.log(1)
+    res.data.forEach((match: SubMatchList) => {
+      const mL = newArr.find((item) => item.businessDate === match.fdate);
+      if (mL) {
+        mL.subMatchList.push(match);
+        mL.matchCount++;
+        return;
+      } else {
+        newArr.push({
+          businessDate: match.fdate,
+          weekday: dayjs(match.fdate).format("dddd"),
+          matchCount: 1,
+          subMatchList: [match],
+        });
+      }
+    });
+	console.log(2)
+    matchInfoList.value = newArr.sort(
+      (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
+    );
+console.log(3)
+    if (newArr.length === 0) {
+      getMatchData(dayjs().add(-1, "day").format("YYYY-MM-DD"));
+    }
+  } catch (error) {
+    console.error("获取比赛数据失败:", error);
+    uni.showToast({ title: "获取比赛数据失败", icon: "none" });
+  }
+  uni.hideLoading();
+};
+
+getMatchDataNew();
+
+const loadMoreLock = ref(false);
+function loadMoreHistory() {
+  if (loadMoreLock.value) return;
+  loadMoreLock.value = true;
+  const fdateStr = dayjs(matchInfoList.value[0].businessDate).add(-1, "day").format("YYYY-MM-DD");
+  getMatchData(fdateStr).finally(() => {
+    loadMoreLock.value = false;
+  });
+}
 </script>
 
-<style lang="scss" scoped>
-.old-man-mode.container {
-  .tab-item,
-  .status-item {
-    font-size: 38rpx;
-  }
-  .date-item {
-    font-size: 32rpx;
-    font-weight: bold;
-    color: #ccc;
-  }
-  .match-content,
-  .match-teams {
-    font-size: 35rpx;
-  }
+<style>
+page {
+  background-color: #f5f5f5;
 }
+
 .container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #191919;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC",
-    "Microsoft YaHei", sans-serif;
-
-  box-sizing: border-box;
-}
-.StatusBarPlaceholder {
-  min-height: var(--status-bar-height);
-  width: 100%;
-  background: #fff;
-}
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100rpx;
-  padding: 0 20rpx;
-  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.05);
+  padding-top: var(--status-bar-height);
+  min-height: 100vh;
 }
 
-.search-icon {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tabs {
-  display: flex;
-  justify-content: center;
-  margin: 0 30rpx;
-
-  border: 1px solid #888;
-  border-radius: 15rpx;
-}
-
-.tab-item {
-  box-sizing: border-box;
-  padding: 0 34rpx;
-  height: 50rpx;
-  line-height: 50rpx;
-  color: #fff;
-  font-size: 26rpx;
-
-  border-right: 1px solid #888;
-  &:last-child {
-    border-right: none;
-  }
-}
-
-.active-tab {
-  color: #fff;
-  background-color: #007adc;
-  font-weight: bold;
-  position: relative;
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40rpx;
-    height: 6rpx;
-    background-color: #007aff;
-    border-radius: 2rpx;
-  }
-  &::before {
-    content: "";
-    position: absolute;
-    right: -1rpx;
-    top: 0;
-    width: 8rpx;
-    height: 100%;
-    background-color: #007aff;
-    border-radius: 2rpx;
-  }
-}
-
-.notification-icon {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-tabs {
-  display: flex;
-  min-height: 60rpx;
-  margin-top: 20rpx;
-
-  border-bottom: 1px solid #888;
-}
-
-.status-item {
-  padding: 0 25rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  font-size: 28rpx;
-  color: #fff;
-  white-space: nowrap;
-  flex: 1;
+.page-header {
+  background-color: #fff;
+  padding: 30rpx;
   text-align: center;
+  border-bottom: 1rpx solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.active-status {
-  font-weight: bold;
-  position: relative;
-}
-
-.active-status::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 6rpx;
-  background-color: #007aff;
-  border-radius: 2rpx;
-}
-
-.date-tabs {
+.date-info {
   display: flex;
-  min-height: 60rpx;
-  color: #888;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.weekday {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.date {
+  font-size: 32rpx;
+  color: #333;
+}
+
+.count {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.sub-date {
   font-size: 24rpx;
-  padding: 10rpx 0;
-  .date-item {
-    flex: 1;
-    text-align: center;
-  }
+  color: #999;
 }
 
 .match-list {
-  flex: 1;
   padding: 20rpx 0;
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
-.match-item {
-  border-radius: 12rpx;
-  overflow: hidden;
+.day-group {
+  margin-bottom: 30rpx;
 }
 
-.match-type {
-  padding: 15rpx 20rpx;
-  font-size: 24rpx;
-  color: #666;
-}
-
-.match-content {
+.day-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.day-title {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.day-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.load-more-history-button {
+  display: flex;
+  justify-content: center;
   align-items: center;
   padding: 20rpx;
-}
-
-.match-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.match-teams {
-  display: flex;
-  align-items: center;
   font-size: 28rpx;
-  margin-bottom: 10rpx;
-}
-
-.team-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #fff;
-}
-
-.left-team-name {
-  text-align: right;
-}
-
-.vs {
-  margin: 0 15rpx;
-  color: #999;
-  font-weight: bold;
-}
-
-.match-time-score {
-  display: flex;
-  align-items: center;
-  font-size: 26rpx;
-}
-.match-time {
-  text-align: right;
-}
-.time {
-  color: #666;
-}
-
-.score {
-  color: #333;
-  font-weight: bold;
-}
-
-.live {
-  color: #ff4d4f;
-  font-weight: bold;
-}
-
-.upcoming {
-  color: #1890ff;
-  font-weight: bold;
-}
-
-.score-text {
-  margin-left: 20rpx;
-  font-weight: bold;
-}
-
-.upcoming-tag {
-  display: inline-block;
-  background-color: #1890ff;
-  font-size: 22rpx;
-  padding: 2rpx 10rpx;
-  border-radius: 4rpx;
-  margin-top: 10rpx;
-}
-
-.favorite-icon {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #310bd7;
 }
 </style>

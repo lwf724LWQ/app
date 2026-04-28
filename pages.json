@@ -390,6 +390,20 @@
         "navigationBarTitleText": "精彩回顾详情",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/zc/creaet-prognosis-post",
+      "style": {
+        "navigationBarTitleText": "创建预测",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/zc/prognosis-detail",
+      "style": {
+        "navigationBarTitleText": "预测详情",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {
@@ -401,29 +415,62 @@
     "bounce": "none"
   },
   "tabBar": {
-    "color": "#9799a5",
-    "selectedColor": "#28B389",
-    "height": "0px",
+    "color": "#000000",
+    "selectedColor": "#f70000",
+    "height": "60px",
+	"iconWidth": "28px",
+	"fontSize": "15px",
+	"iconfontSrc": "/static/iconfont/uniicons.ttf",
     "list": [
       {
         "text": "推荐",
-        "pagePath": "pages/index/index"
-      },
-      {
-        "text": "体彩",
-        "pagePath": "pages/zc/index"
+        "pagePath": "pages/index/index",
+		"iconfont": {
+		          "text": "\ue662",
+		          "selectedText": "\ue662",
+		          "fontSize": "28px",
+		          "color": "#666666",
+		          "selectedColor": "#f70000"
+		        }
       },
       {
         "text": "视频",
-        "pagePath": "pages/video/video"
+        "pagePath": "pages/video/video",
+		"iconfont": {
+		          "text": "\ue68c",
+		          "selectedText": "\ue68c",
+		          "fontSize": "28px",
+		          "color": "#666666",
+		          "selectedColor": "#f70000"
+		        }
       },
+	  // {
+	  //   "text": "体彩",
+	  //   "pagePath": "pages/zc/index",
+	  //   "iconPath":"/static/image/zc.png",
+	  //   "selectedIconPath":"/static/image/zc-h.png"
+	  // },
       {
         "text": "彩友圈",
-        "pagePath": "pages/forum/forum"
+        "pagePath": "pages/forum/forum",
+		"iconfont": {
+		          "text": "\ue682",
+		          "selectedText": "\ue682",
+		          "fontSize": "28px",
+		          "color": "#666666",
+		          "selectedColor": "#f70000"
+		        }
       },
       {
         "text": "我的",
-        "pagePath": "pages/user/user"
+        "pagePath": "pages/user/user",
+		"iconfont": {
+		          "text": "\ue699",
+		          "selectedText": "\ue699",
+		          "fontSize": "28px",
+		          "color": "#666666",
+		          "selectedColor": "#f70000"
+		        }
       }
     ]
   },

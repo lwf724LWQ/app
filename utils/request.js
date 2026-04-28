@@ -109,8 +109,7 @@ function handleServerError(res) {
 // 判断是否未登录
 const notLoginPages = ["pages/login/login"]; // 白名单
 function loginGuard(res) {
-  if (res.msg && ["Token验证失败", "Token已过期",
-    "无效的签名"].includes(res.msg)) {
+  if (res.msg && ["Token验证失败", "Token已过期", "无效的签名"].includes(res.msg)) {
     const pages = getCurrentPages();
     if (notLoginPages.includes(pages[pages.length - 1].route)) {
       return false;
@@ -141,7 +140,7 @@ function loginGuard(res) {
             account: account,
             agent: loginData.agent || 0,
           };
-          setToken(loginRes.data.token)
+          setToken(loginRes.data.token);
           userStore.updateUserInfo(userInfo, loginRes.data.token);
           uni.showToast({
             title: "重新登录成功，请重新操作",

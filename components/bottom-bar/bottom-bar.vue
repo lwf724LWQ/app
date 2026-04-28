@@ -105,7 +105,7 @@ export default {
     },
   },
   created() {
-    uni.hideTabBar();
+    // uni.hideTabBar();
   },
 };
 </script>

@@ -192,7 +192,7 @@
       <view>广州梓梅网络科技有限公司 版权所有</view>
     </view>
     <chengPassword ref="chengPasswordRef" />
-    <bottomBar current-path="/pages/user/user" />
+    <!-- <bottomBar current-path="/pages/user/user" /> -->
     <updateAppPupop ref="updateAppPupopRef" />
   </view>
 </template>

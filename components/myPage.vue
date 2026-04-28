@@ -1,6 +1,6 @@
 <template>
   <view class="container-eqwejoj12123fsf">
-    <top-navigation-bar :title="pageTitle" />
+    <top-navigation-bar :title="pageTitle" v-if="pageTitle" />
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <slot></slot>
     </scroll-view>

@@ -3,6 +3,7 @@
     <!-- 支付方式选择弹窗 -->
     <uni-popup ref="payPopup" type="bottom">
       <view class="pay-modal">
+        <slot name="payMethodSelector-header"></slot>
         <view class="modal-header">
           <text class="modal-title">选择支付方式</text>
           <text class="close-icon" @click="closePayModal">×</text>
@@ -10,6 +11,14 @@
 
         <view class="pay-options">
           <radio-group @change="selectPayMethod">
+            <!-- 金币支付 -->
+            <label class="pay-option" value="integral" v-if="isShowIntegral">
+              <view class="option-icon integral-icon">
+                <uni-icons type="wallet" size="24" color="#eee"></uni-icons>
+              </view>
+              <text class="option-text">金币支付(余额：{{ balance }} 金币)</text>
+              <radio :checked="selectedMethod === 'integral'" value="integral" color="#00aa00" />
+            </label>
             <!-- H5 平台 -->
 
             <label class="pay-option" value="wechat-qr">
@@ -49,14 +58,23 @@
         </view>
 
         <view class="confirm-btn" @click="confirmPayMethod">确认支付</view>
+        <slot name="payMethodSelector-footer"></slot>
       </view>
     </uni-popup>
   </view>
 </template>
 
 <script>
+import { apiGetUserBalance } from "@/api/apis.js";
+import { getAccount } from "@/utils/request";
 export default {
   name: "PayMethodSelector",
+  props: {
+    enableIntegralPay: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     // 获取当前平台
     let platform = "h5";
@@ -66,16 +84,53 @@ export default {
     selectedMethod = "wechat-app";
     // #endif
     return {
+      defPayMethod: selectedMethod,
+
       platform: platform,
       selectedMethod: selectedMethod,
       amount: 0,
       orderId: "",
       haveAlipay: false,
+
+      isShowIntegral: false,
+
+      // 余额
+      balance: 0,
     };
   },
   methods: {
-    openPayModal() {
-      this.$refs.payPopup.open();
+    async checkIntegralPay() {
+      this.isShowIntegral = false;
+
+      // 获取是否有积分支付，并判断是否有积分，如果有则设置为首选支付方式
+      if (this.enableIntegralPay) {
+        uni.showLoading({ title: "加载中" });
+        try {
+          const res = await apiGetUserBalance({
+            account: getAccount(),
+          });
+          this.balance = res.data.gold;
+          if (res.data.gold >= this.amount) {
+            this.isShowIntegral = true;
+            this.selectedMethod = "integral";
+          }
+        } catch (error) {
+          uni.showToast({
+            title: error.mes || "获取用户余额失败",
+            icon: "none",
+          });
+        }
+        uni.hideLoading();
+      }
+    },
+
+    openPayModal(orderData) {
+      this.amount = orderData?.amount;
+      this.selectedMethod = this.defPayMethod;
+
+      this.checkIntegralPay().finally(() => {
+        this.$refs.payPopup.open();
+      });
     },
 
     closePayModal() {
@@ -105,7 +160,6 @@ export default {
     uni.getProvider({
       service: "payment",
       success: function (res) {
-        console.log(res);
         self.haveAlipay = res.provider.includes("alipay");
       },
     });
@@ -170,6 +224,15 @@ export default {
         &.wechat-app-icon {
           //   background-color: #2dcd5d;
           background-image: url("~@/static/wechat-icon.ico"); /* 需要替换为实际图标路径 */
+        }
+
+        &.integral-icon {
+          background-color: #333;
+          text-align: center;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       }
 

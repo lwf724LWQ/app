@@ -9,7 +9,7 @@
     <!-- 比赛数据表格 -->
     <view class="matches-table">
       <view class="table-header">
-        <view class="header-cell">发布时间</view>
+        <view class="header-cell header-time-cell">发布时间</view>
         <view class="header-cell flex-3">0</view>
         <view class="header-cell flex-3">1</view>
         <view class="header-cell flex-3">2</view>
@@ -21,7 +21,7 @@
       </view>
 
       <view class="table-row" v-for="(match, index) in matches" :key="index">
-        <view class="cell">{{ match.updateTime }}</view>
+        <view class="cell header-time-cell">{{ match.updateTime }}</view>
         <view class="cell flex-3" v-for="fieldName in listTtg" :key="fieldName">
           {{ match[fieldName] }}
           <uni-icons
@@ -155,6 +155,10 @@ export default {
 <style scoped lang="scss">
 .detail-container {
   background-color: #121212;
+}
+.header-time-cell {
+  flex-basis: 100rpx;
+  width: 100rpx;
 }
 
 @import url("./table.scss");
