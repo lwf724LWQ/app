@@ -16,7 +16,7 @@
           <text class="total" v-if="total">({{ total }})</text>
         </view>
       </view>
-      <PrognosisCard v-for="item in list" :data="item" @openDetail="openDetail" />
+      <PrognosisCard v-for="item in list" :data="item" :badgeData="getUserBadgeData(item.account)" @openDetail="openDetail" />
       <view class="no-more" v-if="isNoMore">没有更多了</view>
     </view>
   </scroll-view>
@@ -57,9 +57,13 @@ export default {
       list: [],
       isNoMore: false,
       total: 0,
+      UserBadgeAccuracyMap: {},
     };
   },
   methods: {
+    getUserBadgeData(account) {
+      return this.UserBadgeAccuracyMap[account] || [];
+    },
     async openDetail(data) {
       console.log(data);
 
@@ -105,6 +109,8 @@ export default {
         limit: 20,
         matchId: this.matchId,
       });
+
+      this.UserBadgeAccuracyMap = { ...this.UserBadgeAccuracyMap, ...res.data.result };
       this.list = [...this.list, ...res.data.list];
       this.isNoMore = res.data.list.length < 20;
       this.total = res.data.total;
@@ -120,16 +126,23 @@ export default {
       }
       this.isLoading = true;
       this.currentPage = 1;
+      try {
+        const res = await getFootBallPostList({
+          page: this.currentPage,
+          limit: 20,
+          matchId: this.matchId,
+        });
+        console.log(res);
 
-      const res = await getFootBallPostList({
-        page: this.currentPage,
-        limit: 20,
-        matchId: this.matchId,
-      });
-      console.log(res);
-      this.list = res.data.list;
-      this.isNoMore = res.data.list.length < 20;
-      this.total = res.data.total;
+        this.UserBadgeAccuracyMap = res.data.result || {};
+        this.list = res.data.list;
+        this.isNoMore = res.data.list.length < 20;
+        this.total = res.data.total;
+      } catch (e) {
+        uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });
+        console.log(e);
+      }
+
       setTimeout(() => {
         this.isLoading = false;
       }, 200);
@@ -139,7 +152,7 @@ export default {
         uni.navigateTo({
           url: `/pages/zc/prognosis-detail?id=${this.payMethodSelectorHeader.id}`,
         });
-      }else{
+      } else {
         uni.showModal({
           title: "支付失败",
           content: "请检查网络或稍后再试",
@@ -203,6 +216,8 @@ export default {
     letter-spacing: 2rpx;
     position: relative;
     z-index: 1;
+	font-weight: bold;
+	font-size: 42rpx;
   }
 
   .title-decoration {

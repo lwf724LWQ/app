@@ -12,7 +12,6 @@
           </view>
         </view>
         <!-- 卡片：详细数据网格 -->
-
         <view class="card stats-card">
           <view class="section-title">预测数据</view>
           <ScratchCard v-if="parsedResult">
@@ -25,6 +24,12 @@
               >
                 <text class="stat-label">胜平负</text>
                 <text class="stat-value">{{ parsedResult.winDrawLosecurrent }}</text>
+                <text
+                  class="stat-true-value"
+                  v-if="footBallDetail.mresult && parsedResult.winDrawLosecurrent1 !== 'true'"
+                >
+                  结果: {{ footBallDetail.mresult.winDrawLosecurrent || "--" }}
+                </text>
                 <view v-if="parsedResult.winDrawLosecurrent1 === 'true'" class="stat-hit">
                   命中
                 </view>
@@ -36,6 +41,14 @@
               >
                 <text class="stat-label">让球胜平负</text>
                 <text class="stat-value">{{ parsedResult.winDrawLosecurrentHandicap }}</text>
+                <text
+                  class="stat-true-value"
+                  v-if="
+                    footBallDetail.mresult && parsedResult.winDrawLosecurrentHandicap1 !== 'true'
+                  "
+                >
+                  结果: {{ footBallDetail.mresult.winDrawLosecurrentHandicap || "--" }}
+                </text>
                 <view v-if="parsedResult.winDrawLosecurrentHandicap1 === 'true'" class="stat-hit">
                   命中
                 </view>
@@ -47,6 +60,12 @@
               >
                 <text class="stat-label">半全场</text>
                 <text class="stat-value">{{ parsedResult.halfTimecurrent }}</text>
+                <text
+                  class="stat-true-value"
+                  v-if="footBallDetail.mresult && parsedResult.halfTimecurrent1 !== 'true'"
+                >
+                  结果: {{ footBallDetail.mresult.halfTimecurrent || "--" }}
+                </text>
                 <view v-if="parsedResult.halfTimecurrent1 === 'true'" class="stat-hit">命中</view>
               </view>
               <view
@@ -56,6 +75,12 @@
               >
                 <text class="stat-label">总进球</text>
                 <text class="stat-value">{{ parsedResult.totalGoalscurrent }}</text>
+                <text
+                  class="stat-true-value"
+                  v-if="footBallDetail.mresult && parsedResult.totalGoalscurrent1 !== 'true'"
+                >
+                  结果: {{ footBallDetail.mresult.totalGoalscurrent || "--" }}
+                </text>
                 <view v-if="parsedResult.totalGoalscurrent1 === 'true'" class="stat-hit">命中</view>
               </view>
               <view
@@ -65,6 +90,12 @@
               >
                 <text class="stat-label">比分</text>
                 <text class="stat-value">{{ parsedResult.scorecurrent }}</text>
+                <text
+                  class="stat-true-value"
+                  v-if="footBallDetail.mresult && parsedResult.scorecurrent1 !== 'true'"
+                >
+                  结果: {{ footBallDetail.mresult.scorecurrent || "--" }}
+                </text>
                 <view v-if="parsedResult.scorecurrent1 === 'true'" class="stat-hit">命中</view>
               </view>
             </view>
@@ -128,7 +159,7 @@
 import ScratchCard from "@/components/ScratchCard.vue";
 import myPage from "@/components/myPage.vue";
 import tool from "@/utils/tool.js";
-import { getFootBallPostDetail } from "@/api/apis.js";
+import { getFootBallPostDetail, getFootBallDetail } from "@/api/apis.js";
 export default {
   components: { ScratchCard, myPage },
   data() {
@@ -143,6 +174,7 @@ export default {
           himg: "dadfjwqehr213h4921.jpg",
         },
       ],
+      footBallDetail: {},
       commitForm: {
         content: "",
       },
@@ -199,6 +231,14 @@ export default {
     getFootBallPostDetail(options.id)
       .then((res) => {
         this.prognosisData = res.data;
+        return getFootBallDetail(this.prognosisData.matchId).then((res) => {
+          try {
+            res.data.mresult = JSON.parse(res.data.mresult);
+          } catch (e) {
+            res.data.mresult = false;
+          }
+          this.footBallDetail = res.data;
+        });
       })
       .finally(() => {
         uni.hideLoading();
@@ -331,6 +371,7 @@ $highlight-text: #3700ff;
       flex-direction: row;
       align-items: center;
       position: relative;
+
       &.highlight {
         background: $highlight-bg;
         .stat-value {
@@ -363,6 +404,12 @@ $highlight-text: #3700ff;
         font-size: 40rpx;
         font-weight: bold;
         color: $text-main;
+        flex-basis: 160rpx;
+      }
+      .stat-true-value {
+        font-size: 32rpx;
+        font-weight: bold;
+        color: $text-sub;
       }
     }
   }

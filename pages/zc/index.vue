@@ -22,6 +22,7 @@ import { ref, computed } from "vue";
 import MatchCard from "./components/MatchCard.vue";
 import type { Match, MatchInfoList, SubMatchList, PoolStatus } from "./types";
 import dayjs from "dayjs";
+import { onShow } from "@dcloudio/uni-app";
 // import mock from "./mock.js";
 import { getFootBallList, getFootBallNewList } from "@/api/apis";
 
@@ -60,12 +61,13 @@ const getMatchData = async (fdateStr: string) => {
 const getMatchDataNew = async () => {
   try {
     uni.showLoading({ title: "加载中..." });
-    console.log(0)
-	const res = await getFootBallNewList();
+    console.log(0);
+    const res = await getFootBallNewList();
     const newArr = [];
-	console.log(1)
+    console.log(1);
     res.data.forEach((match: SubMatchList) => {
       const mL = newArr.find((item) => item.businessDate === match.fdate);
+      match.isNew = true;
       if (mL) {
         mL.subMatchList.push(match);
         mL.matchCount++;
@@ -79,11 +81,11 @@ const getMatchDataNew = async () => {
         });
       }
     });
-	console.log(2)
+    console.log(2);
     matchInfoList.value = newArr.sort(
       (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
     );
-console.log(3)
+    console.log(3);
     if (newArr.length === 0) {
       getMatchData(dayjs().add(-1, "day").format("YYYY-MM-DD"));
     }
@@ -94,8 +96,6 @@ console.log(3)
   uni.hideLoading();
 };
 
-getMatchDataNew();
-
 const loadMoreLock = ref(false);
 function loadMoreHistory() {
   if (loadMoreLock.value) return;
@@ -105,6 +105,13 @@ function loadMoreHistory() {
     loadMoreLock.value = false;
   });
 }
+
+onShow(() => {
+  if (matchInfoList.value.length === 0 || uni.getStorageSync("dontRefresh") === false) {
+    uni.setStorageSync("dontRefresh", false);
+    getMatchDataNew();
+  }
+});
 </script>
 
 <style>

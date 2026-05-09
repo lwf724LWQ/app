@@ -38,7 +38,9 @@
           <uni-icons type="down" size="20"></uni-icons>
         </view>
 
-        <text v-if="isBozhu && !result" class="go-predict" @click.stop="toPredict">去预测本场</text>
+        <text v-if="isBozhu && !result && match.isNew" class="go-predict" @click.stop="toPredict">
+          去预测本场
+        </text>
       </view>
     </view>
     <view class="match-score" v-if="result" :class="{ expanded: isExpanded }">
@@ -154,7 +156,6 @@ const leagueColor = computed(() => {
 });
 
 const userStore = useUserStore();
-console.log(userStore.userInfo);
 const isBozhu = computed(() => {
   return userStore.userInfo.agent;
 });
@@ -190,12 +191,14 @@ function toDetail() {
     });
     return;
   }
+  uni.setStorageSync("dontRefresh", true);
   uni.navigateTo({
     url: "/pages/zc/detail?id=" + props.match.matchId,
   });
 }
 
 function toPredict() {
+  uni.setStorageSync("dontRefresh", true);
   uni.navigateTo({
     url: "/pages/zc/creaet-prognosis-post?matchId=" + props.match.matchId,
   });
@@ -218,7 +221,7 @@ function toPredict() {
 }
 
 .match-type {
-  font-size: 28rpx;
+  font-size: 34rpx;
   position: absolute;
   left: 10rpx;
   padding: 8rpx 12rpx;
@@ -265,6 +268,8 @@ function toPredict() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 38rpx;
+  font-weight: bold;
 }
 
 .go-predict {
@@ -299,6 +304,7 @@ function toPredict() {
 }
 .match-time {
   text-align: center;
+  font-size: 36rpx;
 }
 .time {
 }

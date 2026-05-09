@@ -15,9 +15,9 @@
       </view>
 
       <!-- 准确率徽章 -->
-      <view class="accuracy-badge">
-        <view class="accuracy-value">100%</view>
-        <view class="accuracy-text">近10场准确率</view>
+      <view class="accuracy-badge" v-if="badgeData.length >= 4">
+        <view class="accuracy-value">{{ rate }}%</view>
+        <view class="accuracy-text">近{{ badgeData.length }}场准确率</view>
         <view class="accuracy-icon">🔥</view>
       </view>
     </view>
@@ -25,6 +25,17 @@
     <!-- 预测内容 -->
     <view class="prognosis-content">
       <view class="content-text">{{ data.title }}</view>
+    </view>
+    <!-- 近十场表现 -->
+    <view class="prognosis-badge-detail" v-if="badgeData.length >= 4">
+      <view
+        class="badge-item"
+        v-for="(item, index) in badgeData"
+        :key="index"
+        :class="{ 'badge-item-win': item }"
+      >
+        {{ item ? "L" : "W" }}
+      </view>
     </view>
 
     <!-- 底部信息 -->
@@ -53,6 +64,28 @@ export default {
       default: () => {
         return {};
       },
+    },
+    badgeData: {
+      type: Array,
+      default: () => {
+        return [];
+      },
+    },
+  },
+  data() {
+    return {
+    };
+  },
+  computed: {
+    rate() {
+      if (this.badgeData instanceof Array) {
+        return (
+          (this.badgeData.filter((item) => item).length / this.badgeData.length) *
+          100
+        ).toFixed(0);
+      } else {
+        return 0;
+      }
     },
   },
   methods: {
@@ -191,16 +224,39 @@ export default {
   }
 
   .prognosis-content {
-    margin-bottom: 24rpx;
     padding: 20rpx;
     background: #f8f9fa;
     border-radius: 12rpx;
     border-left: 4rpx solid #ff6b6b;
+    margin-bottom: 24rpx;
 
     .content-text {
       font-size: 30rpx;
       color: #333;
       line-height: 1.6;
+    }
+  }
+
+  .prognosis-badge-detail {
+    display: flex;
+    flex-direction: row;
+    gap: 8rpx;
+    padding: 0 12rpx;
+    margin-bottom: 24rpx;
+    .badge-item {
+      width: 38rpx;
+      height: 38rpx;
+      background: #cfcfcf;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20rpx;
+      color: #333;
+      &.badge-item-win {
+        color: #fff;
+        background: #ff6b6b;
+      }
     }
   }
 

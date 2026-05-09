@@ -116,7 +116,7 @@ export default {
 
     .home-name,
     .away-name {
-      font-size: 32rpx;
+      font-size: 36rpx;
       font-weight: 600;
       color: #333;
       max-width: 200rpx;
@@ -175,7 +175,7 @@ export default {
     }
 
     .team-name {
-      font-size: 34rpx;
+      font-size: 40rpx;
       font-weight: 700;
       color: #333;
       margin-bottom: 8rpx;
@@ -230,8 +230,8 @@ export default {
     }
 
     .league-name {
-      font-size: 26rpx;
-      color: #555;
+      font-size: 36rpx;
+      color: #000000;
       font-weight: 600;
       margin-bottom: 6rpx;
       background: rgba(255, 255, 255, 0.5);
@@ -240,8 +240,9 @@ export default {
     }
 
     .match-time {
-      font-size: 22rpx;
-      color: #999;
+      font-size: 30rpx;
+      color: #000000;
+	  font-weight: bold;
       font-family: monospace; /* 时间用等宽字体更像数字时钟 */
     }
   }

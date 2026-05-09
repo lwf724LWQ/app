@@ -4,7 +4,7 @@
     <view
       :id="`scratchWrapper${id}`"
       class="scratch-wrapper"
-      :class="{ 'animate-open': isOpen, 'animate-close': !isOpen }"
+      :class="{ 'animate-open': isOpen, 'animate-close': !isOpen, isScratched: !isScratched }"
       :prop="{ isOpen, isNeedScratch, id }"
       :change:prop="scratch.initScratchCard"
     >
@@ -97,14 +97,17 @@ export default {
 <script module="scratch" lang="renderjs">
 export default {
   data() {
-    return {};
+    return {
+      isInit: false
+    };
   },
   methods: {
 initScratchCard(newVal,oldVal) {
 
-    if(!newVal.isOpen || newVal.isNeedScratch === false){
+    if(!newVal.isOpen || newVal.isNeedScratch === false || this.isInit){
       return
     }
+    this.isInit = true
     this.$ownerInstance.callMethod("onScratchProgress", 0)
     const self = this
     const scratchColor = "#cccccc";
@@ -339,6 +342,10 @@ function drawLayer() {
   //   transform: scale(0.5) rotateY(90deg);
   //   pointer-events: none;
   // }
+
+  &.isScratched .scratch-content{
+    overflow: hidden;
+  }
 }
 
 .scratch-content {
@@ -397,8 +404,8 @@ function drawLayer() {
     margin-bottom: 10rpx;
   }
   .scratch-tutorial-icon {
-    width: 100rpx;
-    height: 100rpx;
+    min-width: 100rpx;
+    min-height: 100rpx;
     background: url("/static/image/fingers.png") no-repeat center center;
     background-size: contain;
     animation: moveLeftRight 1s ease-in-out infinite alternate;

@@ -76,7 +76,7 @@
           </view>
         </view>
         <!-- 让球胜平负 -->
-        <view class="form-card">
+        <view class="form-card" v-if="matchInfo.goalLine">
           <view class="form-item">
             <view class="form-label">
               <view class="label-icon"></view>
@@ -218,7 +218,7 @@ import SelectBlock from "./components/select-block.vue";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
 import { addFootBallPost } from "@/api/apis.js";
 import NumberInput from "@/components/number-input.vue";
-import { getFootBallNewList } from "@/api/apis.js";
+import { getFootBallNewList, getFootBallDetail } from "@/api/apis.js";
 import dayjs from "dayjs";
 import { onLoad } from "@dcloudio/uni-app";
 
@@ -350,29 +350,42 @@ async function submitPrognosis() {
   const resultForm = {
     expertAnalysis: form.expertAnalysis,
   };
-
+  let count = 0;
   // 只提交启用的预测
   if (form.enableWinDrawLose) {
     resultForm.winDrawLosecurrent = form.winDrawLoseCurrent;
+    count++;
     // resultForm.winDrawLoseCurrent_res = "胜负平预测结果";
   }
-  if (form.enableWinDrawLose_handicap) {
+  if (form.enableWinDrawLose_handicap && matchInfo.value.goalLine) {
     resultForm.winDrawLosecurrentHandicap = `(${matchInfo.value.goalLine.substr(0, 2)})${
       form.winDrawLoseCurrent_handicap
     }`;
+    count++;
     // resultForm.winDrawLoseCurrent_handicap_res = "让球胜负平预测结果";
   }
   if (form.enableHalfTime) {
     resultForm.halfTimecurrent = form.halfTimeCurrent;
+    count++;
     // resultForm.halfTimeCurrent_res = "半全场预测结果";
   }
   if (form.enableTotalGoals) {
     resultForm.totalGoalscurrent = form.totalGoalsCurrent;
+    count++;
     // resultForm.totalGoalsCurrent_res = "总分预测结果";
   }
   if (form.enableScore) {
     resultForm.scorecurrent = form.scoreCurrent;
+    count++;
     // resultForm.scoreCurrent_res = "比分预测结果";
+  }
+  if (!form.title) {
+    uni.showModal({ title: "提示", content: "请输入预测标题" });
+    return;
+  }
+  if (count === 0) {
+    uni.showModal({ title: "提示", content: "请选择至少一个预测项" });
+    return;
   }
   const confirmForm = {
     matchId: matchInfo.value.matchId,
@@ -471,6 +484,7 @@ async function getMatchData() {
 async function init() {
   try {
     await getMatchData();
+    return dataTree.value;
   } catch (e) {
     console.log(e);
     uni.showModal({
@@ -483,13 +497,13 @@ function checkMatchIsHaveGoalLine() {
   if (!matchInfo.value.goalLine) {
     uni.showModal({
       title: "提示",
-      content: "该赛事体彩玩法细节未公开，暂不支持预测",
+      content: "该赛事体彩的让球玩法未公开",
       showCancel: false,
-      confirmText: "返回",
+      confirmText: "我知道了",
       success: (res) => {
-        if (res.confirm) {
-          uni.navigateBack();
-        }
+        // if (res.confirm) {
+        //   uni.navigateBack();
+        // }
       },
     });
   }
@@ -498,7 +512,8 @@ function checkMatchIsHaveGoalLine() {
 onLoad((option) => {
   console.log(option);
   matchInfo.value = { matchId: option.matchId, goalLine: "+1.00" };
-  init().then(() => {
+
+  Promise.all([init(), getFootBallDetail(option.matchId)]).then(([list, res]) => {
     // 这里从列表查到指定的赛事信息
     const findMatchInfo = dataTree.value
       .reduce((acc, cur) => {
@@ -506,22 +521,22 @@ onLoad((option) => {
       }, [])
       .find((item) => item.matchId === option.matchId);
 
-    // if (!findMatchInfo) {
-    //   uni.showModal({
-    //     title: "提示",
-    //     content: "当前赛事已不能预测",
-    //     showCancel: false,
-    //     confirmText: "返回",
-    //     success: (res) => {
-    //       if (res.confirm) {
-    //         uni.navigateBack();
-    //       }
-    //     },
-    //   });
-    //   return;
-    // }
+    if (!findMatchInfo) {
+      uni.showModal({
+        title: "提示",
+        content: "当前赛事已不能预测",
+        showCancel: false,
+        confirmText: "返回",
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateBack();
+          }
+        },
+      });
+      return;
+    }
 
-    // matchInfo.value = findMatchInfo;
+    matchInfo.value = res.data;
     checkMatchIsHaveGoalLine();
   });
 });
