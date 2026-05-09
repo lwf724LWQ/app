@@ -297,13 +297,6 @@
       }
     },
     {
-      "path": "pages/zc/detail",
-      "style": {
-        "navigationBarTitleText": "",
-        "navigationStyle": "custom"
-      }
-    },
-    {
       "path": "pages/share/share",
       "style": {
         "navigationBarTitleText": "",
@@ -381,27 +374,6 @@
       "path": "pages/video/put-review-post",
       "style": {
         "navigationBarTitleText": "发布精彩回顾帖子",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/video/review-post-detial",
-      "style": {
-        "navigationBarTitleText": "精彩回顾详情",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/zc/creaet-prognosis-post",
-      "style": {
-        "navigationBarTitleText": "创建预测",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/zc/prognosis-detail",
-      "style": {
-        "navigationBarTitleText": "预测详情",
         "navigationStyle": "custom"
       }
     }
