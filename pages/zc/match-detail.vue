@@ -23,17 +23,17 @@
 
 <script setup>
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
-import detailTable from "./components/detail-table.vue";
-import dualAxis from "./components/dual-axis.vue";
-import pointTable from "./components/point-table.vue";
-import matchHead from "./components/match-head.vue";
-import historyTable from "./components/history-table.vue";
-import LotteryResultsTable from "./components/Lottery-results-table.vue";
-import WlBonus from "./components/Wl-bonus.vue";
-import HandicapTable from "./components/Handicap-table.vue";
-import ScoreFixedBonusTable from "./components/Score-fixed-bonus-table.vue";
-import TotalGoalFixedBonusTable from "./components/Total-goal-fixed-bonus-table.vue";
-import HalfTimeWlTable from "./components/Half-time-wl-table.vue";
+import detailTable from "./match-components/detail-table.vue";
+import dualAxis from "./match-components/dual-axis.vue";
+import pointTable from "./match-components/point-table.vue";
+import matchHead from "./match-components/match-head.vue";
+import historyTable from "./match-components/history-table.vue";
+import LotteryResultsTable from "./match-components/Lottery-results-table.vue";
+import WlBonus from "./match-components/Wl-bonus.vue";
+import HandicapTable from "./match-components/Handicap-table.vue";
+import ScoreFixedBonusTable from "./match-components/Score-fixed-bonus-table.vue";
+import TotalGoalFixedBonusTable from "./match-components/Total-goal-fixed-bonus-table.vue";
+import HalfTimeWlTable from "./match-components/Half-time-wl-table.vue";
 
 // import zqApi from "../../api/zq.js";
 import mock from "./mock.js";

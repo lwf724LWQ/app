@@ -1,5 +1,5 @@
 <template>
-  <view class="match-card">
+  <view class="match-card" @click="toDetailPage">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <text class="match-status"></text>
@@ -79,6 +79,7 @@ export default {
     awayCorners: { type: Number },
     awayRedCards: { type: Number },
     awayYellowCards: { type: Number },
+    matchId: { type: String },
   },
   data() {
     return {
@@ -128,6 +129,11 @@ export default {
     toggleFavorite() {
       this.isFavorite = !this.isFavorite;
       this.$emit("favorite", this.isFavorite);
+    },
+    toDetailPage() {
+      uni.navigateTo({
+        url: "/pages/zc/match-detail?id=" + this.matchId,
+      });
     },
   },
 };

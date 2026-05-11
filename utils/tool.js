@@ -4,6 +4,13 @@ import { apiAppversionQuery } from "../api/apis.js";
 import h5wxsdk from "./uniwxsdk/h5.js";
 import { useUserStore } from "../stores/userStore";
 
+import relativeTime from "dayjs/plugin/relativeTime";
+import dayjs from "dayjs";
+
+// dayjs 计算时间差值的插件
+dayjs.extend(relativeTime);
+dayjs.locale("zh-cn");
+
 const tool = {
   oss: {
     async uploadImgForTempPath(tempFilePath, folder) {
@@ -58,7 +65,7 @@ const tool = {
         const pathParts = file.path.split("/");
         fileName = pathParts[pathParts.length - 1];
         // #ifdef APP-PLUS
-        file = file.path
+        file = file.path;
         // #endif
       } else if (typeof file === "string") {
         fileName = file;
@@ -118,6 +125,7 @@ const tool = {
     },
     // 获取oss文件的完整url
     getFullUrl(url) {
+      url = url.trim();
       if (url.startsWith("http")) {
         return url;
       } else {
@@ -144,19 +152,22 @@ const tool = {
     h5wxsdk.wxInit();
   },
   formatUrlParams(params, url = "") {
-    let s = ""
+    let s = "";
     if (url) {
-      s = url + (url.indexOf('?') > -1 ? '&' : '?')
+      s = url + (url.indexOf("?") > -1 ? "&" : "?");
     }
-    return s + Object.keys(params)
-      .filter((key) => params[key] !== null && params[key] !== "")
-      .map((key) => `${key}=${encodeURIComponent(params[key])}`)
-      .join("&");
+    return (
+      s +
+      Object.keys(params)
+        .filter((key) => params[key] !== null && params[key] !== "")
+        .map((key) => `${key}=${encodeURIComponent(params[key])}`)
+        .join("&")
+    );
   },
   optionsParamsDecode(options) {
     const newObj = {};
 
-    if (typeof options === 'object') {
+    if (typeof options === "object") {
       for (const key in options) {
         if (Object.prototype.hasOwnProperty.call(options, key)) {
           newObj[key] = decodeURIComponent(options[key]);
@@ -183,7 +194,15 @@ const tool = {
       });
       return false;
     }
-  }
+  },
+  getTimeAgo(dateString) {
+    if (!dateString) return "";
+    // dayjs 可以直接解析 "2026-05-11 10:05:30" 这种标准格式
+    const date = dayjs(dateString);
+
+    // 使用 fromNow() 方法计算当前时间与目标时间的差值并格式化
+    return date.fromNow(true);
+  },
 };
 
 export default tool;

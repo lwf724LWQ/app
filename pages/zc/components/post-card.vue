@@ -1,5 +1,5 @@
 <template>
-  <view class="post-card">
+  <view class="post-card" @click="onPostCard">
     <!-- 头部：用户信息 -->
     <view class="header">
       <view class="user-info">
@@ -61,10 +61,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["follow", "share", "comment", "like"]);
+const emit = defineEmits(["follow", "share", "comment", "like", "postCard"]);
 
 const handleFollow = () => emit("follow");
 const onShare = () => emit("share");
+const onPostCard = () => emit("postCard");
 const onComment = () => emit("comment");
 const onLike = () => emit("like");
 </script>

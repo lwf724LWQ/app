@@ -34,6 +34,9 @@
       @change="swiperChange"
     >
       <swiper-item>
+        <InstantList />
+      </swiper-item>
+      <swiper-item>
         <InprogressList />
       </swiper-item>
       <swiper-item>
@@ -48,9 +51,9 @@
     </swiper>
 
     <!-- 发布按钮 -->
-    <view v-if="pickerIndex != 3" class="publish-btn" @click="gotoPutreview">点我发布预测</view>
-    <view v-if="pickerIndex == 3" class="publish-btn">发表看法</view>
-    <ActivityHover
+    <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoPutreview">点我发布预测</view>
+    <view v-if="pickerIndex == 4" class="publish-btn" @click="gotoPutPost">发表看法</view>
+    <!-- <ActivityHover
       :src="
         userStore.getUserInfo.account
           ? '/static/images/activity-invite-2.png'
@@ -58,7 +61,7 @@
       "
       @click="onHoverClick"
       v-if="userStore.videoCount <= 0"
-    ></ActivityHover>
+    ></ActivityHover> -->
   </view>
 </template>
 
@@ -80,12 +83,13 @@ import InprogressList from "./index-tab-pages/Inprogress-list.vue";
 import ResultList from "./index-tab-pages/Result-list.vue";
 import PrognosisList from "./index-tab-pages/prognosis-list.vue";
 import PostList from "./index-tab-pages/Post-list.vue";
+import InstantList from "./index-tab-pages/Instant-list.vue";
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
-const pickerIndex = ref(2);
+const pickerIndex = ref(3);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["赛程", "赛果", "大师预测", "大众评论"]);
+const lotteryTypes = ref(["即时", "赛程", "赛果", "大师预测", "大众评论"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -98,10 +102,6 @@ function refreshCurrentTab() {
 
 function swiperChange(e) {
   switchTabByIndex(e.detail.current);
-  if (e.detail.current === 4) {
-    // 这里重置一下子swiper
-    reviewContainerRef.value?.resetSwipe();
-  }
 }
 
 // 标签切换（与 forum.vue 的交互一致）
@@ -122,7 +122,7 @@ const gotoPutreview = () => {
       {
         tname: currentLotteryType.value,
       },
-      "/pages/zc/putreviewpost"
+      "/pages/zc/creaet-prognosis-post"
     );
 
     isNeedRefresh = true;
@@ -130,6 +130,13 @@ const gotoPutreview = () => {
       url: url,
     });
   }
+};
+
+const gotoPutPost = () => {
+  isNeedRefresh = true;
+  uni.navigateTo({
+    url: "/pages/zc/creaet-post",
+  });
 };
 
 onShow(async (e) => {

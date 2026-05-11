@@ -376,7 +376,49 @@
         "navigationBarTitleText": "发布精彩回顾帖子",
         "navigationStyle": "custom"
       }
-    }
+    },
+	    {
+	      "path": "pages/video/review-post-detial",
+	      "style": {
+	        "navigationBarTitleText": "精彩回顾详情",
+	        "navigationStyle": "custom"
+	      }
+	    },
+	    {
+	      "path": "pages/zc/creaet-prognosis-post",
+	      "style": {
+	        "navigationBarTitleText": "创建预测",
+	        "navigationStyle": "custom"
+	      }
+	    },
+	    {
+	      "path": "pages/zc/prognosis-detail",
+	      "style": {
+	        "navigationBarTitleText": "预测详情",
+	        "navigationStyle": "custom"
+	      }
+		},
+	    {
+	      "path": "pages/zc/creaet-post",
+	      "style": {
+	        "navigationBarTitleText": "创建帖子",
+	        "navigationStyle": "custom"
+	      }
+	    },
+	    {
+	      "path": "pages/zc/post-detail",
+	      "style": {
+	        "navigationBarTitleText": "帖子详情",
+	        "navigationStyle": "custom"
+	      }
+		},
+	    {
+	      "path": "pages/zc/match-detail",
+	      "style": {
+	        "navigationBarTitleText": "比赛详情",
+	        "navigationStyle": "custom"
+	      }
+		}
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

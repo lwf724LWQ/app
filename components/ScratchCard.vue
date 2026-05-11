@@ -7,6 +7,8 @@
       :class="{ 'animate-open': isOpen, 'animate-close': !isOpen, isScratched: !isScratched }"
       :prop="{ isOpen, isNeedScratch, id }"
       :change:prop="scratch.initScratchCard"
+      :resetFlag="resetFlag"
+      :change:resetFlag="scratch.drawScratchCard"
     >
       <!-- 底层内容 (Slot) -->
       <view class="scratch-content">
@@ -56,6 +58,8 @@ export default {
       isNeedTutorial: true, //uni.getStorageSync("scratchTutorial") === false,
 
       id: i,
+
+      resetFlag: 0,
     };
   },
   watch: {
@@ -83,6 +87,9 @@ export default {
         this.$emit("finish");
       }
     },
+    reset() {
+      this.resetFlag = this.resetFlag + 1;
+    },
   },
   created() {
     // 初始化 canvas 配置
@@ -98,15 +105,24 @@ export default {
 export default {
   data() {
     return {
-      isInit: false
+      id: "",
+      isInit: false,
+      isDragging: false
     };
   },
   methods: {
-initScratchCard(newVal,oldVal) {
-
+  initScratchCard(newVal,oldVal){
     if(!newVal.isOpen || newVal.isNeedScratch === false || this.isInit){
       return
     }
+    this.id = newVal.id
+    this.drawScratchCard()
+  },
+drawScratchCard() {
+  console.log(111)
+    // if(this.isDragging) return
+    console.log(this.id)
+    this.isDragging = true
     this.isInit = true
     this.$ownerInstance.callMethod("onScratchProgress", 0)
     const self = this
@@ -115,14 +131,14 @@ initScratchCard(newVal,oldVal) {
     const onComplete = this.onComplete;
     console.log(scratchColor, watermarkText, onComplete)
     console.log("开始初始化刮刮乐图层")
-    var parentNode = document.getElementById(`scratchWrapper${newVal.id}`);
-    let canvas = document.getElementById(`scratchCanvas${newVal.id}`);
+    var parentNode = document.getElementById(`scratchWrapper${this.id}`);
+    let canvas = document.getElementById(`scratchCanvas${this.id}`);
     var width = parentNode.offsetWidth;
     var height = parentNode.offsetHeight;
     if (!canvas) {
       // 1. 创建 Canvas 元素
       canvas = document.createElement('canvas');
-      canvas.id = `scratchCanvas${newVal.id}`
+      canvas.id = `scratchCanvas${this.id}`
       parentNode.appendChild(canvas);
     }
 
@@ -186,7 +202,7 @@ function drawLayer() {
 
 
             drawLayer();
-
+  this.isDragging = false
             // 4. 事件处理变量
             var isDrawing = false;
             var isCompleted = false;
@@ -247,7 +263,7 @@ function drawLayer() {
                 ctx.fill();
             }
             try {
-              const scratchTutorialDom = document.getElementById(`scratchTutorial${newVal.id}`);
+              const scratchTutorialDom = document.getElementById(`scratchTutorial${this.id}`);
 
               scratchTutorialDom.addEventListener('mousedown', startDraw);
             scratchTutorialDom.addEventListener('mousemove', moveDraw);
@@ -287,7 +303,7 @@ function drawLayer() {
                 }
 
                 var ratio = transparentCount / totalPixels;
-                var threshold = 0.2; // 阈值：刮开超过 50% 算完成
+                var threshold = 0.8; // 阈值：刮开超过 50% 算完成
                 self.$ownerInstance.callMethod("onScratchProgress", ratio * 100)
                 if (ratio > threshold) {
                     isCompleted = true;
@@ -343,7 +359,7 @@ function drawLayer() {
   //   pointer-events: none;
   // }
 
-  &.isScratched .scratch-content{
+  &.isScratched .scratch-content {
     overflow: hidden;
   }
 }
@@ -397,9 +413,9 @@ function drawLayer() {
   .scratch-tutorial-text {
     font-size: 48rpx;
     font-weight: bold;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.5);
+    background: #ccc;
     text-align: center;
-    background: rgba(0, 0, 0, 0.5);
     padding: 5rpx;
     margin-bottom: 10rpx;
   }

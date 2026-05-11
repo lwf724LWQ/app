@@ -13,7 +13,7 @@
         v-for="item in list"
         :data="item"
         :badgeData="getUserBadgeData(item.account)"
-        @openDetail="openDetail"
+        @postCard="openDetail(item)"
       />
       <view class="no-more" v-if="isNoMore">没有更多了</view>
     </view>
@@ -64,35 +64,8 @@ export default {
       return this.UserBadgeAccuracyMap[account] || [];
     },
     async openDetail(data) {
-      console.log(data);
-
-      // 判断是否已经支付
-      if (data.flag == 1) {
-        uni.showLoading({
-          title: "加载中...",
-        });
-        const res = await CheckFootBallIsPay(data.id, getAccount());
-        uni.hideLoading();
-        if (res.data == false) {
-          // 未支付，弹出支付弹窗
-          this.payMethodSelectorHeader = {
-            id: data.id,
-            title: data.title,
-            price: data.price,
-          };
-          this.$refs.PaymentWrapperRef.pay({
-            info: `付费${data.price.toString()}元解锁足球方案:` + `${data.title}`,
-            amount: data.price.toString(),
-            type: 4, // 4表示足球方案解锁
-            remark: data.id,
-            payType: 0,
-          });
-          return;
-        }
-      }
-
       uni.navigateTo({
-        url: `/pages/zc/prognosis-detail?id=${data.id}`,
+        url: `/pages/zc/post-detail?id=${data.id}`,
       });
     },
 

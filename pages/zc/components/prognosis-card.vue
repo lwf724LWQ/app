@@ -8,7 +8,10 @@
       </view>
       <view class="user-detail">
         <view class="user-name">{{ data.uname }}</view>
-        <view class="user-level">资深分析师</view>
+        <view>
+          <text class="user-time">{{ timeAgo }}</text>
+          <text class="user-level">资深分析师</text>
+        </view>
       </view>
 
       <!-- 准确率徽章 -->
@@ -88,6 +91,11 @@ export default {
         return 0;
       }
     },
+    // 计算xx分钟前
+    timeAgo() {
+      const create_time = this.data.create_time;
+      return tool.getTimeAgo(create_time);
+    },
   },
   methods: {
     getFullHimgUrl(himg) {
@@ -161,9 +169,14 @@ export default {
         color: #333;
         margin-bottom: 6rpx;
       }
+      .user-time {
+        font-size: 24rpx;
+        color: #222;
+        margin-right: 12rpx;
+      }
       .user-level {
-        font-size: 22rpx;
-        color: #999;
+        font-size: 24rpx;
+        color: #222;
         background: #f5f5f5;
         padding: 4rpx 12rpx;
         border-radius: 20rpx;

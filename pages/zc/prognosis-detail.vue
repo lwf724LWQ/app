@@ -3,120 +3,33 @@
     <view class="container">
       <!-- 顶部导航栏占位 (UniApp 默认有导航栏，这里做内容padding) -->
       <view class="content">
-        <!-- 卡片：基本信息 -->
-        <view class="card header-card">
-          <view class="title">{{ prognosisData.title }}</view>
-          <view class="status-badge" v-if="prognosisData.flag">
-            <text class="dot"></text>
-            推荐方案
-          </view>
-        </view>
         <!-- 卡片：详细数据网格 -->
         <view class="card stats-card">
-          <view class="section-title">预测数据</view>
-          <ScratchCard v-if="parsedResult">
+          <ScratchCard v-if="parsedResult" ref="scratchCardRef">
             <view class="stats-grid">
-              <!-- highlight 代表命中 -->
-              <view
-                class="stat-item"
-                v-if="parsedResult.winDrawLosecurrent"
-                :class="{ highlight: parsedResult.winDrawLosecurrent1 === 'true' }"
-              >
-                <text class="stat-label">胜平负</text>
-                <text class="stat-value">{{ parsedResult.winDrawLosecurrent }}</text>
-                <text
-                  class="stat-true-value"
-                  v-if="footBallDetail.mresult && parsedResult.winDrawLosecurrent1 !== 'true'"
-                >
-                  结果: {{ footBallDetail.mresult.winDrawLosecurrent || "--" }}
-                </text>
-                <view v-if="parsedResult.winDrawLosecurrent1 === 'true'" class="stat-hit">
-                  命中
-                </view>
-              </view>
-              <view
-                class="stat-item"
-                v-if="parsedResult.winDrawLosecurrentHandicap"
-                :class="{ highlight: parsedResult.winDrawLosecurrentHandicap1 === 'true' }"
-              >
-                <text class="stat-label">让球胜平负</text>
-                <text class="stat-value">{{ parsedResult.winDrawLosecurrentHandicap }}</text>
-                <text
-                  class="stat-true-value"
-                  v-if="
-                    footBallDetail.mresult && parsedResult.winDrawLosecurrentHandicap1 !== 'true'
-                  "
-                >
-                  结果: {{ footBallDetail.mresult.winDrawLosecurrentHandicap || "--" }}
-                </text>
-                <view v-if="parsedResult.winDrawLosecurrentHandicap1 === 'true'" class="stat-hit">
-                  命中
-                </view>
-              </view>
-              <view
-                class="stat-item"
-                v-if="parsedResult.halfTimecurrent"
-                :class="{ highlight: parsedResult.halfTimecurrent1 === 'true' }"
-              >
-                <text class="stat-label">半全场</text>
-                <text class="stat-value">{{ parsedResult.halfTimecurrent }}</text>
-                <text
-                  class="stat-true-value"
-                  v-if="footBallDetail.mresult && parsedResult.halfTimecurrent1 !== 'true'"
-                >
-                  结果: {{ footBallDetail.mresult.halfTimecurrent || "--" }}
-                </text>
-                <view v-if="parsedResult.halfTimecurrent1 === 'true'" class="stat-hit">命中</view>
-              </view>
-              <view
-                class="stat-item"
-                v-if="parsedResult.totalGoalscurrent"
-                :class="{ highlight: parsedResult.totalGoalscurrent1 === 'true' }"
-              >
-                <text class="stat-label">总进球</text>
-                <text class="stat-value">{{ parsedResult.totalGoalscurrent }}</text>
-                <text
-                  class="stat-true-value"
-                  v-if="footBallDetail.mresult && parsedResult.totalGoalscurrent1 !== 'true'"
-                >
-                  结果: {{ footBallDetail.mresult.totalGoalscurrent || "--" }}
-                </text>
-                <view v-if="parsedResult.totalGoalscurrent1 === 'true'" class="stat-hit">命中</view>
-              </view>
-              <view
-                class="stat-item"
-                v-if="parsedResult.scorecurrent"
-                :class="{ highlight: parsedResult.scorecurrent1 === 'true' }"
-              >
-                <text class="stat-label">比分</text>
-                <text class="stat-value">{{ parsedResult.scorecurrent }}</text>
-                <text
-                  class="stat-true-value"
-                  v-if="footBallDetail.mresult && parsedResult.scorecurrent1 !== 'true'"
-                >
-                  结果: {{ footBallDetail.mresult.scorecurrent || "--" }}
-                </text>
-                <view v-if="parsedResult.scorecurrent1 === 'true'" class="stat-hit">命中</view>
+              <view class="stat-item" v-for="(item, index) in expertAnalysisList" :key="index">
+                {{ item }}
               </view>
             </view>
           </ScratchCard>
+          <button class="submit-btn" @click="refreshScratchCard">刷新</button>
         </view>
 
-        <!-- 卡片：专家分析 -->
-        <view class="card analysis-card" v-if="parsedResult.expertAnalysis">
-          <view class="section-title">
-            <text class="icon">📝</text>
-            专家分析
-          </view>
-          <view class="analysis-text">
-            {{ parsedResult.expertAnalysis }}
+        <!-- 卡片：基本信息 -->
+        <view class="card header-card">
+          <view class="title">{{ prognosisData.title }}</view>
+
+          <!-- 博主信息 -->
+          <view class="author-info">
+            <image class="avatar" :src="getFullHimgUrl(prognosisData.avatar)" mode="aspectFill" />
+            <text class="name">{{ prognosisData.name || "博主" }}</text>
           </view>
         </view>
 
         <!-- 卡片：发布评论 -->
-        <!-- <view class="card comment-input-card">
+        <view class="card comment-input-card">
           <view class="section-title">
-            <text class="icon">💬</text>
+            <uni-icons class="icon" type="chat" size="16" color="#4A90E2"></uni-icons>
             发表评论
           </view>
           <view class="comment-input-wrapper">
@@ -130,12 +43,12 @@
               <button class="submit-btn" @click="postCommit">发布</button>
             </view>
           </view>
-        </view> -->
+        </view>
 
         <!-- 卡片：评论列表 -->
-        <!-- <view class="card comment-list-card">
+        <view class="card comment-list-card">
           <view class="section-title">
-            <text class="icon">📋</text>
+            <uni-icons class="icon" type="list" size="16" color="#4A90E2"></uni-icons>
             评论列表
             <text class="comment-count" v-if="commitList.length">({{ commitList.length }})</text>
           </view>
@@ -150,7 +63,7 @@
             </view>
             <view class="no-comment" v-if="commitList.length === 0">暂无评论，快来抢沙发吧~</view>
           </view>
-        </view> -->
+        </view>
       </view>
     </view>
   </my-page>
@@ -183,11 +96,35 @@ export default {
   computed: {
     parsedResult: function () {
       if (!this.prognosisData.result) return false;
-      return JSON.parse(this.prognosisData.result);
+      try {
+        return JSON.parse(this.prognosisData.result);
+      } catch (e) {
+        return false;
+      }
+    },
+    expertAnalysisList: function () {
+      if (this.parsedResult) {
+        return this.parsedResult.expertAnalysis.split("\n");
+      }
+      return [];
+    },
+  },
+  watch: {
+    expertAnalysisList() {
+      // this.$nextTick(() => {
+      //   this.$refs.scratchCardRef.reset();
+      // });
     },
   },
   methods: {
+    refreshScratchCard() {
+      this.$refs.scratchCardRef.reset();
+    },
     getFullHimgUrl(himg) {
+      if (typeof himg !== "string" || himg.trim() === "") {
+        // 默认头像
+        return "http://video.caimizm.com/himg/user.png";
+      }
       return tool.oss.getFullUrl(`/himg/${himg}`);
     },
     postCommit() {
@@ -231,14 +168,6 @@ export default {
     getFootBallPostDetail(options.id)
       .then((res) => {
         this.prognosisData = res.data;
-        return getFootBallDetail(this.prognosisData.matchId).then((res) => {
-          try {
-            res.data.mresult = JSON.parse(res.data.mresult);
-          } catch (e) {
-            res.data.mresult = false;
-          }
-          this.footBallDetail = res.data;
-        });
       })
       .finally(() => {
         uni.hideLoading();
@@ -318,6 +247,23 @@ $highlight-text: #3700ff;
       margin-right: 8rpx;
     }
   }
+
+  .author-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16rpx;
+    .avatar {
+      width: 68rpx;
+      height: 68rpx;
+      border-radius: 50%;
+      border: 1rpx solid #e0e0e0;
+      margin-right: 16rpx;
+    }
+    .name {
+      font-size: 32rpx;
+      color: $text-sub;
+    }
+  }
 }
 
 /* 比分卡片 */
@@ -357,60 +303,17 @@ $highlight-text: #3700ff;
   }
   .stats-grid {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20rpx;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 38rpx;
+    font-weight: bold;
+    min-height: 280rpx;
+    border: 1rpx solid #e0e0e0;
+    border-radius: 12rpx;
 
     .stat-item {
-      flex: 1;
-      min-width: 45%; /* 每行两个 */
-      background: #f8f8f8;
-      padding: 20rpx;
-      border-radius: 12rpx;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      position: relative;
-
-      &.highlight {
-        background: $highlight-bg;
-        .stat-value {
-          color: $highlight-text;
-        }
-      }
-      .stat-hit {
-        position: absolute;
-        font-size: 56rpx;
-        color: #f00;
-        padding: 4rpx 8rpx;
-        border-radius: 8rpx;
-        right: 10rpx;
-        border: 6rpx solid #f00;
-        background-color: rgba(255, 255, 255, 0.3);
-
-        transform: rotate(15deg);
-        animation: hit-animation 0.5s infinite;
-      }
-
-      .stat-label {
-        font-size: 32rpx;
-        color: $text-sub;
-        flex-basis: 200rpx;
-        text-align: right;
-        font-weight: bold;
-        margin-right: 28rpx;
-      }
-      .stat-value {
-        font-size: 40rpx;
-        font-weight: bold;
-        color: $text-main;
-        flex-basis: 160rpx;
-      }
-      .stat-true-value {
-        font-size: 32rpx;
-        font-weight: bold;
-        color: $text-sub;
-      }
+      margin: 10rpx 0;
     }
   }
 }
@@ -490,8 +393,9 @@ $highlight-text: #3700ff;
       .submit-btn {
         background: $primary-color;
         color: #fff;
-        font-size: 32rpx;
-        padding: 8rpx 120rpx;
+        font-size: 30rpx;
+        font-weight: bold;
+        padding: 8rpx 80rpx;
         border-radius: 30rpx;
         border: none;
         margin: 0;

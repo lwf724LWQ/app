@@ -40,7 +40,7 @@ export default {
     matchId: {
       type: String,
       required: true,
-      default: "2039595",
+      default: "1",
     },
   },
   data() {
