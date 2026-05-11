@@ -298,8 +298,8 @@ export default {
         }
 
         &.tag-free {
-          background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-          color: #fff;
+          background: linear-gradient(135deg, #1fa63a 0%, #1fc36b 100%);
+          color: #ffffff;
         }
       }
     }
