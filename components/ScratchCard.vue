@@ -62,14 +62,6 @@ export default {
       resetFlag: 0,
     };
   },
-  watch: {
-    isOpen(newVal) {
-      if (newVal) {
-        // 打开时，重置 canvas 配置以触发 renderjs 重绘
-        this.canvasConfig.resetFlag += 1;
-      }
-    },
-  },
   methods: {
     // 防止触摸穿透或默认行为
     preventDefault() {},
@@ -105,40 +97,47 @@ export default {
 export default {
   data() {
     return {
-      id: "",
+      myid: "",
       isInit: false,
       isDragging: false
     };
   },
   methods: {
   initScratchCard(newVal,oldVal){
+    console.log(JSON.stringify(newVal))
     if(!newVal.isOpen || newVal.isNeedScratch === false || this.isInit){
       return
     }
-    this.id = newVal.id
+    this.myid = (newVal.id || oldVal.id);
+    console.log("id:", (newVal.id || oldVal.id))
+    console.log("id:", this.myid)
     this.drawScratchCard()
   },
-drawScratchCard() {
-  console.log(111)
+drawScratchCard(newVal) {
+  if(newVal == 0){
+    return
+  }
+  console.log("newVal", newVal)
     // if(this.isDragging) return
-    console.log(this.id)
     this.isDragging = true
     this.isInit = true
-    this.$ownerInstance.callMethod("onScratchProgress", 0)
+    // this.$ownerInstance.callMethod("onScratchProgress", 0)
     const self = this
     const scratchColor = "#cccccc";
     const watermarkText = "五七仔";
     const onComplete = this.onComplete;
+    const myid = this.myid
+    console.log("id:", myid)
     console.log(scratchColor, watermarkText, onComplete)
     console.log("开始初始化刮刮乐图层")
-    var parentNode = document.getElementById(`scratchWrapper${this.id}`);
-    let canvas = document.getElementById(`scratchCanvas${this.id}`);
+    var parentNode = document.getElementById(`scratchWrapper${myid}`);
+    let canvas = document.getElementById(`scratchCanvas${myid}`);
     var width = parentNode.offsetWidth;
     var height = parentNode.offsetHeight;
     if (!canvas) {
       // 1. 创建 Canvas 元素
       canvas = document.createElement('canvas');
-      canvas.id = `scratchCanvas${this.id}`
+      canvas.id = `scratchCanvas${myid}`
       parentNode.appendChild(canvas);
     }
 
@@ -263,7 +262,7 @@ function drawLayer() {
                 ctx.fill();
             }
             try {
-              const scratchTutorialDom = document.getElementById(`scratchTutorial${this.id}`);
+              const scratchTutorialDom = document.getElementById(`scratchTutorial${myid}`);
 
               scratchTutorialDom.addEventListener('mousedown', startDraw);
             scratchTutorialDom.addEventListener('mousemove', moveDraw);
