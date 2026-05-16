@@ -1,5 +1,5 @@
 <template>
-  <!-- 视频列表 -->
+  <!-- 赛程列表 -->
   <scroll-view
     class="scroll-view"
     :scroll-y="true"
@@ -12,19 +12,27 @@
     @scrolltolower="loadMore"
     @scroll="scroll"
   >
-    <view v-if="footBallList.length === 0">
+    <!-- 近期选项 -->
+    <view class="recent-options">
+      <view
+        class="recent-option"
+        v-for="option in recentOptions"
+        :key="option.date"
+        :class="{ active: option.time === currentPageDate }"
+        @click="fetchVideoListByDate(option.time)"
+      >
+        <text class="recent-option-text">{{ option.date }}</text>
+        <text class="recent-option-text">{{ option.weekday }}</text>
+      </view>
+    </view>
+
+    <view v-if="filteredFootBallList.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
     </view>
     <view class="area">
-      <view v-for="(matchDay, index) in footBallList" :key="index" class="day-group">
-        <view class="day-header">
-          <text class="day-title">
-            {{ matchDay.weekday }} {{ formatDate(matchDay.businessDate) }}
-          </text>
-          <text class="day-count">{{ matchDay.matchCount }}场</text>
-        </view>
+      <view v-for="(matchDay, index) in filteredFootBallList" :key="index" class="day-group">
         <MatchScoreCard
           v-for="match in matchDay.subMatchList"
           :key="match.id"
@@ -38,13 +46,8 @@
       </view>
     </view>
 
-    <!-- 加载更多提示 -->
-    <view class="loading-more" v-if="isLoading && currentPage > 1">
-      <text>加载中...</text>
-    </view>
-
     <!-- 没有更多数据提示 -->
-    <view class="no-more" v-else-if="!hasMore">
+    <view class="no-more">
       <text>没有更多数据了</text>
     </view>
   </scroll-view>
@@ -61,9 +64,38 @@ const emit = defineEmits(["video-click"]);
 
 // 响应式数据
 const footBallList = ref([]);
+const filteredFootBallList = ref([]); // 过滤后的比赛列表
 const currentPage = ref(1);
 const hasMore = ref(false);
 const isLoading = ref(false);
+const currentPageDate = ref(""); // 当前选中的日期
+const recentOptions = ref([]); // 近期选项
+
+// 初始化近期选项 - 根据接口返回的数据生成
+function initRecentOptions() {
+  if (footBallList.value.length === 0) {
+    recentOptions.value = [];
+    return;
+  }
+
+  // 从接口数据中提取所有唯一的日期
+  const uniqueDates = [...new Set(footBallList.value.map((item) => item.businessDate))];
+
+  // 按日期排序
+  uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+  // 构建近期选项
+  recentOptions.value = uniqueDates.map((date) => ({
+    time: date,
+    date: formatDate(new Date(date)),
+    weekday: dayjs(date).format("dddd"),
+  }));
+
+  // 默认选中第一个日期（最早的日期）
+  if (recentOptions.value.length > 0) {
+    currentPageDate.value = recentOptions.value[0].time;
+  }
+}
 
 // 刷新视频列表
 const refreshVideoList = async () => {
@@ -75,6 +107,24 @@ const loadMore = async () => {
   if (!hasMore.value || isLoading.value) return;
   currentPage.value++;
   await fetchVideoList(currentPage.value);
+};
+
+// 根据日期获取比赛列表
+const fetchVideoListByDate = async (dateStr) => {
+  currentPageDate.value = dateStr;
+  filterMatchesByDate(dateStr);
+};
+
+// 按日期过滤比赛
+const filterMatchesByDate = (dateStr) => {
+  if (!dateStr || footBallList.value.length === 0) {
+    filteredFootBallList.value = [];
+    return;
+  }
+
+  filteredFootBallList.value = footBallList.value.filter((matchDay) => {
+    return matchDay.businessDate === dateStr;
+  });
 };
 
 const formatDate = (date) => {
@@ -125,10 +175,19 @@ const fetchVideoList = async (page = 1) => {
       footBallList.value = newArr.sort(
         (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
       );
+
+      // 初始化近期选项并设置默认选中日期
+      if (page === 1) {
+        initRecentOptions();
+        // 默认显示第一个日期的比赛
+        if (recentOptions.value.length > 0) {
+          filterMatchesByDate(recentOptions.value[0].time);
+        }
+      }
     } else {
-      console.warn("API 返回数据格式不符合预期:", FootBallListRes);
+      console.warn("API 返回数据格式不符合预期:", res);
       uni.showToast({
-        title: FootBallListRes.msg || "数据格式错误",
+        title: res.msg || "数据格式错误",
         icon: "none",
       });
     }
@@ -259,5 +318,36 @@ defineExpose({
 .day-count {
   font-size: 24rpx;
   color: #999;
+}
+
+.recent-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  padding: 10rpx 0;
+
+  background-color: #fff;
+
+  border-bottom: 1rpx solid #eaeaea;
+
+  .recent-option {
+    padding: 10rpx;
+    border-radius: 6rpx;
+    background-color: #f5f5f5;
+    color: #111;
+    font-size: 28rpx;
+    text-align: center;
+
+    &.active {
+      background-color: hsl(92, 100%, 84%);
+    }
+  }
 }
 </style>

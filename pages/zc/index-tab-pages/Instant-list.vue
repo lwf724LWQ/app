@@ -1,5 +1,5 @@
 <template>
-  <!-- 视频列表 -->
+  <!-- 即时列表 -->
   <scroll-view
     class="scroll-view"
     :scroll-y="true"
@@ -37,11 +37,6 @@
           :halfTimeScore="match.halfTimecurrent"
         />
       </view>
-    </view>
-
-    <!-- 加载更多提示 -->
-    <view class="loading-more" v-if="isLoading && currentPage > 1">
-      <text>加载中...</text>
     </view>
   </scroll-view>
 </template>

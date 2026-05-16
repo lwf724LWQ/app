@@ -109,6 +109,10 @@ async function submitPrognosis() {
     uni.showModal({ title: "提示", content: "请输入预测标题" });
     return;
   }
+  if (form.expertAnalysis.trim().split("\n").length > 10) {
+    uni.showModal({ title: "提示", content: "预测内容不能超过10行" });
+    return;
+  }
   const confirmForm = {
     matchId: "1",
     title: form.title,

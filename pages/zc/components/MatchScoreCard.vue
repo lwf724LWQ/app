@@ -131,9 +131,9 @@ export default {
       this.$emit("favorite", this.isFavorite);
     },
     toDetailPage() {
-      uni.navigateTo({
-        url: "/pages/zc/match-detail?id=" + this.matchId,
-      });
+      // uni.navigateTo({
+      //   url: "/pages/zc/match-detail?id=" + this.matchId,
+      // });
     },
   },
 };

@@ -1,31 +1,42 @@
 <template>
-  <!-- 视频列表 -->
+  <!-- 结果列表 -->
   <scroll-view
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="false"
     :refresher-triggered="isLoading"
-    :lower-threshold="150"
     :scroll-top="scrollTop"
-    @scrolltolower="loadMore"
     @scroll="scroll"
   >
+    <!-- 近期选项 -->
+    <view class="recent-options">
+      <view
+        class="recent-option"
+        v-for="option in recentOptions"
+        :key="option.date"
+        :class="{ active: option.time === currentPageDate }"
+        @click="fetchVideoList(option.time)"
+      >
+        <text class="recent-option-text">{{ option.date }}</text>
+        <text class="recent-option-text">{{ option.weekday }}</text>
+      </view>
+    </view>
     <view v-if="matchInfoList.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
     </view>
     <view class="area">
-      <view v-for="(matchDay, index) in matchInfoList" :key="index" class="day-group">
-        <view class="day-header">
+      <view class="day-group">
+        <!-- <view class="day-header">
           <text class="day-title">
             {{ matchDay.weekday }} {{ formatDate(matchDay.businessDate) }}
           </text>
           <text class="day-count">{{ matchDay.matchCount }}场</text>
-        </view>
+        </view> -->
         <MatchScoreCard
-          v-for="match in matchDay.subMatchList"
+          v-for="match in matchInfoList"
           :key="match.id"
           :match="match"
           :homeTeam="match.htname"
@@ -37,11 +48,6 @@
           :halfTimeScore="match.halfTimecurrent"
         />
       </view>
-    </view>
-
-    <!-- 加载更多提示 -->
-    <view class="loading-more" v-if="isLoading && currentPage > 1">
-      <text>加载中...</text>
     </view>
   </scroll-view>
 </template>
@@ -68,17 +74,26 @@ const emit = defineEmits(["video-click"]);
 const matchInfoList = ref([]);
 const isLoading = ref(false);
 
-const currentPageDate = ref(new Date());
+const currentPageDate = ref("");
+
+const recentOptions = ref([]); // 近期选项
+
+function initRecentOptions() {
+  const nowDate = dayjs().add(-1, "day");
+  for (let i = 0; i < 6; i++) {
+    const date = nowDate.add(-i, "day");
+    recentOptions.value.unshift({
+      time: date.format("YYYY-MM-DD"),
+      date: date.format("MM-DD"),
+      weekday: date.format("dddd"),
+    });
+  }
+  currentPageDate.value = nowDate.format("YYYY-MM-DD");
+}
 
 // 刷新视频列表
 const refreshVideoList = async () => {
-  await fetchVideoList(1);
-};
-
-// 加载更多
-const loadMore = async () => {
-  if (isLoading.value) return;
-  await fetchVideoList();
+  await fetchVideoList(currentPageDate.value);
 };
 
 const formatDate = (date) => {
@@ -92,15 +107,15 @@ function scroll(e) {
 }
 const scrollTop = ref(0);
 // 获取视频列表的函数
-const fetchVideoList = async () => {
+const fetchVideoList = async (dateStr) => {
   try {
     if (isLoading.value) return;
     isLoading.value = true;
-    // 构建请求参数
-    currentPageDate.value = dayjs(currentPageDate.value).add(-1, "day");
-    const fdateStr = currentPageDate.value.format("YYYY-MM-DD");
-
-    const Videoinfo = await getFootBallList(fdateStr);
+    currentPageDate.value = dateStr;
+    uni.showLoading({
+      title: "加载中...",
+    });
+    const Videoinfo = await getFootBallList(dateStr);
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       Videoinfo.data = Videoinfo.data.map((item) => {
@@ -117,19 +132,8 @@ const fetchVideoList = async () => {
           ...item,
         };
       });
-      const newArr = [
-        ...matchInfoList.value,
-        {
-          businessDate: fdateStr,
-          weekday: dayjs(fdateStr).format("dddd"),
-          matchCount: Videoinfo.data.length,
-          subMatchList: Videoinfo.data,
-        },
-      ];
 
-      matchInfoList.value = newArr.sort(
-        (a, b) => new Date(b.businessDate).getTime() - new Date(a.businessDate).getTime()
-      );
+      matchInfoList.value = Videoinfo.data;
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -139,13 +143,13 @@ const fetchVideoList = async () => {
     }
   } catch (error) {
     console.error("获取视频失败:", error);
-    if (currentPage.value === 1) {
-      uni.showToast({
-        title: "获取视频失败，请检查网络",
-        icon: "none",
-      });
-    }
+    uni.showToast({
+      title: "获取视频失败，请检查网络",
+      icon: "none",
+    });
   } finally {
+    uni.hideLoading();
+
     setTimeout(() => {
       isLoading.value = false;
     }, 300);
@@ -155,101 +159,14 @@ const fetchVideoList = async () => {
   }
 };
 
-// 播放视频方法 - 新增付费检查
-const userStore = useUserStore();
-const playVideo = async (video) => {
-  const token = getToken();
-
-  if (userStore.videoCount <= 0 && !token && video.flag) {
-    uni.showModal({
-      title: "提示",
-      content: "付费视频观看次数已用完，需要注册才能继续观看",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
-  // 检查是否登录
-  // if (!token && video.flag) {
-  //   uni.showModal({
-  //     title: "提示",
-  //     content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
-  //     success: async (res) => {
-  //       if (res.confirm) {
-  //         uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
-  //       }
-  //     },
-  //     showCancel: true,
-  //   });
-  //   return;
-  // }
-
-  // 记录视频已经点击过
-  recodeVideoId(video);
-
-  // 将当前视频保存到 Pinia store
-  videoStore.setCurrentVideo(video);
-  uni.navigateTo({
-    url: `/pages/video/play?id=${video.id}`,
-  });
-};
-
-// 记录视频已经点击过
-function recodeVideoId(video) {
-  try {
-    const r = uni.getStorageSync("videoClickList") || [];
-    r.push(video.id);
-    video.isClicked = true;
-    uni.setStorageSync("videoClickList", r);
-  } catch (error) {}
+function refresh() {
+  initRecentOptions();
+  fetchVideoList(currentPageDate.value);
 }
-function videoMenu(video) {
-  if (video.account == getAccount()) {
-    uni.showActionSheet({
-      itemList: ["删除"],
-      success: async (res) => {
-        if (res.tapIndex === 0) {
-          uni.showLoading({
-            title: "正在处理...",
-          });
-          await delVideo(video.id)
-            .then((res) => {
-              uni.showToast({
-                title: "删除成功",
-                icon: "success",
-              });
-
-              videoList.value = videoList.value.filter((item) => item.id !== video.id);
-            })
-            .catch((res) => {
-              uni.showToast({
-                title: "删除失败",
-                icon: "error",
-              });
-            });
-          uni.hideLoading();
-        }
-      },
-    });
-  }
-}
-
-// 监听类型变化，重新获取数据
-watch(
-  () => props.videoType,
-  (newType) => {
-    refreshVideoList();
-  },
-  { immediate: true }
-);
 
 // 组件挂载时加载数据
 onMounted(() => {
-  refreshVideoList();
+  refresh();
 });
 
 // 暴露 refreshVideoList 函数给父组件
@@ -272,6 +189,37 @@ defineExpose({
     flex-direction: column;
     margin-bottom: 10rpx;
     box-sizing: border-box;
+  }
+}
+
+.recent-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  padding: 10rpx 0;
+
+  background-color: #fff;
+
+  border-bottom: 1rpx solid #eaeaea;
+
+  .recent-option {
+    padding: 10rpx;
+    border-radius: 6rpx;
+    background-color: #f5f5f5;
+    color: #111;
+    font-size: 28rpx;
+    text-align: center;
+
+    &.active {
+      background-color: hsl(92, 100%, 84%);
+    }
   }
 }
 
