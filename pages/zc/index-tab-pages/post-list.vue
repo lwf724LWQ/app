@@ -26,6 +26,7 @@
       </view>
     </template>
   </PaymentWrapper>
+  <view class="publish-btn" @click="gotoPutPost">发表看法</view>
 </template>
 
 <script>
@@ -323,5 +324,33 @@ export default {
   flex: 1;
   overflow: hidden;
   height: 100%;
+}
+
+/* 发布按钮 */
+.publish-btn {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  right: 30rpx;
+  bottom: calc(120rpx + var(--window-bottom));
+  width: 250rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  color: #fff;
+  font-size: 40rpx;
+  font-weight: bold;
+  background-color: #1642e3;
+  border-radius: 10px;
+  padding: 10rpx;
+  border: 6rpx solid #ffffff;
+  box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
+  z-index: 97;
+
+  &.publish-btn-putreview {
+    width: 330rpx;
+  }
 }
 </style>

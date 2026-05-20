@@ -51,8 +51,8 @@
     </swiper>
 
     <!-- 发布按钮 -->
-    <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoPutreview">点我发布预测</view>
-    <view v-if="pickerIndex == 4" class="publish-btn" @click="gotoPutPost">发表看法</view>
+    <!-- <view v-if="pickerIndex != 4" class="publish-btn" @click="gotoPutreview">点我发布预测</view>
+    <view v-if="pickerIndex == 4" class="publish-btn" @click="gotoPutPost">发表看法</view> -->
     <!-- <ActivityHover
       :src="
         userStore.getUserInfo.account

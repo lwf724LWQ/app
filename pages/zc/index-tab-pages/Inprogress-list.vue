@@ -344,6 +344,10 @@ defineExpose({
     color: #111;
     font-size: 28rpx;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
     &.active {
       background-color: hsl(92, 100%, 84%);
