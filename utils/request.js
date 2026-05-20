@@ -46,7 +46,7 @@ export function getAccount() {
   return userStore.getUserInfo?.account || false;
 }
 
-export function request({ url, data = {}, method = "GET", header = {}, timeout = 6000 }) {
+export function request({ url, data = {}, method = "GET", header = {}, timeout = 22000000 }) {
   url = BASE_URL + url;
 
   // 设置默认请求头
