@@ -665,3 +665,10 @@ export const getFootBallPostDetail = (fbpostId) => {
     method: "GET",
   });
 };
+
+export const videoWatermark = (VideoUrl) => {
+  return request({
+    url: "/web/video/shuiyin?video=" + VideoUrl,
+    method: "GEt",
+  });
+};

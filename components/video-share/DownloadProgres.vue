@@ -1,6 +1,6 @@
 <template>
   <!-- 使用 uni-popup，弹出方向 bottom -->
-  <uni-popup ref="popupRef" type="bottom" :duration="300">
+  <uni-popup ref="popupRef" type="bottom" :duration="300" @change="popupChange">
     <view class="dialog">
       <view class="title">文件下载中</view>
 
@@ -22,6 +22,8 @@
 
 <script setup lang="ts">
 import { ref, defineExpose } from "vue";
+import { videoWatermark } from "@/api/apis";
+import tool from "../../utils/tool";
 
 /** ---------- 组件内部状态 ---------- **/
 const popupRef = ref<InstanceType<typeof uniPopup> | null>(null); // uni-popup 实例
@@ -46,13 +48,18 @@ function reset() {
   onDoneCallback = null;
 }
 
+const popupIsShow = ref(false);
+function popupChange(e) {
+  popupIsShow.value = e.show;
+}
+
 /** ---------- 下载逻辑 ---------- **/
 function cancel() {
   if (downloadTask) {
     downloadTask.abort();
     statusText.value = "已取消";
-    setTimeout(closePopup, 800);
   }
+  setTimeout(closePopup, 800);
 }
 
 /**
@@ -79,9 +86,34 @@ async function startDownload(url: string, onDone: (filePath: string) => void) {
     setTimeout(closePopup, 1500);
     return;
   }
+  console.log("本地缓存不存在，开始下载");
+  // 先请求接口获取下载地址
+  statusText.value = "视频处理中...";
+  let res;
+  try {
+    res = await videoWatermark(url);
+  } catch (error) {
+    cancel();
+    uni.showToast({ title: "视频处理失败:" + error, icon: "none" });
+    return;
+  }
+  console.log("videoWatermark res", res);
+  if (typeof res.data !== "string") {
+    statusText.value = "视频处理失败";
+    setTimeout(closePopup, 1500);
+    return;
+  }
+  if (popupIsShow.value === false) {
+    console.log("弹窗已关闭");
+    return;
+  }
+
+  const completeUrl = tool.oss.getFullUrl("/shuiyin/" + res.data);
+
   statusText.value = "正在下载...";
   downloadTask = uni.downloadFile({
-    url,
+    url: completeUrl,
+    timeout: 1000000,
     success: (res) => {
       if (res.statusCode === 200) {
         statusText.value = "下载完成";
@@ -94,6 +126,7 @@ async function startDownload(url: string, onDone: (filePath: string) => void) {
     fail: (err) => {
       console.error("download fail", err);
       statusText.value = "下载失败";
+      uni.showToast({ title: "下载失败:" + err.errMsg, icon: "none" });
     },
     complete: () => {
       // 1.5 s 后自动关闭弹框

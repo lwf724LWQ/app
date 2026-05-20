@@ -149,7 +149,13 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
-        <button v-if="isHaveShareSdk && videoData.price == 0" class="bottom-buy-btn" @click="shareVideo">分享</button>
+        <button
+          v-if="isHaveShareSdk && videoData.price == 0"
+          class="bottom-buy-btn"
+          @click="shareVideo"
+        >
+          分享
+        </button>
       </view>
     </view>
     <reportPopup ref="reportPopupRef" @reportSubmitted="reportSubmitted" />
@@ -876,7 +882,7 @@ function shareVideo() {
   videoShareRef.value.share(videoUrl);
 }
 
-const isHaveShareSdk = ref(false);
+const isHaveShareSdk = ref(true);
 
 // #ifdef APP-PLUS
 isHaveShareSdk.value =
