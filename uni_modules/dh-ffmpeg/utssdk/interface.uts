@@ -1,0 +1,296 @@
+// ─── 错误码 ────────────────────────────────────────────────────
+export const FFMPEG_ERROR_SUBJECT = 'dh-ffmpeg'
+export const FFMPEG_ERR_EXECUTION_FAILED = 10001  // FFmpeg 执行失败（returnCode != 0）
+export const FFMPEG_ERR_CANCELLED = 10002          // 被取消（returnCode == 255）
+export const FFMPEG_ERR_MEDIA_INFO_FAILED = 10003  // 媒体信息获取失败
+export const FFMPEG_ERR_INVALID_PARAMS = 10004     // 参数无效
+export const FFMPEG_ERR_UNSUPPORTED = 10005        // 平台不支持
+
+// ─── 回调结果类型 ───────────────────────────────────────────────
+
+/**
+ * FFmpeg 任务会话信息
+ */
+export type FFmpegSession = {
+	sessionId : number
+	returnCode : number         // 0=成功, 255=取消, 其他=失败
+	state : string              // CREATED / RUNNING / COMPLETED / FAILED
+	command : string
+	output : string             // FFmpeg 全部日志输出
+	duration : number           // 执行耗时 (ms)
+	startTime : number          // 开始时间戳 (ms)
+	endTime : number            // 结束时间戳 (ms)
+	platform : string
+}
+
+/**
+ * FFmpeg 执行进度统计
+ */
+export type FFmpegProgress = {
+	sessionId : number
+	time : number               // 已处理时长 (ms)
+	size : number               // 已输出文件大小 (bytes)
+	bitrate : number            // 当前码率 (kb/s)
+	speed : number              // 处理速度比率（如 2.0 表示 2x 速）
+	videoFps : number           // 当前视频帧率
+	videoQuality : number       // 当前视频质量因子
+	videoFrameNumber : number   // 已处理视频帧数
+}
+
+/**
+ * FFmpeg 日志条目
+ */
+export type FFmpegLogEntry = {
+	sessionId : number
+	level : number              // FFmpeg 日志级别
+	message : string
+}
+
+/**
+ * 视频流信息
+ */
+export type VideoStreamInfo = {
+	index : number
+	codec : string
+	width : number
+	height : number
+	fps : number                // 帧率，如 30、29.97（解析自 r_frame_rate）
+	fpsRaw : string             // 原始分数字符串，如 "30/1"，给精度敏感场景
+	bitrate : number            // bits/s（无值时 0）
+	duration : number           // 秒
+}
+
+/**
+ * 音频流信息
+ */
+export type AudioStreamInfo = {
+	index : number
+	codec : string
+	sampleRate : number         // 采样率 Hz，如 44100
+	channels : number
+	channelLayout : string      // 如 "stereo"
+	bitrate : number            // bits/s（无值时 0）
+	duration : number           // 秒
+}
+
+/**
+ * 媒体文件信息
+ */
+export type MediaInfoResult = {
+	filename : string
+	format : string             // 智能解析后的格式名（按文件扩展名匹配），如 "mp4"、"mov"、"flac"
+	formatRaw : string          // ffprobe 原始 demuxer 名（如 "mov,mp4,m4a,3gp,3g2,mj2"）
+	duration : number           // 时长（秒）
+	bitrate : number            // 总码率 bits/s（无值时 0）
+	size : number               // 文件大小（bytes）
+	videoStreams : VideoStreamInfo[]
+	audioStreams : AudioStreamInfo[]
+	rawData : UTSJSONObject     // FFprobe 原始 JSON（供高级使用）
+}
+
+// ─── 核心执行 Options ───────────────────────────────────────────
+
+/**
+ * executeFFmpeg 参数
+ */
+export type ExecuteFFmpegOptions = {
+	cmd : string
+	start ?: (sessionId : number) => void
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * executeFFprobe 参数
+ */
+export type ExecuteFFprobeOptions = {
+	cmd : string
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * getMediaInfo 参数
+ */
+export type GetMediaInfoOptions = {
+	path : string
+	timeout ?: number           // 超时 ms，默认 5000
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (info : MediaInfoResult) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+// ─── 高级功能 Options ───────────────────────────────────────────
+
+/**
+ * extractAudio：从视频中提取音频
+ */
+export type ExtractAudioOptions = {
+	inputPath : string
+	outputPath : string
+	bitrate ?: string           // 音频码率，如 "128k"
+	sampleRate ?: number        // 采样率，如 44100
+	channels ?: number          // 声道数，1=单声道，2=立体声
+	startTime ?: string         // 起始位置，"HH:MM:SS" 或秒数字符串
+	duration ?: string          // 提取时长，"HH:MM:SS" 或秒数字符串
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * mergeAV：将独立音频合并到视频（替换或添加音轨）
+ */
+export type MergeAVOptions = {
+	videoPath : string
+	audioPath : string
+	outputPath : string
+	videoCodec ?: string        // 视频编码，默认 "copy"（不重编码）
+	audioCodec ?: string        // 音频编码，默认 "copy"
+	shortest ?: boolean         // 以时长较短的流为准，默认 true
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * mixAudio：将两路音频混合为一路
+ */
+export type MixAudioOptions = {
+	inputPath1 : string
+	inputPath2 : string
+	outputPath : string
+	volume1 ?: number           // 音轨1音量，0.0~2.0，默认 1.0
+	volume2 ?: number           // 音轨2音量，0.0~2.0，默认 1.0
+	bitrate ?: string           // 输出码率，默认 "128k"
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * compressVideo：视频压缩/转码
+ */
+export type CompressVideoOptions = {
+	inputPath : string
+	outputPath : string
+	videoCodec ?: string        // 视频编码器，默认 'h264_mediacodec'（Android 硬件 H.264）
+	                            // 可选：'libopenh264'(LGPL 软编)、'libx264'(GPL 软编，需 GPL 变体)、
+	                            //       'libkvazaar'(H.265 LGPL)、'libx265'(H.265 GPL)
+	resolution ?: string        // "360p"/"480p"/"720p"/"1080p" 或 "WxH"（如 "1280x720"）
+	videoBitrate ?: string      // 视频码率，如 "1000k"。设置后会覆盖 crf 路径
+	audioBitrate ?: string      // 音频码率，如 "128k"
+	fps ?: number               // 帧率，如 30
+	crf ?: number               // 质量因子 18-28，越小质量越好，默认 23（仅软编 libx264/libopenh264 真生效）
+	preset ?: string            // ultrafast/veryfast/fast/medium/slow，默认 ultrafast（仅 libx264 生效）
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * generateThumbnail：视频截帧生成缩略图
+ */
+export type ThumbnailOptions = {
+	inputPath : string
+	outputPath : string         // 应为 .jpg 或 .png
+	time ?: string              // 截帧时间点，默认 "00:00:01"
+	width ?: number             // 缩略图宽度，高度等比缩放
+	quality ?: number           // 图像质量 1-31（越小越好），默认 2，仅 jpg 有效
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * trimMedia：裁剪音频或视频
+ */
+export type TrimMediaOptions = {
+	inputPath : string
+	outputPath : string
+	startTime : string          // 起始时间，"HH:MM:SS" 或秒数字符串
+	endTime ?: string           // 结束时间（与 duration 二选一）
+	duration ?: string          // 裁剪时长（与 endTime 二选一）
+	copyCodec ?: boolean        // true=流复制（快速，默认），false=重编码（精确）
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+/**
+ * convertFormat：音视频格式转换
+ */
+export type ConvertFormatOptions = {
+	inputPath : string
+	outputPath : string
+	videoCodec ?: string        // 不设则由输出格式自动决定
+	audioCodec ?: string        // 不设则由输出格式自动决定
+	videoBitrate ?: string
+	audioBitrate ?: string
+	progress ?: (stats : FFmpegProgress) => void
+	log ?: (entry : FFmpegLogEntry) => void
+	success ?: (res : FFmpegSession) => void
+	fail ?: (err : UniError) => void
+	complete ?: () => void
+}
+
+// ─── 函数声明 ───────────────────────────────────────────────────
+
+/** 执行任意 FFmpeg 命令 */
+export declare function executeFFmpeg(options : ExecuteFFmpegOptions) : void
+
+/** 执行任意 FFprobe 命令 */
+export declare function executeFFprobe(options : ExecuteFFprobeOptions) : void
+
+/** 获取媒体文件信息（结构化） */
+export declare function getMediaInfo(options : GetMediaInfoOptions) : void
+
+/** 取消指定 session */
+export declare function cancelFFmpeg(sessionId : number) : void
+
+/** 取消所有正在执行的 FFmpeg 任务 */
+export declare function cancelAllFFmpeg() : void
+
+/** 获取所有任务 session 列表 */
+export declare function getSessions() : FFmpegSession[]
+
+/** 将相对路径或 uni 路径解析为系统绝对路径，并确保父目录存在 */
+export declare function getRealPath(path : string) : string
+
+/** 从视频中提取音频 */
+export declare function extractAudio(options : ExtractAudioOptions) : void
+
+/** 将独立音频合并到视频 */
+export declare function mergeAV(options : MergeAVOptions) : void
+
+/** 将两路音频混合为一路 */
+export declare function mixAudio(options : MixAudioOptions) : void
+
+/** 压缩/转码视频 */
+export declare function compressVideo(options : CompressVideoOptions) : void
+
+/** 从视频生成缩略图 */
+export declare function generateThumbnail(options : ThumbnailOptions) : void
+
+/** 裁剪音频或视频片段 */
+export declare function trimMedia(options : TrimMediaOptions) : void
+
+/** 音视频格式转换 */
+export declare function convertFormat(options : ConvertFormatOptions) : void
