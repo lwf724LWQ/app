@@ -155,10 +155,18 @@
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
         </view> -->
+		<!-- #ifdef APP-PLUS -->
         <view class="service-item" @click="toShare">
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
           <text class="service-text">分享</text>
         </view>
+		<!-- #endif -->
+		<!-- #ifdef H5 -->
+		<view class="service-item" @click="dowApp">
+		  <uni-icons type="redo" size="24" color="#222"></uni-icons>
+		  <text class="service-text">下载APP</text>
+		</view>
+		<!-- #endif -->
         <view class="service-item" @click="toWxchat">
           <uni-icons type="weixin" size="24" color="#222"></uni-icons>
           <text class="service-text">联系我们</text>
@@ -546,6 +554,10 @@ function clickFreeViewCard() {
       url: "/pages/reg/reg",
     });
   }
+}
+
+function dowApp(){
+	window.open("http://www.caimizm.com/")
 }
 </script>
 
