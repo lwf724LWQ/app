@@ -345,13 +345,17 @@ const handleAgree = async () => {
 
 function jumpToComePage() {
   // 延迟跳转，让用户看到成功提示
+
+  
   setTimeout(() => {
-    // 判断是否为第一次打开app
-    const isFirstOpen = !uni.getStorageSync("isOpened");
-    if (isFirstOpen) {
-      uni.redirectTo({ url: "/pages/activity-page/activity-page" });
-      return;
-    }
+      // #ifdef APP-PLUS
+      // 判断是否为第一次打开app
+      const isFirstOpen = !uni.getStorageSync("isOpened");
+      if (isFirstOpen) {
+        uni.redirectTo({ url: "/pages/activity-page/activity-page" });
+        return;
+      }
+      // #endif
     // 跳转到用户页面
     if (pageOptions.redirect) {
       uni.navigateBack({
@@ -393,13 +397,14 @@ const goForgetPwdPage1 = () => {
 // 跳转到首页
 const login = () => {
   console.log("login");
+  // #ifdef APP-PLUS
   // 判断是否为第一次打开app
   const isFirstOpen = !uni.getStorageSync("isOpened");
   if (isFirstOpen) {
     uni.redirectTo({ url: "/pages/activity-page/activity-page" });
     return;
   }
-
+	// #endif
   if (pageOptions.redirect) {
     uni.navigateBack({ url: pageOptions.redirect, animationType: "none" });
   } else {

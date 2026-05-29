@@ -199,10 +199,20 @@ const playVideo = async (video) => {
   if (userStore.videoCount <= 0 && !token && video.flag) {
     uni.showModal({
       title: "提示",
+      // #ifdef APP-PLUS
       content: "付费视频观看次数已用完，需要注册才能继续观看",
+      // #endif
+      // #ifdef H5
+      content: "首次下载APP即可获得免费观看次数",
+      // #endif
       success: async (res) => {
         if (res.confirm) {
+          // #ifdef APP-PLUS
           uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
+          // #endif
+          // #ifdef H5
+          window.open("http://www.caimizm.com/");
+          // #endif
         }
       },
       showCancel: true,

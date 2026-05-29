@@ -190,10 +190,18 @@
           <uni-icons type="staff" size="24" color="#4A90E2"></uni-icons>
           <text>我的关注</text>
         </view>
+        <!-- #ifdef APP-PLUS -->
         <view class="icon-item" @click="toShare">
           <uni-icons type="redo" size="20" color="#4A90E2"></uni-icons>
           <text>分享</text>
         </view>
+        <!-- #endif -->
+        <!-- #ifdef H5 -->
+        <view class="icon-item" @click="dowApp">
+          <uni-icons type="pulldown" size="20" color="#4A90E2"></uni-icons>
+          <text>点我下载</text>
+        </view>
+        <!-- #endif -->
         <!-- <view class="icon-item icon-item-message">
           <image src="/static/icons/color.png" mode="aspectFit"></image>
           <text>我的消息</text>
@@ -493,6 +501,9 @@ export default {
           });
         },
       });
+    },
+    dowApp() {
+      window.open("http://www.caimizm.com/");
     },
   },
   onShow() {
