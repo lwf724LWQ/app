@@ -297,6 +297,13 @@
       }
     },
     {
+      "path": "pages/zc/search-list",
+      "style": {
+        "navigationBarTitleText": "搜索结果",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/share/share",
       "style": {
         "navigationBarTitleText": "",

@@ -4,10 +4,11 @@
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
-    :refresher-enabled="false"
+    :refresher-enabled="true"
     :refresher-triggered="isLoading"
     :lower-threshold="150"
     :scroll-top="scrollTop"
+    @refresherrefresh="fetchVideoList"
     @scrolltolower="loadMore"
     @scroll="scroll"
   >
@@ -17,24 +18,15 @@
       </view>
     </view>
     <view class="area">
-      <view v-for="(matchDay, index) in matchInfoList" :key="index" class="day-group">
-        <view class="day-header">
+      <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
+        <!-- <view class="day-header">
           <text class="day-title">
             {{ matchDay.weekday }} {{ formatDate(matchDay.businessDate) }}
           </text>
           <text class="day-count">{{ matchDay.matchCount }}场</text>
-        </view>
+        </view> -->
         <MatchScoreCard
-          v-for="match in matchDay.subMatchList"
-          :key="match.id"
           :match="match"
-          :homeTeam="match.htname"
-          :awayTeam="match.atname"
-          :matchTime="match.mtime"
-          :leagueName="match.abbName"
-          :matchStatus="match.numStr"
-          :score="match.scorecurrent"
-          :halfTimeScore="match.halfTimecurrent"
         />
       </view>
     </view>
@@ -93,38 +85,12 @@ const fetchVideoList = async () => {
     isLoading.value = true;
     // 构建请求参数
     currentPageDate.value = dayjs(currentPageDate.value).add(-1, "day");
-    const fdateStr = currentPageDate.value.format("YYYY-MM-DD");
+    const fdateStr = currentPageDate.value.format("YYYY/MM/DD");
 
-    const Videoinfo = await getFootBallList(fdateStr);
+    const Videoinfo = await getFootBallList(fdateStr, 0, "");
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
-      Videoinfo.data = Videoinfo.data.map((item) => {
-        try {
-          const mresult = JSON.parse(item.mresult);
-          item.scorecurrent = mresult.scorecurrent;
-          item.halfTimecurrent = mresult.halfTimecurrent;
-          item.totalGoalscurrent = mresult.totalGoalscurrent;
-          item.winDrawLosecurrent = mresult.winDrawLosecurrent;
-        } catch (error) {
-          console.error("解析 mresult 失败:", error);
-        }
-        return {
-          ...item,
-        };
-      });
-      const newArr = [
-        ...matchInfoList.value,
-        {
-          businessDate: fdateStr,
-          weekday: dayjs(fdateStr).format("dddd"),
-          matchCount: Videoinfo.data.length,
-          subMatchList: Videoinfo.data,
-        },
-      ];
-
-      matchInfoList.value = newArr.sort(
-        (a, b) => new Date(b.businessDate).getTime() - new Date(a.businessDate).getTime()
-      );
+      matchInfoList.value = Videoinfo.data
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({

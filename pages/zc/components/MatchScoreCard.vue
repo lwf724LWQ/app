@@ -3,7 +3,7 @@
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <text class="match-status"></text>
-      <view class="league-name">{{ leagueName }}</view>
+      <view class="league-name">{{ match.leagueChsShort }}</view>
       <text class="match-time">{{ matchTime }}</text>
       <text class="match-status" :class="statusClass">{{ matchStatus }}</text>
     </view>
@@ -11,7 +11,7 @@
     <!-- 中间：主赛区 -->
     <view class="main-content">
       <view class="team-section left">
-        {{ homeTeam }}
+        {{ match.homeChs }}
       </view>
 
       <view class="score-section" :class="{ 'no-score': !score }">
@@ -19,67 +19,52 @@
       </view>
 
       <view class="team-section right">
-        {{ awayTeam }}
-        <!-- 收藏功能 <view class="favorite-btn" @click="toggleFavorite" :class="{ active: isFavorite }">
-          <text class="star-icon">☆</text>
-        </view> -->
+        {{ match.awayChs }}
       </view>
+
+      <view class="favorite-btn" @click="toggleFavorite" :class="{ active: isFavorite }">
+          <text class="star-icon">☆</text>
+        </view>
     </view>
 
     <!-- 底部：详细数据 -->
     <view
       class="footer"
-      v-if="
-        homeCorners ||
-        homeRedCards ||
-        homeYellowCards ||
-        awayCorners ||
-        awayRedCards ||
-        awayYellowCards ||
-        halfTimeScore
-      "
+      v-if="[1,2,3,4,5,-1].includes(match.mstate)"
     >
+    <!-- 上半场，中场，下半场，加时，点球，完赛才显示底部数据 -->
       <!-- 主队数据 -->
       <view class="stat-group">
-        <view class="stat-item red">{{ homeRedCards }}</view>
-        <view class="stat-item yellow">{{ homeYellowCards }}</view>
+        <view class="stat-item red">{{ match.homeRed }}</view>
+        <view class="stat-item yellow">{{ match.homeYellow }}</view>
         <view class="stat-item grey">
-          {{ homeCorners }}
+          <view class="stat-corner-icon"></view>
+          {{ match.homeCorner }}
         </view>
       </view>
 
       <!-- 半场比分 -->
-      <view class="half-time">半 {{ halfTimeScore }}</view>
+      <view class="half-time" v-if="halfScore">{{ halfScore }}</view>
 
       <!-- 客队数据 -->
       <view class="stat-group">
         <view class="stat-item grey">
-          {{ awayCorners }}
+          <view class="stat-corner-icon"></view>
+          {{ match.awayCorner }}
         </view>
-        <view class="stat-item yellow">{{ awayYellowCards }}</view>
-        <view class="stat-item red">{{ awayRedCards }}</view>
+        <view class="stat-item yellow">{{ match.awayYellow }}</view>
+        <view class="stat-item red">{{ match.awayRed }}</view>
       </view>
     </view>
   </view>
 </template>
 
 <script>
+import dayjs from 'dayjs';
+
 export default {
   props: {
-    leagueName: { type: String },
-    matchTime: { type: String },
-    matchStatus: { type: String },
-    homeTeam: { type: String },
-    awayTeam: { type: String },
-    score: { type: String },
-    halfTimeScore: { type: String },
-    homeRedCards: { type: Number },
-    homeYellowCards: { type: Number },
-    homeCorners: { type: Number },
-    awayCorners: { type: Number },
-    awayRedCards: { type: Number },
-    awayYellowCards: { type: Number },
-    matchId: { type: String },
+    match: {type: Object}
   },
   data() {
     return {
@@ -124,6 +109,51 @@ export default {
         }[this.leagueName] || "#666666"
       );
     },
+    matchStatus(){
+      if(!this.match){
+        return ""
+      }
+      return {
+        "0" :"未开",
+        "1" :"上半场",
+        "2" :"中场",
+        "3" :"下半场",
+        "4" :"加时",
+        "5" :"点球",
+        "-1" :"完场",
+        "-10" : "取消",
+        "-11" : "待定",
+        "-12" : "腰斩",
+        "-13" : "中断",
+        "-14" : "推迟"
+      }[this.match.mstate]
+    },
+    matchTime(){
+      if(!this.match){
+        return ""
+      }
+      let time = this.match.matchTime
+      if(this.match.mstate == 3 && this.match.middleTime){
+        time = this.match.middleTime
+      }else if(this.match.mstate == 1 && this.match.startTime){
+        time = this.match.startTime
+      }
+      return dayjs(time).format("HH:mm")
+    },
+    halfScore(){
+      if ([0,1].includes(this.match.mstate)) {
+         return ""
+      }else{
+        return `半 ${this.match.homeHalfScore}:${this.match.awayHalfScore}`
+      }
+    },
+    score(){
+      if([0,-10,-11,-12,-13,-14].includes(this.match.mstate)){
+        return false
+      }else{
+        return `${this.match.homeScore}:${this.match.awayScore}`
+      }
+    }
   },
   methods: {
     toggleFavorite() {
@@ -175,13 +205,13 @@ export default {
 }
 
 .match-time {
-  color: #999;
+  color: #353535;
   text-align: center;
   margin: 0 20rpx;
 }
 
 .match-status {
-  color: #999;
+  color: #333333;
 }
 
 .status-highlight {
@@ -220,6 +250,8 @@ export default {
 }
 
 .favorite-btn {
+  position: absolute;
+  right: 0;
   margin-left: 15rpx;
   font-size: 40rpx;
   color: #ff4d4f;
@@ -235,7 +267,7 @@ export default {
   // justify-content: space-between;
   // align-items: center;
   font-size: 24rpx;
-  color: #999;
+  color: #424242;
 }
 
 .stat-group {
@@ -250,6 +282,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.stat-corner-icon{
+  width: 30rpx;
+  height: 30rpx;
+  background: url(/static/icons/jiaoqiu.png) no-repeat;
+  background-size: contain;
+  margin-right: 10rpx;
 }
 
 .stat-item.red {
@@ -273,6 +312,5 @@ export default {
 
 .half-time {
   font-size: 24rpx;
-  color: #999;
 }
 </style>

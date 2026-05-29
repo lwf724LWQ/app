@@ -17,7 +17,7 @@
         v-for="(item, index) in lotteryTypes"
         :key="index"
         class="tab-item"
-        :class="{ active: pickerIndex === index }"
+        :class="{ active: pickerIndex === index, bigwidth: item.length > 2 }"
         @click="switchTabByIndex(index, true)"
       >
         <text class="tab-text">{{ item }}</text>
@@ -25,8 +25,8 @@
     </view>
 
     <!-- 搜索 -->
-    <view class="" v-if="[0, 1, 2].includes(pickerIndex)">
-      <search-input placeholder="请输入搜索内容" />
+    <view class="search-box" v-if="[0, 1, 2].includes(pickerIndex)">
+      <search-input placeholder="请输入搜索内容" @search="onSearch" />
     </view>
     <swiper
       class="video-swiper"
@@ -89,6 +89,8 @@ import ResultList from "./index-tab-pages/Result-list.vue";
 import PrognosisList from "./index-tab-pages/prognosis-list.vue";
 import PostList from "./index-tab-pages/Post-list.vue";
 import InstantList from "./index-tab-pages/Instant-list.vue";
+
+import searchInput from "./components/search-input.vue";
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(3);
@@ -153,6 +155,14 @@ onShow(async (e) => {
 
 // 生命周期钩子
 onMounted(async () => {});
+
+// 搜索事件 - 跳转到搜索结果页
+function onSearch(params) {
+  const query = `keyword=${encodeURIComponent(params.keyword)}&status=${encodeURIComponent(params.status)}&date=${encodeURIComponent(params.date)}`
+  uni.navigateTo({
+    url: `/pages/zc/search-list?${query}`,
+  })
+}
 
 const userStore = useUserStore();
 
@@ -278,6 +288,10 @@ const onHoverClick = () => {
   border-bottom: 4rpx solid transparent;
   transition: all 0.2s ease;
   font-weight: bold;
+  
+  &.bigwidth{
+    flex: 1.6;
+  }
 }
 
 .tab-item.active {
@@ -292,6 +306,10 @@ const onHoverClick = () => {
 
 .tab-item.active .tab-text {
   color: #ff4757;
+}
+
+.search-box{
+  padding: 10rpx;
 }
 
 /* 鼠标悬停效果 */
@@ -427,6 +445,6 @@ const onHoverClick = () => {
   height: 100%;
   flex: 1;
   overflow: hidden;
-  position: fixed;
+  // position: fixed;
 }
 </style>

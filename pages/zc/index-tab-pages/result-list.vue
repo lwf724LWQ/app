@@ -83,12 +83,12 @@ function initRecentOptions() {
   for (let i = 0; i < 6; i++) {
     const date = nowDate.add(-i, "day");
     recentOptions.value.unshift({
-      time: date.format("YYYY-MM-DD"),
+      time: date.format("YYYY/M/DD"),
       date: date.format("MM-DD"),
       weekday: date.format("dddd"),
     });
   }
-  currentPageDate.value = nowDate.format("YYYY-MM-DD");
+  currentPageDate.value = nowDate.format("YYYY/M/DD");
 }
 
 // 刷新视频列表
@@ -115,7 +115,7 @@ const fetchVideoList = async (dateStr) => {
     uni.showLoading({
       title: "加载中...",
     });
-    const Videoinfo = await getFootBallList(dateStr);
+    const Videoinfo = await getFootBallList(dateStr, 2, "");
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       Videoinfo.data = Videoinfo.data.map((item) => {
@@ -142,9 +142,9 @@ const fetchVideoList = async (dateStr) => {
       });
     }
   } catch (error) {
-    console.error("获取视频失败:", error);
+    console.error("获取足球列表失败:", error);
     uni.showToast({
-      title: "获取视频失败，请检查网络",
+      title: error.msg || "获取足球列表失败，请检查网络",
       icon: "none",
     });
   } finally {

@@ -609,11 +609,11 @@ export const offFreeViewCountApi = (videoId) => {
   });
 };
 
-export const getFootBallList = (fdate) => {
+export const getFootBallList = (matchTime, state, name) => {
   return request({
     url: "/web/football/query",
     method: "GET",
-    data: { fdate },
+    data: { matchTime, state, name },
   });
 };
 

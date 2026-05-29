@@ -26,22 +26,16 @@
       </view>
     </view>
 
-    <view v-if="filteredFootBallList.length === 0">
+    <view v-if="footBallList.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
     </view>
     <view class="area">
-      <view v-for="(matchDay, index) in filteredFootBallList" :key="index" class="day-group">
+      <view v-for="(match, index) in footBallList" :key="index" class="day-group">
         <MatchScoreCard
-          v-for="match in matchDay.subMatchList"
           :key="match.id"
           :match="match"
-          :homeTeam="match.htname"
-          :awayTeam="match.atname"
-          :matchTime="match.mtime"
-          :leagueName="match.abbName"
-          :matchStatus="match.numStr"
         />
       </view>
     </view>
@@ -55,7 +49,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
-import { getFootBallNewList } from "@/api/apis";
+import { getFootBallList } from "@/api/apis";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import dayjs from "dayjs";
 
@@ -64,37 +58,24 @@ const emit = defineEmits(["video-click"]);
 
 // 响应式数据
 const footBallList = ref([]);
-const filteredFootBallList = ref([]); // 过滤后的比赛列表
 const currentPage = ref(1);
 const hasMore = ref(false);
 const isLoading = ref(false);
 const currentPageDate = ref(""); // 当前选中的日期
 const recentOptions = ref([]); // 近期选项
 
-// 初始化近期选项 - 根据接口返回的数据生成
+// 初始化近期选项
 function initRecentOptions() {
-  if (footBallList.value.length === 0) {
-    recentOptions.value = [];
-    return;
+  const nowDate = dayjs()
+  for (let i = 0; i < 6; i++) {
+    const date = nowDate.add(i, "day");
+    recentOptions.value.push({
+      time: date.format("YYYY/M/DD"),
+      date: date.format("MM-DD"),
+      weekday: date.format("dddd"),
+    });
   }
-
-  // 从接口数据中提取所有唯一的日期
-  const uniqueDates = [...new Set(footBallList.value.map((item) => item.businessDate))];
-
-  // 按日期排序
-  uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-
-  // 构建近期选项
-  recentOptions.value = uniqueDates.map((date) => ({
-    time: date,
-    date: formatDate(new Date(date)),
-    weekday: dayjs(date).format("dddd"),
-  }));
-
-  // 默认选中第一个日期（最早的日期）
-  if (recentOptions.value.length > 0) {
-    currentPageDate.value = recentOptions.value[0].time;
-  }
+  currentPageDate.value = nowDate.format("YYYY/M/DD");
 }
 
 // 刷新视频列表
@@ -112,19 +93,7 @@ const loadMore = async () => {
 // 根据日期获取比赛列表
 const fetchVideoListByDate = async (dateStr) => {
   currentPageDate.value = dateStr;
-  filterMatchesByDate(dateStr);
-};
-
-// 按日期过滤比赛
-const filterMatchesByDate = (dateStr) => {
-  if (!dateStr || footBallList.value.length === 0) {
-    filteredFootBallList.value = [];
-    return;
-  }
-
-  filteredFootBallList.value = footBallList.value.filter((matchDay) => {
-    return matchDay.businessDate === dateStr;
-  });
+  fetchVideoList()
 };
 
 const formatDate = (date) => {
@@ -150,40 +119,11 @@ const fetchVideoList = async (page = 1) => {
     }
 
     currentPage.value = page;
-    const res = await getFootBallNewList();
+    const res = await getFootBallList(currentPageDate.value, 1, "");
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {
-      const newArr = [];
-      console.log(1);
-      res.data.forEach((match) => {
-        const mL = newArr.find((item) => item.businessDate === match.fdate);
-        match.isNew = true;
-        if (mL) {
-          mL.subMatchList.push(match);
-          mL.matchCount++;
-          return;
-        } else {
-          newArr.push({
-            businessDate: match.fdate,
-            weekday: dayjs(match.fdate).format("dddd"),
-            matchCount: 1,
-            subMatchList: [match],
-          });
-        }
-      });
-      console.log(2);
-      footBallList.value = newArr.sort(
-        (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
-      );
-
-      // 初始化近期选项并设置默认选中日期
-      if (page === 1) {
-        initRecentOptions();
-        // 默认显示第一个日期的比赛
-        if (recentOptions.value.length > 0) {
-          filterMatchesByDate(recentOptions.value[0].time);
-        }
-      }
+      
+      footBallList.value = res.data
     } else {
       console.warn("API 返回数据格式不符合预期:", res);
       uni.showToast({
@@ -209,6 +149,7 @@ const fetchVideoList = async (page = 1) => {
 
 // 组件挂载时加载数据
 onMounted(() => {
+  initRecentOptions()
   refreshVideoList();
 });
 
