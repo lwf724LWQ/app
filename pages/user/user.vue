@@ -117,6 +117,7 @@
     </view>
 
     <!-- 推荐给其他朋友提示 -->
+    <!-- #ifdef APP-PLUS -->
     <view class="share-section" @click="toActivity">
       <view class="share-container">
         <uni-icons class="share-icon" type="upload" size="24" color="#dd0909"></uni-icons>
@@ -124,14 +125,21 @@
         <view class="share-right-text">领取金币></view>
       </view>
     </view>
-
+    <!-- #endif -->
     <!-- 免费观看次数提醒 -->
+    <!-- #ifdef APP-PLUS -->
     <view class="share-section" @click="clickFreeViewCard" v-if="freeViewCount > 0">
       <view class="share-container" v-if="memberStore.profile">
         当前免费观看次数{{ freeViewCount }}次
       </view>
       <view class="section-title" v-else>新用户注册后可免费观看5次付费视频，点我去注册</view>
     </view>
+    <!-- #endif -->
+    <!-- #ifdef H5 -->
+    <view class="share-section" @click="dowApp">
+      <view class="section-title">首次下载APP即可获得免费观看付费视频次数</view>
+    </view>
+    <!-- #endif -->
 
     <!-- 其他服务区域 -->
     <view class="services-section">
@@ -155,18 +163,16 @@
           <uni-icons type="gift" size="24" color="#222"></uni-icons>
           <text class="service-text">每日福利</text>
         </view> -->
-		<!-- #ifdef APP-PLUS -->
         <view class="service-item" @click="toShare">
           <uni-icons type="redo" size="24" color="#222"></uni-icons>
           <text class="service-text">分享</text>
         </view>
-		<!-- #endif -->
-		<!-- #ifdef H5 -->
-		<view class="service-item" @click="dowApp">
-		  <uni-icons type="redo" size="24" color="#222"></uni-icons>
-		  <text class="service-text">下载APP</text>
-		</view>
-		<!-- #endif -->
+        <!-- #ifdef H5 -->
+        <view class="service-item" @click="dowApp">
+          <uni-icons type="pulldown" size="24" color="#222"></uni-icons>
+          <text class="service-text">下载APP</text>
+        </view>
+        <!-- #endif -->
         <view class="service-item" @click="toWxchat">
           <uni-icons type="weixin" size="24" color="#222"></uni-icons>
           <text class="service-text">联系我们</text>
@@ -241,7 +247,24 @@ const handleAvatarError = (e) => {
   }
 };
 const toShare = () => {
+  // #ifdef APP-PLUS
   uni.navigateTo({ url: "/pages/share/share" });
+  // #endif
+  // #ifdef H5
+  uni.setClipboardData({
+    data: "http://caimizm.com",
+    success() {
+      uni.showToast({
+        title: "已将网址复制到剪切板",
+      });
+    },
+    error() {
+      uni.showToast({
+        title: "复制失败",
+      });
+    },
+  });
+  // #endif
 };
 // 获取用户金币余额
 const getUserBalance = async () => {
@@ -556,8 +579,8 @@ function clickFreeViewCard() {
   }
 }
 
-function dowApp(){
-	window.open("http://www.caimizm.com/")
+function dowApp() {
+  window.open("http://www.caimizm.com/");
 }
 </script>
 
