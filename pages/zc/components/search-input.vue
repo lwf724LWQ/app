@@ -39,7 +39,7 @@
             :value="statusIndex"
             @change="onStatusChange"
           >
-            <view class="picker-value" :class="{ 'picker-value--placeholder': statusIndex === 0 }">
+            <view class="picker-value">
               {{ statusOptions[statusIndex].label }}
             </view>
             <uni-icons type="arrowdown" size="28rpx" color="#999"></uni-icons>
@@ -86,7 +86,6 @@ const keyword = ref('')
 
 // 赛事状态选项
 const statusOptions = [
-  { label: '全部', value: '' },
   { label: '即时', value: 0 },
   { label: '赛程', value: 1 },
   { label: '赛果', value: 2 },
@@ -139,6 +138,11 @@ function onConfirm() {
   emit('search', searchParams)
   closePanel()
 }
+defineExpose({
+  setStatus(value){
+    statusIndex.value = value
+  }
+});
 </script>
 
 <style lang="scss" scoped>

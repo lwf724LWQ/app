@@ -26,7 +26,7 @@
 
     <!-- 搜索 -->
     <view class="search-box" v-if="[0, 1, 2].includes(pickerIndex)">
-      <search-input placeholder="请输入搜索内容" @search="onSearch" />
+      <search-input placeholder="请输入搜索内容" @search="onSearch" ref="searchInputRef" />
     </view>
     <swiper
       class="video-swiper"
@@ -92,6 +92,8 @@ import InstantList from "./index-tab-pages/Instant-list.vue";
 
 import searchInput from "./components/search-input.vue";
 
+const searchInputRef = ref(null)
+
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(3);
 
@@ -115,6 +117,8 @@ function swiperChange(e) {
 const switchTabByIndex = async (index, isRefresh) => {
   pickerIndex.value = index;
   currentLotteryType.value = lotteryTypes.value[index];
+
+  searchInputRef.value.setStatus(index)
 
   // 切换标签时重置并获取对应类型的视频列表
   if (isRefresh) {
