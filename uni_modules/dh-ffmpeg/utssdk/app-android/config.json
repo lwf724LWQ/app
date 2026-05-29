@@ -1,6 +1,0 @@
-{
-	"dependencies": [
-		"io.github.jamaismagic.ffmpeg:ffmpeg-kit-lts-tls-16kb:6.1.4"
-	],
-	"minSdkVersion": "23"
-}

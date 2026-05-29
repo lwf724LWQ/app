@@ -23,6 +23,11 @@
         <text class="tab-text">{{ item }}</text>
       </view>
     </view>
+
+    <!-- 搜索 -->
+    <view class="" v-if="[0, 1, 2].includes(pickerIndex)">
+      <search-input placeholder="请输入搜索内容" />
+    </view>
     <swiper
       class="video-swiper"
       :indicator-dots="false"
@@ -89,7 +94,7 @@ import InstantList from "./index-tab-pages/Instant-list.vue";
 const pickerIndex = ref(3);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["即时", "赛程", "赛果", "大师预测", "大众评论"]);
+const lotteryTypes = ref(["即时", "赛程", "赛果", "大师预测", "大众评论", "关注"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -422,5 +427,6 @@ const onHoverClick = () => {
   height: 100%;
   flex: 1;
   overflow: hidden;
+  position: fixed;
 }
 </style>
