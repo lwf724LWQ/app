@@ -20,12 +20,21 @@ function hanldeAvatar(str: string): string {
   return "http://video.caimizm.com/himg/user.png"; // 默认头像
 }
 
+// 默认允许的视频观看次数
+// #ifdef APP-PLUS
+const defaultVideoCount = 3;
+// #endif
+
+// #ifdef H5
+const defaultVideoCount = 0;
+// #endif
+
 export const useUserStore = defineStore("user", {
   state: () => ({
     userInfo: uni.getStorageSync("userInfo") as UserInfo | null,
     isLoggedIn: false,
     token: uni.getStorageSync("token") || "",
-    videoCount: uni.getStorageSync("videoCount") === "" ? 3 : uni.getStorageSync("videoCount"), // 用户允许观看视频次数
+    videoCount: uni.getStorageSync("videoCount") === "" ? defaultVideoCount : uni.getStorageSync("videoCount"), // 用户允许观看视频次数
   }),
 
   getters: {
