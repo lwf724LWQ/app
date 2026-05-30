@@ -118,21 +118,6 @@ const fetchVideoList = async (dateStr) => {
     const Videoinfo = await getFootBallList(dateStr, 2, "");
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
-      Videoinfo.data = Videoinfo.data.map((item) => {
-        try {
-          const mresult = JSON.parse(item.mresult);
-          item.scorecurrent = mresult.scorecurrent;
-          item.halfTimecurrent = mresult.halfTimecurrent;
-          item.totalGoalscurrent = mresult.totalGoalscurrent;
-          item.winDrawLosecurrent = mresult.winDrawLosecurrent;
-        } catch (error) {
-          console.error("解析 mresult 失败:", error);
-        }
-        return {
-          ...item,
-        };
-      });
-
       matchInfoList.value = Videoinfo.data;
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
