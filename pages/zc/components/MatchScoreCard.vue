@@ -23,7 +23,7 @@
       </view>
 
       <view class="favorite-btn" @click="toggleFavorite" :class="{ active: isFavorite }">
-          <text class="star-icon">☆</text>
+          <text class="star-icon">{{ isFavorite ? "★" : "☆" }}</text>
         </view>
     </view>
 
@@ -61,6 +61,8 @@
 
 <script>
 import dayjs from 'dayjs';
+import {forllowFootball, delForllowFootball} from "@/api/apis.js"
+import { getToken } from '../../../utils/request';
 
 export default {
   props: {
@@ -156,9 +158,35 @@ export default {
     }
   },
   methods: {
-    toggleFavorite() {
-      this.isFavorite = !this.isFavorite;
-      this.$emit("favorite", this.isFavorite);
+    async toggleFavorite() {
+      if(getToken()){
+        uni.showLoading()
+        try {
+          if (this.isFavorite) {
+            await delForllowFootball(this.match.matchId)
+          }else{
+            await forllowFootball(this.match.matchId)
+          }
+
+          this.isFavorite = !this.isFavorite;
+        } catch (error) {
+          uni.showToast({
+            title: error.msg || "操作失败"
+          })  
+        }
+        uni.hideLoading()
+      }else{
+        uni.showModal({
+            title: "提示",
+            content: "该操作需要登录，是否前往",
+            success: async (res) => {
+                if (res.confirm) {
+                    uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/zc/index" });
+                }
+            },
+            showCancel: true,
+        });
+      }
     },
     toDetailPage() {
       // uni.navigateTo({

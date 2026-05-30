@@ -25,7 +25,7 @@
     </view>
 
     <!-- 搜索 -->
-    <view class="search-box" v-if="[0, 1, 2].includes(pickerIndex)">
+    <view class="search-box" v-show="[0, 1, 2].includes(pickerIndex)">
       <search-input placeholder="请输入搜索内容" @search="onSearch" ref="searchInputRef" />
     </view>
     <swiper
@@ -52,6 +52,9 @@
       </swiper-item>
       <swiper-item>
         <PostList />
+      </swiper-item>
+      <swiper-item>
+        <ForllowList/>
       </swiper-item>
     </swiper>
 
@@ -89,8 +92,10 @@ import ResultList from "./index-tab-pages/Result-list.vue";
 import PrognosisList from "./index-tab-pages/prognosis-list.vue";
 import PostList from "./index-tab-pages/Post-list.vue";
 import InstantList from "./index-tab-pages/Instant-list.vue";
+import ForllowList from "./index-tab-pages/forllow-list.vue";
 
 import searchInput from "./components/search-input.vue";
+import { getToken } from "../../utils/request.js";
 
 const searchInputRef = ref(null)
 
@@ -115,6 +120,10 @@ function swiperChange(e) {
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index, isRefresh) => {
+  if(getToken()){
+    
+  }
+
   pickerIndex.value = index;
   currentLotteryType.value = lotteryTypes.value[index];
 

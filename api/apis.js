@@ -669,6 +669,28 @@ export const getFootBallPostDetail = (fbpostId) => {
 export const videoWatermark = (VideoUrl) => {
   return request({
     url: "/web/video/shuiyin?video=" + VideoUrl,
-    method: "GEt",
+    method: "GET",
   });
 };
+
+export const forllowFootball = (matchId) => {
+  return request({
+    url: "/web/football/user_insert?matchId=" + matchId,
+    method: "GET",
+  });
+}
+
+export const delForllowFootball = (matchId) => {
+  return request({
+    url: "/web/football/user_delete?matchId=" + matchId,
+    method: "GET",
+  });
+}
+
+export const forllowFootballList = (data) => {
+    return request({
+    url: "/web/football/find_user_football",
+    method: "POST",
+    data
+  });
+}
