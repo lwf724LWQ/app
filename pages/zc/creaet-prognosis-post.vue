@@ -114,7 +114,7 @@ async function submitPrognosis() {
     return;
   }
   const confirmForm = {
-    matchId: "1",
+    ftype: 1,
     title: form.title,
 
     // 预测价格

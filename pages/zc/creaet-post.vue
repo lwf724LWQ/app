@@ -64,7 +64,7 @@ const form = reactive({
   enableTotalGoals: false,
   enableScore: false,
 
-  enablePrice: true,
+  enablePrice: false,
   price: 10,
 
   expertAnalysis: "",
@@ -121,7 +121,7 @@ async function submitPrognosis() {
     return;
   }
   const confirmForm = {
-    matchId: "2",
+    ftype: 2,
     title: form.title,
 
     // 预测价格

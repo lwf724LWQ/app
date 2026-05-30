@@ -3,13 +3,13 @@
     <!-- 头部：用户信息 -->
     <view class="header">
       <view class="user-info">
-        <image class="avatar" :src="userInfo.avatar" mode="aspectFill" />
+        <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
         <view class="text-info">
           <view class="name-row">
-            <text class="nickname">{{ userInfo.nickname }}</text>
+            <text class="nickname">{{ postData.uname }}</text>
           </view>
           <view class="meta-info">
-            <text>{{ userInfo.time }}</text>
+            <text>{{ getTimeAgo(postData.create_time) }}</text>
           </view>
         </view>
       </view>
@@ -19,14 +19,14 @@
     <!-- 内容区 -->
     <view class="content">
       <view class="title" v-if="postData.title">{{ postData.title }}</view>
-      <view class="description">{{ postData.description }}</view>
+      <view class="description">{{ postData.expertAnalysis }}</view>
     </view>
 
     <!-- 底部：互动栏 -->
     <view class="footer">
       <view class="action-item" @click="onComment">
         <uni-icons class="icon-img" type="chat" size="16" />
-        {{ postData.commentCount }}
+        {{ postData.description }}
       </view>
       <view class="action-item" @click="onLike">
         <uni-icons class="icon-img" type="hand-up" size="16" />
@@ -38,28 +38,23 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
+import tool from "@/utils/tool.js"
 
 // 定义组件接收的属性
 const props = defineProps({
-  userInfo: {
-    type: Object,
-    default: () => ({
-      nickname: "菲儿图嘎飞",
-      level: 2,
-      avatar: "https://via.placeholder.com/100", // 替换为实际图片地址
-      time: "2小时前",
-      location: "皇家马德里",
-    }),
-  },
   postData: {
     type: Object,
-    default: () => ({
-      title: "讲下阿诺德",
-      likeCount: 52,
-      commentCount: 549,
-    }),
+    default: () => ({}),
   },
 });
+
+function getTimeAgo(time){
+  return tool.getTimeAgo(time)
+}
+
+function getFullImgUrl(url){
+  return tool.oss.getFullUrl(`/himg/${url}`);
+}
 
 const emit = defineEmits(["follow", "share", "comment", "like", "postCard"]);
 

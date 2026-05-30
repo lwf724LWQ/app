@@ -11,7 +11,7 @@
     <view class="prognosis-container">
       <PostCard
         v-for="item in list"
-        :data="item"
+        :postData="item"
         :badgeData="getUserBadgeData(item.account)"
         @postCard="openDetail(item)"
       />
@@ -58,6 +58,8 @@ export default {
       isNoMore: false,
       total: 0,
       UserBadgeAccuracyMap: {},
+
+      isNeedRefresh: false
     };
   },
   methods: {
@@ -80,8 +82,12 @@ export default {
       const res = await getFootBallPostList({
         page: this.currentPage,
         limit: 20,
-        matchId: this.matchId,
+        ftype: 2,
       });
+      res.data.list.forEach((item)=>{
+        const a = JSON.parse(item.result)
+        item.description = a.expertAnalysis
+      })
 
       this.UserBadgeAccuracyMap = { ...this.UserBadgeAccuracyMap, ...res.data.result };
       this.list = [...this.list, ...res.data.list];
@@ -103,7 +109,7 @@ export default {
         const res = await getFootBallPostList({
           page: this.currentPage,
           limit: 20,
-          matchId: this.matchId,
+          ftype: 2,
         });
         console.log(res);
 
@@ -135,6 +141,18 @@ export default {
     onScratchComplete(percent) {
       console.log(percent);
     },
+    gotoPutPost(){
+      this.isNeedRefresh = true;
+      uni.navigateTo({
+        url: "/pages/zc/creaet-post",
+      });
+    },
+    onshow(){
+      if(this.isNeedRefresh){
+      this.refreshList()
+      this.isNeedRefresh = false
+    }
+    }
   },
   mounted() {
     this.refreshList();

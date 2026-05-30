@@ -34,6 +34,8 @@ import PaymentWrapper from "@/components/Payment-wrapper/Payment-wrapper.vue";
 import PrognosisCard from "../components/prognosis-card.vue";
 import { getFootBallPostList, CheckFootBallIsPay } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
+import videoTool from "@/pages/video/video-tool.js";
+import tool from "@/utils/tool.js";
 
 export default {
   components: { PrognosisCard, PaymentWrapper },
@@ -58,6 +60,8 @@ export default {
       isNoMore: false,
       total: 0,
       UserBadgeAccuracyMap: {},
+
+      isNeedRefresh: false
     };
   },
   methods: {
@@ -107,7 +111,7 @@ export default {
       const res = await getFootBallPostList({
         page: this.currentPage,
         limit: 20,
-        matchId: this.matchId,
+        ftype: 1,
       });
 
       this.UserBadgeAccuracyMap = { ...this.UserBadgeAccuracyMap, ...res.data.result };
@@ -130,7 +134,7 @@ export default {
         const res = await getFootBallPostList({
           page: this.currentPage,
           limit: 20,
-          matchId: this.matchId,
+          ftype: 1,
         });
         console.log(res);
 
@@ -162,6 +166,25 @@ export default {
     onScratchComplete(percent) {
       console.log(percent);
     },
+    gotoPutreview(){
+      if (videoTool.checkIsBozhu()) {
+        const url = tool.formatUrlParams(
+          {},
+          "/pages/zc/creaet-prognosis-post"
+        );
+
+        this.isNeedRefresh = true;
+        uni.navigateTo({
+          url: url,
+        });
+      }
+    },
+    onshow(){
+        if(this.isNeedRefresh){
+          this.refreshList()
+          this.isNeedRefresh = false
+        }
+    }
   },
   mounted() {
     this.refreshList();

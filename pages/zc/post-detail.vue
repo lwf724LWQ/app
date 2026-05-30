@@ -4,18 +4,18 @@
       <!-- 1. 主贴内容 -->
       <view class="main-post">
         <view class="post-header">
-          <image class="avatar" src="http://video.caimizm.com/himg/user.png" mode="aspectFill" />
+          <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
           <view class="user-meta">
             <view class="name-row">
-              <text class="username">Xctwar</text>
+              <text class="username">{{ postDetail.uname }}</text>
             </view>
-            <view class="time-row">05-09</view>
+            <view class="time-row">{{ getTimeAgo(postData.create_time) }}</view>
           </view>
         </view>
 
         <view class="post-content">
-          <view class="title">讲下阿诺德</view>
-          <view class="body">参加非洲杯仍缺席皇马训练。</view>
+          <view class="title">{{ postDetail.title }}</view>
+          <view class="body">{{ postDetail.description }}</view>
         </view>
       </view>
 
@@ -60,11 +60,16 @@
 <script>
 import commentCard from "./components/comment-card.vue";
 import myPage from "@/components/myPage.vue";
+import {getFootBallPostDetail} from "@/api/apis.js"
+import tool from "@/utils/tool"
 
 export default {
   components: { commentCard, myPage },
   data() {
     return {
+      id: "",
+      postDetail:{},
+
       activeTab: "all",
       sort: "hot",
       commentList: [
@@ -93,7 +98,32 @@ export default {
     onFocus() {
       this.inputFocus = true;
     },
+
+    async getPostDetail(){
+      uni.showLoading()
+      try {
+          const res = await getFootBallPostDetail(this.id)
+          const a = JSON.parse(res.data.result)
+          res.data.description = a.expertAnalysis
+          this.postDetail = res.data
+      } catch (error) {
+        uni.showToast({
+          title: error.msg || "加载失败"
+        })        
+      }
+      uni.hideLoading()
+    },
+    getFullImgUrl(){
+      return tool.oss.getFullUrl(`/himg/${url}`);
+    },
+    getCommentList(){
+      
+    }
   },
+  onLoad(option){
+    this.id = option.id;
+    this.getPostDetail()
+  }
 };
 </script>
 

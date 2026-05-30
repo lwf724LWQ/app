@@ -48,13 +48,13 @@
         <ResultList />
       </swiper-item>
       <swiper-item>
-        <PrognosisList />
+        <PrognosisList ref="prognosisRef" />
       </swiper-item>
       <swiper-item>
-        <PostList />
+        <PostList ref="postListRef" />
       </swiper-item>
       <swiper-item>
-        <ForllowList/>
+        <ForllowList ref="forllowListRef" />
       </swiper-item>
     </swiper>
 
@@ -96,6 +96,7 @@ import ForllowList from "./index-tab-pages/forllow-list.vue";
 
 import searchInput from "./components/search-input.vue";
 import { getToken } from "../../utils/request.js";
+import { nextTick } from "vue";
 
 const searchInputRef = ref(null)
 
@@ -120,8 +121,19 @@ function swiperChange(e) {
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index, isRefresh) => {
-  if(getToken()){
-    
+  if(index === 5 && !getToken()){
+    // 关注列表需要登录才能使用
+    uni.showModal({
+      title: "提示",
+      content: "该功能需要注册才能使用",
+      success: async (res) => {
+        if (res.confirm) {
+          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
+        }
+      },
+      showCancel: true,
+    });
+    return
   }
 
   pickerIndex.value = index;
@@ -159,11 +171,14 @@ const gotoPutPost = () => {
   });
 };
 
-onShow(async (e) => {
-  if (isNeedRefresh) {
-    isNeedRefresh = false;
-    refreshCurrentTab();
-  }
+const postListRef = ref(null)
+const prognosisRef = ref(null)
+
+onShow((e) => {
+  nextTick(()=>{
+    postListRef.value?.onshow()
+    prognosisRef.value?.onshow()
+  })
 });
 
 // 生命周期钩子

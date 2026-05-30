@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import tool from "@/utils/tool"
 export default {
   props: {
     comment: {
@@ -32,6 +33,11 @@ export default {
       required: true,
     },
   },
+  methods: {
+    getFullImgUrl(){
+      return tool.oss.getFullUrl(`/himg/${url}`);
+    },
+  }
 };
 </script>
 

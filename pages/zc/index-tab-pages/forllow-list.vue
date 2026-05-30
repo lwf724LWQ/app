@@ -54,6 +54,7 @@ const matchInfoList = ref([]);
 const isLoading = ref(false);
 const hasMore = ref(true);
 const currentPage = ref(1);
+const isNeedRefresh = ref(false);
 
 // 刷新视频列表
 const refreshVideoList = async (e) => {
@@ -224,9 +225,17 @@ onMounted(() => {
   refreshVideoList();
 });
 
-// 暴露 refreshVideoList 函数给父组件
+function onshow() {
+  if (isNeedRefresh.value) {
+    refreshVideoList();
+    isNeedRefresh.value = false;
+  }
+}
+
+// 暴露方法给父组件
 defineExpose({
   refreshVideoList,
+  onshow,
 });
 </script>
 <style lang="scss" scoped>
