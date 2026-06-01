@@ -4,12 +4,12 @@
       <!-- 1. 主贴内容 -->
       <view class="main-post">
         <view class="post-header">
-          <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
+          <image class="avatar" :src="getFullImgUrl(postDetail.himg)" mode="aspectFill" />
           <view class="user-meta">
             <view class="name-row">
               <text class="username">{{ postDetail.uname }}</text>
             </view>
-            <view class="time-row">{{ getTimeAgo(postData.create_time) }}</view>
+            <view class="time-row">{{ getTimeAgo(postDetail.create_time) }}</view>
           </view>
         </view>
 
@@ -32,6 +32,7 @@
             v-model="inputText"
             @blur="onBlur"
             @focus="onFocus"
+            @confirm="submitComment"
             :auto-blur="true"
             confirm-type="send"
             placeholder="请输入评论..."
@@ -39,7 +40,7 @@
         </view>
         <view class="bottom-actions">
           <template v-if="inputFocus">
-            <button class="action-btn">发送</button>
+            <button class="action-btn" @click="submitComment">发送</button>
           </template>
           <template v-else>
             <view class="action-btn">
@@ -62,6 +63,7 @@ import commentCard from "./components/comment-card.vue";
 import myPage from "@/components/myPage.vue";
 import {getFootBallPostDetail} from "@/api/apis.js"
 import tool from "@/utils/tool"
+import { addComment } from "../../api/apis.js";
 
 export default {
   components: { commentCard, myPage },
@@ -113,11 +115,34 @@ export default {
       }
       uni.hideLoading()
     },
-    getFullImgUrl(){
+    getFullImgUrl(url){
       return tool.oss.getFullUrl(`/himg/${url}`);
     },
     getCommentList(){
       
+    },
+    getTimeAgo(time){
+      return tool.getTimeAgo(time)
+    },
+    async submitComment(){
+      uni.showLoading()
+      try {
+          // 前端先简单过滤政治类敏感词
+
+          const res = await addComment({
+            postId: this.id,
+            pid: "0",
+            content: this.inputText
+          })
+          uni.showToast({
+            title: res.msg
+          })
+      } catch (error) {
+          uni.showToast({
+            title: res.msg || "未知错误"
+          })
+      }
+      uni.hideLoading()
     }
   },
   onLoad(option){

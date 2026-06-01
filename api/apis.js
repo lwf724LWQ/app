@@ -688,8 +688,17 @@ export const delForllowFootball = (matchId) => {
 }
 
 export const forllowFootballList = (data) => {
-    return request({
+  return request({
     url: "/web/football/find_user_football",
+    method: "POST",
+    data
+  });
+}
+
+// 添加评论
+export const addComment = (data) => {
+  return request({
+    url: "/web/comment/insert",
     method: "POST",
     data
   });
