@@ -32,16 +32,18 @@
 <script>
 import PaymentWrapper from "@/components/Payment-wrapper/Payment-wrapper.vue";
 import PostCard from "../components/post-card.vue";
-import { getFootBallPostList, CheckFootBallIsPay } from "@/api/apis.js";
+import { getFootBallPostList, CheckFootBallIsPay, findByAccountWithFbpost } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
+import { useUserStore } from "@/stores/userStore";
+
 
 export default {
   components: { PostCard, PaymentWrapper },
   props: {
-    matchId: {
+    findByAccount: {
       type: String,
-      required: true,
-      default: "2039595",
+      required: false,
+      default: "",
     },
   },
   data() {
@@ -79,11 +81,30 @@ export default {
       }
       this.isLoading = true;
       this.currentPage++;
-      const res = await getFootBallPostList({
-        page: this.currentPage,
-        limit: 20,
-        ftype: 2,
-      });
+      let res = null
+      if (this.findByAccount) {
+        erStore()
+        res = await findByAccountWithFbpost({
+          page: this.currentPage,
+          limit: 20,
+          ftype: 2,
+          account: this.findByAccount
+        });
+        const userStore = useUserStore()
+        const userdata = userStore.getUserInfo
+        res.data.records.forEach(item => {
+          item.uname = userdata.nickname
+          item.himg = userdata.avatar
+        })
+        res.data.list = res.data.records
+      }else{
+        res = await getFootBallPostList({
+          page: this.currentPage,
+          limit: 20,
+          ftype: 2,
+        });
+      }
+      
       res.data.list.forEach((item)=>{
         const a = JSON.parse(item.result)
         item.description = a.expertAnalysis
@@ -106,11 +127,28 @@ export default {
       this.isLoading = true;
       this.currentPage = 1;
       try {
-        const res = await getFootBallPostList({
-          page: this.currentPage,
-          limit: 20,
-          ftype: 2,
-        });
+        let res = null;
+        if (this.findByAccount) {
+          res = await findByAccountWithFbpost({
+            page: this.currentPage,
+            limit: 20,
+            ftype: 2,
+            account: this.findByAccount
+          });
+          const userStore = useUserStore()
+          const userdata = userStore.getUserInfo
+          res.data.records.forEach(item => {
+            item.uname = userdata.nickname
+            item.himg = userdata.avatar
+          })
+          res.data.list = res.data.records
+        }else{
+          res = await getFootBallPostList({
+            page: this.currentPage,
+            limit: 20,
+            ftype: 2,
+          });
+        }
         console.log(res);
 
         this.UserBadgeAccuracyMap = res.data.result || {};

@@ -32,18 +32,18 @@
 <script>
 import PaymentWrapper from "@/components/Payment-wrapper/Payment-wrapper.vue";
 import PrognosisCard from "../components/prognosis-card.vue";
-import { getFootBallPostList, CheckFootBallIsPay } from "@/api/apis.js";
+import { getFootBallPostList, CheckFootBallIsPay, findByAccountWithFbpost } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import videoTool from "@/pages/video/video-tool.js";
 import tool from "@/utils/tool.js";
-
+import { useUserStore } from "@/stores/userStore";
 export default {
   components: { PrognosisCard, PaymentWrapper },
   props: {
-    matchId: {
+    findByAccount: {
       type: String,
-      required: true,
-      default: "1",
+      required: false,
+      default: "",
     },
   },
   data() {
@@ -72,7 +72,7 @@ export default {
       console.log(data);
 
       // 判断是否已经支付
-      if (data.flag == 1) {
+      if (data.flag == 1 && (getAccount() !== data.account)) {
         uni.showLoading({
           title: "加载中...",
         });
@@ -108,11 +108,28 @@ export default {
       }
       this.isLoading = true;
       this.currentPage++;
-      const res = await getFootBallPostList({
-        page: this.currentPage,
-        limit: 20,
-        ftype: 1,
-      });
+      let res = null
+      if (this.findByAccount) {
+        res = await findByAccountWithFbpost({
+          page: this.currentPage,
+          limit: 20,
+          ftype: 1,
+          account: this.findByAccount
+        });
+        const userStore = useUserStore()
+        const userdata = userStore.getUserInfo
+        res.data.records.forEach(item => {
+          item.uname = userdata.nickname
+          item.himg = userdata.avatar
+        })
+        res.data.list = res.data.records
+      }else{
+        res = await getFootBallPostList({
+          page: this.currentPage,
+          limit: 20,
+          ftype: 1,
+        });
+      }
 
       this.UserBadgeAccuracyMap = { ...this.UserBadgeAccuracyMap, ...res.data.result };
       this.list = [...this.list, ...res.data.list];
@@ -131,11 +148,28 @@ export default {
       this.isLoading = true;
       this.currentPage = 1;
       try {
-        const res = await getFootBallPostList({
-          page: this.currentPage,
-          limit: 20,
-          ftype: 1,
-        });
+        let res = null;
+        if (this.findByAccount) {
+          res = await findByAccountWithFbpost({
+            page: this.currentPage,
+            limit: 20,
+            ftype: 1,
+            account: this.findByAccount
+          });
+          const userStore = useUserStore()
+          const userdata = userStore.getUserInfo
+          res.data.records.forEach(item => {
+            item.uname = userdata.nickname
+            item.himg = userdata.avatar
+          })
+          res.data.list = res.data.records
+        }else{
+          res = await getFootBallPostList({
+            page: this.currentPage,
+            limit: 20,
+            ftype: 1,
+          });
+        }
         console.log(res);
 
         this.UserBadgeAccuracyMap = res.data.result || {};

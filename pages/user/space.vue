@@ -21,7 +21,7 @@
           <view>
             <uni-segmented-control
               :current="current"
-              :values="['视频', '帖子']"
+              :values="['视频', '帖子', '足球预测', '大众评论']"
               @clickItem="onClickItem"
             ></uni-segmented-control>
           </view>
@@ -31,9 +31,15 @@
             <videoCard v-for="video in videoList" :key="video.id" :video="video"></videoCard>
             <view class="no-post" v-if="!videoList.length && current == 0">未发布视频</view>
           </view>
-          <view v-else>
+          <view v-else-if="current === 1">
             <postCard v-for="post in postList" :key="post.id" :post="post"></postCard>
             <view class="no-post" v-if="!videoList.length && current == 1">未发布视频</view>
+          </view>
+          <view v-else-if="current === 2">
+            <prognosisList :find-by-account="account" />
+          </view>
+          <view v-else-if="current === 3">
+            <zcPostList :find-by-account="account" />
           </view>
         </view>
       </view>
@@ -49,6 +55,8 @@ import { ref, computed } from "vue";
 import postCard from "@/components/post-card/post-card.vue";
 import videoCard from "@/components/post-card/video-card.vue";
 import { apiSelect_by_account } from "@/api/apis.js";
+import zcPostList from "../zc/index-tab-pages/post-list.vue"
+import prognosisList from "../zc/index-tab-pages/prognosis-list.vue";
 
 // 获取用户数据
 const userInfo = ref({});
@@ -62,12 +70,13 @@ const getUserInfo = async (account) => {
   userInfo.value = res.data;
   followStatus.value = res.data.isForllow ? 1 : 0;
 };
-let account;
+const account = ref('');
+
 const followStatus = ref(0);
 onLoad(async (options) => {
-  account = options.account;
+  account.value = options.account;
   // followStatus.value = Number(options.follow);
-  getUserInfo(account);
+  getUserInfo(account.value);
   videoList.value = await getVideo(1);
 });
 
@@ -92,7 +101,7 @@ const getVideo = async (page) => {
       title: "加载中",
       mask: true,
     });
-    const res = await getUserVideoListApi({ page, limit: 10, account });
+    const res = await getUserVideoListApi({ page, limit: 10, account: account.value });
     try {
       const clickedVideos = uni.getStorageSync("videoClickList") || [];
       return res.data.records.map((item) => ({
@@ -114,7 +123,7 @@ const getPost = async (page) => {
       title: "加载中",
       mask: true,
     });
-    const res = await apiSelect_by_account({ page, limit: 10, account });
+    const res = await apiSelect_by_account({ page, limit: 10, account: account.value });
     return res.data.list;
   } finally {
     uni.hideLoading();
@@ -129,7 +138,7 @@ const followHandle = async () => {
       content: `确定取消关注用户${userInfo.value.uname}吗？`,
       success: async (res) => {
         if (res.confirm) {
-          const res = await cancelUserFollowApi({ account2: account });
+          const res = await cancelUserFollowApi({ account2: account.value });
           uni.showToast({
             title: res.msg,
             icon: "success",
@@ -139,7 +148,7 @@ const followHandle = async () => {
       },
     });
   } else {
-    await userFollowApi({ account2: account });
+    await userFollowApi({ account2: account.value });
     changeFollowStatus();
   }
 };
