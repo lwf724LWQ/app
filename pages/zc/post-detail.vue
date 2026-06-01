@@ -3,7 +3,7 @@
     <view class="container">
       <!-- 1. 主贴内容 -->
       <view class="main-post">
-        <view class="post-header">
+        <view class="post-header" @click="toUserDetail">
           <image class="avatar" :src="getFullImgUrl(postDetail.himg)" mode="aspectFill" />
           <view class="user-meta">
             <view class="name-row">
@@ -191,6 +191,11 @@ export default {
         this.getCommentList(true); 
       }
     },
+    toUserDetail(){
+      uni.navigateTo({
+        url: `/pages/user/space?account=${this.postDetail.account}`,
+      });
+    }
   },
   
   onLoad(option) {

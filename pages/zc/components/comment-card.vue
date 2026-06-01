@@ -2,11 +2,11 @@
   <view class="comment-card">
     <view class="card-main">
       <!-- 用户头像 -->
-      <image class="avatar" :src="getFullImgUrl(comment.himg)" mode="aspectFill" />
+      <image class="avatar" :src="getFullImgUrl(comment.himg)" mode="aspectFill"  @click="toUserDetail(comment)" />
 
       <view class="content-box">
         <!-- 用户信息行 -->
-        <view class="user-info">
+        <view class="user-info" @click="toUserDetail(comment)">
           <text class="username">{{ comment.uname }}</text>
         </view>
 
@@ -36,6 +36,7 @@
           class="sub-avatar"
           :src="getFullImgUrl(child.himg)"
           mode="aspectFill"
+          @click="toUserDetail(child)"
         />
         <view class="sub-content-box">
           <view class="sub-user-row">
@@ -125,6 +126,11 @@ export default {
     },
     getTimeAgo(time){
       return tool.getTimeAgo(time)
+    },
+    toUserDetail(item){
+      uni.navigateTo({
+        url: `/pages/user/space?account=${item.account}`,
+      });
     }
   },
 };

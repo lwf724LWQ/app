@@ -21,8 +21,8 @@
         :class="{ active: option.time === currentPageDate }"
         @click="fetchVideoListByDate(option.time)"
       >
-        <text class="recent-option-text">{{ option.date }}</text>
-        <text class="recent-option-text">{{ option.weekday }}</text>
+        <view class="recent-option-text">{{ option.date }}</view>
+        <view class="recent-option-text">{{ option.weekday }}</view>
       </view>
     </view>
 
@@ -70,12 +70,12 @@ function initRecentOptions() {
   for (let i = 0; i < 6; i++) {
     const date = nowDate.add(i, "day");
     recentOptions.value.push({
-      time: date.format("YYYY/M/DD"),
-      date: date.format("MM-DD"),
+      time: date.format("YYYY/M/D"),
+      date: date.format("M-D"),
       weekday: date.format("dddd"),
     });
   }
-  currentPageDate.value = nowDate.format("YYYY/M/DD");
+  currentPageDate.value = nowDate.format("YYYY/M/D");
 }
 
 // 刷新视频列表

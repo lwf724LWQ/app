@@ -107,6 +107,11 @@ export default {
     openDetail() {
       this.$emit("openDetail", this.data);
     },
+    toUserDetail(){
+      uni.navigateTo({
+        url: `/pages/user/space?account=${this.account}`,
+      });
+    }
   },
 };
 </script>

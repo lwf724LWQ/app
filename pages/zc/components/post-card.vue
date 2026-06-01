@@ -2,7 +2,7 @@
   <view class="post-card" @click="onPostCard">
     <!-- 头部：用户信息 -->
     <view class="header">
-      <view class="user-info">
+      <view class="user-info" @click="toUserDetail">
         <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
         <view class="text-info">
           <view class="name-row">
@@ -57,6 +57,12 @@ function getFullImgUrl(url){
     return url
   }
   return tool.oss.getFullUrl(`/himg/${url}`);
+}
+
+function toUserDetail(){
+  uni.navigateTo({
+    url: `/pages/user/space?account=${props.postData.account}`,
+  });
 }
 
 const emit = defineEmits(["follow", "share", "comment", "like", "postCard"]);

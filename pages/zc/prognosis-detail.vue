@@ -20,7 +20,7 @@
           <view class="title">{{ prognosisData.title }}</view>
 
           <!-- 博主信息 -->
-          <view class="author-info">
+          <view class="author-info" @click="toUserDetail">
             <image class="avatar" :src="getFullHimgUrl(prognosisData.himg)" mode="aspectFill" />
             <text class="name">{{ prognosisData.uname }}</text>
           </view>
@@ -207,6 +207,11 @@ export default {
         this.getCommentList(true);
       }
     },
+    toUserDetail(){
+      uni.navigateTo({
+        url: `/pages/user/space?account=${this.prognosisData.account}`,
+      });
+    }
   },
   onLoad(options) {
     this.id = options.id || "0";
