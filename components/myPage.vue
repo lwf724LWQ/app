@@ -1,7 +1,8 @@
 <template>
   <view class="container-eqwejoj12123fsf">
     <top-navigation-bar :title="pageTitle" v-if="pageTitle" />
-    <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
+    <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false" @scrolltolower="onReachBottom"
+    :lower-threshold="150">
       <slot></slot>
     </scroll-view>
   </view>
@@ -16,6 +17,11 @@ export default {
   props: {
     pageTitle: { type: String, default: "" },
   },
+  methods: {
+    onReachBottom(e){
+      this.$emit("onReachBottom", e)
+    }
+  }
 };
 </script>
 

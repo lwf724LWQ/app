@@ -703,3 +703,17 @@ export const addComment = (data) => {
     data
   });
 }
+
+// 评论列表
+/**
+ * 
+ * @param {postId, page, limit} data 
+ * @returns 
+ */
+export const commentList = (data) => {
+  return request({
+    url: "/web/comment/query",
+    method: "POST",
+    data
+  });
+}

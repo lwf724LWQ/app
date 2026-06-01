@@ -878,8 +878,12 @@ async function getLoginUserInfo() {
 // 分享视频
 const videoShareRef = ref(null);
 function shareVideo() {
-  const videoUrl = videoData.value.src;
-  videoShareRef.value.share(videoUrl);
+  if (getAccount()) {
+    const videoUrl = videoData.value.src;
+    videoShareRef.value.share(videoUrl); 
+  }else{
+    tool.isLogin("当前未登录，请先登录")
+  }
 }
 
 const isHaveShareSdk = ref(true);

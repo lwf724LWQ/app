@@ -26,12 +26,12 @@
     <view class="footer">
       <view class="action-item" @click="onComment">
         <uni-icons class="icon-img" type="chat" size="16" />
-        {{ postData.description }}
+        {{ postData.count }}
       </view>
-      <view class="action-item" @click="onLike">
+      <!-- <view class="action-item" @click="onLike">
         <uni-icons class="icon-img" type="hand-up" size="16" />
         {{ postData.likeCount }}
-      </view>
+      </view> -->
     </view>
   </view>
 </template>
@@ -158,7 +158,7 @@ const onLike = () => emit("like");
     .action-item {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       flex: 1;
 
       // 模拟图标（实际项目中请使用 <uni-icons> 或图片）

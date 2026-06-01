@@ -1,5 +1,5 @@
 <template>
-  <my-page pageTitle="预测详情">
+  <my-page pageTitle="预测详情" @onReachBottom="onReachBottom">
     <view class="container">
       <!-- 顶部导航栏占位 (UniApp 默认有导航栏，这里做内容padding) -->
       <view class="content">
@@ -21,27 +21,8 @@
 
           <!-- 博主信息 -->
           <view class="author-info">
-            <image class="avatar" :src="getFullHimgUrl(prognosisData.avatar)" mode="aspectFill" />
-            <text class="name">{{ prognosisData.name || "博主" }}</text>
-          </view>
-        </view>
-
-        <!-- 卡片：发布评论 -->
-        <view class="card comment-input-card">
-          <view class="section-title">
-            <uni-icons class="icon" type="chat" size="16" color="#4A90E2"></uni-icons>
-            发表评论
-          </view>
-          <view class="comment-input-wrapper">
-            <textarea
-              class="comment-input"
-              v-model="commitForm.content"
-              placeholder="写下你的看法..."
-              maxlength="200"
-            />
-            <view class="comment-submit-row">
-              <button class="submit-btn" @click="postCommit">发布</button>
-            </view>
+            <image class="avatar" :src="getFullHimgUrl(prognosisData.himg)" mode="aspectFill" />
+            <text class="name">{{ prognosisData.uname }}</text>
           </view>
         </view>
 
@@ -53,16 +34,47 @@
             <text class="comment-count" v-if="commitList.length">({{ commitList.length }})</text>
           </view>
           <view class="comment-list">
-            <view class="comment-item" v-for="item in commitList" :key="item.id">
-              <view class="comment-user">
-                <image class="user-avatar" :src="getFullHimgUrl(item.himg)" mode="aspectFill" />
-                <text class="user-name">{{ item.uname }}</text>
-              </view>
-              <view class="comment-content">{{ item.content }}</view>
-              <view class="comment-time">{{ item.create_time }}</view>
-            </view>
+            <comment-card
+              v-for="(item, index) in commitList"
+              :key="index"
+              :comment="item"
+              @reply="onReplyTo"
+            />
             <view class="no-comment" v-if="commitList.length === 0">暂无评论，快来抢沙发吧~</view>
+            <view class="no-more" v-if="!isMoreComment && commitList.length > 0">没有更多了</view>
           </view>
+        </view>
+      </view>
+
+      <!-- 底部固定输入栏 -->
+      <view class="bottom-bar">
+        <view class="input-wrap">
+          <input
+            class="input"
+            v-model="inputText"
+            @blur="onBlur"
+            @focus="onFocus"
+            :focus="inputFocus"
+            :auto-blur="true"
+            confirm-type="send"
+            :placeholder="replyTarget ? '回复 ' + replyTarget.uname + '：' : '写下你的看法...'"
+            @confirm="postCommit"
+          />
+        </view>
+        <view class="bottom-actions">
+          <template v-if="inputFocus">
+            <button @click="postCommit" size="default" type="default">发送</button>
+          </template>
+          <template v-else>
+            <view style="margin-right: 10rpx">
+              <uni-icons type="chat" size="16"></uni-icons>
+              {{ commentCount }}
+            </view>
+            <!-- <view>
+              <uni-icons type="hand-up" size="16"></uni-icons>
+              {{ prognosisData.likeCount || 0 }}
+            </view> -->
+          </template>
         </view>
       </view>
     </view>
@@ -72,32 +84,30 @@
 import ScratchCard from "@/components/ScratchCard.vue";
 import myPage from "@/components/myPage.vue";
 import tool from "@/utils/tool.js";
-import { getFootBallPostDetail, getFootBallDetail } from "@/api/apis.js";
+import { getFootBallPostDetail, addComment, commentList } from "@/api/apis.js";
+import commentCard from "./components/comment-card.vue";
 export default {
-  components: { ScratchCard, myPage },
+  components: { ScratchCard, myPage, commentCard },
   data() {
     return {
+      id: "",
       prognosisData: {},
-      commitList: [
-        {
-          id: 1,
-          content: "这是测试数据",
-          create_time: "2023-04-01 10:00:00",
-          uname: "测试用户",
-          himg: "dadfjwqehr213h4921.jpg",
-        },
-      ],
+      commitList: [],
+      commitPage: 1,
+      commitLimit: 20,
+      commentCount: 0,
+      isMoreComment: false,
+      replyTarget: null, // { pid, uname } | null
+      inputText: "",
+      inputFocus: false,
       footBallDetail: {},
-      commitForm: {
-        content: "",
-      },
     };
   },
   computed: {
     parsedResult: function () {
-      if (!this.prognosisData.result) return false;
+      if (!this.prognosisData?.fbpost?.result) return false;
       try {
-        return JSON.parse(this.prognosisData.result);
+        return JSON.parse(this.prognosisData.fbpost.result);
       } catch (e) {
         return false;
       }
@@ -109,69 +119,108 @@ export default {
       return [];
     },
   },
-  watch: {
-    expertAnalysisList() {
-      // this.$nextTick(() => {
-      //   this.$refs.scratchCardRef.reset();
-      // });
-    },
-  },
   methods: {
     refreshScratchCard() {
       this.$refs.scratchCardRef.reset();
     },
     getFullHimgUrl(himg) {
       if (typeof himg !== "string" || himg.trim() === "") {
-        // 默认头像
         return "http://video.caimizm.com/himg/user.png";
       }
       return tool.oss.getFullUrl(`/himg/${himg}`);
     },
-    postCommit() {
-      if (!this.commitForm.content.trim()) {
+    // 回复某条一级评论
+    onReplyTo(comment) {
+      this.replyTarget = { pid: comment.id, uname: comment.uname };
+      this.onFocus()
+    },
+    cancelReply() {
+      this.replyTarget = null;
+    },
+    onBlur() {
+      setTimeout(() => {
+        this.inputFocus = false;
+        if (!this.inputText.trim()) {
+          this.replyTarget = null;
+        }
+      }, 100);
+    },
+    onFocus() {
+      this.inputFocus = true;
+    },
+    async getCommentList(isLoadMore = false) {
+      if (!isLoadMore) {
+        this.commitPage = 1;
+      }
+      try {
+        const res = await commentList({
+          postId: this.id,
+          page: this.commitPage,
+          limit: this.commitLimit,
+        });
+        const { total, list } = res.data;
+        this.commentCount = total
+        this.isMoreComment = list.length === this.commitLimit;
+        if (isLoadMore) {
+          this.commitList = [...this.commitList, ...list];
+        } else {
+          this.commitList = list;
+        }
+      } catch (error) {
+        uni.showToast({
+          title: error.msg || "加载评论失败",
+          icon: "none",
+        });
+      }
+    },
+    async postCommit() {
+      if (!this.inputText.trim()) {
         uni.showToast({
           title: "请输入评论内容",
           icon: "none",
         });
         return;
       }
-      // 等待接口
-      uni.showToast({
-        title: "发布成功",
-        icon: "success",
-      });
-      // 模拟添加评论
-      const newComment = {
-        id: Date.now(),
-        content: this.commitForm.content,
-        create_time: this.formatTime(new Date()),
-        uname: "当前用户",
-        himg: "default_avatar.png",
-      };
-      this.commitList.unshift(newComment);
-      this.commitForm.content = "";
+      uni.showLoading();
+      try {
+        const res = await addComment({
+          postId: this.id,
+          pid: this.replyTarget ? this.replyTarget.pid : "0",
+          content: this.inputText,
+        });
+        uni.showToast({ title: res.msg || "发布成功" });
+        this.inputText = "";
+        this.replyTarget = null;
+        this.getCommentList();
+      } catch (error) {
+        uni.showToast({
+          title: error.msg || "发布失败",
+          icon: "none",
+        });
+      }
+      uni.hideLoading();
     },
-    formatTime(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hour = String(date.getHours()).padStart(2, "0");
-      const minute = String(date.getMinutes()).padStart(2, "0");
-      const second = String(date.getSeconds()).padStart(2, "0");
-      return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+    // 页面触底加载更多
+    onReachBottom() {
+      if (this.isMoreComment) {
+        this.commitPage++;
+        this.getCommentList(true);
+      }
     },
   },
   onLoad(options) {
+    this.id = options.id || "0";
     uni.showLoading({
       title: "加载中...",
     });
     getFootBallPostDetail(options.id)
       .then((res) => {
-        this.prognosisData = res.data;
+        this.prognosisData = {...res.data, ...res.data.fbpost};
       })
       .finally(() => {
         uni.hideLoading();
       });
+    this.getCommentList();
   },
 };
 </script>
@@ -183,12 +232,9 @@ $bg-color: #f5f6f7;
 $card-bg: #ffffff;
 $text-main: #000000;
 $text-sub: #000000;
-$highlight-bg: #e6f7ff;
-$highlight-text: #3700ff;
 
 .container {
-  // background-color: $bg-color;
-  // padding-bottom: 120rpx; /* 为底部按钮留空间 */
+  padding-bottom: 70px;
 }
 
 .content {
@@ -206,46 +252,12 @@ $highlight-text: #3700ff;
 
 /* 头部卡片 */
 .header-card {
-  .top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12rpx;
-  }
-  .match-id {
-    font-size: 24rpx;
-    color: $text-sub;
-    background: #f0f0f0;
-    padding: 4rpx 12rpx;
-    border-radius: 8rpx;
-  }
-  .price-tag {
-    font-size: 28rpx;
-    color: #ff4d4f;
-    font-weight: bold;
-  }
   .title {
     font-size: 32rpx;
     font-weight: bold;
     color: $text-main;
     margin-bottom: 16rpx;
     line-height: 1.4;
-  }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 24rpx;
-    color: $primary-color;
-    background: rgba(0, 122, 255, 0.1);
-    padding: 6rpx 16rpx;
-    border-radius: 20rpx;
-    .dot {
-      width: 12rpx;
-      height: 12rpx;
-      background: $primary-color;
-      border-radius: 50%;
-      margin-right: 8rpx;
-    }
   }
 
   .author-info {
@@ -263,31 +275,6 @@ $highlight-text: #3700ff;
       font-size: 32rpx;
       color: $text-sub;
     }
-  }
-}
-
-/* 比分卡片 */
-.score-card {
-  text-align: center;
-  padding: 40rpx 24rpx;
-  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-
-  .score-label {
-    font-size: 26rpx;
-    color: $text-sub;
-    margin-bottom: 10rpx;
-  }
-  .score-value {
-    font-size: 80rpx;
-    font-weight: 800;
-    color: $text-main;
-    font-family: "DIN", sans-serif; /* 如果有数字字体更好 */
-    line-height: 1;
-  }
-  .score-sub {
-    font-size: 24rpx;
-    color: $text-sub;
-    margin-top: 10rpx;
   }
 }
 
@@ -318,95 +305,6 @@ $highlight-text: #3700ff;
   }
 }
 
-// 命中文字动画
-@keyframes hit-animation {
-  0% {
-    transform: scale(1) rotate(15deg);
-  }
-  100% {
-    transform: scale(1.1) rotate(15deg);
-  }
-}
-
-/* 分析文本 */
-.analysis-card {
-  .section-title {
-    font-size: 28rpx;
-    font-weight: bold;
-    color: $text-main;
-    margin-bottom: 16rpx;
-    display: flex;
-    align-items: center;
-    .icon {
-      margin-right: 8rpx;
-    }
-  }
-  .analysis-text {
-    font-size: 28rpx;
-    color: #555;
-    line-height: 1.6;
-    text-align: justify;
-    overflow: hidden;
-    transition: all 0.3s;
-  }
-  .toggle-btn {
-    margin-top: 20rpx;
-    text-align: center;
-    font-size: 26rpx;
-    color: $primary-color;
-    padding: 10rpx;
-    .arrow {
-      margin-left: 6rpx;
-    }
-  }
-}
-
-/* 评论输入卡片 */
-.comment-input-card {
-  .section-title {
-    font-size: 28rpx;
-    font-weight: bold;
-    color: $text-main;
-    margin-bottom: 16rpx;
-    display: flex;
-    align-items: center;
-    .icon {
-      margin-right: 8rpx;
-    }
-  }
-  .comment-input-wrapper {
-    .comment-input {
-      width: 100%;
-      height: 120rpx;
-      padding: 16rpx;
-      background: #f8f8f8;
-      border-radius: 12rpx;
-      font-size: 28rpx;
-      color: $text-main;
-      box-sizing: border-box;
-    }
-    .comment-submit-row {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin-top: 16rpx;
-      .submit-btn {
-        background: $primary-color;
-        color: #fff;
-        font-size: 30rpx;
-        font-weight: bold;
-        padding: 8rpx 80rpx;
-        border-radius: 30rpx;
-        border: none;
-        margin: 0;
-        &::after {
-          border: none;
-        }
-      }
-    }
-  }
-}
-
 /* 评论列表卡片 */
 .comment-list-card {
   .section-title {
@@ -427,82 +325,62 @@ $highlight-text: #3700ff;
     }
   }
   .comment-list {
-    .comment-item {
-      padding: 20rpx 0;
-      border-bottom: 1rpx solid #f0f0f0;
-      &:last-child {
-        border-bottom: none;
-      }
-      .comment-user {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12rpx;
-        .user-avatar {
-          width: 60rpx;
-          height: 60rpx;
-          border-radius: 50%;
-          margin-right: 16rpx;
-          background: #f0f0f0;
-        }
-        .user-name {
-          font-size: 28rpx;
-          color: $text-main;
-          font-weight: 500;
-        }
-      }
-      .comment-content {
-        font-size: 28rpx;
-        color: #555;
-        line-height: 1.6;
-        margin-bottom: 12rpx;
-        word-break: break-all;
-      }
-      .comment-time {
-        font-size: 24rpx;
-        color: $text-sub;
-      }
-    }
     .no-comment {
       text-align: center;
       padding: 60rpx 0;
       font-size: 28rpx;
       color: $text-sub;
     }
+    .no-more {
+      text-align: center;
+      padding: 16rpx 0;
+      font-size: 24rpx;
+      color: #999;
+    }
   }
 }
 
-/* 底部按钮 */
-.footer-action {
+/* 底部固定输入栏 */
+.bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
+  right: 0;
   background: #fff;
-  padding: 20rpx 30rpx;
-  box-sizing: border-box;
+  border-top: 1px solid #ddd;
+  padding: 8px 12px;
   display: flex;
-  gap: 20rpx;
-  box-shadow: 0 -4rpx 10rpx rgba(0, 0, 0, 0.05);
+  align-items: center;
   z-index: 100;
 
-  .action-btn {
+  .input-wrap {
     flex: 1;
-    height: 80rpx;
-    line-height: 80rpx;
-    font-size: 28rpx;
-    border-radius: 40rpx;
-    background: #f0f0f0;
-    color: $text-main;
-    border: none;
+    background: #f2f2f2;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    padding: 5px 12px;
+    .input {
+      flex: 1;
+      height: 30px;
+      font-size: 14px;
+    }
+  }
 
-    &.primary {
+  .bottom-actions {
+    display: flex;
+    margin-left: 12px;
+    .action-btn {
       background: $primary-color;
       color: #fff;
-    }
-
-    /* 移除 button 默认样式 */
-    &::after {
+      font-size: 14px;
+      padding: 6px 20px;
+      border-radius: 20px;
       border: none;
+      margin: 0;
+      &::after {
+        border: none;
+      }
     }
   }
 }

@@ -49,12 +49,12 @@
       <view class="action-info">
         <view class="action-item" @click="onComment">
           <uni-icons class="icon-img" type="chat" size="16" />
-          55
+          {{ data.count }}
         </view>
-        <view class="action-item" @click="onLike">
+        <!-- <view class="action-item" @click="onLike">
           <uni-icons class="icon-img" type="hand-up" size="16" />
           999
-        </view>
+        </view> -->
       </view>
     </view>
   </view>

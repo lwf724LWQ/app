@@ -2,23 +2,65 @@
   <view class="comment-card">
     <view class="card-main">
       <!-- 用户头像 -->
-      <image class="avatar" :src="comment.userAvatar" mode="aspectFill" />
+      <image class="avatar" :src="getFullImgUrl(comment.himg)" mode="aspectFill" />
 
       <view class="content-box">
         <!-- 用户信息行 -->
         <view class="user-info">
-          <text class="username">{{ comment.username }}</text>
+          <text class="username">{{ comment.uname }}</text>
         </view>
 
         <!-- 评论文本 -->
         <view class="text-content">
-          {{ comment.text }}
+          {{ comment.text || comment.content }}
         </view>
 
-        <!-- 底部时间地点 -->
+        <!-- 底部时间地点 + 回复按钮 -->
         <view class="footer-info">
-          <text>{{ comment.date }}</text>
+          <text>{{ getTimeAgo(comment.date || comment.create_time) }}</text>
+          <view class="reply-btn" @click.stop="onReply">
+            回复
+          </view>
         </view>
+      </view>
+    </view>
+
+    <!-- 二级评论列表 -->
+    <view class="sub-comments" v-if="comment.child && comment.child.length">
+      <view
+        class="sub-comment-item"
+        v-for="(child, cIdx) in displayedChildren"
+        :key="cIdx"
+      >
+        <image
+          class="sub-avatar"
+          :src="getFullImgUrl(child.himg)"
+          mode="aspectFill"
+        />
+        <view class="sub-content-box">
+          <view class="sub-user-row">
+            <text class="sub-username">{{ child.uname }}</text>
+            <!-- <text
+              v-if="child.replyToName"
+              class="reply-target"
+            >
+              回复 {{ child.replyToName }}
+            </text> -->
+          </view>
+          <view class="sub-text">{{ child.text || child.content }}</view>
+          <view class="sub-footer">
+            <text class="sub-time">{{ getTimeAgo(child.date || child.create_time) }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 展开/收起按钮 -->
+      <view
+        class="sub-expand-btn"
+        v-if="hasMoreChildren"
+        @click="toggleExpand"
+      >
+        {{ expanded ? '收起' : `展开更多 (${remainingCount})` }}
       </view>
     </view>
   </view>
@@ -32,20 +74,67 @@ export default {
       type: Object,
       required: true,
     },
+    // 二级评论每页条数，默认3条
+    subPageSize: {
+      type: Number,
+      default: 3,
+    },
+  },
+  data() {
+    return {
+      expanded: false, // 是否已展开
+    };
+  },
+  computed: {
+    // 当前显示的二级评论列表
+    displayedChildren() {
+      const list = this.comment.child || [];
+      if (this.expanded || list.length <= this.subPageSize) {
+        return list;
+      }
+      return list.slice(0, this.subPageSize);
+    },
+    // 是否还有更多未显示
+    hasMoreChildren() {
+      const list = this.comment.child || [];
+      return list.length > this.subPageSize;
+    },
+    // 剩余未显示条数
+    remainingCount() {
+      const list = this.comment.child || [];
+      return list.length - this.subPageSize;
+    },
   },
   methods: {
-    getFullImgUrl(){
+    getFullImgUrl(url) {
       return tool.oss.getFullUrl(`/himg/${url}`);
     },
-  }
+    toggleExpand() {
+      this.expanded = !this.expanded;
+    },
+    // 回复一级评论
+    onReply() {
+      this.$emit("reply", this.comment);
+    },
+    // 回复二级评论
+    onReplyChild(child) {
+      this.$emit("reply-child", {
+        parent: this.comment,
+        child: child,
+      });
+    },
+    getTimeAgo(time){
+      return tool.getTimeAgo(time)
+    }
+  },
 };
 </script>
 
 <style lang="scss" scoped>
 .comment-card {
   background-color: #fff;
-  padding: 15px 12px;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 30rpx 24rpx;
+  border-bottom: 2rpx solid #f5f5f5;
 
   .card-main {
     display: flex;
@@ -53,10 +142,10 @@ export default {
   }
 
   .avatar {
-    width: 40px;
-    height: 40px;
+    width: 80rpx;
+    height: 80rpx;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-right: 20rpx;
   }
 
   .content-box {
@@ -68,19 +157,19 @@ export default {
   .user-info {
     display: flex;
     align-items: center;
-    font-size: 13px;
-    margin-bottom: 4px;
+    font-size: 30rpx;
+    margin-bottom: 8rpx;
 
     .username {
       font-weight: bold;
-      margin-right: 6px;
+      margin-right: 12rpx;
     }
 
     .badge {
-      padding: 0 4px;
-      border-radius: 3px;
-      font-size: 10px;
-      margin-right: 4px;
+      padding: 0 8rpx;
+      border-radius: 6rpx;
+      font-size: 20rpx;
+      margin-right: 8rpx;
       color: #fff;
     }
     .lv {
@@ -93,24 +182,33 @@ export default {
 
     .user-title {
       color: #666;
-      margin: 0 6px;
+      margin: 0 12rpx;
     }
     .op-tag {
       color: #ff9800;
-      font-size: 11px;
+      font-size: 22rpx;
     }
   }
 
   .text-content {
-    font-size: 15px;
+    font-size: 34rpx;
     color: #333;
     line-height: 1.5;
-    margin-bottom: 8px;
+    margin-bottom: 16rpx;
   }
 
   .footer-info {
-    font-size: 12px;
+    font-size: 24rpx;
     color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .reply-btn {
+      color: #4A90E2;
+      font-size: 28rpx;
+      padding: 4rpx 12rpx;
+    }
   }
 
   .action-area {
@@ -124,15 +222,93 @@ export default {
       display: flex;
       align-items: center;
       color: #666;
-      font-size: 13px;
+      font-size: 26rpx;
       .like-count {
-        margin-left: 4px;
+        margin-left: 8rpx;
       }
     }
     .more-btn {
       color: #999;
-      font-size: 18px;
-      padding-top: 4px;
+      font-size: 36rpx;
+      padding-top: 8rpx;
+    }
+  }
+
+  // 二级评论区域
+  .sub-comments {
+    margin-top: 10rpx;
+    margin-left: 20rpx;
+    padding-left: 20rpx;
+    background-color: #f8f9fa;
+    border-radius: 6rpx;
+    padding: 16rpx 20rpx;
+
+    .sub-comment-item {
+      display: flex;
+      padding: 8rpx 0;
+      border-bottom: 2rpx solid #eee;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .sub-avatar {
+        width: 60rpx;
+        height: 60rpx;
+        border-radius: 50%;
+        margin-right: 18rpx;
+        flex-shrink: 0;
+      }
+
+      .sub-content-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sub-user-row {
+        font-size: 32rpx;
+        margin-bottom: 8rpx;
+
+        .sub-username {
+          font-weight: bold;
+          color: #333;
+          margin-right: 12rpx;
+        }
+
+        .reply-target {
+          color: #4A90E2;
+          font-size: 26rpx;
+        }
+      }
+
+      .sub-text {
+        font-size: 30rpx;
+        color: #333;
+        line-height: 1.5;
+        margin-bottom: 8rpx;
+      }
+
+      .sub-footer {
+        font-size: 24rpx;
+        color: #999;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .reply-btn {
+          color: #4A90E2;
+          font-size: 22rpx;
+          padding: 2rpx 12rpx;
+        }
+      }
+    }
+
+    .sub-expand-btn {
+      text-align: center;
+      padding: 12rpx 0;
+      color: #4A90E2;
+      font-size: 24rpx;
     }
   }
 }

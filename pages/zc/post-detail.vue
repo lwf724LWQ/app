@@ -1,5 +1,5 @@
 <template>
-  <my-page pageTitle=" ">
+  <my-page pageTitle=" " @onReachBottom="onReachBottom">
     <view class="container">
       <!-- 1. 主贴内容 -->
       <view class="main-post">
@@ -21,7 +21,13 @@
 
       <!-- 3. 评论列表 -->
       <view class="comment-list">
-        <comment-card v-for="(item, index) in commentList" :key="index" :comment="item" />
+        <comment-card
+          v-for="(item, index) in commentList"
+          :key="index"
+          :comment="item"
+          @reply="onReplyTo"
+        />
+        <view class="no-more" v-if="!isMoreComment && commentList.length > 0">没有更多了</view>
       </view>
 
       <!-- 4. 底部输入栏 -->
@@ -33,24 +39,25 @@
             @blur="onBlur"
             @focus="onFocus"
             @confirm="submitComment"
+            :focus="inputFocus"
             :auto-blur="true"
             confirm-type="send"
-            placeholder="请输入评论..."
+            :placeholder="replyTarget ? '回复 ' + replyTarget.uname + '：' : '请输入评论...'"
           />
         </view>
         <view class="bottom-actions">
           <template v-if="inputFocus">
-            <button class="action-btn" @click="submitComment">发送</button>
+            <button class="action-btn" @click="submitComment" size="default" type="default">发送</button>
           </template>
           <template v-else>
             <view class="action-btn">
               <uni-icons type="chat" size="16"></uni-icons>
-              154
+              {{ commentCount }}
             </view>
-            <view class="action-btn">
+            <!-- <view class="action-btn">
               <uni-icons type="hand-up" size="16"></uni-icons>
               351
-            </view>
+            </view> -->
           </template>
         </view>
       </view>
@@ -61,9 +68,8 @@
 <script>
 import commentCard from "./components/comment-card.vue";
 import myPage from "@/components/myPage.vue";
-import {getFootBallPostDetail} from "@/api/apis.js"
+import { getFootBallPostDetail, addComment, commentList } from "@/api/apis.js"
 import tool from "@/utils/tool"
-import { addComment } from "../../api/apis.js";
 
 export default {
   components: { commentCard, myPage },
@@ -74,30 +80,33 @@ export default {
 
       activeTab: "all",
       sort: "hot",
-      commentList: [
-        {
-          username: "哥们在这",
-          userAvatar: "http://video.caimizm.com/himg/user.png",
-          level: "Lv.9",
-          vStatus: "V",
-          title: "流砥柱",
-          isOp: true,
-          text: "啊？",
-          date: "05-09",
-          location: "河南",
-          likes: 56,
-        },
-      ],
+      commentList: [],
+      commentPage: 1,
+      commentLimit: 20,
+      isMoreComment: false,
+      commentCount: 0,
 
       inputFocus: false,
       inputText: "",
+      replyTarget: null, // { pid, uname } | null
     };
   },
   methods: {
     onBlur() {
-      this.inputFocus = false;
+      setTimeout(()=>{
+        this.inputFocus = false;
+        // 失焦时清除回复目标
+        if (!this.inputText.trim()) {
+          this.replyTarget = null;
+        }
+      }, 100)
     },
     onFocus() {
+      this.inputFocus = true;
+    },
+    // 回复某条一级评论
+    onReplyTo(comment) {
+      this.replyTarget = { pid: comment.id, uname: comment.uname };
       this.inputFocus = true;
     },
 
@@ -105,9 +114,9 @@ export default {
       uni.showLoading()
       try {
           const res = await getFootBallPostDetail(this.id)
-          const a = JSON.parse(res.data.result)
+          const a = JSON.parse(res.data.fbpost.result)
           res.data.description = a.expertAnalysis
-          this.postDetail = res.data
+          this.postDetail = {uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost}
       } catch (error) {
         uni.showToast({
           title: error.msg || "加载失败"
@@ -118,37 +127,77 @@ export default {
     getFullImgUrl(url){
       return tool.oss.getFullUrl(`/himg/${url}`);
     },
-    getCommentList(){
-      
+    async getCommentList(isLoadMore = false) {
+      if (!isLoadMore) {
+        this.commentPage = 1;
+      }
+      try {
+        const res = await commentList({
+          postId: this.id,
+          page: this.commentPage,
+          limit: this.commentLimit,
+        });
+        const { total,list } = res.data;
+        
+        this.commentCount = total
+        this.isMoreComment = list.length === this.commentLimit
+
+        if (isLoadMore) {
+          this.commentList = [...this.commentList, ...list];
+        } else {
+          this.commentList = list;
+        }
+      } catch (error) {
+        console.log(error)
+        uni.showToast({
+          title: error.msg || "加载评论失败",
+          icon: "none",
+        });
+      }
     },
     getTimeAgo(time){
       return tool.getTimeAgo(time)
     },
-    async submitComment(){
-      uni.showLoading()
-      try {
-          // 前端先简单过滤政治类敏感词
-
-          const res = await addComment({
-            postId: this.id,
-            pid: "0",
-            content: this.inputText
-          })
-          uni.showToast({
-            title: res.msg
-          })
-      } catch (error) {
-          uni.showToast({
-            title: res.msg || "未知错误"
-          })
+    async submitComment() {
+      if (!this.inputText.trim()) {
+        uni.showToast({ title: "请输入评论内容", icon: "none" });
+        return;
       }
-      uni.hideLoading()
-    }
+      uni.showLoading();
+      try {
+        const res = await addComment({
+          postId: this.id,
+          pid: this.replyTarget ? this.replyTarget.pid : "0",
+          content: this.inputText,
+        });
+        uni.showToast({ title: res.msg || "发布成功" });
+        this.inputText = "";
+        this.replyTarget = null;
+        // 刷新评论列表
+        this.getCommentList();
+
+      } catch (error) {
+        uni.showToast({
+          title: error.msg || "发布失败",
+          icon: "none",
+        });
+      }
+      uni.hideLoading();
+    },
+    // 页面触底加载更多
+    onReachBottom() {
+      if (this.isMoreComment) {
+        this.commentPage++;
+        this.getCommentList(true); 
+      }
+    },
   },
-  onLoad(option){
+  
+  onLoad(option) {
     this.id = option.id;
-    this.getPostDetail()
-  }
+    this.getPostDetail();
+    this.getCommentList();
+  },
 };
 </script>
 
@@ -231,40 +280,15 @@ export default {
   }
 }
 
-.comment-tabs {
-  display: flex;
-  justify-content: space-between;
-  background: #fff;
-  padding: 8px 12px;
-  font-size: 14px;
-  border-bottom: 1px solid #eee;
-
-  .left-tabs {
-    .tab-item {
-      margin-right: 15px;
-      color: #666;
-      &.active {
-        color: #000;
-        font-weight: bold;
-      }
-    }
-  }
-  .right-tabs {
-    .sort-item {
-      margin-left: 12px;
-      color: #666;
-      padding: 2px 8px;
-      &.active {
-        background: #ffebee;
-        color: #ff5252;
-        border-radius: 10px;
-      }
-    }
-  }
-}
-
 .comment-list {
   background-color: #fff;
+
+  .no-more {
+    text-align: center;
+    padding: 16px 0;
+    font-size: 13px;
+    color: #999;
+  }
 }
 
 .bottom-bar {
