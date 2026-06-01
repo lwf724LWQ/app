@@ -53,6 +53,9 @@ function getTimeAgo(time){
 }
 
 function getFullImgUrl(url){
+  if (typeof url === "string" && url.startsWith("http")) {
+    return url
+  }
   return tool.oss.getFullUrl(`/himg/${url}`);
 }
 

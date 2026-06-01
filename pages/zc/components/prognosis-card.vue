@@ -99,6 +99,9 @@ export default {
   },
   methods: {
     getFullHimgUrl(himg) {
+      if (typeof url === "string" && himg.startsWith("http")) {
+        return himg
+      }
       return tool.oss.getFullUrl(`/himg/${himg}`);
     },
     openDetail() {

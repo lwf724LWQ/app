@@ -17,7 +17,18 @@
         <view class="tab-bar">
           <view
             class="item"
-            v-for="item in tnameList"
+            v-for="item in tnameList.slice(0,5)"
+            :key="item"
+            :class="{ activat: currentTname == item }"
+            @click="switchTab(item)"
+          >
+            {{ item }}
+          </view>
+        </view>
+        <view class="tab-bar">
+          <view
+            class="item"
+            v-for="item in tnameList.slice(5)"
             :key="item"
             :class="{ activat: currentTname == item }"
             @click="switchTab(item)"
@@ -37,8 +48,10 @@
         :id="`zp-id-${post.zp_index}`"
         :key="post.zp_index"
         v-for="(post, index) in virtualList"
-      >
-        <postCard :post="post" />
+      > 
+        <zcpostCard v-if="currentTname === '大众评论'"  :postData="post" @postCard="clickZcPostCard(post)"/>
+        <prognosisCard v-else-if="currentTname === '足球预测'" :data="post" @openDetail="clickZcPrognosisPostCard" />
+        <postCard v-else :post="post" />
       </view>
     </z-paging>
   </view>
@@ -48,9 +61,12 @@
 import { onLoad } from "@dcloudio/uni-app";
 import { ref, nextTick } from "vue";
 import TopNavigationBar from "../../components/TopNavigationBar.vue";
-import { apiSelect_by_account } from "@/api/apis.js";
+import { apiSelect_by_account, findByAccountWithFbpost } from "@/api/apis.js";
 import { getAccount } from "../../utils/request";
 import postCard from "../../components/post-card/post-card.vue";
+import zcpostCard from "../zc/components/post-card.vue"
+import prognosisCard from "../zc/components/prognosis-card.vue"
+import { useUserStore } from "@/stores/userStore";
 
 const virtualList = ref([]);
 // 监听虚拟列表数组改变并赋值给virtualList进行重新渲染
@@ -58,7 +74,7 @@ function virtualListChange(vList) {
   virtualList.value = vList;
 }
 const pagingRef = ref(null);
-const tnameList = ["全部", "排列三", "排列五", "七星彩", "福彩3D"];
+const tnameList = ["全部", "排列三", "排列五", "七星彩", "福彩3D", "足球预测", "大众评论"];
 const currentTname = ref("全部");
 function switchTab(tname) {
   currentTname.value = tname;
@@ -71,6 +87,7 @@ function switchRuleTab(tname) {
   currentRule.value = tname;
   pagingRef.value.reload(true);
 }
+const userStore = useUserStore()
 function queryList(pageNo, pageSize) {
   // 组件加载时会自动触发此方法，因此默认页面加载时会自动触发，无需手动调用
   // 这里的pageNo和pageSize会自动计算好，直接传给服务器即可
@@ -86,15 +103,50 @@ function queryList(pageNo, pageSize) {
   } else if (currentRule.value == "规律贴") {
     params.tname = params.tname + "-规律预测";
   }
-
-  apiSelect_by_account(params)
+  
+  if(["足球预测", "大众评论"].includes(currentTname.value)){
+    if (currentTname.value === "足球预测") {
+      params.ftype = 1
+    }else{
+      params.ftype = 2
+    }
+    params.account = getAccount()
+    findByAccountWithFbpost(params)
+    .then(res => {
+      const userdata = userStore.getUserInfo
+      res.data.records.forEach(item => {
+        item.uname = userdata.nickname
+        item.himg = userdata.avatar
+      })
+      console.log(res.data.records)
+      pagingRef.value.complete(res.data.records);
+    })
+    .catch(res => {
+      pagingRef.value.complete(false);
+    })
+  }else{
+    apiSelect_by_account(params)
     .then((res) => {
       pagingRef.value.complete(res.data.list);
     })
     .catch((res) => {
-      this.$refs.paging.complete(false);
+      pagingRef.value.complete(false);
     });
+  }
 }
+
+function clickZcPostCard(item){
+      uni.navigateTo({
+        url: `/pages/zc/post-detail?id=${item.id}`,
+      });
+}
+
+function clickZcPrognosisPostCard(item){
+      uni.navigateTo({
+        url: `/pages/zc/prognosis-detail?id=${item.id}`,
+      });
+}
+
 
 onLoad(() => {
   nextTick(() => {

@@ -717,3 +717,11 @@ export const commentList = (data) => {
     data
   });
 }
+
+export const findByAccountWithFbpost = (data) => {
+  return request({
+    url: "/web/fbpost/find_by_account",
+    method: "GET",
+    data
+  });
+}
