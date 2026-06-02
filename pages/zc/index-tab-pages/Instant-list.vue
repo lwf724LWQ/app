@@ -84,8 +84,8 @@ const fetchVideoList = async () => {
     if (isLoading.value) return;
     isLoading.value = true;
     // 构建请求参数
-    currentPageDate.value = dayjs(currentPageDate.value).add(-1, "day");
-    const fdateStr = currentPageDate.value.format("YYYY/MM/DD");
+    currentPageDate.value = dayjs(currentPageDate.value);
+    const fdateStr = currentPageDate.value.format("YYYY/M/D");
 
     const Videoinfo = await getFootBallList(fdateStr, 0, "");
 
