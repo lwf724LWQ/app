@@ -26,14 +26,8 @@
           :key="match.id"
         >
           <MatchScoreCard
-            :leagueName="match.abbName"
-            :matchTime="match.mtime"
-            :matchStatus="match.numStr"
-            :homeTeam="match.htname"
-            :awayTeam="match.atname"
-            :score="match.score"
-            :matchId="match.matchId"
-          />
+          :match="match"
+        />
         </view>
 
         <view v-if="isLoading" class="loading-tip">
@@ -55,6 +49,7 @@ import myPage from '@/components/myPage.vue'
 import searchInput from './components/search-input.vue'
 import MatchScoreCard from './components/MatchScoreCard.vue'
 import { getFootBallList } from '@/api/apis.js'
+import dayjs from 'dayjs'
 
 // 搜索参数
 const searchKeyword = ref('')
@@ -87,28 +82,8 @@ async function fetchMatchList() {
   isLoading.value = true
 
   try {
-    const res = await getFootBallList(searchDate.value)
+    const res = await getFootBallList(dayjs(searchDate.value).format("YYYY/M/D"), searchStatus.value, searchKeyword.value)
     let list = res.data || res || []
-
-    // 按关键词过滤（球队名称）
-    if (searchKeyword.value) {
-      const kw = searchKeyword.value.toLowerCase()
-      list = list.filter(
-        (item) =>
-          (item.htname && item.htname.toLowerCase().includes(kw)) ||
-          (item.atname && item.atname.toLowerCase().includes(kw)) ||
-          (item.abbName && item.abbName.toLowerCase().includes(kw))
-      )
-    }
-
-    // 按状态过滤
-    if (searchStatus.value !== '' && searchStatus.value !== undefined) {
-      const statusVal = Number(searchStatus.value)
-      list = list.filter((item) => {
-        // item.numStr 是状态文本，item.num 是状态值
-        return item.num === statusVal || item.numStr === searchStatus.value
-      })
-    }
 
     matchList.value = list
     hasMore.value = false // 单天数据一次性返回
@@ -151,7 +126,6 @@ function loadMore() {
 
 .match-list-scroll {
   flex: 1;
-  padding: 0 24rpx;
 }
 
 .empty-tip {
