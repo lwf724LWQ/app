@@ -67,7 +67,7 @@ function cancel() {
  * @param url    下载地址
  * @param onDone 下载成功后回调，返回本地临时文件路径
  */
-async function startDownload(url: string, onDone: (filePath: string) => void) {
+async function startDownload(videoObj: {id: string|number, src: string}, onDone: (filePath: string) => void) {
   if (downloadTask) {
     console.warn("已有下载任务进行中");
     return;
@@ -76,7 +76,7 @@ async function startDownload(url: string, onDone: (filePath: string) => void) {
   onDoneCallback = onDone;
   openPopup();
 
-  const tempFile: TempFile | false = await checkDownloaded(url);
+  const tempFile: TempFile | false = await checkDownloaded({url: videoObj.src, id: videoObj.id});
 
   if (tempFile) {
     console.log("本地缓存存在", tempFile);
@@ -91,10 +91,11 @@ async function startDownload(url: string, onDone: (filePath: string) => void) {
   statusText.value = "视频处理中...";
   let res;
   try {
-    res = await videoWatermark(url);
+    res = await videoWatermark({url: videoObj.src, id: videoObj.id});
   } catch (error) {
     cancel();
-    uni.showToast({ title: "视频处理失败:" + error, icon: "none" });
+    const errorMsg = error?.msg || ""
+    uni.showToast({ title: "视频处理失败:" + errorMsg, icon: "none" });
     return;
   }
   console.log("videoWatermark res", res);
@@ -169,11 +170,11 @@ interface TempFile {
   filePath: string;
 }
 
-async function checkDownloaded(urlKey: string) {
+async function checkDownloaded(videoObj: {id: string|number, url: string}) {
   const tempFilePath: TempFile[] = uni.getStorageSync("tempFilePath") || [];
   console.log("tempFilePath", tempFilePath);
   // 用 url 或自定义 key 做匹配
-  const tempfile = tempFilePath.find((f: TempFile) => f.urlKey === urlKey);
+  const tempfile = tempFilePath.find((f: TempFile) => f.urlKey === videoObj.id);
   if (!tempfile) {
     return false;
   }
@@ -183,7 +184,7 @@ async function checkDownloaded(urlKey: string) {
   } catch (err) {
     uni.setStorageSync(
       "tempFilePath",
-      tempFilePath.filter((f) => f.urlKey !== urlKey)
+      tempFilePath.filter((f) => f.urlKey !== videoObj.id)
     );
     return false;
   }

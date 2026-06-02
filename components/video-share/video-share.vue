@@ -12,8 +12,8 @@ import DownloadProgress from "./DownloadProgres.vue";
 
 const downloadRef = ref<InstanceType<typeof DownloadProgress> | null>(null);
 
-function share(url: string) {
-  downloadRef.value?.startDownload(url, (localPath) => {
+function share(videoObj: {id: string|number, src: string}) {
+  downloadRef.value?.startDownload(videoObj, (localPath) => {
     console.log("临时文件路径:", localPath);
     const p = plus.io.convertLocalFileSystemURL(localPath);
     // 判断是否为ios

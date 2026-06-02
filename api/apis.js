@@ -666,10 +666,11 @@ export const getFootBallPostDetail = (fbpostId) => {
   });
 };
 
-export const videoWatermark = (VideoUrl) => {
+export const videoWatermark = (videoObj) => {
   return request({
-    url: "/web/video/shuiyin?video=" + VideoUrl,
+    url: `/web/video/shuiyin`,
     method: "GET",
+    data: videoObj
   });
 };
 

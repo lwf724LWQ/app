@@ -149,8 +149,9 @@
         <button class="bottom-buy-btn" @click="handleBuyClick">
           {{ buttonText }}
         </button>
+        <!-- v-if="isHaveShareSdk && videoData.price == 0" -->
         <button
-          v-if="isHaveShareSdk && videoData.price == 0"
+          
           class="bottom-buy-btn"
           @click="shareVideo"
         >
@@ -879,8 +880,7 @@ async function getLoginUserInfo() {
 const videoShareRef = ref(null);
 function shareVideo() {
   if (getAccount()) {
-    const videoUrl = videoData.value.src;
-    videoShareRef.value.share(videoUrl); 
+    videoShareRef.value.share(videoData.value); 
   }else{
     tool.isLogin("当前未登录，请先登录")
   }
