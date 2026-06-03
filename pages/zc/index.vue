@@ -20,7 +20,9 @@
         :class="{ active: pickerIndex === index, bigwidth: item.length > 2 }"
         @click="switchTabByIndex(index, true)"
       >
-        <text class="tab-text">{{ item }}</text>
+        <text class="tab-text">
+          <view v-if="index === 5 && userStore.followCount > 0" class="redDot">{{ userStore.followCount }}</view>
+          {{ item }}</text>
       </view>
     </view>
 
@@ -330,6 +332,23 @@ const onHoverClick = () => {
   color: #000000;
   font-weight: bold;
   font-size: 36rpx;
+  position: relative;
+}
+
+.tab-text{
+  .redDot{
+    position: absolute;
+    right: -15rpx;
+    top: -15rpx;
+    width: 35rpx;
+    height: 35rpx;
+    line-height: 35rpx;
+    font-size: 25rpx;
+    color: #fff;
+    text-align: center;
+    background-color: #f00;
+    border-radius: 50%;
+  }
 }
 
 .tab-item.active .tab-text {
