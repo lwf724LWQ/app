@@ -91,7 +91,7 @@ async function startDownload(videoObj: {id: string|number, src: string}, onDone:
   statusText.value = "视频处理中...";
   let res;
   try {
-    res = await videoWatermark({url: videoObj.src, id: videoObj.id});
+    res = await videoWatermark({url: videoObj.src, video: videoObj.id});
   } catch (error) {
     cancel();
     const errorMsg = error?.msg || ""
