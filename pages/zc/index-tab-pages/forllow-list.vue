@@ -113,6 +113,7 @@ const fetchVideoList = async (isShowRefresh = true) => {
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
       eventNotificationRef.value?.onDataUpdate(list);
+      userStore.setFollowCount(res.data.total)
       if (list.length < props.limit) {
         hasMore.value = false;
       }

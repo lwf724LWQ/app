@@ -63,6 +63,7 @@
 import dayjs from 'dayjs';
 import {forllowFootball, delForllowFootball} from "@/api/apis.js"
 import { getToken } from '../../../utils/request';
+import { useUserStore } from "@/stores/userStore";
 
 export default {
   props: {
@@ -171,14 +172,18 @@ export default {
     async toggleFavorite() {
       if(getToken()){
         uni.showLoading()
+        const userStore = useUserStore();
         try {
           if (this.match.flag) {
             await delForllowFootball(this.match.matchId)
+            userStore.reduceFollowCount()
           }else{
             await forllowFootball(this.match.matchId)
+            userStore.addFollowCount()
           }
           this.match.flag = !this.match.flag;
         } catch (error) {
+          console.log(error)
           uni.showToast({
             title: error.msg || "操作失败"
           })  
