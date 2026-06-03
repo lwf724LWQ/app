@@ -82,7 +82,9 @@ function initRecentOptions() {
       weekday: date.format("dddd"),
     });
   }
-  currentPageDate.value = nowDate.format("YYYY/M/D");
+  if (!recentOptions.value.map(item => item.time).includes(currentPageDate.value)) {
+    currentPageDate.value = nowDate.format("YYYY/M/D");
+  }
 }
 
 // 刷新视频列表
@@ -129,7 +131,6 @@ const fetchVideoList = async (page = 1) => {
     const res = await getFootBallList(currentPageDate.value, 1, "", getAccount());
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {
-      
       footBallList.value = res.data
     } else {
       console.warn("API 返回数据格式不符合预期:", res);
