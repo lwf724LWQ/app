@@ -117,7 +117,7 @@ function detectChanges(oldMatches, newMatches) {
     const oldAwayYellow = Number(oldMatch.awayYellow) || 0;
     const newHomeYellow = Number(newMatch.homeYellow) || 0;
     const newAwayYellow = Number(newMatch.awayYellow) || 0;
-
+    
     if (newHomeScore > oldHomeScore) {
       enqueueNotification({
         type: 'goal', side: 'home',
