@@ -70,6 +70,7 @@ const refresher = ref(false)
 
 // 刷新视频列表
 const refreshVideoList = async (e) => {
+  if (isLoading.value) return;
   currentPage.value = 1;
   hasMore.value = true;
   await fetchVideoList();
@@ -112,7 +113,6 @@ const fetchVideoList = async (isShowRefresh = true) => {
       }else{
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
-      eventNotificationRef.value?.onDataUpdate(list);
       userStore.setFollowCount(res.data.total)
       if (list.length < props.limit) {
         hasMore.value = false;
