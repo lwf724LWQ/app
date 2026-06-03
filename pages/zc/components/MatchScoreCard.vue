@@ -321,8 +321,8 @@ export default {
   justify-content: center;
 }
 .stat-corner-icon{
-  width: 30rpx;
-  height: 30rpx;
+  width: 25rpx;
+  height: 25rpx;
   background: url(/static/icons/jiaoqiu.png) no-repeat;
   background-size: contain;
   margin-right: 10rpx;

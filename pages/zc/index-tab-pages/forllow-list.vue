@@ -1,11 +1,11 @@
 <template>
-  <!-- 即时列表 -->
+  <!-- 关注列表 -->
   <scroll-view
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="true"
-    :refresher-triggered="isLoading"
+    :refresher-triggered="refresher"
     :lower-threshold="150"
     :scroll-top="scrollTop"
     @refresherrefresh="refreshVideoList"
@@ -29,20 +29,31 @@
       <view v-else-if="!hasMore" class="no-more">— 没有更多了 —</view>
     </view>
   </scroll-view>
+
+  <!-- 进球/红黄牌底部弹窗通知 -->
+  <MatchEventNotification ref="eventNotificationRef" />
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { forllowFootballList } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
+import MatchEventNotification from "@/components/MatchEventNotification.vue";
+
+const eventNotificationRef = ref(null);
+
 // 接收的props
 const props = defineProps({
   limit: {
     type: Number,
     default: 20,
+  },
+  isActiveTab: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -55,19 +66,20 @@ const isLoading = ref(false);
 const hasMore = ref(true);
 const currentPage = ref(1);
 const isNeedRefresh = ref(false);
+const refresher = ref(false)
 
 // 刷新视频列表
 const refreshVideoList = async (e) => {
   currentPage.value = 1;
   hasMore.value = true;
-  await fetchVideoList(true);
+  await fetchVideoList();
 };
 
 // 加载更多
 const loadMore = async () => {
   if (isLoading.value || !hasMore.value) return;
   currentPage.value += 1;
-  await fetchVideoList(false);
+  await fetchVideoList();
 };
 
 const formatDate = (date) => {
@@ -81,10 +93,11 @@ function scroll(e) {
 }
 const scrollTop = ref(0);
 // 获取列表数据
-const fetchVideoList = async (isRefresh = false) => {
+const fetchVideoList = async (isShowRefresh = true) => {
   try {
     if (isLoading.value) return;
     isLoading.value = true;
+    refresher.value = isShowRefresh
     const form = {
       page: currentPage.value,
       limit: props.limit
@@ -93,13 +106,13 @@ const fetchVideoList = async (isRefresh = false) => {
     const res = await forllowFootballList(form);
 
     if (res.code === 200 && res.data && Array.isArray(res.data.list)) {
-      const list = res.data.list;
-      if (isRefresh) {
-        matchInfoList.value = list;
-      } else {
+      const list = res.data.list.map(item => ({...item, flag: true}));
+      if (currentPage.value == 1) {
+        matchInfoList.value = [...list]
+      }else{
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
-      // 返回的数据少于每页数量，说明没有更多了
+      eventNotificationRef.value?.onDataUpdate(list);
       if (list.length < props.limit) {
         hasMore.value = false;
       }
@@ -114,17 +127,16 @@ const fetchVideoList = async (isRefresh = false) => {
     }
   } catch (error) {
     console.error("获取关注列表失败:", error);
-    if (isRefresh) {
       uni.showToast({
         title: "获取关注列表失败，请检查网络",
         icon: "none",
       });
-    }
   } finally {
     setTimeout(() => {
       isLoading.value = false;
     }, 300);
     uni.stopPullDownRefresh();
+    refresher.value = false
   }
 };
 
@@ -146,32 +158,15 @@ const playVideo = async (video) => {
     });
     return;
   }
-  // 检查是否登录
-  // if (!token && video.flag) {
-  //   uni.showModal({
-  //     title: "提示",
-  //     content: "付费视频需要登录，新用户赠送5次付费视频观看次数",
-  //     success: async (res) => {
-  //       if (res.confirm) {
-  //         uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
-  //       }
-  //     },
-  //     showCancel: true,
-  //   });
-  //   return;
-  // }
 
-  // 记录视频已经点击过
   recodeVideoId(video);
 
-  // 将当前视频保存到 Pinia store
   videoStore.setCurrentVideo(video);
   uni.navigateTo({
     url: `/pages/video/play?id=${video.id}`,
   });
 };
 
-// 记录视频已经点击过
 function recodeVideoId(video) {
   try {
     const r = uni.getStorageSync("videoClickList") || [];
@@ -220,9 +215,36 @@ watch(
   { immediate: true }
 );
 
-// 组件挂载时加载数据
+// ========== 定时刷新：仅在当前 tab 激活时轮询 ==========
+let refreshTimer = null;
+
+function startPolling() {
+  stopPolling();
+  refreshTimer = setInterval(() => {
+    if (props.isActiveTab) {
+      currentPage.value = 1;
+      hasMore.value = true;
+      fetchVideoList(true); 
+    }
+  }, 5000);
+}
+
+function stopPolling() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+// ========== 定时刷新结束 ==========
+
 onMounted(() => {
-  refreshVideoList();
+  startPolling()
+});
+
+onBeforeUnmount(() => {
+  stopPolling();
+  eventNotificationRef.value?.destroy();
 });
 
 function onshow() {
@@ -232,7 +254,6 @@ function onshow() {
   }
 }
 
-// 暴露方法给父组件
 defineExpose({
   refreshVideoList,
   onshow,

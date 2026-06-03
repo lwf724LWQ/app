@@ -39,7 +39,7 @@
       @change="swiperChange"
     >
       <swiper-item>
-        <InstantList />
+        <InstantList :isActiveTab="pickerIndex == 0" />
       </swiper-item>
       <swiper-item>
         <InprogressList />
@@ -54,7 +54,7 @@
         <PostList ref="postListRef" />
       </swiper-item>
       <swiper-item>
-        <ForllowList ref="forllowListRef" />
+        <ForllowList ref="forllowListRef" :isActiveTab="pickerIndex == 5" />
       </swiper-item>
     </swiper>
 
