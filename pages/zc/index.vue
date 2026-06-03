@@ -104,7 +104,7 @@ const searchInputRef = ref(null)
 const pickerIndex = ref(3);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["即时", "赛程", "赛果", "大师预测", "大众评论", "关注"]);
+const lotteryTypes = ref(["进行中", "赛程", "赛果", "大师预测", "大众评论", "关注"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
