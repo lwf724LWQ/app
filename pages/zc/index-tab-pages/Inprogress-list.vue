@@ -8,7 +8,7 @@
     :refresher-triggered="isLoading && currentPage == 1"
     :lower-threshold="150"
     :scroll-top="scrollTop"
-    @refresherrefresh="refreshVideoList"
+    @refresherrefresh="refresh"
     @scrolltolower="loadMore"
     @scroll="scroll"
   >
@@ -32,7 +32,7 @@
       </view>
     </view>
     <view class="area">
-      <view v-for="(match, index) in footBallList" :key="index" class="day-group">
+      <view v-for="(match, index) in matchListSorting" :key="index" class="day-group">
         <MatchScoreCard
           :key="match.id"
           :match="match"
@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import { getFootBallList } from "@/api/apis";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import dayjs from "dayjs";
@@ -65,8 +65,14 @@ const isLoading = ref(false);
 const currentPageDate = ref(""); // 当前选中的日期
 const recentOptions = ref([]); // 近期选项
 
+const matchListSorting = computed(()=>{
+  return footBallList.value.sort((a,b) => b.flag - a.flag)
+})
+
+
 // 初始化近期选项
 function initRecentOptions() {
+  recentOptions.value = []
   const nowDate = dayjs()
   for (let i = 0; i < 6; i++) {
     const date = nowDate.add(i, "day");
@@ -148,10 +154,14 @@ const fetchVideoList = async (page = 1) => {
   }
 };
 
-// 组件挂载时加载数据
-onMounted(() => {
+function refresh(){
   initRecentOptions()
   refreshVideoList();
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  refresh()
 });
 
 // 暴露 refreshVideoList 函数给父组件
