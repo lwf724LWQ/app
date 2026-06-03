@@ -9,7 +9,7 @@
             <view class="name-row">
               <text class="username">{{ postDetail.uname }}</text>
             </view>
-            <view class="time-row">{{ getTimeAgo(postDetail.create_time) }}</view>
+            <view class="time-row">{{ getTimeAgo(postDetail.createTime) }}</view>
           </view>
         </view>
 

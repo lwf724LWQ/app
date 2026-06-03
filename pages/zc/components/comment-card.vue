@@ -2,7 +2,12 @@
   <view class="comment-card">
     <view class="card-main">
       <!-- 用户头像 -->
-      <image class="avatar" :src="getFullImgUrl(comment.himg)" mode="aspectFill"  @click="toUserDetail(comment)" />
+      <image
+        class="avatar"
+        :src="getFullImgUrl(comment.himg)"
+        mode="aspectFill"
+        @click="toUserDetail(comment)"
+      />
 
       <view class="content-box">
         <!-- 用户信息行 -->
@@ -17,21 +22,15 @@
 
         <!-- 底部时间地点 + 回复按钮 -->
         <view class="footer-info">
-          <text>{{ getTimeAgo(comment.date || comment.create_time) }}</text>
-          <view class="reply-btn" @click.stop="onReply">
-            回复
-          </view>
+          <text>{{ getTimeAgo(comment.date || comment.createTime) }}</text>
+          <view class="reply-btn" @click.stop="onReply">回复</view>
         </view>
       </view>
     </view>
 
     <!-- 二级评论列表 -->
     <view class="sub-comments" v-if="comment.child && comment.child.length">
-      <view
-        class="sub-comment-item"
-        v-for="(child, cIdx) in displayedChildren"
-        :key="cIdx"
-      >
+      <view class="sub-comment-item" v-for="(child, cIdx) in displayedChildren" :key="cIdx">
         <image
           class="sub-avatar"
           :src="getFullImgUrl(child.himg)"
@@ -50,25 +49,21 @@
           </view>
           <view class="sub-text">{{ child.text || child.content }}</view>
           <view class="sub-footer">
-            <text class="sub-time">{{ getTimeAgo(child.date || child.create_time) }}</text>
+            <text class="sub-time">{{ getTimeAgo(child.date || child.createTime) }}</text>
           </view>
         </view>
       </view>
 
       <!-- 展开/收起按钮 -->
-      <view
-        class="sub-expand-btn"
-        v-if="hasMoreChildren"
-        @click="toggleExpand"
-      >
-        {{ expanded ? '收起' : `展开更多 (${remainingCount})` }}
+      <view class="sub-expand-btn" v-if="hasMoreChildren" @click="toggleExpand">
+        {{ expanded ? "收起" : `展开更多 (${remainingCount})` }}
       </view>
     </view>
   </view>
 </template>
 
 <script>
-import tool from "@/utils/tool"
+import tool from "@/utils/tool";
 export default {
   props: {
     comment: {
@@ -124,14 +119,14 @@ export default {
         child: child,
       });
     },
-    getTimeAgo(time){
-      return tool.getTimeAgo(time)
+    getTimeAgo(time) {
+      return tool.getTimeAgo(time);
     },
-    toUserDetail(item){
+    toUserDetail(item) {
       uni.navigateTo({
         url: `/pages/user/space?account=${item.account}`,
       });
-    }
+    },
   },
 };
 </script>
@@ -211,7 +206,7 @@ export default {
     justify-content: space-between;
 
     .reply-btn {
-      color: #4A90E2;
+      color: #4a90e2;
       font-size: 28rpx;
       padding: 4rpx 12rpx;
     }
@@ -283,7 +278,7 @@ export default {
         }
 
         .reply-target {
-          color: #4A90E2;
+          color: #4a90e2;
           font-size: 26rpx;
         }
       }
@@ -303,7 +298,7 @@ export default {
         justify-content: space-between;
 
         .reply-btn {
-          color: #4A90E2;
+          color: #4a90e2;
           font-size: 22rpx;
           padding: 2rpx 12rpx;
         }
@@ -313,7 +308,7 @@ export default {
     .sub-expand-btn {
       text-align: center;
       padding: 12rpx 0;
-      color: #4A90E2;
+      color: #4a90e2;
       font-size: 24rpx;
     }
   }
