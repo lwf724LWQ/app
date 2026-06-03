@@ -21,8 +21,11 @@
         @click="switchTabByIndex(index, true)"
       >
         <text class="tab-text">
-          <view v-if="index === 5 && userStore.followCount > 0" class="redDot">{{ userStore.followCount }}</view>
-          {{ item }}</text>
+          <view v-if="index === 5 && userStore.followCount > 0" class="redDot">
+            {{ userStore.followCount }}
+          </view>
+          {{ item }}
+        </text>
       </view>
     </view>
 
@@ -72,8 +75,6 @@
       @click="onHoverClick"
       v-if="userStore.videoCount <= 0"
     ></ActivityHover> -->
-
-    
   </view>
 
   <!-- 进球/红黄牌底部弹窗通知 -->
@@ -81,7 +82,7 @@
 </template>
 
 <script setup>
-import { onShow, onPullDownRefresh } from "@dcloudio/uni-app";
+import { onShow, onHide, onPullDownRefresh } from "@dcloudio/uni-app";
 import { ref, onMounted, inject } from "vue";
 
 // 导入 Pinia store
@@ -106,7 +107,7 @@ import searchInput from "./components/search-input.vue";
 import { getToken } from "../../utils/request.js";
 import { nextTick } from "vue";
 
-const searchInputRef = ref(null)
+const searchInputRef = ref(null);
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(3);
@@ -129,7 +130,7 @@ function swiperChange(e) {
 
 // 标签切换（与 forum.vue 的交互一致）
 const switchTabByIndex = async (index, isRefresh) => {
-  if(index === 5 && !getToken()){
+  if (index === 5 && !getToken()) {
     // 关注列表需要登录才能使用
     uni.showModal({
       title: "提示",
@@ -141,13 +142,13 @@ const switchTabByIndex = async (index, isRefresh) => {
       },
       showCancel: true,
     });
-    return
+    return;
   }
 
   pickerIndex.value = index;
   currentLotteryType.value = lotteryTypes.value[index];
 
-  searchInputRef.value.setStatus(index)
+  searchInputRef.value.setStatus(index);
 
   // 切换标签时重置并获取对应类型的视频列表
   if (isRefresh) {
@@ -179,14 +180,20 @@ const gotoPutPost = () => {
   });
 };
 
-const postListRef = ref(null)
-const prognosisRef = ref(null)
+const postListRef = ref(null);
+const prognosisRef = ref(null);
 
+const pageIsShow = ref(false);
 onShow((e) => {
-  nextTick(()=>{
-    postListRef.value?.onshow()
-    prognosisRef.value?.onshow()
-  })
+  pageIsShow.value = true;
+  nextTick(() => {
+    postListRef.value?.onshow();
+    prognosisRef.value?.onshow();
+  });
+});
+
+onHide(() => {
+  pageIsShow.value = false;
 });
 
 // 生命周期钩子
@@ -194,10 +201,12 @@ onMounted(async () => {});
 
 // 搜索事件 - 跳转到搜索结果页
 function onSearch(params) {
-  const query = `keyword=${encodeURIComponent(params.keyword)}&status=${encodeURIComponent(params.status)}&date=${encodeURIComponent(params.date)}`
+  const query = `keyword=${encodeURIComponent(params.keyword)}&status=${encodeURIComponent(
+    params.status
+  )}&date=${encodeURIComponent(params.date)}`;
   uni.navigateTo({
     url: `/pages/zc/search-list?${query}`,
-  })
+  });
 }
 
 const userStore = useUserStore();
@@ -229,12 +238,14 @@ const onHoverClick = () => {
 
 const eventNotificationRef = ref(null);
 const updateMatchList = (list) => {
-  if (pickerIndex.value == 5) {
-    eventNotificationRef.value?.onDataUpdate(list.filter(item=>item.flag));
-  }else{
-    eventNotificationRef.value?.onDataUpdate(list);
+  if (pageIsShow.value) {
+    if (pickerIndex.value == 5) {
+      eventNotificationRef.value?.onDataUpdate(list.filter((item) => item.flag));
+    } else {
+      eventNotificationRef.value?.onDataUpdate(list);
+    } 
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -333,8 +344,8 @@ const updateMatchList = (list) => {
   border-bottom: 4rpx solid transparent;
   transition: all 0.2s ease;
   font-weight: bold;
-  
-  &.bigwidth{
+
+  &.bigwidth {
     flex: 1.6;
   }
 }
@@ -350,8 +361,8 @@ const updateMatchList = (list) => {
   position: relative;
 }
 
-.tab-text{
-  .redDot{
+.tab-text {
+  .redDot {
     position: absolute;
     right: -15rpx;
     top: -15rpx;
@@ -370,7 +381,7 @@ const updateMatchList = (list) => {
   color: #ff4757;
 }
 
-.search-box{
+.search-box {
   padding: 10rpx;
 }
 

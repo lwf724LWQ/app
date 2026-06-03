@@ -18,15 +18,11 @@
       </view>
     </view>
     <view class="area">
-      <view v-for="(match, index) in matchListSorting" :key="index" class="day-group">
-        <MatchScoreCard
-          :match="match"
-        />
+      <view v-for="(match, index) in matchListSorting" :key="match.matchId" class="day-group">
+        <MatchScoreCard :match="match" />
       </view>
     </view>
   </scroll-view>
-
-  
 </template>
 
 <script setup>
@@ -36,7 +32,6 @@ import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
-
 
 // 接收的props
 const props = defineProps({
@@ -59,9 +54,9 @@ const isLoading = ref(false);
 
 const currentPageDate = ref(new Date());
 
-const matchListSorting = computed(()=>{
-  return matchInfoList.value.sort((a,b) => b.flag - a.flag)
-})
+const matchListSorting = computed(() => {
+  return matchInfoList.value.sort((a, b) => b.flag - a.flag);
+});
 
 // 刷新视频列表
 const refreshVideoList = async () => {
@@ -90,7 +85,7 @@ const fetchVideoList = async (isShowRefresher = true) => {
   try {
     if (isLoading.value) return;
     isLoading.value = true;
-    refresher.value = isShowRefresher
+    refresher.value = isShowRefresher;
     // 构建请求参数
     currentPageDate.value = dayjs(currentPageDate.value);
     const fdateStr = currentPageDate.value.format("YYYY/M/D");
@@ -99,7 +94,7 @@ const fetchVideoList = async (isShowRefresher = true) => {
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;
-      emit("updateMatchList", Videoinfo.data)
+      emit("updateMatchList", Videoinfo.data);
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -122,7 +117,7 @@ const fetchVideoList = async (isShowRefresher = true) => {
 
     // 停止下拉刷新
     uni.stopPullDownRefresh();
-    refresher.value = false
+    refresher.value = false;
   }
 };
 
@@ -210,7 +205,7 @@ onMounted(() => {
   refreshVideoList();
   // 每5秒自动刷新
   refreshTimer = setInterval(() => {
-    refreshVideoList(); 
+    refreshVideoList();
   }, 5000);
 });
 
@@ -328,5 +323,4 @@ defineExpose({
   font-size: 24rpx;
   color: #999;
 }
-
 </style>

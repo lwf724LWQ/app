@@ -19,9 +19,7 @@
     </view>
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
-        <MatchScoreCard
-          :match="match"
-        />
+        <MatchScoreCard :match="match" />
       </view>
     </view>
     <view v-if="matchInfoList.length > 0" class="load-more-status">
@@ -66,7 +64,7 @@ const isLoading = ref(false);
 const hasMore = ref(true);
 const currentPage = ref(1);
 const isNeedRefresh = ref(false);
-const refresher = ref(false)
+const refresher = ref(false);
 
 // 刷新视频列表
 const refreshVideoList = async (e) => {
@@ -97,23 +95,24 @@ const scrollTop = ref(0);
 const fetchVideoList = async (isShowRefresh = true) => {
   try {
     if (isLoading.value) return;
+    if (!getAccount()) return;
     isLoading.value = true;
-    refresher.value = isShowRefresh
+    refresher.value = isShowRefresh;
     const form = {
       page: currentPage.value,
-      limit: props.limit
+      limit: props.limit,
     };
 
     const res = await forllowFootballList(form);
 
     if (res.code === 200 && res.data && Array.isArray(res.data.list)) {
-      const list = res.data.list.map(item => ({...item, flag: true}));
+      const list = res.data.list.map((item) => ({ ...item, flag: true }));
       if (currentPage.value == 1) {
-        matchInfoList.value = [...list]
-      }else{
+        matchInfoList.value = [...list];
+      } else {
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
-      userStore.setFollowCount(res.data.total)
+      userStore.setFollowCount(res.data.total);
       if (list.length < props.limit) {
         hasMore.value = false;
       }
@@ -128,16 +127,16 @@ const fetchVideoList = async (isShowRefresh = true) => {
     }
   } catch (error) {
     console.error("获取关注列表失败:", error);
-      uni.showToast({
-        title: "获取关注列表失败，请检查网络",
-        icon: "none",
-      });
+    uni.showToast({
+      title: "获取关注列表失败，请检查网络",
+      icon: "none",
+    });
   } finally {
     setTimeout(() => {
       isLoading.value = false;
     }, 300);
     uni.stopPullDownRefresh();
-    refresher.value = false
+    refresher.value = false;
   }
 };
 
@@ -161,7 +160,7 @@ function startPolling() {
     if (props.isActiveTab) {
       currentPage.value = 1;
       hasMore.value = true;
-      fetchVideoList(true); 
+      fetchVideoList(true);
     }
   }, 5000);
 }

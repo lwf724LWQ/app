@@ -1,5 +1,5 @@
 <template>
-  <view class="match-card" @click="toDetailPage">
+  <view class="match-card" :class="{ 'score-flash': isFlashing }" @click="toDetailPage">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <text class="match-status"></text>
@@ -23,16 +23,13 @@
       </view>
 
       <view class="favorite-btn" @click="toggleFavorite" :class="{ active: match.flag }">
-          <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text>
-        </view>
+        <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text>
+      </view>
     </view>
 
     <!-- 底部：详细数据 -->
-    <view
-      class="footer"
-      v-if="[1,2,3,4,5,-1].includes(match.mstate)"
-    >
-    <!-- 上半场，中场，下半场，加时，点球，完赛才显示底部数据 -->
+    <view class="footer" v-if="[1, 2, 3, 4, 5, -1].includes(match.mstate)">
+      <!-- 上半场，中场，下半场，加时，点球，完赛才显示底部数据 -->
       <!-- 主队数据 -->
       <view class="stat-group">
         <view class="stat-item red">{{ match.homeRed || "" }}</view>
@@ -60,33 +57,50 @@
 </template>
 
 <script>
-import dayjs from 'dayjs';
-import {forllowFootball, delForllowFootball} from "@/api/apis.js"
-import { getToken } from '../../../utils/request';
+import dayjs from "dayjs";
+import { forllowFootball, delForllowFootball } from "@/api/apis.js";
+import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 
 export default {
   props: {
-    match: {type: Object}
+    match: { type: Object },
   },
   data() {
     return {
       isFavorite: false,
+      isFlashing: false,
     };
+  },
+  watch: {
+    match: {
+      handler(newMatch, oldMatch) {
+        if (oldMatch) {
+          if (
+            newMatch.homeScore != oldMatch.homeScore ||
+            newMatch.awayScore != oldMatch.awayScore ||
+            newMatch.homeRed != oldMatch.homeRed ||
+            newMatch.awayRed != oldMatch.awayRed ||
+            newMatch.homeYellow != oldMatch.homeYellow ||
+            newMatch.awayYellow != oldMatch.awayYellow
+          ) {
+            this.scoreUpdate();
+          }
+        }
+      },
+      deep: true,
+    },
   },
   computed: {
     statusClass() {
       return this.matchStatus === "加时" ? "status-highlight" : "";
     },
-    scoreColor(){
-      const mstate = this.match.mstate
-      if ([-10,-11,-12,-13,-14].includes(mstate))
-        return "color:#007df9;"
-      if([1,3,4,5].includes(mstate))
-        return "color:#ff4d4f;"
-      if([2].includes(mstate))
-        return "color:#007df9;"
-      return "color:#4caf50;"
+    scoreColor() {
+      const mstate = this.match.mstate;
+      if ([-10, -11, -12, -13, -14].includes(mstate)) return "color:#007df9;";
+      if ([1, 3, 4, 5].includes(mstate)) return "color:#ff4d4f;";
+      if ([2].includes(mstate)) return "color:#007df9;";
+      return "color:#4caf50;";
     },
     leagueColor() {
       return (
@@ -122,83 +136,89 @@ export default {
         }[this.leagueName] || "#666666"
       );
     },
-    matchStatus(){
-      if(!this.match){
-        return ""
+    matchStatus() {
+      if (!this.match) {
+        return "";
       }
       return {
-        "0" :"未开",
-        "1" :"上半场",
-        "2" :"中场",
-        "3" :"下半场",
-        "4" :"加时",
-        "5" :"点球",
-        "-1" :"完场",
-        "-10" : "取消",
-        "-11" : "待定",
-        "-12" : "腰斩",
-        "-13" : "中断",
-        "-14" : "推迟"
-      }[this.match.mstate]
+        0: "未开",
+        1: "上半场",
+        2: "中场",
+        3: "下半场",
+        4: "加时",
+        5: "点球",
+        "-1": "完场",
+        "-10": "取消",
+        "-11": "待定",
+        "-12": "腰斩",
+        "-13": "中断",
+        "-14": "推迟",
+      }[this.match.mstate];
     },
-    matchTime(){
-      if(!this.match){
-        return ""
+    matchTime() {
+      if (!this.match) {
+        return "";
       }
-      let time = this.match.matchTime
-      if(this.match.mstate == 3 && this.match.middleTime){
-        time = this.match.middleTime
-      }else if(this.match.mstate == 1 && this.match.startTime){
-        time = this.match.startTime
+      let time = this.match.matchTime;
+      if (this.match.mstate == 3 && this.match.middleTime) {
+        time = this.match.middleTime;
+      } else if (this.match.mstate == 1 && this.match.startTime) {
+        time = this.match.startTime;
       }
-      return dayjs(time).format("HH:mm")
+      return dayjs(time).format("HH:mm");
     },
-    halfScore(){
-      if ([0,1].includes(this.match.mstate)) {
-         return ""
-      }else{
-        return `半 ${this.match.homeHalfScore}:${this.match.awayHalfScore}`
+    halfScore() {
+      if ([0, 1].includes(this.match.mstate)) {
+        return "";
+      } else {
+        return `半 ${this.match.homeHalfScore}:${this.match.awayHalfScore}`;
       }
     },
-    score(){
-      if([0,-10,-11,-12,-13,-14].includes(this.match.mstate)){
-        return false
-      }else{
-        return `${this.match.homeScore}:${this.match.awayScore}`
+    score() {
+      if ([0, -10, -11, -12, -13, -14].includes(this.match.mstate)) {
+        return false;
+      } else {
+        return `${this.match.homeScore}:${this.match.awayScore}`;
       }
-    }
+    },
   },
   methods: {
+    scoreUpdate() {
+      this.isFlashing = true;
+      setTimeout(() => {
+        this.isFlashing = false;
+      }, 5000);
+    },
     async toggleFavorite() {
-      if(getToken()){
-        uni.showLoading()
+      if (getToken()) {
+        uni.showLoading();
         const userStore = useUserStore();
         try {
           if (this.match.flag) {
-            await delForllowFootball(this.match.matchId)
-            userStore.reduceFollowCount()
-          }else{
-            await forllowFootball(this.match.matchId)
-            userStore.addFollowCount()
+            await delForllowFootball(this.match.matchId);
+            userStore.reduceFollowCount();
+          } else {
+            await forllowFootball(this.match.matchId);
+            userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
         } catch (error) {
-          console.log(error)
+          console.log(error);
           uni.showToast({
-            title: error.msg || "操作失败"
-          })  
+            title: error.msg || "操作失败",
+          });
         }
-        uni.hideLoading()
-      }else{
+        uni.hideLoading();
+      } else {
         uni.showModal({
-            title: "提示",
-            content: "该操作需要登录，是否前往",
-            success: async (res) => {
-                if (res.confirm) {
-                    uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/zc/index" });
-                }
-            },
-            showCancel: true,
+          title: "提示",
+          content: "该操作需要登录，是否前往",
+          success: async (res) => {
+            if (res.confirm) {
+              uni.navigateTo({ url: "/pages/login/login" + "?redirect=/pages/zc/index" });
+            }
+          },
+          showCancel: true,
         });
       }
     },
@@ -217,6 +237,26 @@ export default {
   padding: 15rpx 10rpx;
   border-bottom: 1rpx solid #f0f0f0;
   font-family: Arial, sans-serif;
+  transition: background-color 0.3s ease;
+
+  &.score-flash {
+    animation: flash-bg 5s ease;
+  }
+}
+
+@keyframes flash-bg {
+  0% {
+    background-color: #fff;
+  }
+  30% {
+    background-color: #fff7e6;
+  }
+  60% {
+    background-color: #ffe58f;
+  }
+  100% {
+    background-color: #fff;
+  }
 }
 
 .header,
@@ -325,7 +365,7 @@ export default {
   align-items: center;
   justify-content: center;
 }
-.stat-corner-icon{
+.stat-corner-icon {
   width: 25rpx;
   height: 25rpx;
   background: url(/static/icons/jiaoqiu.png) no-repeat;

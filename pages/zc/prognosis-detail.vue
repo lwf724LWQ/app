@@ -132,7 +132,7 @@ export default {
     // 回复某条一级评论
     onReplyTo(comment) {
       this.replyTarget = { pid: comment.id, uname: comment.uname };
-      this.onFocus()
+      this.onFocus();
     },
     cancelReply() {
       this.replyTarget = null;
@@ -146,7 +146,13 @@ export default {
       }, 100);
     },
     onFocus() {
-      this.inputFocus = true;
+      if (tool.isLogin()) {
+        this.inputFocus = true;
+      } else {
+        this.$nextTick(() => {
+          this.inputFocus = false;
+        });
+      }
     },
     async getCommentList(isLoadMore = false) {
       if (!isLoadMore) {
@@ -159,7 +165,7 @@ export default {
           limit: this.commitLimit,
         });
         const { total, list } = res.data;
-        this.commentCount = total
+        this.commentCount = total;
         this.isMoreComment = list.length === this.commitLimit;
         if (isLoadMore) {
           this.commitList = [...this.commitList, ...list];
@@ -207,11 +213,11 @@ export default {
         this.getCommentList(true);
       }
     },
-    toUserDetail(){
+    toUserDetail() {
       uni.navigateTo({
         url: `/pages/user/space?account=${this.prognosisData.account}`,
       });
-    }
+    },
   },
   onLoad(options) {
     this.id = options.id || "0";
@@ -220,7 +226,7 @@ export default {
     });
     getFootBallPostDetail(options.id)
       .then((res) => {
-        this.prognosisData = {...res.data, ...res.data.fbpost};
+        this.prognosisData = { ...res.data, ...res.data.fbpost };
       })
       .finally(() => {
         uni.hideLoading();

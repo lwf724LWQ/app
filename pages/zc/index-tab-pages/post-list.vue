@@ -35,7 +35,7 @@ import PostCard from "../components/post-card.vue";
 import { getFootBallPostList, CheckFootBallIsPay, findByAccountWithFbpost } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
-
+import tool from "@/utils/tool.js";
 
 export default {
   components: { PostCard, PaymentWrapper },
@@ -61,7 +61,7 @@ export default {
       total: 0,
       UserBadgeAccuracyMap: {},
 
-      isNeedRefresh: false
+      isNeedRefresh: false,
     };
   },
   methods: {
@@ -69,9 +69,11 @@ export default {
       return this.UserBadgeAccuracyMap[account] || [];
     },
     async openDetail(data) {
-      uni.navigateTo({
-        url: `/pages/zc/post-detail?id=${data.id}`,
-      });
+      if (tool.isLogin()) {
+        uni.navigateTo({
+          url: `/pages/zc/post-detail?id=${data.id}`,
+        });
+      }
     },
 
     async loadMore() {
@@ -81,34 +83,34 @@ export default {
       }
       this.isLoading = true;
       this.currentPage++;
-      let res = null
+      let res = null;
       if (this.findByAccount) {
-        erStore()
+        erStore();
         res = await findByAccountWithFbpost({
           page: this.currentPage,
           limit: 20,
           ftype: 2,
-          account: this.findByAccount
+          account: this.findByAccount,
         });
-        const userStore = useUserStore()
-        const userdata = userStore.getUserInfo
-        res.data.records.forEach(item => {
-          item.uname = userdata.nickname
-          item.himg = userdata.avatar
-        })
-        res.data.list = res.data.records
-      }else{
+        const userStore = useUserStore();
+        const userdata = userStore.getUserInfo;
+        res.data.records.forEach((item) => {
+          item.uname = userdata.nickname;
+          item.himg = userdata.avatar;
+        });
+        res.data.list = res.data.records;
+      } else {
         res = await getFootBallPostList({
           page: this.currentPage,
           limit: 20,
           ftype: 2,
         });
       }
-      
-      res.data.list.forEach((item)=>{
-        const a = JSON.parse(item.result)
-        item.description = a.expertAnalysis
-      })
+
+      res.data.list.forEach((item) => {
+        const a = JSON.parse(item.result);
+        item.description = a.expertAnalysis;
+      });
 
       this.UserBadgeAccuracyMap = { ...this.UserBadgeAccuracyMap, ...res.data.result };
       this.list = [...this.list, ...res.data.list];
@@ -133,16 +135,16 @@ export default {
             page: this.currentPage,
             limit: 20,
             ftype: 2,
-            account: this.findByAccount
+            account: this.findByAccount,
           });
-          const userStore = useUserStore()
-          const userdata = userStore.getUserInfo
-          res.data.records.forEach(item => {
-            item.uname = userdata.nickname
-            item.himg = userdata.avatar
-          })
-          res.data.list = res.data.records
-        }else{
+          const userStore = useUserStore();
+          const userdata = userStore.getUserInfo;
+          res.data.records.forEach((item) => {
+            item.uname = userdata.nickname;
+            item.himg = userdata.avatar;
+          });
+          res.data.list = res.data.records;
+        } else {
           res = await getFootBallPostList({
             page: this.currentPage,
             limit: 20,
@@ -179,18 +181,21 @@ export default {
     onScratchComplete(percent) {
       console.log(percent);
     },
-    gotoPutPost(){
+    gotoPutPost() {
+      if (!tool.isLogin()) {
+        return;
+      }
       this.isNeedRefresh = true;
       uni.navigateTo({
         url: "/pages/zc/creaet-post",
       });
     },
-    onshow(){
-      if(this.isNeedRefresh){
-      this.refreshList()
-      this.isNeedRefresh = false
-    }
-    }
+    onshow() {
+      if (this.isNeedRefresh) {
+        this.refreshList();
+        this.isNeedRefresh = false;
+      }
+    },
   },
   mounted() {
     this.refreshList();

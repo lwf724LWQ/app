@@ -47,7 +47,9 @@
         </view>
         <view class="bottom-actions">
           <template v-if="inputFocus">
-            <button class="action-btn" @click="submitComment" size="default" type="default">发送</button>
+            <button class="action-btn" @click="submitComment" size="default" type="default">
+              发送
+            </button>
           </template>
           <template v-else>
             <view class="action-btn">
@@ -68,15 +70,15 @@
 <script>
 import commentCard from "./components/comment-card.vue";
 import myPage from "@/components/myPage.vue";
-import { getFootBallPostDetail, addComment, commentList } from "@/api/apis.js"
-import tool from "@/utils/tool"
+import { getFootBallPostDetail, addComment, commentList } from "@/api/apis.js";
+import tool from "@/utils/tool";
 
 export default {
   components: { commentCard, myPage },
   data() {
     return {
       id: "",
-      postDetail:{},
+      postDetail: {},
 
       activeTab: "all",
       sort: "hot",
@@ -93,16 +95,22 @@ export default {
   },
   methods: {
     onBlur() {
-      setTimeout(()=>{
+      setTimeout(() => {
         this.inputFocus = false;
         // 失焦时清除回复目标
         if (!this.inputText.trim()) {
           this.replyTarget = null;
         }
-      }, 100)
+      }, 100);
     },
     onFocus() {
-      this.inputFocus = true;
+      if (tool.isLogin()) {
+        this.inputFocus = true;
+      } else {
+        this.$nextTick(() => {
+          this.inputFocus = false;
+        });
+      }
     },
     // 回复某条一级评论
     onReplyTo(comment) {
@@ -110,21 +118,21 @@ export default {
       this.inputFocus = true;
     },
 
-    async getPostDetail(){
-      uni.showLoading()
+    async getPostDetail() {
+      uni.showLoading();
       try {
-          const res = await getFootBallPostDetail(this.id)
-          const a = JSON.parse(res.data.fbpost.result)
-          res.data.description = a.expertAnalysis
-          this.postDetail = {uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost}
+        const res = await getFootBallPostDetail(this.id);
+        const a = JSON.parse(res.data.fbpost.result);
+        res.data.description = a.expertAnalysis;
+        this.postDetail = { uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost };
       } catch (error) {
         uni.showToast({
-          title: error.msg || "加载失败"
-        })        
+          title: error.msg || "加载失败",
+        });
       }
-      uni.hideLoading()
+      uni.hideLoading();
     },
-    getFullImgUrl(url){
+    getFullImgUrl(url) {
       return tool.oss.getFullUrl(`/himg/${url}`);
     },
     async getCommentList(isLoadMore = false) {
@@ -137,10 +145,10 @@ export default {
           page: this.commentPage,
           limit: this.commentLimit,
         });
-        const { total,list } = res.data;
-        
-        this.commentCount = total
-        this.isMoreComment = list.length === this.commentLimit
+        const { total, list } = res.data;
+
+        this.commentCount = total;
+        this.isMoreComment = list.length === this.commentLimit;
 
         if (isLoadMore) {
           this.commentList = [...this.commentList, ...list];
@@ -148,15 +156,15 @@ export default {
           this.commentList = list;
         }
       } catch (error) {
-        console.log(error)
+        console.log(error);
         uni.showToast({
           title: error.msg || "加载评论失败",
           icon: "none",
         });
       }
     },
-    getTimeAgo(time){
-      return tool.getTimeAgo(time)
+    getTimeAgo(time) {
+      return tool.getTimeAgo(time);
     },
     async submitComment() {
       if (!this.inputText.trim()) {
@@ -175,7 +183,6 @@ export default {
         this.replyTarget = null;
         // 刷新评论列表
         this.getCommentList();
-
       } catch (error) {
         uni.showToast({
           title: error.msg || "发布失败",
@@ -188,16 +195,16 @@ export default {
     onReachBottom() {
       if (this.isMoreComment) {
         this.commentPage++;
-        this.getCommentList(true); 
+        this.getCommentList(true);
       }
     },
-    toUserDetail(){
+    toUserDetail() {
       uni.navigateTo({
         url: `/pages/user/space?account=${this.postDetail.account}`,
       });
-    }
+    },
   },
-  
+
   onLoad(option) {
     this.id = option.id;
     this.getPostDetail();

@@ -4,17 +4,29 @@
     <view class="event-popup-inner">
       <view class="event-icon">{{ getEventIcon(activeNotification.type) }}</view>
       <view class="event-content">
-        <view class="event-teams">{{ activeNotification.homeChs }} vs {{ activeNotification.awayChs }}</view>
+        <view class="event-teams">
+          {{ activeNotification.homeChs }} vs {{ activeNotification.awayChs }}
+        </view>
         <view class="event-desc">
           <text v-if="activeNotification.type === 'goal'" class="event-text">
-            {{ activeNotification.side === 'home' ? '主队' : '客队' }}进球！
-            比分 {{ activeNotification.homeScore }}:{{ activeNotification.awayScore }}
+            {{ activeNotification.side === "home" ? "主队" : "客队" }}进球！ 比分
+            {{ activeNotification.homeScore }}:{{ activeNotification.awayScore }}
           </text>
           <text v-else-if="activeNotification.type === 'red'" class="event-text event-red">
-            {{ activeNotification.side === 'home' ? activeNotification.homeChs : activeNotification.awayChs }} 红牌！
+            {{
+              activeNotification.side === "home"
+                ? activeNotification.homeChs
+                : activeNotification.awayChs
+            }}
+            红牌！
           </text>
           <text v-else-if="activeNotification.type === 'yellow'" class="event-text event-yellow">
-            {{ activeNotification.side === 'home' ? activeNotification.homeChs : activeNotification.awayChs }} 黄牌！
+            {{
+              activeNotification.side === "home"
+                ? activeNotification.homeChs
+                : activeNotification.awayChs
+            }}
+            黄牌！
           </text>
         </view>
       </view>
@@ -25,7 +37,7 @@
 
 <script setup>
 import { ref } from "vue";
-import whistleMp3 from "@/static/zc/whistle.mp3"
+import whistleMp3 from "@/static/zc/whistle.mp3";
 
 // ========== 音频 ==========
 const innerAudioContext = uni.createInnerAudioContext();
@@ -37,18 +49,18 @@ function playWhistle() {
 }
 
 // ========== 状态 ==========
-let isInitialized = false;                        // 是否已完成首次快照
-const previousMatchMap = {};                       // 上一次各比赛数据快照（非响应式，避免不必要渲染）
-const activeNotification = ref(null);              // 当前显示的通知
+let isInitialized = false; // 是否已完成首次快照
+const previousMatchMap = {}; // 上一次各比赛数据快照（非响应式，避免不必要渲染）
+const activeNotification = ref(null); // 当前显示的通知
 let notificationTimer = null;
-const notificationQueue = [];                      // 通知队列
+const notificationQueue = []; // 通知队列
 
 // ========== 工具函数 ==========
 function getEventIcon(type) {
-  if (type === 'goal') return '⚽';
-  if (type === 'red') return '🟥';
-  if (type === 'yellow') return '🟨';
-  return '';
+  if (type === "goal") return "⚽";
+  if (type === "red") return "🟥";
+  if (type === "yellow") return "🟨";
+  return "";
 }
 
 // ========== 弹窗队列 ==========
@@ -90,11 +102,11 @@ function enqueueNotification(notification) {
 // ========== 变化检测 ==========
 function detectChanges(oldMatches, newMatches) {
   const oldMap = {};
-  oldMatches.forEach(m => {
+  oldMatches.forEach((m) => {
     if (m.matchId) oldMap[m.matchId] = m;
   });
 
-  newMatches.forEach(newMatch => {
+  newMatches.forEach((newMatch) => {
     const matchId = newMatch.matchId;
     if (!matchId) return;
     const oldMatch = oldMap[matchId];
@@ -117,50 +129,70 @@ function detectChanges(oldMatches, newMatches) {
     const oldAwayYellow = Number(oldMatch.awayYellow) || 0;
     const newHomeYellow = Number(newMatch.homeYellow) || 0;
     const newAwayYellow = Number(newMatch.awayYellow) || 0;
-    
+
     if (newHomeScore > oldHomeScore) {
       enqueueNotification({
-        type: 'goal', side: 'home',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs,
-        homeScore: newHomeScore, awayScore: newAwayScore, matchId,
+        type: "goal",
+        side: "home",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        homeScore: newHomeScore,
+        awayScore: newAwayScore,
+        matchId,
       });
     }
     if (newAwayScore > oldAwayScore) {
       enqueueNotification({
-        type: 'goal', side: 'away',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs,
-        homeScore: newHomeScore, awayScore: newAwayScore, matchId,
+        type: "goal",
+        side: "away",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        homeScore: newHomeScore,
+        awayScore: newAwayScore,
+        matchId,
       });
     }
     if (newHomeRed > oldHomeRed) {
       enqueueNotification({
-        type: 'red', side: 'home',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs, matchId,
+        type: "red",
+        side: "home",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        matchId,
       });
     }
     if (newAwayRed > oldAwayRed) {
       enqueueNotification({
-        type: 'red', side: 'away',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs, matchId,
+        type: "red",
+        side: "away",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        matchId,
       });
     }
     if (newHomeYellow > oldHomeYellow) {
       enqueueNotification({
-        type: 'yellow', side: 'home',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs, matchId,
+        type: "yellow",
+        side: "home",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        matchId,
       });
     }
     if (newAwayYellow > oldAwayYellow) {
       enqueueNotification({
-        type: 'yellow', side: 'away',
-        homeChs: newMatch.homeChs, awayChs: newMatch.awayChs, matchId,
+        type: "yellow",
+        side: "away",
+        homeChs: newMatch.homeChs,
+        awayChs: newMatch.awayChs,
+        matchId,
       });
     }
   });
 }
 
 function updateSnapshot(matches) {
-  matches.forEach(m => {
+  matches.forEach((m) => {
     if (m.matchId) {
       previousMatchMap[m.matchId] = {
         homeScore: Number(m.homeScore) || 0,
