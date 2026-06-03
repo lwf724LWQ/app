@@ -18,7 +18,7 @@
       </view>
     </view>
     <view class="area">
-      <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
+      <view v-for="(match, index) in matchListSorting" :key="index" class="day-group">
         <MatchScoreCard
           :match="match"
         />
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from "vue";
 import { getFootBallList } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
@@ -62,6 +62,9 @@ const isLoading = ref(false);
 
 const currentPageDate = ref(new Date());
 
+const matchListSorting = computed(()=>{
+  return matchInfoList.value.sort((a,b) => b.flag - a.flag)
+})
 
 // 刷新视频列表
 const refreshVideoList = async () => {
