@@ -115,7 +115,7 @@ const fetchVideoList = async (dateStr) => {
     uni.showLoading({
       title: "加载中...",
     });
-    const Videoinfo = await getFootBallList(dateStr, 2, "");
+    const Videoinfo = await getFootBallList(dateStr, 2, "", getAccount());
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;

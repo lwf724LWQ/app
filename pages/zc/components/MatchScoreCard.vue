@@ -22,8 +22,8 @@
         {{ match.awayChs }}
       </view>
 
-      <view class="favorite-btn" @click="toggleFavorite" :class="{ active: isFavorite }">
-          <text class="star-icon">{{ isFavorite ? "★" : "☆" }}</text>
+      <view class="favorite-btn" @click="toggleFavorite" :class="{ active: match.flag }">
+          <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text>
         </view>
     </view>
 
@@ -172,13 +172,12 @@ export default {
       if(getToken()){
         uni.showLoading()
         try {
-          if (this.isFavorite) {
+          if (this.match.flag) {
             await delForllowFootball(this.match.matchId)
           }else{
             await forllowFootball(this.match.matchId)
           }
-
-          this.isFavorite = !this.isFavorite;
+          this.match.flag = !this.match.flag;
         } catch (error) {
           uni.showToast({
             title: error.msg || "操作失败"

@@ -50,6 +50,7 @@ import searchInput from './components/search-input.vue'
 import MatchScoreCard from './components/MatchScoreCard.vue'
 import { getFootBallList } from '@/api/apis.js'
 import dayjs from 'dayjs'
+import { getAccount } from '../../utils/request.js'
 
 // 搜索参数
 const searchKeyword = ref('')
@@ -82,7 +83,7 @@ async function fetchMatchList() {
   isLoading.value = true
 
   try {
-    const res = await getFootBallList(dayjs(searchDate.value).format("YYYY/M/D"), searchStatus.value, searchKeyword.value)
+    const res = await getFootBallList(dayjs(searchDate.value).format("YYYY/M/D"), searchStatus.value, searchKeyword.value, getAccount())
     let list = res.data || res || []
 
     matchList.value = list

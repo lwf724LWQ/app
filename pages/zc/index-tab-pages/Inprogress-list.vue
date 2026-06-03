@@ -52,6 +52,7 @@ import { ref, onMounted, nextTick } from "vue";
 import { getFootBallList } from "@/api/apis";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import dayjs from "dayjs";
+import { getAccount } from "../../../utils/request.js";
 
 // 定义事件
 const emit = defineEmits(["video-click"]);
@@ -119,7 +120,7 @@ const fetchVideoList = async (page = 1) => {
     }
 
     currentPage.value = page;
-    const res = await getFootBallList(currentPageDate.value, 1, "");
+    const res = await getFootBallList(currentPageDate.value, 1, "", getAccount());
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {
       
