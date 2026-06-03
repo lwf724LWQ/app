@@ -35,6 +35,7 @@ export const useUserStore = defineStore("user", {
     isLoggedIn: false,
     token: uni.getStorageSync("token") || "",
     videoCount: uni.getStorageSync("videoCount") === "" ? defaultVideoCount : uni.getStorageSync("videoCount"), // 用户允许观看视频次数
+    followCount: 0, // 全局关注列表数量（仅内存，不持久化）
   }),
 
   getters: {
@@ -139,6 +140,20 @@ export const useUserStore = defineStore("user", {
     setVideoCount(count) {
       this.videoCount = count;
       uni.setStorageSync("videoCount", this.videoCount);
+    },
+    // 直接设置关注列表数量
+    setFollowCount(count) {
+      this.followCount = count;
+    },
+    // 关注列表数量 +1
+    addFollowCount() {
+      this.followCount++;
+    },
+    // 关注列表数量 -1（不小于 0）
+    reduceFollowCount() {
+      if (this.followCount > 0) {
+        this.followCount--;
+      }
     },
   },
 });
