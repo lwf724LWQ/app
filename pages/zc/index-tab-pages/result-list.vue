@@ -4,9 +4,10 @@
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
-    :refresher-enabled="false"
+    :refresher-enabled="true"
     :refresher-triggered="isLoading"
     :scroll-top="scrollTop"
+    @refresherrefresh="refresh"
     @scroll="scroll"
   >
     <!-- 近期选项 -->
@@ -36,7 +37,7 @@
           <text class="day-count">{{ matchDay.matchCount }}场</text>
         </view> -->
         <MatchScoreCard
-          v-for="match in matchInfoList"
+          v-for="match in matchListSorting"
           :key="match.id"
           :match="match"
           :homeTeam="match.htname"
@@ -53,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { getFootBallList } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
@@ -78,7 +79,13 @@ const currentPageDate = ref("");
 
 const recentOptions = ref([]); // 近期选项
 
+const matchListSorting = computed(()=>{
+  return matchInfoList.value.sort((a,b) => b.flag - a.flag)
+})
+
+
 function initRecentOptions() {
+  recentOptions.value = []
   const nowDate = dayjs();
   for (let i = 0; i < 6; i++) {
     const date = nowDate.add(-i, "day");
@@ -88,7 +95,9 @@ function initRecentOptions() {
       weekday: date.format("dddd"),
     });
   }
-  currentPageDate.value = nowDate.format("YYYY/M/D");
+  if (!recentOptions.value.map(item => item.time).includes(currentPageDate.value)) {
+    currentPageDate.value = nowDate.format("YYYY/M/D");
+  }
 }
 
 // 刷新视频列表
