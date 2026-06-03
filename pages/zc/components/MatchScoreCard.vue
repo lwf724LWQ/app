@@ -15,7 +15,7 @@
       </view>
 
       <view class="score-section" :class="{ 'no-score': !score }">
-        <text class="score">{{ score || "VS" }}</text>
+        <text class="score" :style="scoreColor">{{ score || "VS" }}</text>
       </view>
 
       <view class="team-section right">
@@ -35,8 +35,8 @@
     <!-- 上半场，中场，下半场，加时，点球，完赛才显示底部数据 -->
       <!-- 主队数据 -->
       <view class="stat-group">
-        <view class="stat-item red">{{ match.homeRed }}</view>
-        <view class="stat-item yellow">{{ match.homeYellow }}</view>
+        <view class="stat-item red">{{ match.homeRed || "" }}</view>
+        <view class="stat-item yellow">{{ match.homeYellow || "" }}</view>
         <view class="stat-item grey">
           <view class="stat-corner-icon"></view>
           {{ match.homeCorner }}
@@ -52,8 +52,8 @@
           <view class="stat-corner-icon"></view>
           {{ match.awayCorner }}
         </view>
-        <view class="stat-item yellow">{{ match.awayYellow }}</view>
-        <view class="stat-item red">{{ match.awayRed }}</view>
+        <view class="stat-item yellow">{{ match.awayYellow || "" }}</view>
+        <view class="stat-item red">{{ match.awayRed || "" }}</view>
       </view>
     </view>
   </view>
@@ -76,6 +76,16 @@ export default {
   computed: {
     statusClass() {
       return this.matchStatus === "加时" ? "status-highlight" : "";
+    },
+    scoreColor(){
+      const mstate = this.match.mstate
+      if ([-10,-11,-12,-13,-14].includes(mstate))
+        return "color:#007df9;"
+      if([1,3,4,5].includes(mstate))
+        return "color:#ff4d4f;"
+      if([2].includes(mstate))
+        return "color:#007df9;"
+      return "color:#4caf50;"
     },
     leagueColor() {
       return (
