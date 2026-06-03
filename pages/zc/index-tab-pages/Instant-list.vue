@@ -5,7 +5,7 @@
     :scroll-y="true"
     :show-scrollbar="false"
     :refresher-enabled="true"
-    :refresher-triggered="isLoading"
+    :refresher-triggered="refresher"
     :lower-threshold="150"
     :scroll-top="scrollTop"
     @refresherrefresh="fetchVideoList"
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { getFootBallList } from "@/api/apis";
 import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
@@ -78,11 +78,13 @@ function scroll(e) {
   oldScrollTop.value = e.detail.scrollTop;
 }
 const scrollTop = ref(0);
+const refresher = ref(false);
 // 获取视频列表的函数
-const fetchVideoList = async () => {
+const fetchVideoList = async (isShowRefresher = true) => {
   try {
     if (isLoading.value) return;
     isLoading.value = true;
+    refresher.value = isShowRefresher
     // 构建请求参数
     currentPageDate.value = dayjs(currentPageDate.value);
     const fdateStr = currentPageDate.value.format("YYYY/M/D");
@@ -113,6 +115,7 @@ const fetchVideoList = async () => {
 
     // 停止下拉刷新
     uni.stopPullDownRefresh();
+    refresher.value = false
   }
 };
 
@@ -203,14 +206,26 @@ function videoMenu(video) {
 watch(
   () => props.videoType,
   (newType) => {
-    refreshVideoList();
+    refreshVideoList(false);
   },
   { immediate: true }
 );
 
 // 组件挂载时加载数据
+let refreshTimer = null;
 onMounted(() => {
   refreshVideoList();
+  // 每10秒自动刷新
+  refreshTimer = setInterval(() => {
+    refreshVideoList();
+  }, 5000);
+});
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
 });
 
 // 暴露 refreshVideoList 函数给父组件
