@@ -887,6 +887,9 @@ function shareVideo() {
 }
 
 const isHaveShareSdk = ref(true);
+// #ifdef H5
+  isHaveShareSdk.value = false
+// #endif
 
 // #ifdef APP-PLUS
 isHaveShareSdk.value =

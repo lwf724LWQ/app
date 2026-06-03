@@ -210,9 +210,7 @@ onMounted(() => {
   refreshVideoList();
   // 每5秒自动刷新
   refreshTimer = setInterval(() => {
-    if (props.isActiveTab) {
-      refreshVideoList(); 
-    }
+    refreshVideoList(); 
   }, 5000);
 });
 

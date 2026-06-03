@@ -229,7 +229,11 @@ const onHoverClick = () => {
 
 const eventNotificationRef = ref(null);
 const updateMatchList = (list) => {
-  eventNotificationRef.value?.onDataUpdate(list);
+  if (pickerIndex.value == 5) {
+    eventNotificationRef.value?.onDataUpdate(list.filter(item=>item.flag));
+  }else{
+    eventNotificationRef.value?.onDataUpdate(list);
+  }
 }
 </script>
 
