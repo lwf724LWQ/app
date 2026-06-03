@@ -26,8 +26,7 @@
     </view>
   </scroll-view>
 
-  <!-- 进球/红黄牌底部弹窗通知 -->
-  <MatchEventNotification ref="eventNotificationRef" />
+  
 </template>
 
 <script setup>
@@ -37,9 +36,7 @@ import { getToken, getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
-import MatchEventNotification from "@/components/MatchEventNotification.vue";
 
-const eventNotificationRef = ref(null);
 
 // 接收的props
 const props = defineProps({
@@ -54,7 +51,7 @@ const props = defineProps({
 });
 
 // 定义事件
-const emit = defineEmits(["video-click"]);
+const emit = defineEmits(["video-click", "updateMatchList"]);
 
 // 响应式数据
 const matchInfoList = ref([]);
@@ -102,7 +99,7 @@ const fetchVideoList = async (isShowRefresher = true) => {
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;
-      eventNotificationRef.value?.onDataUpdate(Videoinfo.data);
+      emit("updateMatchList", Videoinfo.data)
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -224,7 +221,7 @@ onBeforeUnmount(() => {
     clearInterval(refreshTimer);
     refreshTimer = null;
   }
-  eventNotificationRef.value?.destroy();
+  // eventNotificationRef.value?.destroy();
 });
 
 // 暴露 refreshVideoList 函数给父组件

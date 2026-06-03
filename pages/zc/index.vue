@@ -41,7 +41,7 @@
       @change="swiperChange"
     >
       <swiper-item>
-        <InstantList :isActiveTab="pickerIndex == 0" />
+        <InstantList :isActiveTab="pickerIndex == 0" @updateMatchList="updateMatchList" />
       </swiper-item>
       <swiper-item>
         <InprogressList />
@@ -72,7 +72,12 @@
       @click="onHoverClick"
       v-if="userStore.videoCount <= 0"
     ></ActivityHover> -->
+
+    
   </view>
+
+  <!-- 进球/红黄牌底部弹窗通知 -->
+  <MatchEventNotification ref="eventNotificationRef" />
 </template>
 
 <script setup>
@@ -95,6 +100,7 @@ import PrognosisList from "./index-tab-pages/prognosis-list.vue";
 import PostList from "./index-tab-pages/Post-list.vue";
 import InstantList from "./index-tab-pages/Instant-list.vue";
 import ForllowList from "./index-tab-pages/forllow-list.vue";
+import MatchEventNotification from "@/components/MatchEventNotification.vue";
 
 import searchInput from "./components/search-input.vue";
 import { getToken } from "../../utils/request.js";
@@ -220,6 +226,11 @@ const onHoverClick = () => {
     });
   }
 };
+
+const eventNotificationRef = ref(null);
+const updateMatchList = (list) => {
+  eventNotificationRef.value?.onDataUpdate(list);
+}
 </script>
 
 <style lang="scss" scoped>

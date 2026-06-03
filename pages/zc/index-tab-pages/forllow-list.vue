@@ -141,71 +141,7 @@ const fetchVideoList = async (isShowRefresh = true) => {
   }
 };
 
-// 播放视频方法 - 新增付费检查
 const userStore = useUserStore();
-const playVideo = async (video) => {
-  const token = getToken();
-
-  if (userStore.videoCount <= 0 && !token && video.flag) {
-    uni.showModal({
-      title: "提示",
-      content: "付费视频观看次数已用完，需要注册才能继续观看",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
-
-  recodeVideoId(video);
-
-  videoStore.setCurrentVideo(video);
-  uni.navigateTo({
-    url: `/pages/video/play?id=${video.id}`,
-  });
-};
-
-function recodeVideoId(video) {
-  try {
-    const r = uni.getStorageSync("videoClickList") || [];
-    r.push(video.id);
-    video.isClicked = true;
-    uni.setStorageSync("videoClickList", r);
-  } catch (error) {}
-}
-function videoMenu(video) {
-  if (video.account == getAccount()) {
-    uni.showActionSheet({
-      itemList: ["删除"],
-      success: async (res) => {
-        if (res.tapIndex === 0) {
-          uni.showLoading({
-            title: "正在处理...",
-          });
-          await delVideo(video.id)
-            .then((res) => {
-              uni.showToast({
-                title: "删除成功",
-                icon: "success",
-              });
-
-              videoList.value = videoList.value.filter((item) => item.id !== video.id);
-            })
-            .catch((res) => {
-              uni.showToast({
-                title: "删除失败",
-                icon: "error",
-              });
-            });
-          uni.hideLoading();
-        }
-      },
-    });
-  }
-}
 
 // 监听类型变化，重新获取数据
 watch(
@@ -240,11 +176,11 @@ function stopPolling() {
 // ========== 定时刷新结束 ==========
 
 onMounted(() => {
-  startPolling()
+  // startPolling()
 });
 
 onBeforeUnmount(() => {
-  stopPolling();
+  // stopPolling();
   eventNotificationRef.value?.destroy();
 });
 
