@@ -118,7 +118,7 @@ async function startDownload(videoObj: {id: string|number, src: string}, onDone:
     success: (res) => {
       if (res.statusCode === 200) {
         statusText.value = "下载完成";
-        saveToTempList(url, res.tempFilePath);
+        saveToTempList(videoObj.id, res.tempFilePath);
         onDoneCallback && onDoneCallback(res.tempFilePath);
       } else {
         statusText.value = `下载失败（${res.statusCode}）`;
