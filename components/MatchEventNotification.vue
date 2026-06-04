@@ -90,6 +90,13 @@ function showNextNotification() {
 
 function showNotificationPopup(notification) {
   activeNotification.value = notification;
+  // 声音与弹窗同步：弹窗展示时才播放声音
+  if (notification.soundIndex !== undefined) {
+    soundPlayer.playSound(notification.soundIndex);
+  }
+  if (notification.shouldVibrate) {
+    vibrate();
+  }
   if (notificationTimer) {
     clearTimeout(notificationTimer);
   }
@@ -128,23 +135,26 @@ function handleEvent(type, side, matchData, extraData = {}) {
   const notice = setting[noticeKey];
   const sound = setting[soundKey];
 
-  if (notice.sound) {
-    soundPlayer.playSound(sound[side]);
-  }
-
-  if (notice.vibrate) {
-    vibrate();
-  }
-
   if (notice.popup) {
+    // 有弹窗：声音和震动跟随弹窗队列顺序播放
     enqueueNotification({
       type,
       side,
       homeChs: matchData.homeChs,
       awayChs: matchData.awayChs,
       matchId: matchData.matchId,
+      soundIndex: notice.sound ? sound[side] : undefined,
+      shouldVibrate: notice.vibrate,
       ...extraData,
     });
+  } else {
+    // 无弹窗：直接播放声音和震动
+    if (notice.sound) {
+      soundPlayer.playSound(sound[side]);
+    }
+    if (notice.vibrate) {
+      vibrate();
+    }
   }
 }
 

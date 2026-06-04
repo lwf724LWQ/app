@@ -6,7 +6,7 @@
         <uni-icons type="search" size="36rpx" color="#999"></uni-icons>
         <text class="search-placeholder">{{ placeholder }}</text>
       </view>
-      <view class="search-selection-icon"></view>
+      <!-- <view class="search-selection-icon"></view> -->
       <view class="search-setting-icon" @click="openSetting">
         <uni-icons type="gear-filled" size="55rpx"></uni-icons>
       </view>

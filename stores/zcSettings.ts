@@ -15,7 +15,7 @@ interface SoundConfig {
 const STORAGE_KEY = "zc_notify_settings";
 
 const DEFAULT_SETTINGS = {
-  onlyFollowed: false,
+  onlyFollowed: true,
   goalNotice: { sound: true, vibrate: true, popup: true },
   cornerNotice: { sound: false, vibrate: true, popup: true },
   yellowCardNotice: { sound: false, vibrate: true, popup: true },

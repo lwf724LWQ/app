@@ -20,6 +20,7 @@ const SOUND_CONFIG: SoundItem[] = [
 ];
 
 const innerList: UniApp.InnerAudioContext[] = [];
+let oldIndex:number|boolean = false
 
 function init() {
   if (innerList.length > 0) return;
@@ -38,9 +39,13 @@ export function useZcSoundPlayer() {
 
   function playSound(index: number) {
     init();
+    if (typeof oldIndex === "number") {
+      innerList[oldIndex].stop()
+    }
     const ctx = innerList[index];
     if (ctx) {
       ctx.play();
+      oldIndex = index
     }
   }
 
