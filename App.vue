@@ -23,6 +23,17 @@ try {
 // 读取剪切板，尝试获取邀请码
 const staffInvitationCode = uni.getStorageSync("staffInvitationCode")
 if (!staffInvitationCode && !getToken()) {
+  // #ifdef H5
+  try {
+    const param = tool.parseQuery.parseQuery(window.location.href.split("?")[1])
+    if (param && param.staffInvitationCode) {
+      uni.setStorageSync("staffInvitationCode", param.staffInvitationCode)
+    }
+  } catch (error) {
+    
+  } 
+  // #endif
+
   uni.getClipboardData({
     success: function (res) {
       console.log(res)
