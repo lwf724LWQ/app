@@ -1,6 +1,6 @@
 <template>
   <!-- 进球/角球/红黄牌底部弹窗通知 -->
-  <view v-if="activeNotification" class="event-popup" :class="{ 'popup-show': activeNotification }">
+  <view v-show="popupState !== 'hidden'" class="event-popup" :class="popupClass">
     <view class="event-popup-inner">
       <view class="event-icon">{{ getEventIcon(activeNotification.type) }}</view>
       <view class="event-content">
@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useZcSettingsStore } from "@/stores/zcSettings";
 import { useZcSoundPlayer } from "@/hooks/useZcSoundPlayer";
 
@@ -59,8 +59,15 @@ function vibrate() {
 let isInitialized = false; // 是否已完成首次快照
 const previousMatchMap = {}; // 上一次各比赛数据快照（非响应式，避免不必要渲染）
 const activeNotification = ref(null); // 当前显示的通知
+const popupState = ref("hidden"); // hidden | entering | visible | leaving
 let notificationTimer = null;
 const notificationQueue = []; // 通知队列
+
+const popupClass = computed(() => ({
+  "popup-entering": popupState.value === "entering",
+  "popup-visible": popupState.value === "visible",
+  "popup-leaving": popupState.value === "leaving",
+}));
 
 // ========== 工具函数 ==========
 function getEventIcon(type) {
@@ -73,12 +80,18 @@ function getEventIcon(type) {
 
 // ========== 弹窗队列 ==========
 function dismissNotification() {
-  activeNotification.value = null;
+  if (popupState.value === "leaving") return; // 防重复触发
+  popupState.value = "leaving";
   if (notificationTimer) {
     clearTimeout(notificationTimer);
     notificationTimer = null;
   }
-  showNextNotification();
+  // 等待离开动画结束后再清理并展示下一个
+  setTimeout(() => {
+    activeNotification.value = null;
+    popupState.value = "hidden";
+    showNextNotification();
+  }, 350);
 }
 
 function showNextNotification() {
@@ -100,13 +113,19 @@ function showNotificationPopup(notification) {
   if (notificationTimer) {
     clearTimeout(notificationTimer);
   }
+  // 触发进入动画
+  popupState.value = "entering";
+  // 进入动画持续 0.4s 后切换到可见状态
+  setTimeout(() => {
+    popupState.value = "visible";
+  }, 400);
   notificationTimer = setTimeout(() => {
     dismissNotification();
   }, 5000);
 }
 
 function enqueueNotification(notification) {
-  if (activeNotification.value) {
+  if (activeNotification.value || popupState.value === "leaving") {
     notificationQueue.push(notification);
   } else {
     showNotificationPopup(notification);
@@ -295,14 +314,54 @@ defineExpose({
   left: 20rpx;
   right: 20rpx;
   z-index: 9999;
-  transform: translateY(150%);
-  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+  transform: translateY(20rpx) scale(0.92);
+  opacity: 0;
   pointer-events: none;
 }
 
-.event-popup.popup-show {
-  transform: translateY(0);
+/* 隐藏态：无动画，保持在下方 */
+.event-popup {
+  transition: none;
+}
+
+/* 进入动画 */
+.event-popup.popup-entering {
+  animation: popup-enter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   pointer-events: auto;
+}
+
+/* 可见态：保持在目标位置 */
+.event-popup.popup-visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 离开动画 */
+.event-popup.popup-leaving {
+  animation: popup-leave 0.35s ease-in forwards;
+}
+
+@keyframes popup-enter {
+  0% {
+    transform: translateY(20rpx) scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes popup-leave {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(20rpx) scale(0.92);
+    opacity: 0;
+  }
 }
 
 .event-popup-inner {
