@@ -93,6 +93,7 @@ import videoTool from "@/pages/video/video-tool.js";
 import ActivityHover from "@/components/activity-hover.vue";
 import { useUserStore } from "@/stores/userStore";
 import { createShareUrl } from "@/utils/createShareUrl.js";
+import { useZcSettingsStore } from "@/stores/zcSettings";
 
 // tab的page页组件
 import InprogressList from "./index-tab-pages/Inprogress-list.vue";
@@ -236,10 +237,11 @@ const onHoverClick = () => {
   }
 };
 
+const zcSettings = useZcSettingsStore()
 const eventNotificationRef = ref(null);
 const updateMatchList = (list) => {
   if (pageIsShow.value) {
-    if (pickerIndex.value == 5) {
+    if (zcSettings.onlyFollowed) {
       eventNotificationRef.value?.onDataUpdate(list.filter((item) => item.flag));
     } else {
       eventNotificationRef.value?.onDataUpdate(list);
