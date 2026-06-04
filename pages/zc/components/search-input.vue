@@ -1,9 +1,15 @@
 <template>
   <!-- Part 1: 搜索栏展示 -->
   <view class="search-input-wrapper">
-    <view class="search-bar" @click="openPanel">
-      <uni-icons type="search" size="36rpx" color="#999"></uni-icons>
-      <text class="search-placeholder">{{ placeholder }}</text>
+    <view class="search-bar-box">
+      <view class="search-bar" @click="openPanel">
+        <uni-icons type="search" size="36rpx" color="#999"></uni-icons>
+        <text class="search-placeholder">{{ placeholder }}</text>
+      </view>
+      <view class="search-selection-icon"></view>
+      <view class="search-setting-icon" @click="openSetting">
+        <uni-icons type="gear-filled" size="55rpx"></uni-icons>
+      </view>
     </view>
 
     <!-- Part 2: 固定搜索面板 -->
@@ -139,6 +145,14 @@ function onConfirm() {
   emit('search', searchParams)
   closePanel()
 }
+
+// 打开设置页面
+function openSetting(){
+  uni.navigateTo({
+    url: "/pages/zc/settings"
+  })
+}
+
 defineExpose({
   setStatus(value){
     statusIndex.value = value
@@ -152,6 +166,10 @@ defineExpose({
 }
 
 /* Part 1: 搜索栏 */
+.search-bar-box{
+  display: flex;
+  align-items: center;
+}
 .search-bar {
   display: flex;
   align-items: center;
@@ -161,12 +179,22 @@ defineExpose({
   border-radius: 36rpx;
   padding: 0 24rpx;
   box-sizing: border-box;
+  margin-right: 12rpx;
 
   .search-placeholder {
     margin-left: 12rpx;
     font-size: 28rpx;
     color: #999;
   }
+}
+.search-selection-icon{
+  width: 75rpx;
+  height: 65rpx;
+  background: url("/static/icons/selection-icon.png") no-repeat;
+  background-size: 100%;
+  background-position: center;
+
+  margin-right: 12rpx;
 }
 
 /* Part 2: 搜索面板遮罩 */

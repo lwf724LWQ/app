@@ -1,5 +1,5 @@
 <template>
-  <!-- 进球/红黄牌底部弹窗通知 -->
+  <!-- 进球/角球/红黄牌底部弹窗通知 -->
   <view v-if="activeNotification" class="event-popup" :class="{ 'popup-show': activeNotification }">
     <view class="event-popup-inner">
       <view class="event-icon">{{ getEventIcon(activeNotification.type) }}</view>
@@ -11,6 +11,9 @@
           <text v-if="activeNotification.type === 'goal'" class="event-text">
             {{ activeNotification.side === "home" ? "主队" : "客队" }}进球！ 比分
             {{ activeNotification.homeScore }}:{{ activeNotification.awayScore }}
+          </text>
+          <text v-else-if="activeNotification.type === 'corner'" class="event-text event-corner">
+            {{ activeNotification.side === "home" ? "主队" : "客队" }}角球！ 第{{ activeNotification.cornerCount }}个
           </text>
           <text v-else-if="activeNotification.type === 'red'" class="event-text event-red">
             {{
@@ -37,15 +40,15 @@
 
 <script setup>
 import { ref } from "vue";
-import whistleMp3 from "@/static/zc/whistle.mp3";
+import { useZcSettingsStore } from "@/stores/zcSettings";
+import { useZcSoundPlayer } from "@/hooks/useZcSoundPlayer";
 
-// ========== 音频 ==========
-const innerAudioContext = uni.createInnerAudioContext();
-innerAudioContext.autoplay = false;
-innerAudioContext.src = whistleMp3;
+const setting = useZcSettingsStore();
+const soundPlayer = useZcSoundPlayer();
 
-function playWhistle() {
-  innerAudioContext.play();
+// 震动
+function vibrate() {
+  uni.vibrate();
 }
 
 // ========== 状态 ==========
@@ -58,6 +61,7 @@ const notificationQueue = []; // 通知队列
 // ========== 工具函数 ==========
 function getEventIcon(type) {
   if (type === "goal") return "⚽";
+  if (type === "corner") return "🚩";
   if (type === "red") return "🟥";
   if (type === "yellow") return "🟨";
   return "";
@@ -82,7 +86,6 @@ function showNextNotification() {
 
 function showNotificationPopup(notification) {
   activeNotification.value = notification;
-  playWhistle();
   if (notificationTimer) {
     clearTimeout(notificationTimer);
   }
@@ -96,6 +99,48 @@ function enqueueNotification(notification) {
     notificationQueue.push(notification);
   } else {
     showNotificationPopup(notification);
+  }
+}
+
+// ========== 根据设置处理事件 ==========
+function handleEvent(type, side, matchData, extraData = {}) {
+  const noticeKey =
+    type === "goal"
+      ? "goalNotice"
+      : type === "corner"
+        ? "cornerNotice"
+        : type === "red"
+          ? "redCardNotice"
+          : "yellowCardNotice";
+  const soundKey =
+    type === "goal"
+      ? "goalSound"
+      : type === "corner"
+        ? "cornerSound"
+        : type === "red"
+          ? "redCardSound"
+          : "yellowCardSound";
+
+  const notice = setting[noticeKey];
+  const sound = setting[soundKey];
+
+  if (notice.sound) {
+    soundPlayer.playSound(sound[side]);
+  }
+
+  if (notice.vibrate) {
+    vibrate();
+  }
+
+  if (notice.popup) {
+    enqueueNotification({
+      type,
+      side,
+      homeChs: matchData.homeChs,
+      awayChs: matchData.awayChs,
+      matchId: matchData.matchId,
+      ...extraData,
+    });
   }
 }
 
@@ -130,62 +175,43 @@ function detectChanges(oldMatches, newMatches) {
     const newHomeYellow = Number(newMatch.homeYellow) || 0;
     const newAwayYellow = Number(newMatch.awayYellow) || 0;
 
+    const oldHomeCorner = Number(oldMatch.homeCorner) || 0;
+    const oldAwayCorner = Number(oldMatch.awayCorner) || 0;
+    const newHomeCorner = Number(newMatch.homeCorner) || 0;
+    const newAwayCorner = Number(newMatch.awayCorner) || 0;
+
     if (newHomeScore > oldHomeScore) {
-      enqueueNotification({
-        type: "goal",
-        side: "home",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
+      handleEvent("goal", "home", newMatch, {
         homeScore: newHomeScore,
         awayScore: newAwayScore,
-        matchId,
       });
     }
     if (newAwayScore > oldAwayScore) {
-      enqueueNotification({
-        type: "goal",
-        side: "away",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
+      handleEvent("goal", "away", newMatch, {
         homeScore: newHomeScore,
         awayScore: newAwayScore,
-        matchId,
       });
     }
     if (newHomeRed > oldHomeRed) {
-      enqueueNotification({
-        type: "red",
-        side: "home",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
-        matchId,
-      });
+      handleEvent("red", "home", newMatch);
     }
     if (newAwayRed > oldAwayRed) {
-      enqueueNotification({
-        type: "red",
-        side: "away",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
-        matchId,
-      });
+      handleEvent("red", "away", newMatch);
     }
     if (newHomeYellow > oldHomeYellow) {
-      enqueueNotification({
-        type: "yellow",
-        side: "home",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
-        matchId,
-      });
+      handleEvent("yellow", "home", newMatch);
     }
     if (newAwayYellow > oldAwayYellow) {
-      enqueueNotification({
-        type: "yellow",
-        side: "away",
-        homeChs: newMatch.homeChs,
-        awayChs: newMatch.awayChs,
-        matchId,
+      handleEvent("yellow", "away", newMatch);
+    }
+    if (newHomeCorner > oldHomeCorner) {
+      handleEvent("corner", "home", newMatch, {
+        cornerCount: newHomeCorner,
+      });
+    }
+    if (newAwayCorner > oldAwayCorner) {
+      handleEvent("corner", "away", newMatch, {
+        cornerCount: newAwayCorner,
       });
     }
   });
@@ -201,6 +227,8 @@ function updateSnapshot(matches) {
         awayRed: Number(m.awayRed) || 0,
         homeYellow: Number(m.homeYellow) || 0,
         awayYellow: Number(m.awayYellow) || 0,
+        homeCorner: Number(m.homeCorner) || 0,
+        awayCorner: Number(m.awayCorner) || 0,
       };
     }
   });
@@ -210,7 +238,7 @@ function updateSnapshot(matches) {
 /**
  * 外部调用此方法，传入最新比赛数据列表
  * - 首次调用：仅保存快照，不触发任何弹窗/音频
- * - 后续调用：对比变化，进球/红黄牌时弹出通知并播放音频
+ * - 后续调用：对比变化，进球/角球/红黄牌时根据设置弹出通知/播放声音/震动
  * @param {Array} matches 比赛数据数组
  */
 function onDataUpdate(matches) {
@@ -238,7 +266,6 @@ function destroy() {
     clearTimeout(notificationTimer);
     notificationTimer = null;
   }
-  innerAudioContext.destroy();
 }
 
 defineExpose({
@@ -309,6 +336,10 @@ defineExpose({
 
 .event-text.event-yellow {
   color: #ffeb3b;
+}
+
+.event-text.event-corner {
+  color: #4fc3f7;
 }
 
 .event-close {
