@@ -48,7 +48,9 @@ const soundPlayer = useZcSoundPlayer();
 
 // 震动
 function vibrate() {
-  uni.vibrate();
+  if(typeof uni.vibrate === "function"){
+    uni.vibrate();
+  }
 }
 
 // ========== 状态 ==========

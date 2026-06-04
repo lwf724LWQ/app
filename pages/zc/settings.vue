@@ -246,13 +246,18 @@ export default {
     },
   },
   data() {
+    const isHaveVibrate = typeof uni.vibrate === "function"
+    const notifyOptions = [
+        { key: 'sound', label: '声音' },
+        { key: 'popup', label: '弹窗' },
+      ]
+    if (isHaveVibrate) {
+      notifyOptions.push({ key: 'vibrate', label: '震动' })
+    }
     const soundPlayer = useZcSoundPlayer()
     return {
-      notifyOptions: [
-        { key: 'sound', label: '声音' },
-        { key: 'vibrate', label: '震动' },
-        { key: 'popup', label: '弹窗' },
-      ],
+      notifyOptions: notifyOptions,
+      isHaveVibrate: isHaveVibrate,
       soundOptions: soundPlayer.getSoundConfig().map(item => item.name),
       soundPlayer: soundPlayer
     };
