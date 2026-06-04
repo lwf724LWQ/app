@@ -98,6 +98,23 @@
         </view>
       </view>
 
+      <!-- 内部员工邀请码输入框 -->
+      <view class="input-group">
+        <view class="input-container">
+          <view class="input-icon user-icon">
+            <view class="user-icon-svg"></view>
+          </view>
+          <input
+            type="text"
+            name="username"
+            placeholder="请输入邀请码"
+            placeholder-class="input-placeholder"
+            v-model="staffInvitationCode"
+            class="username-input"
+          />
+        </view>
+      </view>
+
       <!-- 链接区域 -->
       <view class="links-section">
         <text class="login-link" @click="goToLogin">已有账号？去登录</text>
@@ -136,6 +153,7 @@ const account = ref("");
 const code = ref("");
 const codeRef = ref(null);
 const uname = ref("");
+const staffInvitationCode = ref(uni.getStorageSync("staffInvitationCode") || "") // 内部员工邀请码
 const password = ref("");
 const showPassword = ref(false);
 
@@ -144,6 +162,7 @@ const Reginfo = reactive({
   code: "",
   uname: "",
   password: "",
+  staffInvitationCode: ""
 });
 
 // 输入验证码时更新值
@@ -205,6 +224,9 @@ const doReg = async () => {
   uni.showLoading({ title: "注册中..." });
 
   try {
+    if(staffInvitationCode.value){
+      Reginfo.staffInvitationCode = staffInvitationCode
+    }
     const success = await apiRegInfo(Reginfo);
     uni.hideLoading();
 
