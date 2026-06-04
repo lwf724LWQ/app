@@ -48,8 +48,10 @@ const soundPlayer = useZcSoundPlayer();
 
 // 震动
 function vibrate() {
-  if(typeof uni.vibrate === "function"){
-    uni.vibrate();
+  try {
+    plus.device.vibrate(200) 
+  } catch (error) {
+    
   }
 }
 

@@ -246,7 +246,12 @@ export default {
     },
   },
   data() {
-    const isHaveVibrate = typeof uni.vibrate === "function"
+    let isHaveVibrate
+    try {
+      isHaveVibrate = !!plus
+    } catch (error) {
+      
+    }
     const notifyOptions = [
         { key: 'sound', label: '声音' },
         { key: 'popup', label: '弹窗' },
