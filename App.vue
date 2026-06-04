@@ -3,6 +3,7 @@ import { useOldManModeStore, oldManModeStoreKey } from "./stores/oldManMode";
 import { useUserStore } from "./stores/userStore";
 import { provide } from "vue";
 import {getToken} from "@/utils/request.js"
+import tool from "./utils/tool";
 
 // 初始化并提供 store
 const oldManModeStore = useOldManModeStore();
@@ -26,10 +27,14 @@ if (!staffInvitationCode && !getToken()) {
     success: function (res) {
       console.log(res)
       if (res.data) {
-        const param = Object.fromEntries(new URLSearchParams(res.data.split("?")[1]))
-        if (param && param.staffInvitationCode) {
-          uni.setStorageSync("staffInvitationCode", param.staffInvitationCode)
-        }
+        try {
+          const param = tool.parseQuery.parseQuery(res.data.split("?")[1])
+          if (param && param.staffInvitationCode) {
+            uni.setStorageSync("staffInvitationCode", param.staffInvitationCode)
+          }
+        } catch (error) {
+          
+        } 
       }
     }
   });

@@ -4,6 +4,8 @@ import { apiAppversionQuery } from "../api/apis.js";
 import h5wxsdk from "./uniwxsdk/h5.js";
 import { useUserStore } from "../stores/userStore";
 
+import parseQuery from "./parseQuery.js";
+
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 
@@ -12,6 +14,7 @@ dayjs.extend(relativeTime);
 dayjs.locale("zh-cn");
 
 const tool = {
+  parseQuery,
   oss: {
     async uploadImgForTempPath(tempFilePath, folder) {
       // 在H5环境中，需要将临时路径转换为File对象
