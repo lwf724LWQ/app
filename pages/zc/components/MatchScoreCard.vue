@@ -53,6 +53,10 @@
         <view class="stat-item red">{{ match.awayRed || "" }}</view>
       </view>
     </view>
+
+    <view class="extraExplainStr" v-if="extraExplainStr">
+      {{ extraExplainStr }}
+    </view>
   </view>
 </template>
 
@@ -86,6 +90,12 @@ export default {
           ) {
             this.scoreUpdate();
           }
+        }
+        if(newMatch.extraExplain){
+          console.log(newMatch.homeChs, newMatch.leagueChsShort)
+          console.log(newMatch.extraExplain)
+          console.log(this.formatExtraExplain(newMatch.extraExplain))
+          console.log("-----------------------------------------------")
         }
       },
       deep: true,
@@ -181,6 +191,46 @@ export default {
         return `${this.match.homeScore}:${this.match.awayScore}`;
       }
     },
+    extraExplainStr(){
+      const extraExplainObj = this.formatExtraExplain(this.match.extraExplain);
+      let str = ""
+      if (extraExplainObj) {
+        if(extraExplainObj.kickoff){
+          const kickoff = extraExplainObj.kickoff
+          str += `${kickoff == 1 ? "主队开球" : "客队开球" } `
+        }
+        if(extraExplainObj.regularMinutes){
+          const regularMinutes = extraExplainObj.regularMinutes
+          str += `${regularMinutes}分钟`
+        }
+        if (extraExplainObj.regularScore) {
+          const regularScore = extraExplainObj.regularScore
+          str += `[${regularScore}],`
+        }
+        if(extraExplainObj.aggregateScore){
+          const aggregateScore = extraExplainObj.aggregateScore
+          str += `[${aggregateScore}],`
+        }
+        if(extraExplainObj.extraTimeType){
+          const extraTimeType = extraExplainObj.extraTimeType
+          str += {
+            1: "120分钟",
+            2: "加时",
+            3: "加时中"
+          }[extraTimeType]
+          str += ","
+        }
+        if(extraExplainObj.penaltyScore){
+          const penaltyScore = extraExplainObj.penaltyScore
+          str += `[${penaltyScore}],`
+        }
+        if(extraExplainObj.winner){
+          const winner = extraExplainObj.winner
+          str += `${winner == 1 ? "主队获胜" : "客队获胜"}`
+        }
+      }
+      return str
+    }
   },
   methods: {
     scoreUpdate() {
@@ -226,6 +276,57 @@ export default {
       // uni.navigateTo({
       //   url: "/pages/zc/match-detail?id=" + this.matchId,
       // });
+    },
+    /**
+     * 解析比赛附加说明字符串，返回结构化对象
+     * @param {string} str - 格式如 "2;|90,1-0;2-2;1,1-0;2-4;2"
+     * @returns {Object|null}
+     */
+    formatExtraExplain(str) {
+      if (!str) return null;
+      // 用 "|" 分隔为两大部分
+      const parts = str.split('|');
+      if (parts.length < 2) return null;
+
+      // 先开球方说明: "2;"
+      const kickoffPart = parts[0];
+      const kickoffData = kickoffPart.split(';')[0];
+      const kickoff = parseInt(kickoffData) || null;
+
+      // 赛果说明: "90,1-0;2-2;1,1-0;2-4;2"
+      const resultPart = parts[1];
+      const resultParts = resultPart.split(';');
+      if (resultParts.length < 5) return null;
+
+      // 常规时间比分说明 "90,1-0"
+      const regularTimeData = resultParts[0].split(',');
+      const regularMinutes = regularTimeData[0] || '';
+      const regularScore = regularTimeData[1] || '';
+
+      // 两回合总比分 "2-2"
+      const aggregateScore = resultParts[1] || '';
+
+      // 加时阶段比分说明 "1,1-0"
+      const extraTimeData = resultParts[2].split(',');
+      const extraTimeType = parseInt(extraTimeData[0]) || null;
+      const extraTimeScore = extraTimeData[1] || '';
+
+      // 点球大战比分 "2-4"
+      const penaltyScore = resultParts[3] || '';
+
+      // 获胜方 "2"
+      const winner = parseInt(resultParts[4]) || null;
+
+      return {
+        kickoff,           // 先开球方: 1=主队先开球, 2=客队先开球
+        regularMinutes,    // 常规时间分钟数
+        regularScore,      // 常规时间比分
+        aggregateScore,    // 两回合总比分（仅在有加时/点球时更新）
+        extraTimeType,     // 加时阶段类型: 1=120分钟, 2=加时(室内/沙滩), 3=加时中
+        extraTimeScore,    // 加时阶段比分
+        penaltyScore,      // 点球大战比分
+        winner,            // 获胜方: 1=主队获胜, 2=客队获胜
+      };
     },
   },
 };
@@ -394,5 +495,11 @@ export default {
 
 .half-time {
   font-size: 24rpx;
+}
+
+.extraExplainStr{
+  text-align: center;
+  color: #222;
+  font-size: 26rpx;
 }
 </style>
