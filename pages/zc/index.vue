@@ -31,7 +31,12 @@
 
     <!-- 搜索 -->
     <view class="search-box" v-show="[0, 1, 2].includes(pickerIndex)">
-      <search-input placeholder="请输入搜索内容" @search="onSearch" :indexde-data="leagueListWithPinyin" ref="searchInputRef" />
+      <search-input
+        placeholder="请输入搜索内容"
+        @search="onSearch"
+        :indexde-data="leagueListWithPinyin"
+        ref="searchInputRef"
+      />
     </view>
     <swiper
       class="video-swiper"
@@ -215,10 +220,10 @@ onHide(() => {
 onMounted(async () => {});
 
 // 搜索事件
-const searchParams = ref({})
+const searchParams = ref({});
 function onSearch(params) {
-  console.log(params)
-  searchParams.value = params
+  console.log(params);
+  searchParams.value = params;
 }
 
 const userStore = useUserStore();
@@ -248,8 +253,8 @@ const onHoverClick = () => {
   }
 };
 
-const matchList = useMatchList()
-const zcSettings = useZcSettingsStore()
+const matchList = useMatchList();
+const zcSettings = useZcSettingsStore();
 const eventNotificationRef = ref(null);
 const updateMatchList = (list) => {
   if (pageIsShow.value) {
@@ -260,14 +265,14 @@ const updateMatchList = (list) => {
     }
   }
 };
-const leagueListWithPinyin = ref({})
-matchList.leagueListChangeCallback(function(list){
-  console.log(list)
-  leagueListWithPinyin.value = list
-})
-onUnmounted(()=>{
-  matchList.unleagueListChangeCallback()
-})
+const leagueListWithPinyin = ref({});
+matchList.leagueListChangeCallback(function (list) {
+  console.log(list);
+  leagueListWithPinyin.value = list;
+});
+onUnmounted(() => {
+  matchList.unleagueListChangeCallback();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -495,7 +500,12 @@ onUnmounted(()=>{
 .video-page-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom));
+  // #ifdef H5
+	height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom));
+  // #endif
+  // #ifdef APP-PLUS
+  height: 100vh;
+  // #endif
   overflow: hidden;
   .title {
     box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
