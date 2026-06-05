@@ -454,17 +454,17 @@
         "text": "推荐",
         "pagePath": "pages/index/index",
 		"iconfont": {
-		          "text": "\ue662",
-		          "selectedText": "\ue662",
-		          "fontSize": "28px",
-		          "color": "#666666",
-		          "selectedColor": "#f70000"
-		        }
+		  "text": "\ue662",
+		  "selectedText": "\ue662",
+		  "fontSize": "28px",
+		  "color": "#666666",
+		  "selectedColor": "#f70000"
+		}
       },
       {
         "text": "视频",
         "pagePath": "pages/video/video",
-		"iconfont": {
+		    "iconfont": {
 		          "text": "\ue68c",
 		          "selectedText": "\ue68c",
 		          "fontSize": "28px",
@@ -475,8 +475,8 @@
 	  {
 	    "text": "足球",
 	    "pagePath": "pages/zc/index",
-	    "iconPath":"/static/image/zc.png",
-	    "selectedIconPath":"/static/image/zc.png"
+	    "iconPath":"/static/image/zc2.png",
+	    "selectedIconPath":"/static/image/zc2.png"
 	  },
       {
         "text": "彩友圈",
