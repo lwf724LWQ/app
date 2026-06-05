@@ -26,7 +26,7 @@
       </view>
     </view>
 
-    <view v-if="footBallList.length === 0">
+    <view v-if="matchListSorting.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
@@ -48,11 +48,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed } from "vue";
+import { ref, onMounted, nextTick, computed, watch } from "vue";
 import { getFootBallList } from "@/api/apis";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import dayjs from "dayjs";
 import { getAccount } from "../../../utils/request.js";
+import { useMatchList, filterItem } from "../matchListHooks.js";
+
+const props = defineProps({
+  isActiveTab: {
+    type: Boolean,
+    default: false
+  },
+  searchParams: {
+    type: Object,
+    default: {
+      keyword: "",
+      leagueList: []
+    }
+  }
+})
 
 // 定义事件
 const emit = defineEmits(["video-click"]);
@@ -65,10 +80,24 @@ const isLoading = ref(false);
 const currentPageDate = ref(""); // 当前选中的日期
 const recentOptions = ref([]); // 近期选项
 
+const oldMatchListSorting = ref([])
+const oldSearchParams = ref({})
+const isRefresjerData = ref(false)
 const matchListSorting = computed(()=>{
-  return footBallList.value.sort((a,b) => b.flag - a.flag)
+  if (props.isActiveTab && (oldSearchParams.keyword != props.searchParams.keyword || oldSearchParams.leagueList != props.searchParams.leagueList || isRefresjerData.value) ) {
+    oldMatchListSorting.value = footBallList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
+    oldSearchParams.value = props.searchParams
+    isRefresjerData.value = false
+  }
+  return oldMatchListSorting.value
 })
 
+const matchListHooks = useMatchList()
+watch([() => props.isActiveTab, footBallList], ([isActive, list]) => {
+  if (isActive) {
+    matchListHooks.setMatchList(list)
+  }
+})
 
 // 初始化近期选项
 function initRecentOptions() {
@@ -128,6 +157,7 @@ const fetchVideoList = async (page = 1) => {
     }
 
     currentPage.value = page;
+    isRefresjerData.value = true
     const res = await getFootBallList(currentPageDate.value, 1, "", getAccount());
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {

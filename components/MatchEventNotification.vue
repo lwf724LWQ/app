@@ -58,7 +58,7 @@ function vibrate() {
 // ========== 状态 ==========
 let isInitialized = false; // 是否已完成首次快照
 const previousMatchMap = {}; // 上一次各比赛数据快照（非响应式，避免不必要渲染）
-const activeNotification = ref(null); // 当前显示的通知
+const activeNotification = ref({}); // 当前显示的通知
 const popupState = ref("hidden"); // hidden | entering | visible | leaving
 let notificationTimer = null;
 const notificationQueue = []; // 通知队列
@@ -88,7 +88,7 @@ function dismissNotification() {
   }
   // 等待离开动画结束后再清理并展示下一个
   setTimeout(() => {
-    activeNotification.value = null;
+    activeNotification.value = {};
     popupState.value = "hidden";
     showNextNotification();
   }, 350);
@@ -125,7 +125,7 @@ function showNotificationPopup(notification) {
 }
 
 function enqueueNotification(notification) {
-  if (activeNotification.value || popupState.value === "leaving") {
+  if (activeNotification.value.matchId || popupState.value === "leaving") {
     notificationQueue.push(notification);
   } else {
     showNotificationPopup(notification);

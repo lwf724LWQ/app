@@ -31,7 +31,7 @@
 
     <!-- 搜索 -->
     <view class="search-box" v-show="[0, 1, 2].includes(pickerIndex)">
-      <search-input placeholder="请输入搜索内容" @search="onSearch" ref="searchInputRef" />
+      <search-input placeholder="请输入搜索内容" @search="onSearch" :indexde-data="leagueListWithPinyin" ref="searchInputRef" />
     </view>
     <swiper
       class="video-swiper"
@@ -44,13 +44,27 @@
       @change="swiperChange"
     >
       <swiper-item>
-        <InstantList :isActiveTab="pickerIndex == 0" @updateMatchList="updateMatchList" />
+        <InstantList
+          :isActiveTab="pickerIndex == 0"
+          @updateMatchList="updateMatchList"
+          :searchParams="searchParams"
+        />
       </swiper-item>
       <swiper-item>
-        <InprogressList />
+        <InprogressList
+          ref="inprogressListRef"
+          :pickerIndex="pickerIndex"
+          :isActiveTab="pickerIndex == 1"
+          :searchParams="searchParams"
+        />
       </swiper-item>
       <swiper-item>
-        <ResultList />
+        <ResultList
+          ref="resultList"
+          :pickerIndex="pickerIndex"
+          :isActiveTab="pickerIndex == 2"
+          :searchParams="searchParams"
+        />
       </swiper-item>
       <swiper-item>
         <PrognosisList ref="prognosisRef" />
@@ -83,7 +97,7 @@
 
 <script setup>
 import { onShow, onHide, onPullDownRefresh } from "@dcloudio/uni-app";
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted, inject, computed, onUnmounted } from "vue";
 
 // 导入 Pinia store
 const useOldManModeStore = inject("useOldManModeStore");
@@ -108,13 +122,15 @@ import searchInput from "./components/search-input.vue";
 import { getToken } from "../../utils/request.js";
 import { nextTick } from "vue";
 
+import { useMatchList } from "./matchListHooks.js";
+
 const searchInputRef = ref(null);
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
 const pickerIndex = ref(3);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["即时", "赛程", "赛果", "大师预测", "大众评论", "关注"]);
+const lotteryTypes = ref(["即时", "赛程", "赛果", "预测", "评论", "关注"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -148,8 +164,6 @@ const switchTabByIndex = async (index, isRefresh) => {
 
   pickerIndex.value = index;
   currentLotteryType.value = lotteryTypes.value[index];
-
-  searchInputRef.value.setStatus(index);
 
   // 切换标签时重置并获取对应类型的视频列表
   if (isRefresh) {
@@ -200,14 +214,11 @@ onHide(() => {
 // 生命周期钩子
 onMounted(async () => {});
 
-// 搜索事件 - 跳转到搜索结果页
+// 搜索事件
+const searchParams = ref({})
 function onSearch(params) {
-  const query = `keyword=${encodeURIComponent(params.keyword)}&status=${encodeURIComponent(
-    params.status
-  )}&date=${encodeURIComponent(params.date)}`;
-  uni.navigateTo({
-    url: `/pages/zc/search-list?${query}`,
-  });
+  console.log(params)
+  searchParams.value = params
 }
 
 const userStore = useUserStore();
@@ -237,6 +248,7 @@ const onHoverClick = () => {
   }
 };
 
+const matchList = useMatchList()
 const zcSettings = useZcSettingsStore()
 const eventNotificationRef = ref(null);
 const updateMatchList = (list) => {
@@ -245,9 +257,17 @@ const updateMatchList = (list) => {
       eventNotificationRef.value?.onDataUpdate(list.filter((item) => item.flag));
     } else {
       eventNotificationRef.value?.onDataUpdate(list);
-    } 
+    }
   }
 };
+const leagueListWithPinyin = ref({})
+matchList.leagueListChangeCallback(function(list){
+  console.log(list)
+  leagueListWithPinyin.value = list
+})
+onUnmounted(()=>{
+  matchList.unleagueListChangeCallback()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -475,7 +495,7 @@ const updateMatchList = (list) => {
 .video-page-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom));
   overflow: hidden;
   .title {
     box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);

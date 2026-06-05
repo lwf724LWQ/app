@@ -2,161 +2,177 @@
   <!-- Part 1: 搜索栏展示 -->
   <view class="search-input-wrapper">
     <view class="search-bar-box">
-      <view class="search-bar" @click="openPanel">
+      <view class="search-bar">
         <uni-icons type="search" size="36rpx" color="#999"></uni-icons>
-        <text class="search-placeholder">{{ placeholder }}</text>
+
+        <input
+          class="search-placeholder"
+          v-model="keyword"
+          type="search"
+          :placeholder="placeholder"
+          placeholder-style="color: #999;"
+          cursor-spacing="10"
+          confirm-type="搜索"
+        />
       </view>
-      <!-- <view class="search-selection-icon"></view> -->
+      <view class="search-selection-icon" @click="openIndexedList"></view>
       <view class="search-setting-icon" @click="openSetting">
         <uni-icons type="gear-filled" size="55rpx"></uni-icons>
       </view>
     </view>
 
-    <!-- Part 2: 固定搜索面板 -->
-    <view class="search-panel-mask" v-if="visible" @click="closePanel"></view>
-    <view class="search-panel" :class="{ 'search-panel--visible': visible }" v-if="visible" >
-      <view class="panel-header">
-        <text class="panel-title">搜索</text>
-        <view class="panel-close" @click="closePanel">
-          <uni-icons type="closeempty" size="36rpx" color="#333"></uni-icons>
+    <!-- 索引列表面板遮罩 -->
+    <view
+      v-if="showIndexedPanel"
+      class="search-panel-mask"
+      @click="closeIndexedList"
+    ></view>
+
+    <!-- 索引列表面板 -->
+    <view :class="['indexed-panel', { 'indexed-panel--visible': showIndexedPanel }]">
+      <view class="indexed-panel-header">
+        <text class="indexed-panel-title">选择联赛</text>
+        <view class="indexed-panel-close" @click="closeIndexedList">
+          <uni-icons type="closeempty" size="40rpx" color="#999"></uni-icons>
         </view>
       </view>
 
-      <view class="panel-body">
-        <!-- 关键词输入框 -->
-        <view class="form-item">
-          <text class="form-label">关键词</text>
-          <input
-            class="form-input"
-            v-model="keyword"
-            placeholder="请输入关键词"
-            placeholder-style="color: #999;"
-          />
-        </view>
-
-        <!-- 赛事状态选择 -->
-        <view class="form-item">
-          <text class="form-label">赛事状态</text>
-          <picker
-            class="form-picker"
-            mode="selector"
-            :range="statusOptions"
-            range-key="label"
-            :value="statusIndex"
-            @change="onStatusChange"
+      <view class="indexed-panel-body">
+        <IndexedList
+          ref="indexedListRef"
+          :list="indexdeData"
+          sort="asc"
+        >
+          <template
+            v-for="(_, key) in indexdeData"
+            :key="key"
+            #[key]="{ sectionData }"
           >
-            <view class="picker-value">
-              {{ statusOptions[statusIndex].label }}
+            <view class="league-grid">
+              <view
+                v-for="item in sectionData.leagueList"
+                :key="item.name"
+                :class="['league-item', { selected: isLeagueSelected(item) }]"
+                @click="toggleLeague(item)"
+              >
+                <text class="league-name">{{ item.name }}</text>
+                <text class="league-count">（{{ item.count }}）</text>
+              </view>
             </view>
-            <uni-icons type="arrowdown" size="28rpx" color="#999"></uni-icons>
-          </picker>
-        </view>
-
-        <!-- 日期选择 -->
-        <view class="form-item">
-          <text class="form-label">日期</text>
-          <uni-datetime-picker
-            class="form-date-picker"
-            type="date"
-            v-model="date"
-            placeholder="请选择日期"
-          />
-        </view>
+          </template>
+        </IndexedList>
       </view>
 
-      <view class="panel-footer">
-        <view class="btn-cancel" @click="onCancel">取消</view>
-        <view class="btn-confirm" @click="onConfirm">确定</view>
+      <view class="indexed-panel-footer">
+        <view class="footer-btn btn-select-all" @click="selectAll">全选</view>
+        <view class="footer-btn btn-invert" @click="invertSelection">反选</view>
+        <view class="footer-btn btn-confirm" @click="confirmSelection">确定</view>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, computed } from "vue";
+import IndexedList from "@/components/indexed-list/indexed-list.vue";
+import { useMatchList } from "../matchListHooks";
 
 const props = defineProps({
   placeholder: {
     type: String,
-    default: '请输入搜索内容',
+    default: "请输入搜索内容",
   },
-})
+  indexdeData: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-const emit = defineEmits(['search'])
 
-// 面板可见性
-const visible = ref(false)
+const keyword = ref("");
+const leagueList = ref([]);
+const showIndexedPanel = ref(false);
+const indexedListRef = ref(null);
 
-// 关键词
-const keyword = ref('')
 
-// 赛事状态选项
-const statusOptions = [
-  { label: '即时', value: 0 },
-  { label: '赛程', value: 1 },
-  { label: '赛果', value: 2 },
-]
+// 所有可选的联赛（从 indexdeData 扁平化提取）
+// indexdeData 结构: { "A": { leagueList: [...] }, "B": { leagueList: [...] } }
+const allLeagues = computed(() => {
+  const leagues = [];
+  Object.values(props.indexdeData).forEach((section) => {
+    const list = section?.leagueList;
+    if (Array.isArray(list)) {
+      list.forEach((item) => {
+        leagues.push(item);
+      });
+    }
+  });
+  return leagues;
+});
 
-const statusIndex = ref(0)
+const emit = defineEmits(["search"]);
+watch(
+  [keyword, leagueList],
+  () => {
+    emit("search", {
+      keyword: keyword.value,
+      leagueList: leagueList.value,
+    });
+  },
+  { deep: true }
+);
 
-// 日期（默认当天）
-function getToday() {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}/${month}/${day}`
-  
+// 判断联赛是否已选中
+function isLeagueSelected(item) {
+  return leagueList.value.some((l) => l.name === item.name);
 }
 
-const date = ref(getToday())
-const dateStart = ref(new Date())
-
-// 打开面板
-function openPanel() {
-  visible.value = true
-}
-
-// 关闭面板
-function closePanel() {
-  visible.value = false
-}
-
-// 状态选择
-function onStatusChange(e) {
-  statusIndex.value = e.detail.value
-}
-// 取消按钮
-function onCancel() {
-  keyword.value = ''
-  statusIndex.value = 0
-  date.value = getToday()
-  closePanel()
-}
-
-// 确定按钮
-function onConfirm() {
-  const searchParams = {
-    keyword: keyword.value,
-    status: statusOptions[statusIndex.value].value,
-    date: date.value,
+// 切换单个联赛选中状态
+function toggleLeague(item) {
+  const idx = leagueList.value.findIndex((l) => l.name === item.name);
+  if (idx >= 0) {
+    leagueList.value.splice(idx, 1);
+  } else {
+    leagueList.value.push({ ...item });
   }
-  console.log(searchParams)
-  emit('search', searchParams)
-  closePanel()
+}
+
+// 全选
+function selectAll() {
+  leagueList.value = allLeagues.value.map((item) => ({ ...item }));
+}
+
+// 反选
+function invertSelection() {
+  const currentNames = new Set(leagueList.value.map((l) => l.name));
+  leagueList.value = allLeagues.value
+    .filter((item) => !currentNames.has(item.name))
+    .map((item) => ({ ...item }));
+}
+
+// 确定选择
+function confirmSelection() {
+  showIndexedPanel.value = false;
+}
+
+// 打开索引列表
+function openIndexedList() {
+  showIndexedPanel.value = true;
+}
+
+// 关闭索引列表
+function closeIndexedList() {
+  showIndexedPanel.value = false;
 }
 
 // 打开设置页面
-function openSetting(){
+function openSetting() {
   uni.navigateTo({
-    url: "/pages/zc/settings"
-  })
+    url: "/pages/zc/settings",
+  });
 }
 
 defineExpose({
-  setStatus(value){
-    statusIndex.value = value
-  }
 });
 </script>
 
@@ -166,7 +182,7 @@ defineExpose({
 }
 
 /* Part 1: 搜索栏 */
-.search-bar-box{
+.search-bar-box {
   display: flex;
   align-items: center;
 }
@@ -187,17 +203,19 @@ defineExpose({
     color: #999;
   }
 }
-.search-selection-icon{
+.search-selection-icon {
   width: 75rpx;
   height: 65rpx;
   background: url("/static/icons/selection-icon.png") no-repeat;
   background-size: 100%;
   background-position: center;
-
   margin-right: 12rpx;
 }
+.search-setting-icon {
+  margin-left: auto;
+}
 
-/* Part 2: 搜索面板遮罩 */
+/* 遮罩 */
 .search-panel-mask {
   position: fixed;
   top: 0;
@@ -208,120 +226,129 @@ defineExpose({
   z-index: 998;
 }
 
-/* Part 2: 搜索面板 */
-.search-panel {
+/* 索引列表面板 */
+.indexed-panel {
   position: fixed;
-  bottom:0;
+  bottom: 0;
   left: 0;
   right: 0;
+  top: 20%;
   z-index: 999;
   background-color: #fff;
-  transform: translateY(-100%);
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
   transition: transform 0.3s ease;
 
   &--visible {
     transform: translateY(0);
   }
+}
 
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24rpx 32rpx;
-    border-bottom: 1rpx solid #eee;
+.indexed-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #eee;
+  flex-shrink: 0;
 
-    .panel-title {
-      font-size: 32rpx;
-      font-weight: 600;
-      color: #333;
+  .indexed-panel-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .indexed-panel-close {
+    padding: 8rpx;
+  }
+}
+
+.indexed-panel-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 16rpx 0;
+}
+
+.league-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 16rpx;
+}
+
+.league-item {
+  display: flex;
+  align-items: center;
+  padding: 14rpx 24rpx;
+  margin: 8rpx 8rpx;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  transition: all 0.2s ease;
+
+  &.selected {
+    background-color: #e8f4ff;
+    color: #3c9cff;
+
+    .league-name {
+      color: #3c9cff;
     }
 
-    .panel-close {
-      padding: 8rpx;
+    .league-count {
+      color: #3c9cff;
     }
   }
 
-  .panel-body {
-    padding: 32rpx;
+  .league-name {
+    font-size: 26rpx;
+    color: #333;
   }
 
-  .form-item {
+  .league-count {
+    font-size: 22rpx;
+    color: #999;
+    margin-left: 4rpx;
+  }
+}
+
+.indexed-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #eee;
+  flex-shrink: 0;
+
+  .footer-btn {
+    flex: 1;
+    height: 72rpx;
     display: flex;
     align-items: center;
-    margin-bottom: 32rpx;
+    justify-content: center;
+    border-radius: 36rpx;
+    font-size: 28rpx;
+    font-weight: 500;
+    margin: 0 8rpx;
 
-    .form-label {
-      width: 140rpx;
-      font-size: 28rpx;
-      color: #333;
-      flex-shrink: 0;
+    &:first-child {
+      margin-left: 0;
     }
-
-    .form-input {
-      flex: 1;
-      height: 72rpx;
-      background-color: #f5f5f5;
-      border-radius: 12rpx;
-      padding: 0 20rpx;
-      font-size: 28rpx;
-      color: #333;
-      box-sizing: border-box;
-    }
-
-    .form-picker {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 72rpx;
-      background-color: #f5f5f5;
-      border-radius: 12rpx;
-      padding: 0 20rpx;
-      box-sizing: border-box;
-
-      .picker-value {
-        font-size: 28rpx;
-        color: #333;
-
-        &--placeholder {
-          color: #999;
-        }
-      }
-    }
-
-    .form-date-picker {
-      flex: 1;
+    &:last-child {
+      margin-right: 0;
     }
   }
 
-  .panel-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24rpx 32rpx;
-    border-top: 1rpx solid #eee;
+  .btn-select-all,
+  .btn-invert {
+    background-color: #f5f5f5;
+    color: #666;
+  }
 
-    .btn-cancel,
-    .btn-confirm {
-      width: 320rpx;
-      height: 80rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 40rpx;
-      font-size: 28rpx;
-      font-weight: 500;
-    }
-
-    .btn-cancel {
-      background-color: #f5f5f5;
-      color: #666;
-    }
-
-    .btn-confirm {
-      background-color: #3c9cff;
-      color: #fff;
-    }
+  .btn-confirm {
+    background-color: #3c9cff;
+    color: #fff;
   }
 }
 </style>
