@@ -162,7 +162,7 @@ const Reginfo = reactive({
   code: "",
   uname: "",
   password: "",
-  staffInvitationCode: ""
+  ucode: ""
 });
 
 // 输入验证码时更新值
@@ -225,7 +225,7 @@ const doReg = async () => {
 
   try {
     if(staffInvitationCode.value){
-      Reginfo.staffInvitationCode = staffInvitationCode
+      Reginfo.ucode = staffInvitationCode
     }
     const success = await apiRegInfo(Reginfo);
     uni.hideLoading();
