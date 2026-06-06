@@ -203,6 +203,7 @@ defineExpose({
   margin-right: 12rpx;
 
   .search-placeholder {
+	  flex:1;
     margin-left: 12rpx;
     font-size: 28rpx;
     color: #999;
