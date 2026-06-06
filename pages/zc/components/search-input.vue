@@ -15,7 +15,9 @@
           confirm-type="搜索"
         />
       </view>
-      <view class="search-selection-icon" @click="openIndexedList"></view>
+      <view class="search-selection-icon" @click="openIndexedList">
+        <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
+      </view>
       <view class="search-setting-icon" @click="openSetting">
         <uni-icons type="gear-filled" size="55rpx"></uni-icons>
       </view>
@@ -91,6 +93,7 @@ const props = defineProps({
 
 const keyword = ref("");
 const leagueList = ref([]);
+const tempLeagueList = ref([]);
 const showIndexedPanel = ref(false);
 const indexedListRef = ref(null);
 
@@ -122,45 +125,47 @@ watch(
   { deep: true }
 );
 
-// 判断联赛是否已选中
+// 判断联赛是否已选中（基于临时变量 tempLeagueList）
 function isLeagueSelected(item) {
-  return leagueList.value.some((l) => l.name === item.name);
+  return tempLeagueList.value.some((l) => l.name === item.name);
 }
 
-// 切换单个联赛选中状态
+// 切换单个联赛选中状态（操作临时变量 tempLeagueList）
 function toggleLeague(item) {
-  const idx = leagueList.value.findIndex((l) => l.name === item.name);
+  const idx = tempLeagueList.value.findIndex((l) => l.name === item.name);
   if (idx >= 0) {
-    leagueList.value.splice(idx, 1);
+    tempLeagueList.value.splice(idx, 1);
   } else {
-    leagueList.value.push({ ...item });
+    tempLeagueList.value.push({ ...item });
   }
 }
 
-// 全选
+// 全选（操作临时变量 tempLeagueList）
 function selectAll() {
-  leagueList.value = allLeagues.value.map((item) => ({ ...item }));
+  tempLeagueList.value = allLeagues.value.map((item) => ({ ...item }));
 }
 
-// 反选
+// 反选（操作临时变量 tempLeagueList）
 function invertSelection() {
-  const currentNames = new Set(leagueList.value.map((l) => l.name));
-  leagueList.value = allLeagues.value
+  const currentNames = new Set(tempLeagueList.value.map((l) => l.name));
+  tempLeagueList.value = allLeagues.value
     .filter((item) => !currentNames.has(item.name))
     .map((item) => ({ ...item }));
 }
 
-// 确定选择
+// 确定选择：将临时变量同步到 leagueList，触发 emit 传递到父组件
 function confirmSelection() {
+  leagueList.value = [...tempLeagueList.value];
   showIndexedPanel.value = false;
 }
 
-// 打开索引列表
+// 打开索引列表：用当前 leagueList 初始化临时变量
 function openIndexedList() {
+  tempLeagueList.value = leagueList.value.map((item) => ({ ...item }));
   showIndexedPanel.value = true;
 }
 
-// 关闭索引列表
+// 关闭索引列表：丢弃临时变量，不更新 leagueList，不传递到父组件
 function closeIndexedList() {
   showIndexedPanel.value = false;
 }
@@ -204,12 +209,30 @@ defineExpose({
   }
 }
 .search-selection-icon {
+  position: relative;
   width: 75rpx;
   height: 65rpx;
   background: url("/static/icons/selection-icon.png") no-repeat;
   background-size: 100%;
   background-position: center;
   margin-right: 12rpx;
+}
+
+.selection-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  background-color: #ff3b30;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 .search-setting-icon {
   margin-left: auto;
