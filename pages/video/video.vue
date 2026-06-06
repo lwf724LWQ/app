@@ -416,7 +416,12 @@ const onHoverClick = () => {
 .video-page-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom));
+  // #ifdef H5
+  	height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom));
+  // #endif
+  // #ifdef APP-PLUS
+  height: 100vh;
+  // #endif
   overflow: hidden;
   .title {
     box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
