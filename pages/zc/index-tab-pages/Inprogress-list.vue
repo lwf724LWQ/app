@@ -1,6 +1,6 @@
 <template>
   <!-- 赛程列表 -->
-  <scroll-view
+  <CustomVirtualList
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
@@ -11,40 +11,43 @@
     @refresherrefresh="refresh"
     @scrolltolower="loadMore"
     @scroll="scroll"
+    :data="matchListSorting"
+    :item-height="itemHeight"
   >
-    <!-- 近期选项 -->
-    <view class="recent-options">
-      <view
-        class="recent-option"
-        v-for="option in recentOptions"
-        :key="option.date"
-        :class="{ active: option.time === currentPageDate }"
-        @click="fetchVideoListByDate(option.time)"
-      >
-        <view class="recent-option-text">{{ option.date }}</view>
-        <view class="recent-option-text">{{ option.weekday }}</view>
+    <template #top>
+      <!-- 近期选项 -->
+      <view class="recent-options">
+        <view
+          class="recent-option"
+          v-for="option in recentOptions"
+          :key="option.date"
+          :class="{ active: option.time === currentPageDate }"
+          @click="fetchVideoListByDate(option.time)"
+        >
+          <view class="recent-option-text">{{ option.date }}</view>
+          <view class="recent-option-text">{{ option.weekday }}</view>
+        </view>
       </view>
-    </view>
-
-    <view v-if="matchListSorting.length === 0">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
+      <view v-if="matchListSorting.length === 0">
+        <view class="no-data-container">
+          <view class="no-data-text">暂无数据</view>
+        </view>
       </view>
-    </view>
-    <view class="area">
-      <view v-for="(match, index) in matchListSorting" :key="index" class="day-group">
-        <MatchScoreCard
-          :key="match.id"
-          :match="match"
+    </template>
+    
+    <template v-slot="{item, index}">
+      <MatchScoreCard
+          :key="item.id"
+          :match="item"
         />
-      </view>
-    </view>
-
-    <!-- 没有更多数据提示 -->
-    <view class="no-more">
-      <text>没有更多数据了</text>
-    </view>
-  </scroll-view>
+    </template>
+    
+    <template #bottom>
+        <view class="no-data-container">
+          <view class="no-data-text">没有更多数据了</view>
+        </view>
+    </template>
+  </CustomVirtualList>
 </template>
 
 <script setup>
@@ -54,6 +57,7 @@ import MatchScoreCard from "../components/MatchScoreCard.vue";
 import dayjs from "dayjs";
 import { getAccount } from "../../../utils/request.js";
 import { useMatchList, filterItem } from "../matchListHooks.js";
+import CustomVirtualList from '@/components/custom-virtual-list/list.vue';
 
 const props = defineProps({
   isActiveTab: {
@@ -69,6 +73,8 @@ const props = defineProps({
   }
 })
 
+const itemHeight = ref(uni.upx2px(160))
+
 // 定义事件
 const emit = defineEmits(["video-click"]);
 
@@ -80,16 +86,8 @@ const isLoading = ref(false);
 const currentPageDate = ref(""); // 当前选中的日期
 const recentOptions = ref([]); // 近期选项
 
-const oldMatchListSorting = ref([])
-const oldSearchParams = ref({})
-const isRefresjerData = ref(false)
 const matchListSorting = computed(()=>{
-  if (props.isActiveTab && (oldSearchParams.keyword != props.searchParams.keyword || oldSearchParams.leagueList != props.searchParams.leagueList || isRefresjerData.value) ) {
-    oldMatchListSorting.value = footBallList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
-    oldSearchParams.value = props.searchParams
-    isRefresjerData.value = false
-  }
-  return oldMatchListSorting.value
+  return footBallList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
 })
 
 const matchListHooks = useMatchList()
@@ -157,7 +155,7 @@ const fetchVideoList = async (page = 1) => {
     }
 
     currentPage.value = page;
-    isRefresjerData.value = true
+    
     const res = await getFootBallList(currentPageDate.value, 1, "", getAccount());
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {

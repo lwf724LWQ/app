@@ -1,6 +1,6 @@
 <template>
   <!-- 即时列表 -->
-  <scroll-view
+  <CustomVirtualList
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
@@ -11,18 +11,23 @@
     @refresherrefresh="fetchVideoList"
     @scrolltolower="loadMore"
     @scroll="scroll"
+    :data="matchListSorting"
+    :item-height="itemHeight"
   >
+  <template #top>
     <view v-if="matchListSorting.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
     </view>
-    <view class="area">
-      <view v-for="(match, index) in matchListSorting" :key="match.matchId" class="day-group">
-        <MatchScoreCard :match="match" />
-      </view>
-    </view>
-  </scroll-view>
+  </template>
+    <template v-slot="{item, index}">
+      <MatchScoreCard
+          :key="item.id"
+          :match="item"
+        />
+    </template>
+  </CustomVirtualList>
 </template>
 
 <script setup>
@@ -33,6 +38,7 @@ import { useUserStore } from "@/stores/userStore";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import { useMatchList, filterItem } from "../matchListHooks.js";
+import CustomVirtualList from '@/components/custom-virtual-list/list.vue';
 
 // 接收的props
 const props = defineProps({
@@ -53,6 +59,8 @@ const props = defineProps({
   }
 });
 
+const itemHeight = ref(uni.upx2px(160))
+
 // 定义事件
 const emit = defineEmits(["video-click", "updateMatchList"]);
 
@@ -62,16 +70,8 @@ const isLoading = ref(false);
 
 const currentPageDate = ref(new Date());
 
-const oldMatchListSorting = ref([])
-const oldSearchParams = ref({})
-const isRefresjerData = ref(false)
 const matchListSorting = computed(() => {
-  if (props.isActiveTab && (oldSearchParams.keyword != props.searchParams.keyword || oldSearchParams.leagueList != props.searchParams.leagueList || isRefresjerData.value) ) {
-    oldMatchListSorting.value = matchInfoList.value.filter(filterItem(props.searchParams)).sort((a, b) => b.flag - a.flag);
-    oldSearchParams.value = props.searchParams
-    isRefresjerData.value = false
-  }
-  return oldMatchListSorting.value
+  return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a, b) => b.flag - a.flag);
 });
 
 const matchListHooks = useMatchList()
@@ -112,7 +112,6 @@ const fetchVideoList = async (isShowRefresher = true) => {
     // 构建请求参数
     currentPageDate.value = dayjs(currentPageDate.value);
     const fdateStr = currentPageDate.value.format("YYYY/M/D");
-    isRefresjerData.value = true
     const Videoinfo = await getFootBallList(fdateStr, 0, "", getAccount());
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {

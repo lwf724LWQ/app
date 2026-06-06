@@ -1,6 +1,6 @@
 <template>
   <!-- 结果列表 -->
-  <scroll-view
+  <CustomVirtualList
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
@@ -9,48 +9,43 @@
     :scroll-top="scrollTop"
     @refresherrefresh="refresh"
     @scroll="scroll"
+    :data="matchListSorting"
+    :item-height="itemHeight"
   >
-    <!-- 近期选项 -->
-    <view class="recent-options">
-      <view
-        class="recent-option"
-        v-for="option in recentOptions"
-        :key="option.date"
-        :class="{ active: option.time === currentPageDate }"
-        @click="fetchVideoList(option.time)"
-      >
-        <view class="recent-option-text">{{ option.date }}</view>
-        <view class="recent-option-text">{{ option.weekday }}</view>
+    <template #top>
+      <!-- 近期选项 -->
+      <view class="recent-options">
+        <view
+          class="recent-option"
+          v-for="option in recentOptions"
+          :key="option.date"
+          :class="{ active: option.time === currentPageDate }"
+          @click="fetchVideoList(option.time)"
+        >
+          <view class="recent-option-text">{{ option.date }}</view>
+          <view class="recent-option-text">{{ option.weekday }}</view>
+        </view>
       </view>
-    </view>
-    <view v-if="matchListSorting.length === 0">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
+      <view v-if="matchListSorting.length === 0">
+        <view class="no-data-container">
+          <view class="no-data-text">暂无数据</view>
+        </view>
       </view>
-    </view>
-    <view class="area">
-      <view class="day-group">
-        <!-- <view class="day-header">
-          <text class="day-title">
-            {{ matchDay.weekday }} {{ formatDate(matchDay.businessDate) }}
-          </text>
-          <text class="day-count">{{ matchDay.matchCount }}场</text>
-        </view> -->
-        <MatchScoreCard
-          v-for="match in matchListSorting"
-          :key="match.id"
-          :match="match"
-          :homeTeam="match.htname"
-          :awayTeam="match.atname"
-          :matchTime="match.mtime"
-          :leagueName="match.abbName"
-          :matchStatus="match.numStr"
-          :score="match.scorecurrent"
-          :halfTimeScore="match.halfTimecurrent"
+    </template>
+    
+    <template v-slot="{item, index}">
+      <MatchScoreCard
+          :key="item.id"
+          :match="item"
         />
+    </template>
+
+    <template #bottom>
+      <view class="no-data-container">
+        <view class="no-data-text">没有更多数据了</view>
       </view>
-    </view>
-  </scroll-view>
+    </template>
+  </CustomVirtualList>
 </template>
 
 <script setup>
@@ -61,6 +56,7 @@ import { useUserStore } from "@/stores/userStore";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import { useMatchList, filterItem } from "../matchListHooks.js";
+import CustomVirtualList from '@/components/custom-virtual-list/list.vue';
 
 // 接收的props
 const props = defineProps({
@@ -81,6 +77,8 @@ const props = defineProps({
   }
 });
 
+const itemHeight = ref(uni.upx2px(160))
+
 // 定义事件
 const emit = defineEmits(["video-click"]);
 
@@ -92,16 +90,8 @@ const currentPageDate = ref("");
 
 const recentOptions = ref([]); // 近期选项
 
-const oldMatchListSorting = ref([])
-const oldSearchParams = ref({})
-const isRefresjerData = ref(false)
 const matchListSorting = computed(() => {
-  if (props.isActiveTab && (oldSearchParams.keyword != props.searchParams.keyword || oldSearchParams.leagueList != props.searchParams.leagueList || isRefresjerData.value) ) {
-      oldMatchListSorting.value = matchInfoList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
-      oldSearchParams.value = props.searchParams
-      isRefresjerData.value = false
-  }
-  return oldMatchListSorting.value
+  return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
 })
 
 const matchListHooks = useMatchList()
@@ -152,8 +142,7 @@ const fetchVideoList = async (dateStr) => {
       title: "加载中...",
     });
     const Videoinfo = await getFootBallList(dateStr, 2, "", getAccount());
-    isRefresjerData.value = true
-
+    
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;
     } else {

@@ -54,7 +54,7 @@
       </view>
     </view>
 
-    <view class="extraExplainStr" v-if="extraExplainStr">
+    <view class="extraExplainStr">
       {{ extraExplainStr }}
     </view>
   </view>
@@ -193,7 +193,7 @@ export default {
     },
     extraExplainStr(){
       const extraExplainObj = this.formatExtraExplain(this.match.extraExplain);
-      let str = ""
+      let str = "-"
       if (extraExplainObj) {
         if(extraExplainObj.kickoff){
           const kickoff = extraExplainObj.kickoff
@@ -336,6 +336,8 @@ export default {
 .match-card {
   background-color: #fff;
   padding: 15rpx 10rpx;
+  height: 150rpx;
+  overflow: hidden;
   border-bottom: 1rpx solid #f0f0f0;
   font-family: Arial, sans-serif;
   transition: background-color 0.3s ease;
