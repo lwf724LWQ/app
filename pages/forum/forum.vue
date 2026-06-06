@@ -56,9 +56,9 @@
     <view class="switch-tabs">
       <view
         v-for="lotteryType in lotteryTypes"
-            :key="lotteryType.id"
+        :key="lotteryType.id"
         class="tab-item"
-        :class="{ active: lotteryType.id === currentLotteryType.id  }"
+        :class="{ active: lotteryType.id === currentLotteryType.id }"
         @click="selectLotteryType(lotteryType)"
       >
         <text class="tab-text">{{ lotteryType.name }}</text>
@@ -583,9 +583,9 @@ const loadLotteryDataByType = async (lotteryType) => {
   }
   try {
     isLoadingLottery.value = true;
-    uni.showLoading({ title: "加载中..." });
+    // uni.showLoading({ title: "加载中..." });
     const response = await apiGetIssueNo({ tname: lotteryType.name });
-    uni.hideLoading();
+    // uni.hideLoading();
 
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
