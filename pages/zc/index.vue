@@ -262,7 +262,6 @@ const updateMatchList = (list) => {
 };
 const leagueListWithPinyin = ref({})
 matchList.leagueListChangeCallback(function(list){
-  console.log(list)
   leagueListWithPinyin.value = list
 })
 onUnmounted(()=>{

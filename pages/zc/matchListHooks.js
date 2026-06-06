@@ -26,7 +26,6 @@ function computedPinyinList(){
             }
         }
     })
-    console.log(obj)
     mathchLeaguesBypinyin = obj
 }
 const cbs = []
