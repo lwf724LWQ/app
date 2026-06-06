@@ -54,13 +54,19 @@
 
     <!-- 切换标签栏 -->
     <view class="switch-tabs">
-      <!-- <view
+      <view
+        v-for="lotteryType in lotteryTypes"
+            :key="lotteryType.id"
         class="tab-item"
-        :class="{ active: activeTab === 'headlines' }"
-        @click="switchTab('headlines')"
+        :class="{ active: lotteryType.id === currentLotteryType.id  }"
+        @click="selectLotteryType(lotteryType)"
       >
-        <text class="tab-text">头条</text>
-      </view> -->
+        <text class="tab-text">{{ lotteryType.name }}</text>
+      </view>
+    </view>
+
+    <!-- 切换标签栏 -->
+    <view class="switch-tabs">
       <view
         class="tab-item"
         :class="{ active: activeTab === 'follow' }"
@@ -75,9 +81,6 @@
       >
         <text class="tab-text">预测</text>
       </view>
-      <!-- <view class="tab-item" :class="{ active: activeTab === 'soup' }" @click="switchTab('soup')">
-        <text class="tab-text">鸡汤</text>
-      </view> -->
     </view>
 
     <!-- 搜索栏 -->
@@ -580,9 +583,9 @@ const loadLotteryDataByType = async (lotteryType) => {
   }
   try {
     isLoadingLottery.value = true;
-    // uni.showLoading({ title: "加载中..." });
+    uni.showLoading({ title: "加载中..." });
     const response = await apiGetIssueNo({ tname: lotteryType.name });
-    // uni.hideLoading();
+    uni.hideLoading();
 
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
       let issueNumber = null;
