@@ -73,9 +73,8 @@ export function filterItem(searchParams){
         
         if(name instanceof Array && name.length > 0){
             nameFlag = false
-            nameFlag = name.some(n => ((item.homeChs.indexOf(n) >= 0)
-            || (item.awayChs.indexOf(n) >= 0)
-            || (item.leagueChsShort.indexOf(n) >= 0)))
+            const searchStr = `${item.homeChs} ${item.awayChs} ${item.leagueChsShort}`
+            nameFlag = name.some(n => (searchStr.indexOf(n) >= 0))
         }
         
         return nameFlag && leagueFlag
