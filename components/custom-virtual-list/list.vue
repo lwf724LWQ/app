@@ -58,7 +58,7 @@ export default {
     },
     bufferSize: {
       type: Number,
-      default: 10
+      default: 50
     },
     dataKey: {
       type: String,
