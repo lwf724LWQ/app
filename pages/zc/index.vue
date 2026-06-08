@@ -132,7 +132,7 @@ import { useMatchList } from "./matchListHooks.js";
 const searchInputRef = ref(null);
 
 // 选项与当前索引（用于与 forum.vue 一致的标签切换）
-const pickerIndex = ref(3);
+const pickerIndex = ref(0);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
 const lotteryTypes = ref(["即时", "赛程", "赛果", "预测", "评论", "关注"]);
