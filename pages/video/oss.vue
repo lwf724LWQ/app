@@ -98,7 +98,7 @@
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import tool from "@/utils/tool.js";
-import { apiSubmitVideo, apiUserimg } from "@/api/apis";
+import { apiSubmitVideo, apiUserimg, apiFindTodayVideo } from "@/api/apis";
 import { getAccount } from "@/utils/request.js";
 
 import NumberInput from "../../components/number-input.vue";
@@ -249,6 +249,29 @@ const startUpload = async () => {
     statusClass.value = "status-error";
     return;
   }
+  // 获取彩票名称（tname）- 优先使用 URL 参数，否则从本地存储获取
+  let tname = routeParams.value.tname || "";
+  if (!tname) {
+    try {
+      const currentLotteryType = uni.getStorageSync("currentLotteryType");
+      if (currentLotteryType && currentLotteryType.name) {
+        tname = currentLotteryType.name;
+      }
+    } catch (error) {
+      // 静默处理错误
+    }
+  }
+
+  const todayVideoList = await apiFindTodayVideo({account: getAccount(), tname: tname})
+  const paidVideoFlag = isCharge.value === 2
+  if (todayVideoList.data.find(item => item.flag === paidVideoFlag)) {
+    uni.showModal({
+      title: "视频上传达到上限",
+      content: `您今日上传的${paidVideoFlag?"收费":"免费"}视频已达到上限!`
+    })
+    return
+  }
+  
 
   statusMessage.value = "正在上传...";
   statusClass.value = "status-warning";
@@ -305,18 +328,7 @@ const startUpload = async () => {
         coverUrl = coverFile.value;
       }
 
-      // 获取彩票名称（tname）- 优先使用 URL 参数，否则从本地存储获取
-      let tname = routeParams.value.tname || "";
-      if (!tname) {
-        try {
-          const currentLotteryType = uni.getStorageSync("currentLotteryType");
-          if (currentLotteryType && currentLotteryType.name) {
-            tname = currentLotteryType.name;
-          }
-        } catch (error) {
-          // 静默处理错误
-        }
-      }
+      
 
       // 准备发送到后端的数据
       const videoData = {
