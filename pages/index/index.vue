@@ -215,6 +215,9 @@
     </view>
 
     <view>
+      <view class="post-title">
+        热门预测贴
+      </view>
       <postCard
             v-for="(item, index) in lotteryList"
             :key="index"
@@ -1130,5 +1133,14 @@ export default {
   color: #999;
   font-size: 28rpx;
   padding-bottom: 150rpx;
+}
+
+.post-title{
+  border-left: 10rpx solid #F00;
+  padding: 12rpx;
+  margin: 12rpx 0;
+  font-weight: bold;
+  font-size: 42rpx;
+  background-color: #f0f69e;
 }
 </style>
