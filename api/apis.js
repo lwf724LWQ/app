@@ -98,6 +98,20 @@ export function apiSubmitVideo(data) {
   });
 }
 
+// 判断视频今日的上传次数是否能够上传
+/**
+ * 
+ * @param {account, tname} data 
+ * @returns 
+ */
+export function apiFindTodayVideo(data){
+  return request({
+    url: "/web/video/find_today",
+    method: "GET",
+    data: data
+  })
+}
+
 // 视频付费情况查询
 export function apiCheckVideoPayment(data = {}) {
   return request({
