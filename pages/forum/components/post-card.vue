@@ -15,7 +15,7 @@
 
     <!-- 期号和时间 -->
     <view class="issue-time">
-      <text class="issue-no">第{{ item.period }}期</text>
+      <text class="issue-no">{{item.tname}} 第{{ item.period }}期</text>
       <text class="post-time">{{ item.time }}</text>
     </view>
 
@@ -85,6 +85,7 @@
 import forumToos from "../../../components/post-card/forumToos";
 import { apiPostLike, userFollowApi } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
+import tool from "../../../utils/tool";
 export default {
   props: {
     item: {
@@ -122,6 +123,10 @@ export default {
     },
     async handleLike(post) {
       try {
+        if (!tool.isLogin()) {
+          return
+        }
+
         // 防止重复点击
         if (post.isLiking) {
           return;
@@ -300,7 +305,7 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 20rpx;
-  font-size: 24rpx;
+  font-size: 32rpx;
   color: #666;
 }
 

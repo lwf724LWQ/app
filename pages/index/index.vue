@@ -214,6 +214,14 @@
       </view>
     </view>
 
+    <view>
+      <postCard
+            v-for="(item, index) in lotteryList"
+            :key="index"
+            :item="item"
+          />
+      <view class="no-more">没有更多帖子了</view>
+    </view>
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
     <!-- <bottomBar current-path="/pages/index/index" /> -->
     <updateAppPupop ref="updateAppPupopRef" />
@@ -232,11 +240,14 @@ import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue";
 import ActivityHover from "@/components/activity-hover.vue";
 import { createShareUrl } from "@/utils/createShareUrl";
+import { useLoadLotteryList } from "./loadLotteryPostListHooks.js";
+import postCard from "../forum/components/post-card.vue";
 
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard },
   data() {
+    this.lotteryListHooks = useLoadLotteryList()
     return {
       currentTab: "plw",
       fc3dNumbers: ["3", "8", "5"],
@@ -250,6 +261,11 @@ export default {
       qxcDate: "10.26 周日",
       isLoadingResults: false, // 添加加载锁
     };
+  },
+  computed: {
+    lotteryList(){
+      return this.lotteryListHooks.list.value
+    }
   },
   methods: {
     drawGui() {
@@ -505,13 +521,32 @@ export default {
     dowApp() {
       window.open("http://www.caimizm.com/");
     },
+    loadLotteryList(isRefresher = false){
+      this.lotteryListHooks.loadLotteryData(isRefresher)
+    }
   },
   onShow() {
     // 加载开奖结果
     this.loadLotteryResults();
   },
+  onReachBottom(){
+    // 页面触底 加载帖子
+    this.loadLotteryList()
+  },
   mounted() {
     this.$refs.updateAppPupopRef.check();
+    
+    this.loadLotteryList(true)
+  },
+  async onPullDownRefresh(){
+    try {
+      await this.loadLotteryList(true)
+      await this.loadLotteryResults() 
+    } catch (error) {
+      
+    }
+    setTimeout(uni.stopPullDownRefresh, 200)
+    
   },
   onLoad() {
     // tool.checkAppUpdate();
@@ -1087,5 +1122,13 @@ export default {
 .notice-banner-swiper {
   margin: 10rpx 0;
   height: 105rpx;
+}
+
+.no-more {
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 28rpx;
+  padding-bottom: 150rpx;
 }
 </style>
