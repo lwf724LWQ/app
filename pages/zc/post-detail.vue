@@ -123,8 +123,7 @@ export default {
       try {
         const res = await getFootBallPostDetail(this.id);
         const a = JSON.parse(res.data.fbpost.result);
-        res.data.description = a.expertAnalysis;
-        this.postDetail = { uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost };
+        this.postDetail = { uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost,description: a.expertAnalysis };
       } catch (error) {
         uni.showToast({
           title: error.msg || "加载失败",
