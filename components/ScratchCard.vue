@@ -18,7 +18,7 @@
       <!-- 教程 -->
       <view
         class="scratch-tutorial scratch-tutorial-show"
-        v-show="isNeedTutorial"
+        v-show="isOpen"
         :id="`scratchTutorial${id}`"
       >
         <view class="scratch-tutorial-text">左右滑动此处可刮开</view>
@@ -81,13 +81,14 @@ export default {
     },
     reset() {
       this.resetFlag = this.resetFlag + 1;
+      this.isOpen = true
     },
   },
   created() {
     // 初始化 canvas 配置
-    this.$nextTick(() => {
-      this.isOpen = true;
-    });
+    // this.$nextTick(() => {
+    //   this.isOpen = true;
+    // });
   },
 };
 </script>
@@ -412,7 +413,7 @@ function drawLayer() {
   .scratch-tutorial-text {
     font-size: 48rpx;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgb(224, 255, 46);
     background: #ccc;
     text-align: center;
     padding: 5rpx;

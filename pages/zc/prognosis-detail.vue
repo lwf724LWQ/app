@@ -227,6 +227,11 @@ export default {
     getFootBallPostDetail(options.id)
       .then((res) => {
         this.prognosisData = { ...res.data, ...res.data.fbpost };
+        if (this.prognosisData.flag) {
+          this.$nextTick(()=>{
+            this.refreshScratchCard()
+          })
+        }
       })
       .finally(() => {
         uni.hideLoading();
@@ -304,11 +309,12 @@ $text-sub: #000000;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 38rpx;
+    font-size: 42rpx;
     font-weight: bold;
     min-height: 280rpx;
     border: 1rpx solid #e0e0e0;
     border-radius: 12rpx;
+    color: #f00;
 
     .stat-item {
       margin: 10rpx 0;
