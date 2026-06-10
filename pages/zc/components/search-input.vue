@@ -40,7 +40,12 @@
       </view>
 
       <view class="indexed-panel-body">
-        <IndexedList
+        <view class="shijiebei" @click="toShijiebei" :class="{'selected': temponlyShijiebei}">
+          <view class="shijiebeiLOGO"></view>
+          世界杯
+        </view>
+        <view class="indexedList">
+          <IndexedList
           ref="indexedListRef"
           :list="indexdeData"
           sort="asc"
@@ -63,6 +68,8 @@
             </view>
           </template>
         </IndexedList>
+        </view>
+        
       </view>
 
       <view class="indexed-panel-footer">
@@ -91,12 +98,20 @@ const props = defineProps({
 });
 
 
+uni.$on("openOnlyShijiebei", ()=>{
+  keyword.value = ""
+  leagueList.value =[{name: "世界杯"}],
+  onlyShijiebei.value = true
+  temponlyShijiebei.value = true
+})
+
 const keyword = ref("");
 const leagueList = ref([]);
 const tempLeagueList = ref([]);
+const temponlyShijiebei = ref(false);
 const showIndexedPanel = ref(false);
 const indexedListRef = ref(null);
-
+const onlyShijiebei = ref(false)
 
 // 所有可选的联赛（从 indexdeData 扁平化提取）
 // indexdeData 结构: { "A": { leagueList: [...] }, "B": { leagueList: [...] } }
@@ -115,11 +130,12 @@ const allLeagues = computed(() => {
 
 const emit = defineEmits(["search"]);
 watch(
-  [keyword, leagueList],
+  [keyword, leagueList, onlyShijiebei],
   () => {
     emit("search", {
       keyword: keyword.value,
       leagueList: leagueList.value,
+      onlyShijiebei: onlyShijiebei.value
     });
   },
   { deep: true }
@@ -132,6 +148,10 @@ function isLeagueSelected(item) {
 
 // 切换单个联赛选中状态（操作临时变量 tempLeagueList）
 function toggleLeague(item) {
+  if (temponlyShijiebei.value) {
+    temponlyShijiebei.value = false;
+    tempLeagueList.value = [];
+  }
   const idx = tempLeagueList.value.findIndex((l) => l.name === item.name);
   if (idx >= 0) {
     tempLeagueList.value.splice(idx, 1);
@@ -156,7 +176,11 @@ function invertSelection() {
 // 确定选择：将临时变量同步到 leagueList，触发 emit 传递到父组件
 function confirmSelection() {
   leagueList.value = [...tempLeagueList.value];
+  if (onlyShijiebei.value && tempLeagueList.value.length > 0) {
+    onlyShijiebei.value = false
+  }
   showIndexedPanel.value = false;
+  onlyShijiebei.value = temponlyShijiebei.value
 }
 
 // 打开索引列表：用当前 leagueList 初始化临时变量
@@ -175,6 +199,13 @@ function openSetting() {
   uni.navigateTo({
     url: "/pages/zc/settings",
   });
+}
+// 去世界杯
+function toShijiebei(){
+  onlyShijiebei.value = !onlyShijiebei.value;
+  leagueList.value = onlyShijiebei.value ? [{name: "世界杯"}] : [];
+  temponlyShijiebei.value = onlyShijiebei.value
+  closeIndexedList()
 }
 
 defineExpose({
@@ -291,9 +322,43 @@ defineExpose({
 }
 
 .indexed-panel-body {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
   padding: 16rpx 0;
+  
+  .shijiebei{
+    width: 180rpx;
+
+    margin: 12rpx;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #f00;
+    border-radius: 8rpx;
+    background: #fffff6;
+    box-shadow: 0 0 4rpx rgba(0, 0, 0, 0.5);
+
+    .shijiebeiLOGO{
+      background-image: url("static/icons/sjiebeiLOGO.png");
+      background-size: cover;
+
+      width: 50rpx;
+      height: 80rpx;
+
+      margin-right: 20rpx;
+    }
+
+    &.selected{
+      background-color: #fffec1;
+    }
+  }
+  .indexedList{
+    flex:1;
+    overflow: hidden;
+  }
 }
 
 .league-grid {

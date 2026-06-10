@@ -310,7 +310,7 @@ defineExpose({
 
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
 
   padding: 10rpx 0;
 

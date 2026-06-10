@@ -5,11 +5,18 @@
       class="ad-swiper"
       indicator-dots="true"
       autoplay="true"
-      interval="3000"
+      :interval="swiperIndex == 0 ? 10000 : 3000" 
       duration="500"
       circular="true"
       easing-function="default"
+      @change="swiperChange"
     >
+      <!-- 世界杯专栏 -->
+      <swiper-item>
+        <view class="swiper-item" @click="openShijiebei">
+          <image src="/static/images/banner-shijiebei.png" mode="scaleToFill"></image>
+        </view>
+      </swiper-item>
       <swiper-item>
         <view class="swiper-item">
           <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
@@ -263,6 +270,8 @@ export default {
       plwDate: "10.26 周日",
       qxcDate: "10.26 周日",
       isLoadingResults: false, // 添加加载锁
+
+      swiperIndex: 0
     };
   },
   computed: {
@@ -271,6 +280,9 @@ export default {
     }
   },
   methods: {
+    swiperChange(e){
+      this.swiperIndex = e.detail.current
+    },
     drawGui() {
       const tname = this.currentTab === "plw" ? "排列5" : "七星彩";
       uni.navigateTo({
@@ -526,6 +538,16 @@ export default {
     },
     loadLotteryList(isRefresher = false){
       this.lotteryListHooks.loadLotteryData(isRefresher)
+    },
+    openShijiebei(){
+      uni.switchTab({
+        url: "/pages/zc/index",
+        success: function(){
+          setTimeout(()=>{
+            uni.$emit("openOnlyShijiebei")
+          }, 1000)
+        }
+      })
     }
   },
   onShow() {

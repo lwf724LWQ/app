@@ -1,6 +1,6 @@
 <template>
   <!-- 即时列表 -->
-  <CustomVirtualList
+  <scroll-view
     class="scroll-view"
     :scroll-y="true"
     :show-scrollbar="false"
@@ -14,20 +14,23 @@
     :data="matchListSorting"
     :item-height="itemHeight"
   >
-  <template #top>
     <view v-if="matchListSorting.length === 0">
       <view class="no-data-container">
         <view class="no-data-text">暂无数据</view>
       </view>
     </view>
+    <template
+      v-for="(item, index) in matchListWithDay"
+    >
+    <view class="matchdatestr">{{ item.datestr }}</view>
+    <MatchScoreCard
+        v-for="(item, index) in item.list"
+        :key="item.id"
+        :match="item"
+      />
   </template>
-    <template v-slot="{item, index}">
-      <MatchScoreCard
-          :key="item.id"
-          :match="item"
-        />
-    </template>
-  </CustomVirtualList>
+    
+  </scroll-view>
 </template>
 
 <script setup>
@@ -71,13 +74,37 @@ const isLoading = ref(false);
 const currentPageDate = ref(new Date());
 
 const matchListSorting = computed(() => {
-  return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a, b) => b.flag - a.flag);
+  return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a,b) => dayjs(a.matchTime) - dayjs(b.matchTime)).sort((a, b) => b.flag - a.flag);
 });
+
+const matchListWithDay = computed(() => {
+  const dayList = []
+  for (let index = 0; index < matchListSorting.value.length; index++) {
+    const element = matchListSorting.value[index];
+    const formatDataStr = dayjs(element.matchTime).format("YYYY/MM/DD dddd")
+    const daylistitem = dayList.find(i => i.datestr === formatDataStr)
+    if (daylistitem) {
+      daylistitem.list.push(element)
+    }else{
+      dayList.push({
+        datestr: formatDataStr,
+        list: [element]
+      })
+    }
+  }
+  return dayList
+})
 
 const matchListHooks = useMatchList()
 watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
   if (isActive) {
     matchListHooks.setMatchList(list)
+  }
+})
+
+watch(() => props.searchParams, (newVal, oldVal) => {
+  if(newVal.onlyShijiebei != oldVal.onlyShijiebei){
+    fetchVideoList()
   }
 })
 
@@ -112,7 +139,10 @@ const fetchVideoList = async (isShowRefresher = true) => {
     // 构建请求参数
     currentPageDate.value = dayjs(currentPageDate.value);
     const fdateStr = currentPageDate.value.format("YYYY/M/D");
-    const Videoinfo = await getFootBallList(fdateStr, 0, "", getAccount());
+    let onlyShijiebei = props.searchParams.onlyShijiebei;
+    
+    const Videoinfo = onlyShijiebei ? await getFootBallList("", 0, "世界杯", getAccount())
+                                    : await getFootBallList(fdateStr, 0, "", getAccount());
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;
@@ -301,6 +331,14 @@ defineExpose({
 
 .scroll-view {
   height: 100%;
+}
+
+.matchdatestr{
+  text-align: center;
+  font-size: 24rpx;
+  background-color: #ececec;
+  padding: 8rpx 0;
+  
 }
 
 .no-data-container {

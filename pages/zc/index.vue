@@ -222,8 +222,10 @@ onMounted(async () => {});
 // 搜索事件
 const searchParams = ref({});
 function onSearch(params) {
-  console.log(params);
   searchParams.value = params;
+  if (params.onlyShijiebei) {
+    pickerIndex.value = 0
+  }
 }
 
 const userStore = useUserStore();
@@ -253,6 +255,7 @@ const onHoverClick = () => {
   }
 };
 
+
 const matchList = useMatchList();
 const zcSettings = useZcSettingsStore();
 const eventNotificationRef = ref(null);
@@ -267,6 +270,9 @@ const updateMatchList = (list) => {
 };
 const leagueListWithPinyin = ref({})
 matchList.leagueListChangeCallback(function(list){
+  if (searchParams.value.onlyShijiebei) {
+    return
+  }
   leagueListWithPinyin.value = list
 })
 onUnmounted(()=>{
