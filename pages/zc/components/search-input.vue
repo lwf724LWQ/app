@@ -342,7 +342,7 @@ defineExpose({
     box-shadow: 0 0 4rpx rgba(0, 0, 0, 0.5);
 
     .shijiebeiLOGO{
-      background-image: url("static/icons/sjiebeiLOGO.png");
+      background-image: url("/static/icons/sjiebeiLOGO.png");
       background-size: cover;
 
       width: 50rpx;
