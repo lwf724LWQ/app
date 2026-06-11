@@ -137,16 +137,31 @@ const fetchVideoList = async (isShowRefresher = true) => {
     isLoading.value = true;
     refresher.value = isShowRefresher;
     // 构建请求参数
-    currentPageDate.value = dayjs(currentPageDate.value);
+    currentPageDate.value = dayjs(new Date());
     const fdateStr = currentPageDate.value.format("YYYY/M/D");
     let onlyShijiebei = props.searchParams.onlyShijiebei;
     
+
     const Videoinfo = onlyShijiebei ? await getFootBallList("", 0, "世界杯", getAccount())
                                     : await getFootBallList(fdateStr, 0, "", getAccount());
+    let videoInfo2 = []
+    const fdateStr2 = dayjs(new Date()).add(1, "day").format("YYYY/M/D")
+    if (!onlyShijiebei) {
+      try {
+       const res = await getFootBallList(fdateStr2, 0, "", getAccount())
+        if(res.code === 200 && res.data && res.data instanceof Array){
+          videoInfo2 = res.data
+        } 
+      } catch (error) {
+        
+      }
+    }
+    
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
-      matchInfoList.value = Videoinfo.data;
-      emit("updateMatchList", Videoinfo.data);
+      const counArr = [...Videoinfo.data, ...videoInfo2]
+      matchInfoList.value = counArr;
+      emit("updateMatchList", counArr);
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -163,13 +178,15 @@ const fetchVideoList = async (isShowRefresher = true) => {
       });
     }
   } finally {
-    setTimeout(() => {
+    
       isLoading.value = false;
-    }, 300);
+    setTimeout(() => {
+      
+    refresher.value = false;
+    }, 150);
 
     // 停止下拉刷新
     uni.stopPullDownRefresh();
-    refresher.value = false;
   }
 };
 
