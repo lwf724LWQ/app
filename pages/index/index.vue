@@ -225,6 +225,17 @@
       <view class="post-title">
         热门预测贴
       </view>
+      <view class="switch-tabs">
+        <view
+          v-for="lotteryType in lotteryTag"
+          :key="lotteryType"
+          class="tab-item"
+          :class="{ active: lotteryType === currentLotteryTag }"
+          @click="selectLotteryType(lotteryType)"
+        >
+          <text class="tab-text">{{ lotteryType }}</text>
+        </view>
+      </view>
       <postCard
             v-for="(item, index) in lotteryList"
             :key="index"
@@ -271,7 +282,11 @@ export default {
       qxcDate: "10.26 周日",
       isLoadingResults: false, // 添加加载锁
 
-      swiperIndex: 0
+      swiperIndex: 0,
+
+      // 彩票帖子
+      lotteryTag: ["排列三", "排列五", "七星彩", "福彩3D"],
+      currentLotteryTag: "排列五"
     };
   },
   computed: {
@@ -537,7 +552,10 @@ export default {
       window.open("http://www.caimizm.com/");
     },
     loadLotteryList(isRefresher = false){
-      this.lotteryListHooks.loadLotteryData(isRefresher)
+      uni.showLoading()
+      this.lotteryListHooks.loadLotteryData(isRefresher, this.currentLotteryTag)
+      .finally(uni.hideLoading)
+      
     },
     openShijiebei(){
       uni.switchTab({
@@ -548,6 +566,10 @@ export default {
           }, 1000)
         }
       })
+    },
+    selectLotteryType(lotteryName){
+      this.currentLotteryTag = lotteryName
+      this.loadLotteryList(true)
     }
   },
   onShow() {
@@ -1165,4 +1187,46 @@ export default {
   font-size: 42rpx;
   background-color: #f0f69e;
 }
+
+
+/* 切换标签栏 */
+.switch-tabs {
+  left: 0;
+  right: 0;
+  height: 88rpx;
+  flex-basis: 88rpx;
+  background-color: #fff;
+  z-index: 998;
+  display: flex;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 4rpx solid transparent;
+  /* 优化触摸性能 */
+  touch-action: manipulation;
+  transition: all 0.2s ease;
+}
+
+.tab-item.active {
+  border-bottom-color: #ff4757;
+}
+
+.tab-text {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #000000;
+  font-weight: 500;
+}
+
+.tab-item.active .tab-text {
+  color: #ff4757;
+}
+
 </style>

@@ -49,7 +49,7 @@ export function useLoadLotteryList (limit = 20){
         list,
         isMore,
         isLoad,
-        async loadLotteryData(isRefresher = false){
+        async loadLotteryData(isRefresher = false, tname=""){
             console.log("加载")
             try {
                 if (isLoad.value)
@@ -61,11 +61,14 @@ export function useLoadLotteryList (limit = 20){
                 currentPage = isRefresher ? 1 : currentPage;
                 const reqForm = {
                     page: currentPage,
-                    limit: pagelimit
+                    limit: pagelimit,
                 }
                 const account = getAccount()
                 if (account) {
                     reqForm.account = account
+                }
+                if(tname){
+                    reqForm.tname = tname
                 }
                 const res = await apiPostListQuery(reqForm)
                 const l = res.data.list.map(item => handerPost(item))
