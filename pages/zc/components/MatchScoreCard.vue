@@ -66,6 +66,29 @@ import { forllowFootball, delForllowFootball } from "@/api/apis.js";
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 
+let i = 0
+const timerCallFns = {}
+setInterval(() => {
+  const date = new Date()
+  for (const key in timerCallFns) {
+    if (!Object.hasOwn(timerCallFns, key)) continue;
+    const fn = timerCallFns[key];
+    if (typeof fn === "function") {
+      fn(date)
+    }
+  }
+}, 30000);
+
+function closeTimer(index){
+  console.log(i)
+  delete timerCallFns[index]
+}
+function addTimer(cb){
+  i++;
+  timerCallFns[i] = cb
+  return i
+}
+
 export default {
   props: {
     match: { type: Object },
@@ -74,6 +97,9 @@ export default {
     return {
       isFavorite: false,
       isFlashing: false,
+      timerIndex: false,
+      
+      nowTime: new Date()
     };
   },
   watch: {
@@ -170,10 +196,23 @@ export default {
         return "";
       }
       let time = this.match.matchTime;
-      if (this.match.mstate == 3 && this.match.middleTime) {
-        time = this.match.middleTime;
-      } else if (this.match.mstate == 1 && this.match.startTime) {
-        time = this.match.startTime;
+      const teetime = Number(dayjs(dayjs(this.nowTime) - dayjs(this.match.startTime)).format("mm"))
+      if (this.match.mstate == 3) {
+        if (!Number.isNaN(teetime)) {
+          if (teetime > 45) {
+            return `90+'`
+          }else{
+            return `${teetime + 45}'`
+          }
+        }
+      } else if (this.match.mstate == 1) {
+        if (!Number.isNaN(teetime)) {
+          if (teetime > 45) {
+            return `45+${45-teetime}'`
+          }else{
+            return `${teetime}'`
+          }
+        }
       }
       return dayjs(time).format("HH:mm");
     },
@@ -329,6 +368,14 @@ export default {
       };
     },
   },
+  mounted(){
+    this.timerIndex = addTimer((time)=>{
+      this.nowTime = time
+    })
+  },
+  unmounted(){
+    closeTimer(this.timerIndex)
+  }
 };
 </script>
 
