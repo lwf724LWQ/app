@@ -139,6 +139,8 @@ const lotteryTypes = ref(["即时", "赛程", "赛果", "预测", "评论", "关
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
+const forllowListRef = ref(null)
+
 onPullDownRefresh(refreshCurrentTab);
 
 function refreshCurrentTab() {
@@ -165,6 +167,16 @@ const switchTabByIndex = async (index, isRefresh) => {
       showCancel: true,
     });
     return;
+  }
+
+  if(index === 5){
+    nextTick(()=>{
+      try {
+        forllowListRef.value.refreshVideoList() 
+      } catch (error) {
+        
+      }
+    })
   }
 
   pickerIndex.value = index;
@@ -265,6 +277,13 @@ const updateMatchList = (list) => {
       eventNotificationRef.value?.onDataUpdate(list.filter((item) => item.flag));
     } else {
       eventNotificationRef.value?.onDataUpdate(list);
+    }
+  }
+  if (pickerIndex.value === 5) {
+    try {
+      forllowListRef.value.updateMatchList(list) 
+    } catch (error) {
+      
     }
   }
 };

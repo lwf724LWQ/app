@@ -77,7 +77,7 @@ setInterval(() => {
       fn(date)
     }
   }
-}, 30000);
+}, 1000);
 
 function closeTimer(index){
   console.log(i)

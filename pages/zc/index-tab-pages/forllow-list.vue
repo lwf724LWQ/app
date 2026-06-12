@@ -140,6 +140,16 @@ const fetchVideoList = async (isShowRefresh = true) => {
   }
 };
 
+// 从外部更新数据
+function updateMatchList(list){
+  const newArr = [...matchInfoList.value]
+  newArr.forEach((item, index) => {
+    const a = list.find(newitem => item.matchId == newitem.matchId)
+    newArr[index] = a;
+  })
+  matchInfoList.value = newArr
+}
+
 const userStore = useUserStore();
 
 // 监听类型变化，重新获取数据
@@ -151,35 +161,7 @@ watch(
   { immediate: true }
 );
 
-// ========== 定时刷新：仅在当前 tab 激活时轮询 ==========
-let refreshTimer = null;
-
-function startPolling() {
-  stopPolling();
-  refreshTimer = setInterval(() => {
-    if (props.isActiveTab) {
-      currentPage.value = 1;
-      hasMore.value = true;
-      fetchVideoList(true);
-    }
-  }, 5000);
-}
-
-function stopPolling() {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
-  }
-}
-
-// ========== 定时刷新结束 ==========
-
-onMounted(() => {
-  // startPolling()
-});
-
 onBeforeUnmount(() => {
-  // stopPolling();
   eventNotificationRef.value?.destroy();
 });
 
@@ -191,6 +173,7 @@ function onshow() {
 }
 
 defineExpose({
+  updateMatchList,
   refreshVideoList,
   onshow,
 });
