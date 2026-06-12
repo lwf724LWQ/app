@@ -145,7 +145,9 @@ function updateMatchList(list){
   const newArr = [...matchInfoList.value]
   newArr.forEach((item, index) => {
     const a = list.find(newitem => item.matchId == newitem.matchId)
-    newArr[index] = a;
+    if (a) {
+      newArr[index] = a; 
+    }
   })
   matchInfoList.value = newArr
 }
