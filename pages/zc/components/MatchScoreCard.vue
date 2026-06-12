@@ -208,7 +208,7 @@ export default {
       } else if (this.match.mstate == 1) {
         if (!Number.isNaN(teetime)) {
           if (teetime > 45) {
-            return `45+${45-teetime}'`
+            return `45+'`
           }else{
             return `${teetime}'`
           }
