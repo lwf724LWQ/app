@@ -55,7 +55,7 @@
 
           <view class="form-item-content">
             <view class="price-input-wrapper">
-              <switch v-model="form.isShijiebei" @change="setIsShijiebei"></switch>世界杯专栏
+              <switch :checked="form.isShijiebei" @change="setIsShijiebei"></switch>世界杯专栏
 
               <view class="match-content" v-if="form.isShijiebei" @click="openDataPicker">
                 <view class="match-info">
