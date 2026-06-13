@@ -1,7 +1,6 @@
 <template>
   <view class="container">
-    <top-navigation-bar title="创建预测方案">
-    </top-navigation-bar>
+    <top-navigation-bar title="创建预测方案"></top-navigation-bar>
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <!-- 创建预测方案的表单 -->
       <view class="create-prognosis-form">
@@ -55,17 +54,18 @@
 
           <view class="form-item-content">
             <view class="price-input-wrapper">
-              <switch :checked="form.isShijiebei" @change="setIsShijiebei"></switch>世界杯专栏
+              <switch :checked="form.isShijiebei" @change="setIsShijiebei"></switch>
+              世界杯专栏
 
               <view class="match-content" v-if="form.isShijiebei" @click="openDataPicker">
                 <view class="match-info">
-                    <view class="match-info-left-team">
-                      <text class="match-info-left-team-tag">[主]</text>
-                      {{ matchInfo.homeChs }}
-                    </view>
-                    <view class="match-info-vs">VS</view>
-                    <view class="match-info-right-team">{{ matchInfo.awayChs }}</view>
+                  <view class="match-info-left-team">
+                    <text class="match-info-left-team-tag">[主]</text>
+                    {{ matchInfo.homeChs }}
                   </view>
+                  <view class="match-info-vs">VS</view>
+                  <view class="match-info-right-team">{{ matchInfo.awayChs }}</view>
+                </view>
               </view>
             </view>
           </view>
@@ -123,8 +123,6 @@
       </view>
     </uni-popup>
   </view>
-
-
 </template>
 <script setup>
 import { ref, reactive, computed, nextTick } from "vue";
@@ -135,7 +133,6 @@ import { getAccount } from "../../utils/request";
 import dayjs from "dayjs";
 import { onLoad } from "@dcloudio/uni-app";
 
-
 const form = reactive({
   isShijiebei: false,
 
@@ -143,7 +140,6 @@ const form = reactive({
   price: 10,
 
   expertAnalysis: "",
-
 });
 
 const matchInfo = ref({});
@@ -214,7 +210,7 @@ async function submitPrognosis() {
   };
 
   if (form.isShijiebei) {
-    confirmForm.remark = matchInfo.value.id
+    confirmForm.remark = matchInfo.value.id;
   }
 
   try {
@@ -245,7 +241,7 @@ function setIsShijiebei(e) {
 async function getMatchData() {
   try {
     const res = await getFootBallList("", 0, "世界杯", getAccount());
-    if (res && res.data instanceof Array) {
+    if (res && Array.isArray(res.data)) {
       const sortList = res.data.sort((a, b) => b.flag - a.flag); // 收藏的排到前面
       let newArr = [];
       sortList.forEach((match) => {
@@ -281,7 +277,6 @@ async function getMatchData() {
     console.error("获取比赛数据失败:", error);
     uni.showToast({ title: "获取比赛数据失败", icon: "none" });
   }
-  
 }
 
 async function init() {
@@ -321,7 +316,6 @@ onLoad(async (option) => {
     }
   }
 });
-
 </script>
 <style lang="scss" scoped>
 /* 主容器 */
