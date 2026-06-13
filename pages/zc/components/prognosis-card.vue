@@ -20,6 +20,8 @@
         <view class="accuracy-text">近{{ badgeData.length }}场准确率</view>
         <!-- <view class="accuracy-icon">🔥</view> -->
       </view>
+
+      <view class="sijiebeiLogo" v-if="data.remark"></view>
     </view>
 
     <!-- 预测内容 -->
@@ -239,6 +241,15 @@ export default {
         font-size: 24rpx;
         animation: fire 1s infinite;
       }
+    }
+
+    .sijiebeiLogo{
+      background-image: url("/static/icons/sjiebeiLOGO.png");
+      background-size: cover;
+
+      width: 50rpx;
+      height: 80rpx;
+      
     }
   }
 
