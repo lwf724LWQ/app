@@ -68,15 +68,15 @@ import { useUserStore } from "@/stores/userStore";
 
 let i = 0
 const timerCallFns = {}
+
 setInterval(() => {
   const date = new Date()
-  for (const key in timerCallFns) {
-    if (!Object.hasOwn(timerCallFns, key)) continue;
+  Object.keys(timerCallFns).forEach(key =>{
     const fn = timerCallFns[key];
     if (typeof fn === "function") {
       fn(date)
     }
-  }
+  })
 }, 1000);
 
 function closeTimer(index){
