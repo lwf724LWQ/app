@@ -9,7 +9,17 @@ function computedPinyinList(){
     const obj = {}
     matchList.forEach(item => {
         const leagueChsShort = item.leagueChsShort
-        const a = new lpinyin(leagueChsShort)[0][0][0]
+        const a = ((s)=>{
+            if (typeof s === "string") {
+                try {
+                    return new lpinyin(s)[0][0][0]
+                } catch (error) {
+                    return s[0]
+                }
+            }
+            return "#"
+        })(leagueChsShort) 
+        
         if (obj[a]) {
             const leagueList = obj[a].leagueList
             const leagueObj = leagueList.find(item => item.name === leagueChsShort)
