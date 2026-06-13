@@ -13,7 +13,9 @@
             {{ activeNotification.homeScore }}:{{ activeNotification.awayScore }}
           </text>
           <text v-else-if="activeNotification.type === 'corner'" class="event-text event-corner">
-            {{ activeNotification.side === "home" ? "主队" : "客队" }}角球！ 第{{ activeNotification.cornerCount }}个
+            {{ activeNotification.side === "home" ? "主队" : "客队" }}角球！ 第{{
+              activeNotification.cornerCount
+            }}个
           </text>
           <text v-else-if="activeNotification.type === 'red'" class="event-text event-red">
             {{
@@ -49,10 +51,8 @@ const soundPlayer = useZcSoundPlayer();
 // 震动
 function vibrate() {
   try {
-    plus.device.vibrate(200) 
-  } catch (error) {
-    
-  }
+    plus.device.vibrate(200);
+  } catch (error) {}
 }
 
 // ========== 状态 ==========
@@ -113,27 +113,24 @@ function showNotificationPopup(notification) {
   if (notificationTimer) {
     clearTimeout(notificationTimer);
   }
-  
+
   // 推送通知
   try {
-      plus.push.createMessage(((notification)=>{
-        const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
-        if (notification.type === "goal") {
-          // 进球
-          return `${side}进球! 现比分 ${notification.homeScore}:${notification.awayScore}`
-        }else if(notification.type === "corner"){
-          // 角球
-          return `${side}j角球! 第${notification.cornerCount}个`
-        }else if(notification.type === "red"){
-          return `${side}被罚红牌!`
-        }else if(notification.type === "yellow"){
-          return `${side}被罚黄牌!`
-        }
-      })(notification))
-  } catch (error) {
-    
-  }
-  
+    // plus.push.createMessage(((notification)=>{
+    //   const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
+    //   if (notification.type === "goal") {
+    //     // 进球
+    //     return `${side}进球! 现比分 ${notification.homeScore}:${notification.awayScore}`
+    //   }else if(notification.type === "corner"){
+    //     // 角球
+    //     return `${side}j角球! 第${notification.cornerCount}个`
+    //   }else if(notification.type === "red"){
+    //     return `${side}被罚红牌!`
+    //   }else if(notification.type === "yellow"){
+    //     return `${side}被罚黄牌!`
+    //   }
+    // })(notification))
+  } catch (error) {}
 
   // 触发进入动画
   popupState.value = "entering";
@@ -160,18 +157,18 @@ function handleEvent(type, side, matchData, extraData = {}) {
     type === "goal"
       ? "goalNotice"
       : type === "corner"
-        ? "cornerNotice"
-        : type === "red"
-          ? "redCardNotice"
-          : "yellowCardNotice";
+      ? "cornerNotice"
+      : type === "red"
+      ? "redCardNotice"
+      : "yellowCardNotice";
   const soundKey =
     type === "goal"
       ? "goalSound"
       : type === "corner"
-        ? "cornerSound"
-        : type === "red"
-          ? "redCardSound"
-          : "yellowCardSound";
+      ? "cornerSound"
+      : type === "red"
+      ? "redCardSound"
+      : "yellowCardSound";
 
   const notice = setting[noticeKey];
   const sound = setting[soundKey];
