@@ -1,6 +1,7 @@
 <template>
   <view class="container">
-    <top-navigation-bar title="创建预测方案" />
+    <top-navigation-bar title="创建预测方案">
+    </top-navigation-bar>
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <!-- 创建预测方案的表单 -->
       <view class="create-prognosis-form">
@@ -51,6 +52,23 @@
               />
             </view>
           </view>
+
+          <view class="form-item-content">
+            <view class="price-input-wrapper">
+              <switch v-model="form.isShijiebei" @change="setIsShijiebei"></switch>世界杯专栏
+
+              <view class="match-content" v-if="form.isShijiebei" @click="openDataPicker">
+                <view class="match-info">
+                    <view class="match-info-left-team">
+                      <text class="match-info-left-team-tag">[主]</text>
+                      {{ matchInfo.homeChs }}
+                    </view>
+                    <view class="match-info-vs">VS</view>
+                    <view class="match-info-right-team">{{ matchInfo.awayChs }}</view>
+                  </view>
+              </view>
+            </view>
+          </view>
         </view>
         <!-- 专家分析 -->
         <view class="form-card">
@@ -76,26 +94,96 @@
     <view class="fixed-bottom">
       <view class="submit-btn" @click="submitPrognosis">发布预测</view>
     </view>
+    <!-- 赛事选择弹窗 -->
+    <uni-popup ref="dataPicker" type="bottom" safeArea>
+      <view class="data-picker-container">
+        <view class="data-picker-header">
+          <view class="data-picker-header-cancel" @click="closeDataPicker">取消</view>
+          <view class="data-picker-header-title">选择赛事</view>
+          <view class="data-picker-header-confirm" @click="confirmDataPicker">确定</view>
+        </view>
+        <picker-view
+          v-if="pickerViewVisible"
+          :indicatorStyle="indicatorStyle"
+          :value="pickerValue"
+          @change="bindChangeMatch"
+          class="picker-view"
+        >
+          <picker-view-column>
+            <view class="item" v-for="(item, index) in dataTree" :key="index">
+              {{ item.text }}
+            </view>
+          </picker-view-column>
+          <picker-view-column style="flex: 2">
+            <view class="item" v-for="(item, index) in matchList" :key="index">
+              {{ item.text }}
+            </view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+    </uni-popup>
   </view>
+
+
 </template>
 <script setup>
 import { ref, reactive, computed, nextTick } from "vue";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
-import { addFootBallPost } from "@/api/apis.js";
+import { addFootBallPost, getFootBallList } from "@/api/apis.js";
 import NumberInput from "@/components/number-input.vue";
+import { getAccount } from "../../utils/request";
+import dayjs from "dayjs";
+import { onLoad } from "@dcloudio/uni-app";
+
 
 const form = reactive({
-  enableWinDrawLose: false,
-  enableWinDrawLose_handicap: false,
-  enableHalfTime: false,
-  enableTotalGoals: false,
-  enableScore: false,
+  isShijiebei: false,
 
   enablePrice: true,
   price: 10,
 
   expertAnalysis: "",
+
 });
+
+const matchInfo = ref({});
+const dataTree = ref([]);
+const matchList = ref([]);
+const pickerValue = ref([]);
+const dataPicker = ref(null);
+const pickerViewVisible = ref(false);
+const indicatorStyle = ref(`height: 50px;`);
+const temp_matchInfo = ref({});
+
+// 打开赛事选择框
+function openDataPicker() {
+  const index1 = dataTree.value.findIndex((item) => item.value === matchInfo.value.fdate);
+  const index2 = matchList.value.findIndex((item) => item.value === matchInfo.value.matchId);
+  pickerValue.value = [index1 >= 0 ? index1 : 0, index2 >= 0 ? index2 : 0];
+
+  pickerViewVisible.value = false;
+  dataPicker.value.open();
+  nextTick(() => {
+    pickerViewVisible.value = true;
+  });
+}
+
+// 确认选择赛事
+function confirmDataPicker() {
+  matchInfo.value = temp_matchInfo.value;
+  dataPicker.value.close();
+}
+
+// 关闭选择赛事弹框
+function closeDataPicker() {
+  dataPicker.value.close();
+}
+
+function bindChangeMatch(e) {
+  const [day, matchInfoIndex] = e.detail.value;
+  matchList.value = dataTree.value[day].children;
+  temp_matchInfo.value = matchList.value[matchInfoIndex];
+}
 
 async function submitPrognosis() {
   const resultForm = {
@@ -125,6 +213,10 @@ async function submitPrognosis() {
     result: JSON.stringify(resultForm),
   };
 
+  if (form.isShijiebei) {
+    confirmForm.remark = matchInfo.value.id
+  }
+
   try {
     uni.showLoading({
       title: "提交中...",
@@ -143,6 +235,93 @@ async function submitPrognosis() {
   } catch (e) {}
   uni.hideLoading();
 }
+
+function setIsShijiebei(e) {
+  const value = e.detail.value;
+  form.isShijiebei = value;
+}
+
+// 获取赛事列表
+async function getMatchData() {
+  try {
+    const res = await getFootBallList("", 0, "世界杯", getAccount());
+    if (res && res.data instanceof Array) {
+      const sortList = res.data.sort((a, b) => b.flag - a.flag); // 收藏的排到前面
+      let newArr = [];
+      sortList.forEach((match) => {
+        const fdate = dayjs(match.matchTime).format("YYYY-MM-DD");
+        const mL = newArr.find((item) => item.businessDate === fdate);
+        match = { ...match, text: `${match.homeChs} vs ${match.awayChs}`, value: match.matchId };
+        if (mL) {
+          mL.children.push(match);
+          mL.matchCount++;
+          return;
+        } else {
+          newArr.push({
+            businessDate: fdate,
+            text: dayjs(match.matchTime).format("MM-DD dddd"),
+            value: fdate,
+            matchCount: 1,
+            children: [match],
+          });
+        }
+      });
+      newArr = newArr.sort(
+        (a, b) => new Date(a.businessDate).getTime() - new Date(b.businessDate).getTime()
+      );
+      dataTree.value = newArr;
+      matchList.value = newArr[0].children;
+      return newArr;
+    } else {
+      uni.showModal({
+        content: "后端数据结构错误",
+      });
+    }
+  } catch (error) {
+    console.error("获取比赛数据失败:", error);
+    uni.showToast({ title: "获取比赛数据失败", icon: "none" });
+  }
+  
+}
+
+async function init() {
+  try {
+    await getMatchData();
+    return dataTree.value;
+  } catch (e) {
+    console.log(e);
+    uni.showModal({
+      title: e.msg || "获取数据失败",
+    });
+  }
+}
+
+onLoad(async (option) => {
+  console.log(option);
+  if (option && option.matchId) {
+    matchInfo.value = { matchId: option.matchId };
+  }
+
+  const list = await init();
+  if (!matchInfo.value.matchId && list && list.length > 0 && list[0].children.length > 0) {
+    // 默认选中第一个赛事
+    matchInfo.value = list[0].children[0];
+  } else if (matchInfo.value.matchId && list) {
+    // 从列表中找到指定的赛事
+    const findMatchInfo = dataTree.value
+      .reduce((acc, cur) => {
+        return acc.concat(cur.children);
+      }, [])
+      .find((item) => item.matchId === option.matchId);
+
+    if (findMatchInfo) {
+      matchInfo.value = findMatchInfo;
+    } else if (list.length > 0 && list[0].children.length > 0) {
+      matchInfo.value = list[0].children[0];
+    }
+  }
+});
+
 </script>
 <style lang="scss" scoped>
 /* 主容器 */
@@ -163,8 +342,11 @@ async function submitPrognosis() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 8rpx 0;
+  justify-content: flex-start;
+  padding: 15rpx;
+  margin-left: 30rpx;
+
+  background-color: #e9ecef;
 
   .match-info {
     display: flex;
@@ -252,6 +434,7 @@ async function submitPrognosis() {
 .form-input {
   flex: 1;
   height: 80rpx;
+  line-height: 80rpx;
   background: #f8f9fa;
   border: 2rpx solid #e9ecef;
   border-radius: 16rpx;
