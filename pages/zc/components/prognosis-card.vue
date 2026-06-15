@@ -24,9 +24,18 @@
       <view class="sijiebeiLogo" v-if="data.remark"></view>
     </view>
 
-    <!-- 预测内容 -->
+    <!-- 预测标题 -->
     <view class="prognosis-content">
       <view class="content-text">{{ data.title }}</view>
+    </view>
+    <!-- 预测内容 -->
+    <view class="prognosis-result" v-if="!data.flag">
+        <view class="result-title">预测内容</view>
+        <view class="stats-grid">
+          <view class="stat-item" v-for="(item, index) in expertAnalysisList" :key="index">
+            {{ item }}
+          </view>
+        </view>
     </view>
     <!-- 近十场表现 -->
     <view class="prognosis-badge-detail" v-if="badgeData.length >= 4">
@@ -97,6 +106,13 @@ export default {
     timeAgo() {
       const create_time = this.data.create_time;
       return tool.getTimeAgo(create_time);
+    },
+    expertAnalysisList: function () {
+      if (!this.data.flag) {
+        const a = JSON.parse(this.data.result)
+        return a.expertAnalysis.split("\n");
+      }
+      return [];
     },
   },
   methods: {
@@ -263,6 +279,40 @@ export default {
       font-size: 30rpx;
       color: #333;
       line-height: 1.6;
+    }
+  }
+  
+  .prognosis-result {
+    padding: 32rpx 24rpx;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #fff8f0 100%);
+    border-radius: 16rpx;
+    border: 1rpx solid rgba(107, 111, 255, 0.08);
+    box-shadow: inset 0 2rpx 8rpx rgba(107, 111, 255, 0.04);
+    margin-bottom: 20rpx;
+
+    .result-title {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 20rpx;
+      letter-spacing: 2rpx;
+    }
+
+    .stats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12rpx;
+    }
+
+    .stat-item {
+      font-size: 26rpx;
+      color: #444;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10rpx 20rpx;
+      border-radius: 24rpx;
+      border: 1rpx solid rgba(107, 111, 255, 0.1);
+      box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+      line-height: 1.5;
     }
   }
 
