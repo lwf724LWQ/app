@@ -740,3 +740,18 @@ export const findByAccountWithFbpost = (data) => {
     data
   });
 }
+
+export const editFootball = (data) => {
+  return request({
+    url: "/web/fbpost/update",
+    method: "POST",
+    data
+  });
+}
+
+export const delFootball = (id) => {
+  return request({
+    url: "/web/fbpost/delete?id=" + id,
+    method: "GET"
+  });
+}

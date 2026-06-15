@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <top-navigation-bar title="创建预测方案"></top-navigation-bar>
+    <top-navigation-bar :title="isEditMode ? '修改预测方案' : '创建预测方案'"></top-navigation-bar>
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <!-- 创建预测方案的表单 -->
       <view class="create-prognosis-form">
@@ -92,7 +92,7 @@
 
     <!-- 底部提交按钮 -->
     <view class="fixed-bottom">
-      <view class="submit-btn" @click="submitPrognosis">发布预测</view>
+      <view class="submit-btn" @click="submitPrognosis">{{ isEditMode ? "保存修改" : "发布预测" }}</view>
     </view>
     <!-- 赛事选择弹窗 -->
     <uni-popup ref="dataPicker" type="bottom" safeArea>
@@ -127,7 +127,7 @@
 <script setup>
 import { ref, reactive, computed, nextTick } from "vue";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
-import { addFootBallPost, getFootBallList } from "@/api/apis.js";
+import { addFootBallPost, getFootBallList, getFootBallPostDetail, editFootball } from "@/api/apis.js";
 import NumberInput from "@/components/number-input.vue";
 import { getAccount } from "../../utils/request";
 import dayjs from "dayjs";
@@ -142,6 +142,8 @@ const form = reactive({
   expertAnalysis: "",
 });
 
+const isEditMode = ref(false);
+const editId = ref("");
 const matchInfo = ref({});
 const dataTree = ref([]);
 const matchList = ref([]);
@@ -185,12 +187,12 @@ async function submitPrognosis() {
   const resultForm = {
     expertAnalysis: form.expertAnalysis,
   };
-  if (form.expertAnalysis.trim() === "") {
-    uni.showModal({ title: "提示", content: "请输入预测内容" });
-    return;
-  }
   if (form.title.trim() === "") {
     uni.showModal({ title: "提示", content: "请输入预测标题" });
+    return;
+  }
+  if (form.expertAnalysis.trim() === "") {
+    uni.showModal({ title: "提示", content: "请输入预测内容" });
     return;
   }
   if (form.expertAnalysis.trim().split("\n").length > 10) {
@@ -217,7 +219,14 @@ async function submitPrognosis() {
     uni.showLoading({
       title: "提交中...",
     });
-    const res = await addFootBallPost(confirmForm);
+    let res;
+    if (isEditMode.value) {
+      confirmForm.id = editId.value;
+      res = await editFootball(confirmForm);
+    } else {
+      res = await addFootBallPost(confirmForm);
+    }
+    uni.hideLoading();
     uni
       .showModal({
         title: res.msg,
@@ -228,8 +237,9 @@ async function submitPrognosis() {
           uni.navigateBack();
         }
       });
-  } catch (e) {}
-  uni.hideLoading();
+  } catch (e) {
+    uni.hideLoading();
+  }
 }
 
 function setIsShijiebei(e) {
@@ -293,6 +303,38 @@ async function init() {
 
 onLoad(async (option) => {
   console.log(option);
+
+  // 编辑模式：根据id获取帖子数据并填充表单
+  if (option && option.id) {
+    isEditMode.value = true;
+    editId.value = option.id;
+    try {
+      uni.showLoading({ title: "加载中..." });
+      const res = await getFootBallPostDetail(option.id);
+      const postData = res.data.fbpost || res.data;
+      form.title = postData.title || "";
+      form.enablePrice = !!postData.flag;
+      form.price = postData.price || 0;
+      form.isShijiebei = !!postData.remark;
+      if (postData.result) {
+        try {
+          const parsed = JSON.parse(postData.result);
+          form.expertAnalysis = parsed.expertAnalysis || "";
+        } catch (e) {
+          form.expertAnalysis = "";
+        }
+      }
+      // 如果有remark（关联赛事），设置matchInfo
+      if (postData.remark) {
+        matchInfo.value = { id: postData.remark, matchId: postData.remark };
+      }
+      uni.hideLoading();
+    } catch (e) {
+      uni.hideLoading();
+      uni.showToast({ title: "加载数据失败", icon: "none" });
+    }
+  }
+
   if (option && option.matchId) {
     matchInfo.value = { matchId: option.matchId };
   }
@@ -307,7 +349,7 @@ onLoad(async (option) => {
       .reduce((acc, cur) => {
         return acc.concat(cur.children);
       }, [])
-      .find((item) => item.matchId === option.matchId);
+      .find((item) => item.matchId === option.matchId || (matchInfo.value.id && item.matchId === matchInfo.value.id));
 
     if (findMatchInfo) {
       matchInfo.value = findMatchInfo;

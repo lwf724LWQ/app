@@ -1,5 +1,5 @@
 <template>
-  <view class="prognosis-card" @click="openDetail">
+  <view class="prognosis-card" @click="openDetail" @longpress.stop="onLongPress">
     <!-- 发布用户信息 -->
     <view class="user-info">
       <view class="user-avatar">
@@ -73,6 +73,9 @@
 
 <script>
 import tool from "@/utils/tool.js";
+import dayjs from "dayjs";
+import { delFootball } from "@/api/apis.js";
+import {getAccount} from "@/utils/request.js"
 export default {
   props: {
     data: {
@@ -125,11 +128,68 @@ export default {
     openDetail() {
       this.$emit("openDetail", this.data);
     },
-    toUserDetail(){
+    toUserDetail() {
       uni.navigateTo({
         url: `/pages/user/space?account=${this.account}`,
       });
-    }
+    },
+    onLongPress() {
+      if (this.data.account === getAccount()) {
+          const itemList = ["修改", "删除"];
+          uni.showActionSheet({
+            itemList,
+            success: (res) => {
+              if (res.tapIndex === 0) {
+                this.handleEdit();
+              } else if (res.tapIndex === 1) {
+                this.handleDelete();
+              }
+            },
+          });
+      }
+      
+    },
+    handleEdit() {
+      const createTime = this.data.createTime;
+      if (createTime) {
+        const diff = dayjs().diff(dayjs(createTime), "minute");
+        if (diff > 15) {
+          uni.showToast({ title: "超过15分钟不可修改", icon: "none" });
+          return;
+        }
+      }
+      uni.navigateTo({
+        url: `/pages/zc/creaet-prognosis-post?id=${this.data.id}`,
+      });
+    },
+    handleDelete() {
+      const createTime = this.data.createTime;
+      if (createTime) {
+        const diff = dayjs().diff(dayjs(createTime), "minute");
+        if (diff > 15) {
+          uni.showToast({ title: "超过15分钟不可删除", icon: "none" });
+          return;
+        }
+      }
+      uni.showModal({
+        title: "确认删除",
+        content: "确定要删除这条预测吗？",
+        success: async (modalRes) => {
+          if (modalRes.confirm) {
+            try {
+              uni.showLoading({ title: "删除中..." });
+              await delFootball(this.data.id);
+              uni.hideLoading();
+              uni.showToast({ title: "删除成功" });
+              this.$emit("refresh");
+            } catch (e) {
+              uni.hideLoading();
+              uni.showToast({ title: e.msg || "删除失败", icon: "none" });
+            }
+          }
+        },
+      });
+    },
   },
 };
 </script>
