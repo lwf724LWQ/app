@@ -1,5 +1,5 @@
 <template>
-  <view class="match-card" :class="{ 'score-flash': isFlashing }">
+  <view class="match-card" :class="{ 'score-flash': isFlashing }" @click.stop="onScoreClick">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <text class="match-status"></text>
@@ -14,7 +14,7 @@
         {{ match.homeChs }}
       </view>
 
-      <view class="score-section" :class="{ 'no-score': !score, clickable: isInProgress }" @click.stop="onScoreClick">
+      <view class="score-section" :class="{ 'no-score': !score, clickable: isInProgress }">
         <text class="score" :style="scoreColor">{{ score || "VS" }}</text>
       </view>
 
