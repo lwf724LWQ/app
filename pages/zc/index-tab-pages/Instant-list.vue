@@ -24,12 +24,15 @@
     >
     <view class="matchdatestr">{{ item.datestr }}</view>
     <MatchScoreCard
-        v-for="(item, index) in item.list"
-        :key="item.id"
-        :match="item"
+        v-for="(match, idx) in item.list"
+        :key="match.id"
+        :match="match"
+        :expanded="expandedMatchId === (match.matchId || match.id)"
+        @toggle-expand="handleToggleExpand"
+        @height-change="handleHeightChange"
       />
   </template>
-    
+     
   </scroll-view>
 </template>
 
@@ -73,6 +76,9 @@ const isLoading = ref(false);
 
 const currentPageDate = ref(new Date());
 
+// 展开状态管理
+const expandedMatchId = ref(null);
+
 const matchListSorting = computed(() => {
   return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a,b) => dayjs(a.matchTime) - dayjs(b.matchTime)).sort((a, b) => b.flag - a.flag);
 });
@@ -107,6 +113,25 @@ watch(() => props.searchParams, (newVal, oldVal) => {
     fetchVideoList()
   }
 })
+
+// 处理展开/收起切换
+function handleToggleExpand(matchId) {
+  if (expandedMatchId.value === matchId) {
+    expandedMatchId.value = null;
+    return;
+  }
+  expandedMatchId.value = matchId;
+}
+
+// 处理高度变化（Instant-list 不使用虚拟列表，所以不需要 extraHeight 重新计算）
+function handleHeightChange({ matchId, extraHeight }) {
+  // 这里不需要重新计算虚拟列表高度，因为 Instant-list 使用普通 scroll-view
+}
+
+// 提供关闭方法
+function closeExpanded() {
+  expandedMatchId.value = null;
+}
 
 // 刷新视频列表
 const refreshVideoList = async () => {
@@ -162,6 +187,13 @@ const fetchVideoList = async (isShowRefresher = true) => {
       const counArr = [...Videoinfo.data, ...videoInfo2]
       matchInfoList.value = counArr;
       emit("updateMatchList", counArr);
+      // 数据更新后，如果之前有展开的matchId，检查是否还存在
+      if (expandedMatchId.value) {
+        const stillExists = counArr.some(m => (m.matchId || m.id) === expandedMatchId.value);
+        if (!stillExists) {
+          closeExpanded();
+        }
+      }
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -178,10 +210,10 @@ const fetchVideoList = async (isShowRefresher = true) => {
       });
     }
   } finally {
-    
+     
       isLoading.value = false;
     setTimeout(() => {
-      
+       
     refresher.value = false;
     }, 150);
 
@@ -289,6 +321,7 @@ onBeforeUnmount(() => {
 // 暴露 refreshVideoList 函数给父组件
 defineExpose({
   refreshVideoList,
+  closeExpanded,
 });
 </script>
 <style lang="scss" scoped>
@@ -355,7 +388,7 @@ defineExpose({
   font-size: 24rpx;
   background-color: #ececec;
   padding: 8rpx 0;
-  
+   
 }
 
 .no-data-container {

@@ -11,6 +11,8 @@
     @scroll="scroll"
     :data="matchListSorting"
     :item-height="itemHeight"
+    :expanded-index="expandedMatchIndex"
+    :extra-height="extraHeight"
   >
     <template #top>
       <!-- 近期选项 -->
@@ -37,6 +39,9 @@
       <MatchScoreCard
           :key="item.id"
           :match="item"
+          :expanded="expandedMatchIndex === index"
+          @toggle-expand="handleToggleExpand"
+          @height-change="handleHeightChange"
         />
     </template>
 
@@ -101,6 +106,39 @@ watch([() => props.isActiveTab, matchInfoList], newval => {
   }
 })
 
+// 展开状态管理
+const expandedMatchId = ref(null);
+const expandedMatchIndex = ref(-1);
+const extraHeight = ref(0);
+
+// 处理展开/收起切换
+function handleToggleExpand(matchId) {
+  if (expandedMatchId.value === matchId) {
+    expandedMatchId.value = null;
+    expandedMatchIndex.value = -1;
+    extraHeight.value = 0;
+    return;
+  }
+  expandedMatchId.value = matchId;
+  const idx = matchListSorting.value.findIndex(m => (m.matchId || m.id) === matchId);
+  expandedMatchIndex.value = idx >= 0 ? idx : -1;
+  extraHeight.value = 0;
+}
+
+// 处理高度变化
+function handleHeightChange({ matchId, extraHeight: h }) {
+  if (matchId === expandedMatchId.value) {
+    extraHeight.value = h;
+  }
+}
+
+// 提供关闭方法
+function closeExpanded() {
+  expandedMatchId.value = null;
+  expandedMatchIndex.value = -1;
+  extraHeight.value = 0;
+}
+
 function initRecentOptions() {
   recentOptions.value = []
   const nowDate = dayjs();
@@ -145,6 +183,15 @@ const fetchVideoList = async (dateStr) => {
     
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
       matchInfoList.value = Videoinfo.data;
+      // 数据更新后，如果之前有展开的matchId，重新查找index
+      if (expandedMatchId.value) {
+        const idx = matchInfoList.value.findIndex(m => (m.matchId || m.id) === expandedMatchId.value);
+        if (idx >= 0) {
+          expandedMatchIndex.value = idx;
+        } else {
+          closeExpanded();
+        }
+      }
     } else {
       console.warn("API 返回数据格式不符合预期:", Videoinfo);
       uni.showToast({
@@ -183,6 +230,7 @@ onMounted(() => {
 // 暴露 refreshVideoList 函数给父组件
 defineExpose({
   refreshVideoList,
+  closeExpanded,
 });
 </script>
 <style lang="scss" scoped>

@@ -755,3 +755,10 @@ export const delFootball = (id) => {
     method: "GET"
   });
 }
+
+export const getFootBallEvent = (matchId) => {
+  return request({
+    url: "/web/football/match_info?matchId=" + matchId,
+    method: "GET",
+  })
+}

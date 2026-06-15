@@ -13,6 +13,8 @@
     @scroll="scroll"
     :data="matchListSorting"
     :item-height="itemHeight"
+    :expanded-index="expandedMatchIndex"
+    :extra-height="extraHeight"
   >
     <template #top>
       <!-- 近期选项 -->
@@ -39,6 +41,9 @@
       <MatchScoreCard
           :key="item.id"
           :match="item"
+          :expanded="expandedMatchIndex === index"
+          @toggle-expand="handleToggleExpand"
+          @height-change="handleHeightChange"
         />
     </template>
     
@@ -86,6 +91,11 @@ const isLoading = ref(false);
 const currentPageDate = ref(""); // 当前选中的日期
 const recentOptions = ref([]); // 近期选项
 
+// 展开状态管理
+const expandedMatchId = ref(null);
+const expandedMatchIndex = ref(-1);
+const extraHeight = ref(0);
+
 const matchListSorting = computed(()=>{
   return footBallList.value.filter(filterItem(props.searchParams)).sort((a,b) => b.flag - a.flag)
 })
@@ -96,6 +106,37 @@ watch([() => props.isActiveTab, footBallList], ([isActive, list]) => {
     matchListHooks.setMatchList(list)
   }
 })
+
+// 处理展开/收起切换
+function handleToggleExpand(matchId) {
+  if (expandedMatchId.value === matchId) {
+    // 收起
+    expandedMatchId.value = null;
+    expandedMatchIndex.value = -1;
+    extraHeight.value = 0;
+    return;
+  }
+  // 展开新的
+  expandedMatchId.value = matchId;
+  // 在 matchListSorting 中找到对应的 index
+  const idx = matchListSorting.value.findIndex(m => (m.matchId || m.id) === matchId);
+  expandedMatchIndex.value = idx >= 0 ? idx : -1;
+  extraHeight.value = 0;
+}
+
+// 处理高度变化
+function handleHeightChange({ matchId, extraHeight: h }) {
+  if (matchId === expandedMatchId.value) {
+    extraHeight.value = h;
+  }
+}
+
+// 提供关闭方法
+function closeExpanded() {
+  expandedMatchId.value = null;
+  expandedMatchIndex.value = -1;
+  extraHeight.value = 0;
+}
 
 // 初始化近期选项
 function initRecentOptions() {
@@ -160,6 +201,15 @@ const fetchVideoList = async (page = 1) => {
 
     if (res.code === 200 && res.data && Array.isArray(res.data)) {
       footBallList.value = res.data
+      // 数据更新后，如果之前有展开的matchId，重新查找index
+      if (expandedMatchId.value) {
+        const idx = footBallList.value.findIndex(m => (m.matchId || m.id) === expandedMatchId.value);
+        if (idx >= 0) {
+          expandedMatchIndex.value = idx;
+        } else {
+          closeExpanded();
+        }
+      }
     } else {
       console.warn("API 返回数据格式不符合预期:", res);
       uni.showToast({
@@ -193,9 +243,10 @@ onMounted(() => {
   refresh()
 });
 
-// 暴露 refreshVideoList 函数给父组件
+// 暴露 refreshVideoList 函数和 closeExpanded 给父组件
 defineExpose({
   refreshVideoList,
+  closeExpanded,
 });
 </script>
 

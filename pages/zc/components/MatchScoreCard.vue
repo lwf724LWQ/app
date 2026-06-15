@@ -1,5 +1,5 @@
 <template>
-  <view class="match-card" :class="{ 'score-flash': isFlashing }" @click="toDetailPage">
+  <view class="match-card" :class="{ 'score-flash': isFlashing }">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <text class="match-status"></text>
@@ -14,7 +14,7 @@
         {{ match.homeChs }}
       </view>
 
-      <view class="score-section" :class="{ 'no-score': !score }">
+      <view class="score-section" :class="{ 'no-score': !score, clickable: isInProgress }" @click.stop="onScoreClick">
         <text class="score" :style="scoreColor">{{ score || "VS" }}</text>
       </view>
 
@@ -22,7 +22,7 @@
         {{ match.awayChs }}
       </view>
 
-      <view class="favorite-btn" @click="toggleFavorite" :class="{ active: match.flag }">
+      <view class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: match.flag }">
         <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text>
       </view>
     </view>
@@ -57,12 +57,34 @@
     <view class="extraExplainStr">
       {{ extraExplainStr }}
     </view>
+
+    <!-- 球赛事件列表 -->
+    <view class="events-container" v-if="expanded">
+      <view class="events-loading" v-if="eventsLoading">
+        <text>加载中...</text>
+      </view>
+      <view class="events-empty" v-else-if="displayEvents.length === 0">
+        <text>暂无事件数据</text>
+      </view>
+      <view class="event-item" v-for="event in displayEvents" :key="event.id">
+        <!-- 状态点：主队红色，客队蓝色 -->
+        <view class="event-indicator" :class="event.isHome ? 'home' : 'away'"></view>
+        <!-- 时间 -->
+        <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
+        <!-- 事件序号+图标+球员名 -->
+        <view class="event-info">
+          <text class="event-count">{{ event.countLabel }}</text>
+          <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
+          <text class="event-player">{{ event.nameChs }}</text>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
 import dayjs from "dayjs";
-import { forllowFootball, delForllowFootball } from "@/api/apis.js";
+import { forllowFootball, delForllowFootball, getFootBallEvent } from "@/api/apis.js";
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 
@@ -92,14 +114,23 @@ function addTimer(cb){
 export default {
   props: {
     match: { type: Object },
+    expanded: {
+      type: Boolean,
+      default: false
+    }
   },
+  emits: ['toggle-expand', 'height-change'],
   data() {
     return {
       isFavorite: false,
       isFlashing: false,
       timerIndex: false,
-      
-      nowTime: new Date()
+
+      nowTime: new Date(),
+
+      events: [],
+      eventsLoading: false,
+      baseHeight: 0
     };
   },
   watch: {
@@ -114,8 +145,14 @@ export default {
             newMatch.homeYellow != oldMatch.homeYellow ||
             newMatch.awayYellow != oldMatch.awayYellow
           ) {
+
+            // 比赛变化且处于展开状态时，重新请求事件列表
+            if(this.expanded){
+              this.fetchEvents();
+            }
             this.scoreUpdate();
           }
+
         }
         if(newMatch.extraExplain){
           console.log(newMatch.homeChs, newMatch.leagueChsShort)
@@ -126,8 +163,18 @@ export default {
       },
       deep: true,
     },
+    expanded(newVal) {
+      if (newVal) {
+        this.fetchEvents();
+      } else {
+        this.events = [];
+      }
+    }
   },
   computed: {
+    isInProgress() {
+      return [-1, 1, 2, 3, 4, 5].includes(this.match.mstate);
+    },
     statusClass() {
       return this.matchStatus === "加时" ? "status-highlight" : "";
     },
@@ -137,40 +184,6 @@ export default {
       if ([1, 3, 4, 5].includes(mstate)) return "color:#ff4d4f;";
       if ([2].includes(mstate)) return "color:#007df9;";
       return "color:#4caf50;";
-    },
-    leagueColor() {
-      return (
-        {
-          // 亚洲联赛
-          澳超: "#FF6B00", // 活力橙
-          沙职: "#006400", // 深绿色（沙特）
-
-          // 欧洲五大联赛及次级
-          英超: "#8B0000", // 深红色
-          英冠: "#4169E1", // 皇家蓝（次级联赛用蓝色区分）
-          西甲: "#E60026", // 西班牙红
-          意甲: "#0066CC", // 蓝色
-          德甲: "#DC143C", // 深红
-          德乙: "#FFD700", // 金黄色（次级用亮色）
-          法甲: "#0000CD", // 深蓝
-          法乙: "#87CEEB", // 浅蓝（次级）
-          葡超: "#008000", // 绿色（葡萄牙国旗绿）
-
-          // 荷兰联赛
-          荷甲: "#FF8C00", // 深橙色（荷兰传统）
-          荷乙: "#FFB84D", // 浅橙色（次级）
-
-          // 杯赛
-          欧罗巴: "#FF4500", // 橙红色（欧联杯）
-          欧协联: "#228B22", // 森林绿（欧协联）
-          解放者杯: "#FFD700", // 金色（南美解放者杯奖杯色）
-
-          // 其他
-          芬超: "#00BFFF", // 天蓝色（芬兰）
-          中超: "#E91E63", // 原有粉色保留
-          默认: "#666666", // 灰色兜底
-        }[this.leagueName] || "#666666"
-      );
     },
     matchStatus() {
       if (!this.match) {
@@ -269,9 +282,86 @@ export default {
         }
       }
       return str
+    },
+    /**
+     * 为每个事件添加同类型累计序号标签（主客队分别统计）
+     * 列表反向展示（最新事件在前），序号也反向：最新→最大序号，最早→最小序号
+     */
+    displayEvents() {
+      // 第一遍：统计各类型总数（按原始顺序从早到晚）
+      const totals = {};
+      this.events.forEach(event => {
+        const kind = event.kind;
+        const side = event.isHome ? 'home' : 'away';
+        const key = side + '_' + kind;
+        totals[key] = (totals[key] || 0) + 1;
+      });
+      // 第二遍：反向遍历分配序号，remaining 从最大值递减到 1
+      const remaining = { ...totals };
+      return this.events.slice().reverse().map(event => {
+        const kind = event.kind;
+        const side = event.isHome ? 'home' : 'away';
+        const key = side + '_' + kind;
+        const count = remaining[key]--;
+        const labels = {
+          1: '第' + count + '球',
+          2: '第' + count + '张红牌',
+          3: '第' + count + '张黄牌',
+          7: '第' + count + '个点球',
+          8: '第' + count + '个乌龙',
+          9: '第' + count + '张红牌',
+          11: '第' + count + '次换人',
+          13: '第' + count + '次失点',
+          14: '第' + count + '次VAR'
+        };
+        return {
+          ...event,
+          countLabel: labels[kind] || '第' + count + '个'
+        };
+      });
     }
   },
   methods: {
+    onScoreClick() {
+      if (!this.isInProgress) return;
+      this.$emit('toggle-expand', this.match.matchId || this.match.id);
+    },
+    async fetchEvents() {
+      if (this.eventsLoading) return;
+      this.eventsLoading = true;
+      try {
+        const matchId = this.match.matchId || this.match.id;
+        const res = await getFootBallEvent(matchId);
+        if (res.code === 200 && res.data) {
+          const events = JSON.parse(res.data.minfo)
+          console.log(events)
+          this.events = events;
+        }else{
+          this.events = [];
+        }
+      } catch (error) {
+        console.error("获取球赛事件失败:", error);
+        this.events = [];
+      } finally {
+        this.eventsLoading = false;
+        this.$nextTick(() => {
+          this.measureHeight();
+        });
+      }
+    },
+    measureHeight() {
+      const query = uni.createSelectorQuery().in(this);
+      query.select('.match-card').boundingClientRect(data => {
+        if (data && data.height) {
+          const baseH = uni.upx2px(160);
+          const extraH = Math.max(0, data.height - baseH);
+          this.$emit('height-change', {
+            matchId: this.match.matchId || this.match.id,
+            extraHeight: extraH
+          });
+        }
+      }).exec();
+    },
     scoreUpdate() {
       this.isFlashing = true;
       setTimeout(() => {
@@ -367,11 +457,33 @@ export default {
         winner,            // 获胜方: 1=主队获胜, 2=客队获胜
       };
     },
+    // 供父组件调用关闭事件列表
+    closeEvents() {
+      this.$emit('toggle-expand', null);
+    },
+    getEventIcon(kind) {
+      const icons = {
+        1: '⚽',     // 入球
+        2: '🟥',     // 红牌
+        3: '🟨',     // 黄牌
+        7: '点⚽',    // 点球
+        8: '乌⚽',    // 乌龙
+        9: '🟥🟨',   // 两黄变红
+        11: '换',     // 换人
+        13: '✕点',   // 射失点球
+        14: 'VR'      // 视频裁判
+      };
+      return icons[kind] || '';
+    }
   },
   mounted(){
     this.timerIndex = addTimer((time)=>{
       this.nowTime = time
     })
+
+    if(this.expanded){
+      this.fetchEvents();
+    }
   },
   unmounted(){
     closeTimer(this.timerIndex)
@@ -383,7 +495,6 @@ export default {
 .match-card {
   background-color: #fff;
   padding: 15rpx 10rpx;
-  height: 150rpx;
   overflow: hidden;
   border-bottom: 1rpx solid #f0f0f0;
   font-family: Arial, sans-serif;
@@ -473,6 +584,9 @@ export default {
   &.no-score .score {
     color: #4caf50;
   }
+  &.clickable {
+    cursor: pointer;
+  }
 }
 
 .score {
@@ -550,5 +664,74 @@ export default {
   text-align: center;
   color: #222;
   font-size: 26rpx;
+}
+
+// 事件列表样式
+.events-container {
+  margin-top: 10rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx dashed #e0e0e0;
+
+  .events-loading,
+  .events-empty {
+    text-align: center;
+    padding: 20rpx;
+    color: #999;
+    font-size: 24rpx;
+  }
+
+  .event-item {
+    display: flex;
+    align-items: center;
+    padding: 8rpx 0;
+
+    .event-indicator {
+      width: 12rpx;
+      height: 12rpx;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 12rpx;
+
+      &.home {
+        background-color: #ff4d4f;
+      }
+      &.away {
+        background-color: #007df9;
+      }
+    }
+
+    .event-time {
+      width: 70rpx;
+      flex-shrink: 0;
+      color: #999;
+      font-size: 24rpx;
+    }
+
+    .event-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .event-count {
+      margin-right: 6rpx;
+      color: #666;
+      font-size: 24rpx;
+      flex-shrink: 0;
+    }
+
+    .event-icon-text {
+      margin-right: 8rpx;
+      font-size: 28rpx;
+    }
+
+    .event-player {
+      color: #333;
+      font-size: 26rpx;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
 </style>

@@ -33,7 +33,7 @@
           v-for="(item, index) in visibleData" 
           :key="dataKey ? item[dataKey] : index"
           class="virtual-list-item"
-          :style="{ height: itemHeight + 'px' }"
+          :style="{ height: itemRealHeight(index) + 'px' }"
         >
           <slot :item="item" :index="startIndex + index"></slot>
         </view>
@@ -62,7 +62,17 @@ export default {
     },
     dataKey: {
       type: String,
-      default: ''
+      default: 'id'
+    },
+    
+    // 展开项支持
+    expandedIndex: {
+      type: Number,
+      default: -1
+    },
+    extraHeight: {
+      type: Number,
+      default: 0
     },
     
     // scroll-view原有属性
@@ -133,12 +143,17 @@ export default {
       endIndex: 0,
       offsetY: 0,
       visibleData: [],
-      containerHeight: 0
+      containerHeight: 0,
+      currentScrollTop: 0
     }
   },
   computed: {
     totalHeight() {
-      return this.data.length * this.itemHeight;
+      let height = this.data.length * this.itemHeight;
+      if (this.expandedIndex >= 0 && this.expandedIndex < this.data.length) {
+        height += this.extraHeight;
+      }
+      return height;
     }
   },
   mounted() {
@@ -148,15 +163,29 @@ export default {
   },
   watch: {
     data() {
-      this.updateVisibleData();
+      this.updateVisibleData(this.currentScrollTop);
     },
     scrollTop(newVal) {
       this.handleScrollTopChange(newVal);
+    },
+    extraHeight() {
+      this.updateVisibleData(this.currentScrollTop);
+    },
+    expandedIndex() {
+      this.updateVisibleData(this.currentScrollTop);
     }
   },
   methods: {
+    itemRealHeight(visibleIndex) {
+      const realIndex = this.startIndex + visibleIndex;
+      if (this.expandedIndex === realIndex) {
+        return this.itemHeight + this.extraHeight;
+      }
+      return this.itemHeight;
+    },
+    
     initVirtualList() {
-      this.updateVisibleData();
+      this.updateVisibleData(this.currentScrollTop);
     },
     
     getContainerHeight() {
@@ -164,31 +193,58 @@ export default {
       query.select('.custom-virtual-list').boundingClientRect(data => {
         if (data) {
           this.containerHeight = data.height;
-          this.updateVisibleData();
+          this.updateVisibleData(this.currentScrollTop);
         }
       }).exec();
     },
     
     handleScroll(e) {
       const scrollTop = e.detail.scrollTop;
+      this.currentScrollTop = scrollTop;
       this.updateVisibleData(scrollTop);
       this.$emit('scroll', e);
     },
     
     handleScrollTopChange(scrollTop) {
+      this.currentScrollTop = Number(scrollTop);
       this.updateVisibleData(Number(scrollTop));
     },
     
     updateVisibleData(scrollTop = 0) {
-      // 计算可视区域的起始和结束索引
-      const startIndex = Math.floor(scrollTop / this.itemHeight);
-      const visibleCount = Math.ceil(this.containerHeight / this.itemHeight);
-      const endIndex = Math.min(startIndex + visibleCount + this.bufferSize, this.data.length);
+      if (this.data.length === 0) {
+        this.startIndex = 0;
+        this.endIndex = 0;
+        this.offsetY = 0;
+        this.visibleData = [];
+        return;
+      }
+      
+      // 更精确的计算：考虑extraHeight
+      let accumulatedHeight = 0;
+      let preciseStartIndex = 0;
+      for (let i = 0; i < this.data.length; i++) {
+        const itemH = (this.expandedIndex === i) ? this.itemHeight + this.extraHeight : this.itemHeight;
+        if (accumulatedHeight + itemH > scrollTop) {
+          preciseStartIndex = i;
+          break;
+        }
+        accumulatedHeight += itemH;
+        preciseStartIndex = i + 1;
+      }
+      
+      const visibleCount = Math.ceil(this.containerHeight / this.itemHeight) + 2;
+      const endIndex = Math.min(preciseStartIndex + visibleCount + this.bufferSize, this.data.length);
       
       // 更新偏移量和可视数据
-      this.startIndex = Math.max(0, startIndex - this.bufferSize);
+      this.startIndex = Math.max(0, preciseStartIndex - this.bufferSize);
       this.endIndex = endIndex;
-      this.offsetY = this.startIndex * this.itemHeight;
+      
+      // 计算精确的 offsetY
+      let offsetY = 0;
+      for (let i = 0; i < this.startIndex; i++) {
+        offsetY += (this.expandedIndex === i) ? this.itemHeight + this.extraHeight : this.itemHeight;
+      }
+      this.offsetY = offsetY;
       this.visibleData = this.data.slice(this.startIndex, this.endIndex);
       
       // 触发可视区域变化事件

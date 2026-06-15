@@ -19,7 +19,12 @@
     </view>
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
-        <MatchScoreCard :match="match" />
+        <MatchScoreCard
+          :match="match"
+          :expanded="expandedMatchId === (match.matchId || match.id)"
+          @toggle-expand="handleToggleExpand"
+          @height-change="handleHeightChange"
+        />
       </view>
     </view>
     <view v-if="matchInfoList.length > 0" class="load-more-status">
@@ -65,6 +70,28 @@ const hasMore = ref(true);
 const currentPage = ref(1);
 const isNeedRefresh = ref(false);
 const refresher = ref(false);
+
+// 展开状态管理
+const expandedMatchId = ref(null);
+
+// 处理展开/收起切换
+function handleToggleExpand(matchId) {
+  if (expandedMatchId.value === matchId) {
+    expandedMatchId.value = null;
+    return;
+  }
+  expandedMatchId.value = matchId;
+}
+
+// 处理高度变化（forllow-list 不使用虚拟列表，不需要 extraHeight 重新计算）
+function handleHeightChange({ matchId, extraHeight }) {
+  // 这里不需要重新计算虚拟列表高度，因为 forllow-list 使用普通 scroll-view
+}
+
+// 提供关闭方法
+function closeExpanded() {
+  expandedMatchId.value = null;
+}
 
 // 刷新视频列表
 const refreshVideoList = async (e) => {
@@ -112,6 +139,13 @@ const fetchVideoList = async (isShowRefresh = true) => {
       } else {
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
+      // 数据更新后，如果之前有展开的matchId，检查是否还存在
+      if (expandedMatchId.value) {
+        const stillExists = [...list].some(m => (m.matchId || m.id) === expandedMatchId.value);
+        if (!stillExists) {
+          closeExpanded();
+        }
+      }
       userStore.setFollowCount(res.data.total);
       if (list.length < props.limit) {
         hasMore.value = false;
@@ -150,6 +184,13 @@ function updateMatchList(list){
     }
   })
   matchInfoList.value = newArr
+  // 更新后检查展开matchId是否还存在
+  if (expandedMatchId.value) {
+    const stillExists = newArr.some(m => (m.matchId || m.id) === expandedMatchId.value);
+    if (!stillExists) {
+      closeExpanded();
+    }
+  }
 }
 
 const userStore = useUserStore();
@@ -178,6 +219,7 @@ defineExpose({
   updateMatchList,
   refreshVideoList,
   onshow,
+  closeExpanded,
 });
 </script>
 <style lang="scss" scoped>
