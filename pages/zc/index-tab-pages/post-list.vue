@@ -118,7 +118,6 @@ export default {
       this.total = res.data.total;
       setTimeout(() => {
         this.isLoading = false;
-        this.currentPage++;
       }, 3000);
     },
     async refreshList() {

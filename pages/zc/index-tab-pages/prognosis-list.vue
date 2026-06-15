@@ -109,7 +109,8 @@ export default {
         return;
       }
       this.isLoading = true;
-      this.currentPage++;
+      
+        this.currentPage++;
       let res = null
       if (this.findByAccount) {
         res = await findByAccountWithFbpost({
@@ -139,7 +140,6 @@ export default {
       this.total = res.data.total;
       setTimeout(() => {
         this.isLoading = false;
-        this.currentPage++;
       }, 3000);
     },
     async refreshList() {
