@@ -73,6 +73,7 @@
         <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
         <!-- 事件序号+图标+球员名 -->
         <view class="event-info">
+          <text class="event-teamname">{{ event.isHome ? match.homeChs : match.awayChs }}</text>
           <text class="event-count">{{ event.countLabel }}</text>
           <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
           <text class="event-player">{{ event.nameChs }}</text>
@@ -711,6 +712,12 @@ export default {
       flex: 1;
       display: flex;
       align-items: center;
+    }
+
+    .event-teamname{
+      color: #333;
+      font-size: 26rpx;
+      margin-right: 10rpx;
     }
 
     .event-count {
