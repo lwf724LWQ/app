@@ -280,26 +280,22 @@ const loadVideoData = async (videoId) => {
       price: item.price,
       imgurl: `http://video.caimizm.com/${item.vimg}`,
     };
-    let isPay = true;
     // 检查付费状态（仅对付费视频）
-    if (item.flag && !userStore.videoCount) {
-      isPay = await checkPaymentStatus();
-    } else {
+    if (item.flag){
+      if(getAccount()){
+        await checkPaymentStatus();
+      }else if (userStore.videoCount > 0) {
+        hasPaid.value = true;
+        userStore.reduceVideoCount();
+      }
+    }else {
       hasPaid.value = true;
-      if (!userStore.userInfo.account) userStore.reduceVideoCount();
     }
 
     // 如果是本人，则放行
     if (followStatus.value == 2) {
       hasPaid.value = true;
       isPay = true;
-    }
-
-    if (isPay && !videoData.value?.src?.indexOf("blob") == 0) {
-      // 这里判断已经付费才加载视频
-      currentVideo.src = await toBlobUrlVideo(currentVideo.src);
-    } else if (!videoData.value?.src?.indexOf("blob") == 0) {
-      currentVideo.src = videoData.value.src;
     }
 
     // 使用获取到的视频数据
@@ -347,36 +343,7 @@ const loadVideoData = async (videoId) => {
     uni.hideLoading();
   }
 };
-// 将视频转为blob
-/**
- * @param {string} videoUrl 视频URL
- * @returns {Promise<Blob>} 转换后的Blob对象
- */
-const toBlobUrlVideo = (videoUrl) => {
-  return new Promise((resolve, reject) => {
-    resolve(videoUrl);
-    return;
-    // #ifndef H5
-    resolve(videoUrl);
-    return;
-    // #endif
-    // resolve(videoUrl)
-    // return
-    fetch(videoUrl, {
-      method: "GET",
-      headers: { "accept-encoding": "identity;q=1, *;q=0" },
-    })
-      .then((response) => response.blob())
-      .then((blob) => {
-        // 创建一个URL对象，将Blob对象转换为URL
-        const url = URL.createObjectURL(blob);
-        resolve(url);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-};
+
 async function followUser() {
   if (tool.isLogin()) {
     uni.showLoading({
