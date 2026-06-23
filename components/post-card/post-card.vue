@@ -1,9 +1,9 @@
 <template>
-  <view class="post-item">
+  <view class="post-item" @click="goToDetail">
     <!-- 帖子头部 -->
     <view class="post-header">
       <view class="user-info">
-        <image :src="userInfo.avatar" class="avatar"></image>
+        <image :src="avatar" class="avatar"></image>
         <view class="username-and-url">
           <text class="username">{{ userInfo.username }}</text>
         </view>
@@ -64,6 +64,7 @@ import forumToos from "./forumToos";
 import { useUserListStore } from "@/stores/userListStore";
 import { apiPostLike } from "@/api/apis";
 import { getAccount } from "../../utils/request";
+import tool from "@/utils/tool";
 const props = defineProps({
   post: {
     type: Object,
@@ -82,6 +83,14 @@ watch(
   },
   { immediate: true }
 );
+
+const avatar = computed(()=>{
+  const himg = props.post?.himg || ""
+  if (himg.startsWith("http")) {
+    return himg
+  }
+  return tool.oss.getFullUrl("himg/" + props.post.himg)
+})
 
 const postImage = computed(() => {
   return props.post.pimg ? props.post.pimg.split(",") : "";
@@ -152,6 +161,13 @@ const handleLike = () => {
     });
   }
 };
+
+function goToDetail() {
+      const postData = encodeURIComponent(JSON.stringify(props.post));
+      uni.navigateTo({
+        url: `/pages/forum/post/detail?postData=${postData}`,
+      });
+    }
 </script>
 <style scoped lang="scss">
 .post-item {
