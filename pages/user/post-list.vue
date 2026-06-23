@@ -127,6 +127,11 @@ function queryList(pageNo, pageSize) {
   }else{
     apiSelect_by_account(params)
     .then((res) => {
+      const userdata = userStore.getUserInfo
+      res.data.list.forEach(item => {
+        item.uname = userdata.nickname
+        item.himg = userdata.avatar
+      })
       pagingRef.value.complete(res.data.list);
     })
     .catch((res) => {
