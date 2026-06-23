@@ -9,7 +9,7 @@
       <view class="nav-center">
         <view class="period-selector" @click="togglePeriodDropdown">
           <text class="period-text">
-            {{ currentLotteryType.name }} {{ currentLotteryType.status }}
+            {{ currentLotteryType }} {{ isOpen }}
           </text>
           <uni-icons
             type="arrowdown"
@@ -20,10 +20,8 @@
         </view>
       </view>
 
-      <!-- 期号下拉菜单遮罩 -->
       <view v-if="showPeriodDropdown" class="dropdown-mask" @click="closePeriodDropdown"></view>
 
-      <!-- 期号下拉菜单 -->
       <view v-if="showPeriodDropdown" class="period-dropdown" @click.stop>
         <view class="dropdown-header">
           <text class="dropdown-title">选择彩票类型</text>
@@ -34,38 +32,30 @@
         <scroll-view scroll-y class="dropdown-list">
           <view
             class="dropdown-item"
-            :class="{ active: lotteryType.id === currentLotteryType.id }"
-            v-for="lotteryType in lotteryTypes"
-            :key="lotteryType.id"
-            @click="selectLotteryType(lotteryType)"
+            :class="{ active: name === currentLotteryType }"
+            v-for="name in lotteryTypes"
+            :key="name"
+            @click="selectLotteryType(name)"
           >
-            <text class="period-item-text">{{ lotteryType.name }} {{ lotteryType.status }}</text>
-            <text class="period-item-time">{{ lotteryType.time }}</text>
+            <text class="period-item-text">{{ name }}</text>
           </view>
         </scroll-view>
       </view>
-      <!-- <view class="nav-right" @click="showPublishModal">
-        <view class="post-icon">
-          <uni-icons type="plus" size="20" color="#fff"></uni-icons>
-        </view>
-        <text class="nav-text">发帖</text>
-      </view> -->
     </view>
 
     <!-- 切换标签栏 -->
     <view class="switch-tabs">
       <view
-        v-for="lotteryType in lotteryTypes"
-        :key="lotteryType.id"
+        v-for="name in lotteryTypes"
+        :key="name"
         class="tab-item"
-        :class="{ active: lotteryType.id === currentLotteryType.id }"
-        @click="selectLotteryType(lotteryType)"
+        :class="{ active: name === currentLotteryType }"
+        @click="selectLotteryType(name)"
       >
-        <text class="tab-text">{{ lotteryType.name }}</text>
+        <text class="tab-text">{{ name }}</text>
       </view>
     </view>
 
-    <!-- 切换标签栏 -->
     <view class="switch-tabs">
       <view
         class="tab-item"
@@ -94,7 +84,7 @@
           placeholder-style="color: var(--light-text-color);font-size: 33rpx;"
           class="search-input"
           v-model="searchKeyword"
-          @input="handleSearchInput"
+          @input="handleSearchInput(predictList)"
           @focus="showSearchSuggestions = true"
         />
         <view v-if="searchKeyword" class="clear-search" @click="clearSearch">
@@ -112,7 +102,7 @@
         class="suggestion-item"
         v-for="(suggestion, index) in searchSuggestions"
         :key="index"
-        @click="selectSuggestion(suggestion)"
+        @click="selectSuggestion(suggestion, predictList)"
       >
         <uni-icons type="search" size="14" color="#999"></uni-icons>
         <text class="suggestion-text">{{ suggestion }}</text>
@@ -125,23 +115,6 @@
       <followUserList ref="followUserListRef" />
     </template>
 
-    <!-- 分类标签栏 -->
-    <!-- <view class="category-tags">
-      <scroll-view scroll-x class="category-scroll">
-        <view class="tag-list">
-          <view
-            class="tag-item"
-            :class="{ active: activeTag === index }"
-            v-for="(tag, index) in tags"
-            :key="index"
-            @click="selectTag(index)"
-          >
-            {{ tag }}
-          </view>
-        </view>
-      </scroll-view>
-    </view> -->
-
     <!-- 论坛内容 -->
     <scroll-view
       class="forum-content"
@@ -151,9 +124,7 @@
       @refresherrefresh="onRefresh"
       @scrolltolower="nextPage"
     >
-      <!-- 预测内容 -->
       <view class="tab-content">
-        <!-- 搜索状态提示 -->
         <view v-if="isSearching && searchKeyword" class="search-status">
           <text class="search-status-text">搜索"{{ searchKeyword }}"的结果</text>
           <text class="search-count">共{{ filteredPredictList.length }}条</text>
@@ -164,13 +135,9 @@
             v-for="(item, index) in isSearching && searchKeyword
               ? filteredPredictList
               : predictList"
-            v-show="isReport(item.id)"
             :key="index"
-            :item="item"
-            @updatePost="updatePostInList"
-            @report="handleReport"
+            :post="item"
           />
-          <!-- 暂无数据提示 -->
           <view v-if="predictList.length === 0" class="no-posts-tip">
             <text>暂无预测帖子</text>
           </view>
@@ -203,12 +170,10 @@
         </view>
 
         <view class="modal-content">
-          <!-- 期号标题 -->
           <view class="period-title">
             <text class="period-text">彩迷</text>
           </view>
 
-          <!-- 协议确认 -->
           <view class="agreement-section">
             <view class="checkbox-wrapper" @click="toggleAgreementManually">
               <view class="custom-checkbox" :class="{ checked: agreedToTerms }">
@@ -218,7 +183,6 @@
             </view>
           </view>
 
-          <!-- 功能按钮区域 -->
           <view class="function-buttons">
             <view class="button-row">
               <view class="function-btn" @click="selectFunction('predict')">
@@ -231,21 +195,7 @@
                 </view>
                 <text class="btn-text">规律帖(上传规律)</text>
               </view>
-              <!-- <view class="function-btn" @click="selectFunction('filter')">
-                <view class="btn-icon filter-icon">
-                  <uni-icons type="gear" size="24" color="#fff"></uni-icons>
-                </view>
-                <text class="btn-text">过滤王帖(免审)</text>
-              </view> -->
             </view>
-            <!-- <view class="button-row">
-              <view class="function-btn" @click="selectFunction('soup')">
-                <view class="btn-icon soup-icon">
-                  <uni-icons type="coffee" size="24" color="#fff"></uni-icons>
-                </view>
-                <text class="btn-text">老母鸡汤</text>
-              </view>
-            </view> -->
           </view>
         </view>
 
@@ -265,15 +215,13 @@
     <!-- 筛选弹窗 -->
     <view v-if="showFilterDialog" class="filter-dialog-mask" @click="hideFilterModal">
       <view class="filter-dialog" @click.stop>
-        <!-- 弹窗头部 -->
         <view class="filter-header">
           <text class="filter-title">心水预测</text>
           <text class="filter-period">
-            第{{ currentLotteryType.name }}期 {{ currentLotteryType.status }}
+            第{{ currentLotteryType }}期
           </text>
         </view>
 
-        <!-- 心水预测筛选 -->
         <view class="filter-section">
           <view class="filter-grid">
             <view
@@ -288,7 +236,6 @@
           </view>
         </view>
 
-        <!-- 其他筛选 -->
         <view class="filter-section">
           <text class="section-title">其他筛选</text>
           <text class="section-subtitle">(可结合上面选项选择一个)</text>
@@ -305,206 +252,110 @@
           </view>
         </view>
 
-        <!-- 搜索按钮 -->
         <view class="filter-footer">
           <view class="filter-buttons">
             <button class="clear-filter-btn" @click="clearFilterSelection">清空</button>
-            <button class="search-btn" @click="performSearch">
+            <button class="search-btn" @click="performSearch(predictList)">
               {{ getSearchButtonText() }}
             </button>
           </view>
         </view>
       </view>
     </view>
-    <!-- <bottomBar current-path="/pages/forum/forum" /> -->
-    <reportPopup ref="reportPopupRef" @reportSubmitted="refreshReportList" />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { apiGetIssueNo, apiPostListQuery, apiPostLike, post_select_by_follow } from "@/api/apis.js";
+import { apiGetIssueNo, apiPostListQuery, post_select_by_follow } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
-import { useUserStore } from "../../stores/userStore";
-import bottomBar from "../../components/bottom-bar/bottom-bar.vue";
 import tool from "@/utils/tool.js";
-import forumToos from "../../components/post-card/forumToos";
-import postCard from "./components/post-card.vue";
+import postCard from "../../components/post-card/post-card.vue";
 import followUserList from "./components/follow-user-list.vue";
-import reportPopup from "../../components/report-popup/report-popup.vue";
+import { usePostSearch } from "./composables/usePostSearch.js";
+import dayjs from "dayjs";
 
-// 用户数据存储
-const userStore = useUserStore();
+const {
+  searchKeyword,
+  showSearchSuggestions,
+  searchSuggestions,
+  filteredPredictList,
+  isSearching,
+  showFilterDialog,
+  selectedPredictionFilter,
+  selectedOtherFilter,
+  predictionFilters,
+  otherFilters,
+  handleSearchInput,
+  selectSuggestion,
+  clearSearch,
+  performSearch,
+  clearFilterSelection,
+  showFilterModal,
+  hideFilterModal,
+  togglePredictionFilter,
+  toggleOtherFilter,
+  getSearchButtonText,
+} = usePostSearch();
 
-// 工具与常量：安全本地存取、函数防抖、文本规范化
-const safeGet = (key, fallback) => {
-  try {
-    const v = uni.getStorageSync(key);
-    return v === undefined || v === null ? fallback : v;
-  } catch (e) {
-    return fallback;
-  }
-};
-
-const safeSet = (key, value) => {
-  try {
-    uni.setStorageSync(key, value);
-  } catch (e) {
-    // 非关键失败忽略
-  }
-};
-
-const debounce = (fn, delay = 300) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-};
-
-const normalizeText = (val) => String(val || "").toLowerCase();
-
-// 当前选中的标签
 const activeTab = ref("predict");
-
-// 当前选中的标签（分类标签）
-const activeTag = ref(0);
-
-// 彩票类型下拉框状态
 const showPeriodDropdown = ref(false);
-
-// 弹出层引用
 const publishPopup = ref(null);
-
-// 协议同意状态
 const agreedToTerms = ref(uni.getStorageSync("postAgreement") || false);
-
-// 选中的功能类型
 const selectedFunction = ref("");
-
-// 筛选弹窗相关
-const showFilterDialog = ref(false);
-const selectedPredictionFilter = ref(""); // 心水预测只能选择一个
-const selectedOtherFilter = ref(""); // 其他筛选只能选择一个
-
-// 搜索相关
-const searchKeyword = ref("");
-const showSearchSuggestions = ref(false);
-const searchSuggestions = ref([]);
-const filteredPredictList = ref([]);
-const isSearching = ref(false);
-
-// 请求锁 - 防止重复请求
-const isLoadingPosts = ref(false);
-const isLoadingLottery = ref(false);
-
-// 请求缓存 - 记录当前正在请求的参数，避免重复请求
-const currentQueryKey = ref(null); // 格式: "tname_issueno"
-
-// 心水预测筛选选项
-const predictionFilters = ref([
-  "头尾",
-  "芝麻",
-  "定头",
-  "定百",
-  "定十",
-  "定尾",
-  "杀头",
-  "杀百",
-  "杀十",
-  "杀尾",
-  "稳码",
-  "中肚",
-  "头尾合",
-  "中肚合",
-  "千百合",
-  "千十合",
-  "百个合",
-  "十个合",
-  "ABXD",
-  "ABCX",
-  "AXCD",
-  "XBCD",
-  "ABXX",
-  "AXCX",
-  "XXCD",
-  "XBXD",
-  "死数",
-  "二字现",
-  "三字现",
-  "过滤王二定",
-  "过滤王三定",
-  "过滤王四定",
-  "头尾不合",
-  "中肚不合",
-  "千百不合",
-  "千十不合",
-  "百个不合",
-  "十个不合",
-]);
-
-// 其他筛选选项
-const otherFilters = ref(["大师帖子", "靓规贴子", "点赞最多", "讨论最热"]);
-
-// 分类标签列表
-const tags = ref(["#全部", "#大师", "#靓规贴", "#过滤王", "#点赞最多"]);
-
-// 彩票类别列表
-const lotteryTypes = ref([
-  { id: 16, name: "排列三", code: "pl3", status: "待开奖", time: "今天 21:30" },
-  { id: 17, name: "排列五", code: "plw", status: "待开奖", time: "今天 21:30" },
-  { id: 15, name: "七星彩", code: "qxc", status: "待开奖", time: "今天 21:30" },
-  {
-    id: 12,
-    name: "福彩3D",
-    code: "fc3d",
-    status: "待开奖",
-    time: "今天 21:30",
-  },
-]);
-
-// 当前选中的彩票类别
+const lotteryTypes = ref(["排列三", "排列五", "七星彩", "福彩3D"]);
 const currentLotteryType = ref(lotteryTypes.value[0]);
-
-// 预测列表
 const predictList = ref([]);
-
-// 当前期号信息
-const currentIssueInfo = ref({
-  id: null,
-  number: null,
-  status: "待开奖",
-  time: "今天 21:30",
-});
-
-// 页面是否已经初始化
 const isPageInitialized = ref(false);
 const isLoad = ref(false);
+const currentIssueno = ref({
+  issueno: "",
+  opendate: ""
+})
+const isOpen = computed(()=>{
+    const now = dayjs();
+  const openDate = dayjs(currentIssueno.value.opendate);
 
-// 页面加载完成
-onMounted(() => {
-  if (isPageInitialized.value) {
-    return;
+  // 判断日期先后（只比较日期，忽略具体时间）
+  if (now.isBefore(openDate, 'day')) {
+    return '未开奖';
+  }
+  if (now.isAfter(openDate, 'day')) {
+    return '已开奖';
   }
 
-  const savedLotteryType = safeGet("currentLotteryType", null);
+  // 开奖日当天，根据当前时分判断
+  const currentMinutes = now.hour() * 60 + now.minute();
+  const startMinutes = 21 * 60 + 15; // 21:15
+  const endMinutes = 21 * 60 + 35;   // 21:35
+
+  if (currentMinutes < startMinutes) {
+    return '未开奖';
+  }
+  if (currentMinutes <= endMinutes) {
+    return '开奖中';
+  }
+  return '已开奖';
+})
+
+onMounted(() => {
+  if (isPageInitialized.value) return;
+
+  const savedLotteryType = uni.getStorageSync("currentLotteryType");
   if (savedLotteryType) {
     currentLotteryType.value = savedLotteryType;
   }
 
-  optimizeTouchEvents();
-  loadLotteryData(currentLotteryType.value.code);
-  refreshReportList();
+  loadLotteryData(currentLotteryType.value);
   isPageInitialized.value = true;
   isLoad.value = true;
 });
+
 const followUserListRef = ref(null);
 onShow(() => {
-  if (!isLoad.value) {
-    return;
-  }
+  if (!isLoad.value) return;
   followUserListRef.value?.reload();
   onRefresh();
 });
@@ -512,133 +363,59 @@ onShow(() => {
 function onRefresh() {
   if (refreshing.value) return;
   refreshing.value = true;
-  pageData.value = {
-    page: "1",
-    limit: "20",
-    total: 0,
-    maxPage: 1,
-  };
-  loadLotteryData(currentLotteryType.value.code);
+  pageData.value = { page: "1", limit: "20", total: 0, maxPage: 1 };
+  loadLotteryData(currentLotteryType.value);
 }
 
-// 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab;
   onRefresh();
 };
 
-// 选择分类标签
-const selectTag = (index) => {
-  activeTag.value = index;
-  const selectedTag = tags.value[index];
-
-  // 提取标签内容（去掉#号）
-  const tagContent = selectedTag.replace("#", "");
-
-  // 设置搜索关键词并执行搜索
-  searchKeyword.value = tagContent;
-  performFuzzySearch();
-
-  // 关闭搜索建议框
-  showSearchSuggestions.value = false;
-};
-
-// 切换彩票类型下拉框
 const togglePeriodDropdown = () => {
   showPeriodDropdown.value = !showPeriodDropdown.value;
 };
 
-// 关闭彩票类型下拉框
 const closePeriodDropdown = () => {
   showPeriodDropdown.value = false;
 };
 
-// 选择彩票类型
-const selectLotteryType = (lotteryType) => {
-  if (currentLotteryType.value.code === lotteryType.code) {
-    showPeriodDropdown.value = false;
+const selectLotteryType = (name) => {
+  closePeriodDropdown()
+  if (currentLotteryType.value === name) {
     return;
   }
-
-  currentLotteryType.value = lotteryType;
-  showPeriodDropdown.value = false;
+  currentLotteryType.value = name;
 
   try {
-    uni.setStorageSync("currentLotteryType", lotteryType);
-  } catch (error) {
-    // 静默处理错误
-  }
+    uni.setStorageSync("currentLotteryType", name);
+  } catch (error) {}
 
-  loadLotteryDataByType(lotteryType);
+  pageData.value.page = 1;
+  loadLotteryData(name);
 };
 
-// 根据彩票类型对象加载数据（直接传入完整对象）
-const loadLotteryDataByType = async (lotteryType) => {
-  if (isLoadingLottery.value) {
-    return;
-  }
+const loadLotteryData = async (tname) => {
+  if (isLoadingLottery.value) return;
+  if (!tname) return;
 
-  if (!lotteryType || !lotteryType.name) {
-    return;
-  }
   try {
     isLoadingLottery.value = true;
-    // uni.showLoading({ title: "加载中..." });
-    const response = await apiGetIssueNo({ tname: lotteryType.name });
-    // uni.hideLoading();
+    const response = await apiGetIssueNo({ tname });
 
     if (response.code === 200 && response.data !== null && response.data !== undefined) {
-      let issueNumber = null;
-      let issueStatus = "待开奖";
-      let issueTime = "今天 21:30";
-
-      if (typeof response.data === "number" || typeof response.data === "string") {
-        issueNumber = response.data.toString();
-      } else if (typeof response.data === "object") {
-        issueNumber = response.data.issueno || response.data.number || response.data.id;
-        issueStatus = response.data.status || "待开奖";
-        issueTime = response.data.time || "今天 21:30";
+      currentIssueno.value = response.data
+      if (!currentIssueno.value.issueno) {
+        throw new Error();
       }
-
-      // 更新当前彩票类型的状态
-      lotteryType.status = issueStatus;
-      lotteryType.time = issueTime;
-
-      // 更新当前选中的彩票类型状态
-      if (currentLotteryType.value.code === lotteryType.code) {
-        currentLotteryType.value.status = issueStatus;
-        currentLotteryType.value.time = issueTime;
-      }
-
-      // 更新到lotteryTypes数组中对应的项
-      const index = lotteryTypes.value.findIndex((type) => type.code === lotteryType.code);
-      if (index !== -1) {
-        lotteryTypes.value[index].status = issueStatus;
-        lotteryTypes.value[index].time = issueTime;
-      }
-
-      // 检查期号是否真的发生了变化
-      const oldIssueNumber = currentIssueInfo.value?.number;
-      const newIssueNumber = issueNumber;
-
-      currentIssueInfo.value = {
-        id: issueNumber,
-        number: issueNumber,
-        status: issueStatus,
-        time: issueTime,
-      };
-
-      safeSet("currentIssueInfo", currentIssueInfo.value);
-
       loadPredictPosts();
     } else {
       uni.showToast({ title: response.msg || "数据加载失败", icon: "none" });
     }
   } catch (error) {
     uni.hideLoading();
-    const errorMsg = error?.msg || error?.message || "网络错误，请重试";
     uni.showToast({
-      title: errorMsg,
+      title: error?.msg || error?.message || "网络错误，请重试",
       icon: "none",
       duration: 3000,
     });
@@ -647,53 +424,22 @@ const loadLotteryDataByType = async (lotteryType) => {
   }
 };
 
-// 根据彩票类型加载数据（兼容旧接口，通过code查找）
-const loadLotteryData = async (lotteryCode) => {
-  const lotteryType = lotteryTypes.value.find((type) => type.code === lotteryCode);
-  if (!lotteryType) {
-    return;
-  }
-  await loadLotteryDataByType(lotteryType);
-};
-
-// 显示发布弹出层
 const showPublishModal = () => {
-  if (getToken()) {
+  if (tool.isLogin(false, "/pages/forum/forum")) {
     publishPopup.value.open();
-  } else {
-    uni.showModal({
-      title: "提示",
-      content: "该操作需要登录，是否前往",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({
-            url: "/pages/login/login" + "?redirect=/pages/video/video",
-          });
-        }
-      },
-      showCancel: true,
-    });
   }
 };
 
-// 隐藏发布弹出层
 const hidePublishModal = () => {
   publishPopup.value.close();
 };
 
-// 切换协议同意状态
 const toggleAgreementManually = () => {
   agreedToTerms.value = !agreedToTerms.value;
 };
 
-// 选择功能类型
 const selectFunction = async (type) => {
-  // 所有功能都需要先同意协议
   if (!agreedToTerms.value) {
-    // uni.showToast({
-    //   title: "请先同意管理规范",
-    //   icon: "none",
-    // });
     const res = await uni.showModal({
       title: "提示",
       content: "是否同意并遵守《彩友圈管理规范》",
@@ -701,394 +447,66 @@ const selectFunction = async (type) => {
       confirmText: "同意",
       cancelText: "取消",
     });
-    if (!res.confirm) {
-      return;
-    }
+    if (!res.confirm) return;
     toggleAgreementManually();
   }
   uni.setStorageSync("postAgreement", true);
   selectedFunction.value = type;
 
   const urlParams = tool.formatUrlParams({
-    lotteryType: currentLotteryType.value.name,
+    lotteryType: currentLotteryType.value,
   });
 
-  // 根据选择的类型跳转到不同的发布页面
   switch (type) {
     case "predict":
-      // 跳转到设置方案页面
       uni.navigateTo({
         url: `/pages/forum/post/created-scheme?${urlParams}`,
-        success: () => {
-          hidePublishModal();
-        },
-        fail: () => {
-          uni.showToast({
-            title: "跳转失败",
-            icon: "none",
-          });
-        },
+        success: () => hidePublishModal(),
+        fail: () => uni.showToast({ title: "跳转失败", icon: "none" }),
       });
       break;
     case "pattern":
-      // 跳转到规律预测页面
       uni.navigateTo({
         url: `/pages/forum/post/upload-diagram?${urlParams}`,
-        success: () => {
-          hidePublishModal();
-        },
-        fail: () => {
-          uni.showToast({
-            title: "跳转失败",
-            icon: "none",
-          });
-        },
+        success: () => hidePublishModal(),
+        fail: () => uni.showToast({ title: "跳转失败", icon: "none" }),
       });
       break;
     case "filter":
-      uni.showToast({
-        title: "跳转到过滤王帖发布",
-        icon: "none",
-      });
+      uni.showToast({ title: "跳转到过滤王帖发布", icon: "none" });
       break;
     case "soup":
-      uni.showToast({
-        title: "跳转到老母鸡汤发布",
-        icon: "none",
-      });
+      uni.showToast({ title: "跳转到老母鸡汤发布", icon: "none" });
       break;
   }
 
-  // 关闭弹出层
   hidePublishModal();
 };
 
-// 显示筛选弹窗
-const showFilterModal = () => {
-  showFilterDialog.value = true;
-};
-
-// 隐藏筛选弹窗
-const hideFilterModal = () => {
-  showFilterDialog.value = false;
-};
-
-// 切换筛选选项
-// 切换心水预测筛选
-const togglePredictionFilter = (filter) => {
-  if (selectedPredictionFilter.value === filter) {
-    selectedPredictionFilter.value = ""; // 取消选择
-  } else {
-    selectedPredictionFilter.value = filter; // 选择新的
-  }
-};
-
-// 切换其他筛选
-const toggleOtherFilter = (filter) => {
-  if (selectedOtherFilter.value === filter) {
-    selectedOtherFilter.value = ""; // 取消选择
-  } else {
-    selectedOtherFilter.value = filter; // 选择新的
-  }
-};
-
-// 处理搜索输入
-const _handleSearchInput = () => {
-  if (searchKeyword.value.trim()) {
-    // 生成搜索建议
-    generateSearchSuggestions();
-    // 执行模糊搜索
-    performFuzzySearch();
-  } else {
-    // 清空搜索
-    clearSearchResults();
-  }
-};
-const handleSearchInput = debounce(_handleSearchInput, 300);
-
-// 生成搜索建议
-const generateSearchSuggestions = () => {
-  const keyword = normalizeText(searchKeyword.value.trim());
-  const suggestions = [];
-
-  // 从两类筛选选项中生成建议
-  const candidates = [...predictionFilters.value, ...otherFilters.value];
-  candidates.forEach((filter) => {
-    if (normalizeText(filter).includes(keyword)) {
-      suggestions.push(filter);
-    }
-  });
-
-  // 限制建议数量
-  searchSuggestions.value = suggestions.slice(0, 5);
-};
-
-// 选择搜索建议
-const selectSuggestion = (suggestion) => {
-  searchKeyword.value = suggestion;
-  showSearchSuggestions.value = false;
-  performFuzzySearch();
-};
-
-// 清空搜索
-const clearSearch = () => {
-  searchKeyword.value = "";
-  showSearchSuggestions.value = false;
-  activeTag.value = -1; // 重置标签选中状态
-  clearSearchResults();
-};
-
-// 执行模糊搜索
-const performFuzzySearch = () => {
-  const keyword = normalizeText(searchKeyword.value.trim());
-
-  if (!keyword) {
-    clearSearchResults();
-    return;
-  }
-
-  isSearching.value = true;
-
-  // 对预测帖子进行模糊搜索
-  filteredPredictList.value = predictList.value.filter((post) => {
-    // 搜索用户名
-    if (post.username && normalizeText(post.username).includes(keyword)) {
-      return true;
-    }
-
-    // 搜索帖子内容
-    if (post.content && normalizeText(post.content).includes(keyword)) {
-      return true;
-    }
-
-    // 搜索期号
-    if (post.period && post.period.toString().includes(keyword)) {
-      return true;
-    }
-
-    // 特殊标签搜索逻辑
-    if (keyword === "全部") {
-      return true; // 显示所有帖子
-    }
-
-    if (keyword === "大师" || keyword === "大师帖子") {
-      // 搜索包含"大师"关键词的帖子
-      return post.content && post.content.includes("大师");
-    }
-
-    if (keyword === "靓规贴" || keyword === "靓规贴子") {
-      // 搜索包含"靓规"关键词的帖子
-      return post.content && post.content.includes("靓规");
-    }
-
-    if (keyword === "过滤王") {
-      // 搜索包含"过滤王"关键词的帖子
-      return post.content && post.content.includes("过滤王");
-    }
-
-    if (keyword === "点赞最多") {
-      // 按点赞数排序（这里简化处理，实际可以按likes字段排序）
-      return post.likes > 0;
-    }
-
-    return false;
-  });
-
-  // 如果是"点赞最多"标签，按点赞数排序
-  if (keyword === "点赞最多") {
-    filteredPredictList.value.sort((a, b) => b.likes - a.likes);
-  }
-
-  uni.showToast({
-    title: `找到${filteredPredictList.value.length}条结果`,
-    icon: "success",
-  });
-};
-
-// 清空搜索结果
-const clearSearchResults = () => {
-  filteredPredictList.value = [];
-  isSearching.value = false;
-};
-
-// 执行筛选搜索
-const performSearch = () => {
-  const filters = [];
-  if (selectedPredictionFilter.value) {
-    filters.push(selectedPredictionFilter.value);
-  }
-  if (selectedOtherFilter.value) {
-    filters.push(selectedOtherFilter.value);
-  }
-
-  // 检查是否选择了筛选条件
-  if (filters.length === 0) {
-    uni.showToast({
-      title: "请选择筛选条件",
-      icon: "none",
-    });
-    return;
-  }
-
-  // 设置搜索关键词
-  searchKeyword.value = filters.join("+");
-
-  // 执行筛选搜索
-  performFilterSearch(filters);
-
-  // 关闭筛选弹窗
-  hideFilterModal();
-
-  // 重置标签选中状态
-  activeTag.value = -1;
-
-  uni.showToast({
-    title: `搜索${filters.join("+")}`,
-    icon: "success",
-  });
-};
-
-// 执行筛选搜索的具体逻辑
-const performFilterSearch = (filters) => {
-  isSearching.value = true;
-
-  // 对预测帖子进行筛选搜索
-  filteredPredictList.value = predictList.value.filter((post) => {
-    let matches = false;
-
-    // 检查心水预测筛选条件
-    if (selectedPredictionFilter.value) {
-      const predictionFilter = selectedPredictionFilter.value.toLowerCase();
-
-      // 在帖子内容中搜索匹配的筛选条件
-      if (post.content && post.content.toLowerCase().includes(predictionFilter)) {
-        matches = true;
-      }
-
-      // 特殊处理一些筛选条件
-      if (
-        predictionFilter === "头尾" &&
-        post.content &&
-        (post.content.includes("头") || post.content.includes("尾"))
-      ) {
-        matches = true;
-      }
-
-      if (predictionFilter === "芝麻" && post.content && post.content.includes("芝麻")) {
-        matches = true;
-      }
-
-      if (predictionFilter === "中肚" && post.content && post.content.includes("中肚")) {
-        matches = true;
-      }
-
-      if (predictionFilter.includes("定") && post.content && post.content.includes("定")) {
-        matches = true;
-      }
-
-      if (predictionFilter.includes("杀") && post.content && post.content.includes("杀")) {
-        matches = true;
-      }
-
-      if (predictionFilter.includes("合") && post.content && post.content.includes("合")) {
-        matches = true;
-      }
-
-      if (predictionFilter.includes("过滤王") && post.content && post.content.includes("过滤王")) {
-        matches = true;
-      }
-    }
-
-    // 检查其他筛选条件
-    if (selectedOtherFilter.value) {
-      const otherFilter = selectedOtherFilter.value.toLowerCase();
-
-      if (otherFilter === "大师帖子" && post.content && post.content.includes("大师")) {
-        matches = true;
-      }
-
-      if (otherFilter === "靓规贴子" && post.content && post.content.includes("靓规")) {
-        matches = true;
-      }
-
-      if (otherFilter === "点赞最多" && post.likes > 0) {
-        matches = true;
-      }
-
-      if (otherFilter === "讨论最热" && post.comments > 0) {
-        matches = true;
-      }
-    }
-
-    return matches;
-  });
-
-  // 如果是"点赞最多"或"讨论最热"，按相应字段排序
-  if (selectedOtherFilter.value === "点赞最多") {
-    filteredPredictList.value.sort((a, b) => b.likes - a.likes);
-  } else if (selectedOtherFilter.value === "讨论最热") {
-    filteredPredictList.value.sort((a, b) => b.comments - a.comments);
-  }
-};
-
-// 获取搜索按钮文本
-const getSearchButtonText = () => {
-  const filters = [];
-  if (selectedPredictionFilter.value) {
-    filters.push(selectedPredictionFilter.value);
-  }
-  if (selectedOtherFilter.value) {
-    filters.push(selectedOtherFilter.value);
-  }
-
-  if (filters.length === 0) {
-    return "搜索";
-  }
-
-  return filters.join("+");
-};
-
 const refreshing = ref(false);
-// 加载预测帖子数据
+
 const loadPredictPosts = async () => {
-  // 先检查是否正在加载，避免重复请求
-  if (isLoadingPosts.value) {
-    return;
-  }
+  if (isLoadingPosts.value) return;
+  
+  const issueno = currentIssueno.value.issueno
+  const tname = currentLotteryType.value;
 
-  // 构建查询参数
-  const tname = currentLotteryType.value?.name;
-  const issueno = currentIssueInfo.value?.number || currentIssueInfo.value?.id || "--";
-
-  // 如果参数不完整，不执行请求
-  if (!tname || !issueno) {
-    return;
-  }
-
-  // 生成请求唯一标识
   const queryKey = `${tname}_${issueno}`;
+  if (currentQueryKey.value === queryKey) return;
 
-  // 如果正在请求相同的参数，跳过（防止重复请求）
-  if (currentQueryKey.value === queryKey) {
-    return;
-  }
-  // debugger;
   try {
     isLoadingPosts.value = true;
-    // refreshing.value = true;
     currentQueryKey.value = queryKey;
 
-    // 构建查询参数 - 同时查询预测帖和规律帖
     const queryData = {
-      tname: tname, // 查询预测帖
-      issueno: issueno,
+      tname,
+      issueno,
       page: parseInt(pageData.value.page),
       limit: parseInt(pageData.value.limit),
     };
     const account = getAccount();
-    if (account) {
-      queryData.account = account;
-    }
+    if (account) queryData.account = account;
+
     let response;
     if (activeTab.value === "predict") {
       response = await apiPostListQuery(queryData);
@@ -1096,76 +514,19 @@ const loadPredictPosts = async () => {
       delete queryData.account;
       response = await post_select_by_follow(queryData);
     }
-    // 查询预测帖
 
     let allPosts = [];
-
     pageData.value.total = response.data.list.total;
 
-    if (response.code === 200) {
-      if (response.data) {
-        response.data.list = response.data.list.filter((item) => isReport(item.id));
-        allPosts = [...response.data.list];
-      }
-    }
-
-    // 处理所有帖子数据
-    if (allPosts.length > 0) {
-      const addlist = allPosts
-        .map((post) => {
-          const postId = post.id;
-
-          // 检查postId是否有效
-          if (!postId) {
-            return null; // 跳过无效的帖子
-          }
-
-          // 检查当前用户是否点赞过这个帖子
-          const currentAccount = getAccount();
-          const userLikedKey = `${postId}_${currentAccount}`;
-          // const isLiked = getLikedStatus(userLikedKey);
-
-          // 使用服务器返回的点赞数
-          const serverLikeCount = post.like_count || 0;
-
-          // 处理用户头像
-          let userAvatar = "http://video.caimizm.com/himg/user.png";
-
-          // 使用getUserAvatar函数获取头像（不再使用pimg作为头像）
-          userAvatar = post.himg ? tool.oss.getFullUrl("/himg/" + post.himg) : userAvatar;
-
-          return {
-            id: postId,
-            tname: post.tname,
-            account: post.account,
-            username: post.uname || "匿名用户",
-            avatar: userAvatar, // 使用处理后的头像
-            time: formatTime(post.createTime),
-            status: "预测中",
-            period: post.issueno || currentIssueInfo.value.number,
-            content: post.content || "",
-            image: post.pimg || "", // 帖子图片（规律帖的图片）
-            likes: serverLikeCount, // 使用服务器返回的点赞数
-            comments: post.comment || 0,
-            shares: 0,
-            isLiked: post.dianzan, // 检查当前用户是否点赞过
-            isLiking: false, // 点赞中状态
-          };
-        })
-        .filter((post) => post !== null);
-
-      if (queryData.page == 1) {
-        predictList.value = addlist;
-      } else {
-        predictList.value = [...predictList.value, ...addlist];
-      }
+    if (queryData.page == 1) {
+      predictList.value = [...response.data.list];
     } else {
-      predictList.value = [];
+      predictList.value = [...predictList.value, ...response.data.list];
     }
   } catch (error) {
     predictList.value = [];
-  } finally {
   }
+
   setTimeout(() => {
     isLoadingPosts.value = false;
     currentQueryKey.value = null;
@@ -1173,7 +534,6 @@ const loadPredictPosts = async () => {
   }, 500);
 };
 
-// 加载分页
 const isLoadNextPage = ref(false);
 const pageData = ref({
   page: "1",
@@ -1184,13 +544,12 @@ const pageData = ref({
 const isMaxPage = computed(() => {
   return parseInt(pageData.value.page) >= parseInt(pageData.value.maxPage);
 });
+
 async function nextPage(res) {
-  if (isLoadNextPage.value) return;
-  if (isMaxPage.value) return;
+  if (isLoadNextPage.value || isMaxPage.value) return;
   if (pageData.value.total < pageData.value.page * pageData.value.limit) return;
 
   pageData.value.page = parseInt(pageData.value.page) + 1;
-
   isLoadNextPage.value = true;
   try {
     await loadPredictPosts();
@@ -1198,162 +557,12 @@ async function nextPage(res) {
   isLoadNextPage.value = false;
 }
 
-// 格式化时间
-const formatTime = (timeStr) => {
-  if (!timeStr) return "刚刚";
-
-  try {
-    const time = new Date(timeStr);
-    const now = new Date();
-    const diff = now - time;
-
-    if (diff < 60000) return "刚刚";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
-    return `${Math.floor(diff / 86400000)}天前`;
-  } catch (error) {
-    return "刚刚";
-  }
-};
-
-// 清空筛选选择
-const clearFilterSelection = () => {
-  selectedPredictionFilter.value = "";
-  selectedOtherFilter.value = "";
-
-  uni.showToast({
-    title: "已清空筛选条件",
-    icon: "success",
-  });
-};
-
-// 更新列表中的帖子数据
-const updatePostInList = (updatedPost) => {
-  // 更新原始列表
-  const originalIndex = predictList.value.findIndex((p) => p.id === updatedPost.id);
-  if (originalIndex !== -1) {
-    predictList.value[originalIndex] = { ...updatedPost };
-  }
-
-  // 更新筛选列表
-  const filteredIndex = filteredPredictList.value.findIndex((p) => p.id === updatedPost.id);
-  if (filteredIndex !== -1) {
-    filteredPredictList.value[filteredIndex] = { ...updatedPost };
-  }
-};
-
-// 优化触摸事件性能
-const optimizeTouchEvents = () => {
-  try {
-    // 在H5环境下优化触摸事件
-    if (typeof window !== "undefined" && window.addEventListener) {
-      // 为所有元素添加被动事件监听器
-      const addPassiveListener = (element, event, handler) => {
-        element.addEventListener(event, handler, { passive: true });
-      };
-
-      // 为滚动容器添加被动滚动监听器
-      const scrollContainers = document.querySelectorAll(
-        ".predict-list, .modal-content, .dropdown-list, .filter-dialog"
-      );
-      scrollContainers.forEach((container) => {
-        addPassiveListener(container, "touchstart", () => {});
-        addPassiveListener(container, "touchmove", () => {});
-        addPassiveListener(container, "touchend", () => {});
-      });
-    }
-  } catch (error) {
-    // 静默处理错误
-  }
-};
-
-// 从帖子内容中提取所有方案ID
-const extractSchemeFromContent = (content) => {
-  try {
-    if (!content) return [];
-
-    // 常见的方案类型列表
-    const schemeTypes = [
-      "头尾",
-      "中肚",
-      "ABXX",
-      "AXCX",
-      "XBXD",
-      "XXCD",
-      "ABCX",
-      "ABXD",
-      "AXCD",
-      "XBCD",
-      "芝麻",
-      "二字现",
-      "三字现",
-      "定头",
-      "定百",
-      "定十",
-      "定尾",
-      "杀头",
-      "杀百",
-      "杀十",
-      "杀尾",
-      "稳码",
-      "头尾合",
-      "中肚合",
-      "千百合",
-      "千十合",
-      "百个合",
-      "十个合",
-      "死数",
-      "头尾不合",
-      "中肚不合",
-      "千百不合",
-      "千十不合",
-      "百个不合",
-      "十个不合",
-      "过滤王二定",
-      "过滤王三定",
-      "过滤王四定",
-    ];
-
-    const foundSchemes = [];
-
-    // 在内容中查找所有方案类型
-    schemeTypes.forEach((scheme) => {
-      if (content.includes(scheme)) {
-        foundSchemes.push(scheme);
-      }
-    });
-
-    return foundSchemes;
-  } catch (error) {
-    return [];
-  }
-};
-
-const reportPopupRef = ref(null);
-function handleReport(postId) {
-  console.log("handleReport", postId);
-  reportPopupRef.value.openReportModal({
-    type: "post",
-    id: postId,
-  });
-}
-const reportList = ref([]);
-function refreshReportList() {
-  const r = uni.getStorageSync("reportList") || [];
-  reportList.value = r.filter((item) => item.type == "post").map((item) => item.id);
-}
-function isReport(postId) {
-  return !reportList.value.includes(postId);
-}
+const isLoadingPosts = ref(false);
+const isLoadingLottery = ref(false);
+const currentQueryKey = ref(null);
 </script>
 
 <style scoped lang="scss">
-/* 输入框特殊处理 */
-input,
-textarea {
-  touch-action: manipulation;
-}
-
 .forum-container {
   background-color: #f5f5f5;
   display: flex;
@@ -1374,8 +583,7 @@ textarea {
   padding-top: var(--status-bar-height);
 }
 
-.nav-left,
-.nav-right {
+.nav-left {
   display: flex;
   align-items: center;
 }
@@ -1386,21 +594,17 @@ textarea {
   justify-content: center;
 }
 
+.nav-text {
+  font-size: 22rpx;
+  color: #fff;
+}
+
 .period-selector {
   display: flex;
   align-items: center;
   background-color: rgba(255, 255, 255, 0.2);
   padding: 8rpx 16rpx;
   border-radius: 20rpx;
-}
-
-.period-text {
-  font-size: 24rpx;
-  color: #fff;
-  margin-right: 8rpx;
-}
-
-.period-selector {
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1409,11 +613,18 @@ textarea {
   opacity: 0.8;
 }
 
+.period-text {
+  font-size: 38rpx;
+  color: #000;
+  font-weight: bold;
+  margin-right: 8rpx;
+}
+
 .rotate {
   transform: rotate(180deg);
 }
 
-/* 下拉菜单遮罩 */
+/* 下拉菜单 */
 .dropdown-mask {
   position: fixed;
   top: 0;
@@ -1424,7 +635,6 @@ textarea {
   z-index: 999;
 }
 
-/* 期号下拉菜单 */
 .period-dropdown {
   position: fixed;
   top: 88rpx;
@@ -1437,10 +647,6 @@ textarea {
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.15);
   z-index: 1000;
   overflow: hidden;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
-  /* 防止滚动穿透 */
-  overscroll-behavior: contain;
 }
 
 .dropdown-header {
@@ -1469,12 +675,6 @@ textarea {
 
 .dropdown-list {
   max-height: 500rpx;
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
-  /* 防止滚动穿透 */
-  overscroll-behavior: contain;
-  /* 优化触摸性能 */
-  touch-action: pan-y;
 }
 
 .dropdown-item {
@@ -1508,27 +708,6 @@ textarea {
   color: #ff4757;
 }
 
-.period-item-time {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.post-icon {
-  width: 32rpx;
-  height: 32rpx;
-  background-color: #ff4757;
-  border-radius: 6rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8rpx;
-}
-
-.nav-text {
-  font-size: 22rpx;
-  color: #fff;
-}
-
 /* 切换标签栏 */
 .switch-tabs {
   left: 0;
@@ -1538,8 +717,6 @@ textarea {
   background-color: #fff;
   z-index: 998;
   display: flex;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
 }
 
 .tab-item {
@@ -1549,8 +726,6 @@ textarea {
   justify-content: center;
   position: relative;
   border-bottom: 4rpx solid transparent;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
   transition: all 0.2s ease;
 }
 
@@ -1561,8 +736,7 @@ textarea {
 .tab-text {
   font-size: 40rpx;
   font-weight: bold;
-  color: #000000;
-  font-weight: 500;
+  color: #000;
 }
 
 .tab-item.active .tab-text {
@@ -1580,8 +754,6 @@ textarea {
   display: flex;
   align-items: center;
   padding: 0 30rpx;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
 }
 
 .search-label {
@@ -1624,7 +796,7 @@ textarea {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-/* 搜索建议遮罩 */
+/* 搜索建议 */
 .search-suggestions-mask {
   position: fixed;
   top: 0;
@@ -1635,7 +807,6 @@ textarea {
   z-index: 999;
 }
 
-/* 搜索建议下拉框 */
 .search-suggestions {
   position: fixed;
   top: 256rpx;
@@ -1671,7 +842,7 @@ textarea {
   color: #333;
 }
 
-/* 搜索状态提示 */
+/* 搜索状态 */
 .search-status {
   display: flex;
   justify-content: space-between;
@@ -1693,173 +864,20 @@ textarea {
   font-weight: 500;
 }
 
-/* 分类标签栏 */
-.category-tags {
-  height: 80rpx;
-  flex-basis: 80rpx;
-  background-color: #fff;
-  z-index: 996;
-  padding: 20rpx 0;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
-}
-
-.category-scroll {
-  white-space: nowrap;
-}
-
-.tag-list {
-  display: flex;
-  padding: 0 30rpx;
-}
-
-.tag-item {
-  padding: 12rpx 24rpx;
-  margin-right: 20rpx;
-  background-color: #f5f5f5;
-  border-radius: 20rpx;
-  font-size: 22rpx;
-  color: #666;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
-}
-
-.tag-item.active {
-  background-color: #ff4757;
-  color: #fff;
-}
-
-.tag-item:active {
-  transform: scale(0.95);
-  background-color: #e0e0e0;
-}
-
-.tag-item.active:active {
-  background-color: #e63946;
-}
-
+/* 论坛内容 */
 .forum-content {
   flex: 1;
   overflow: hidden;
 }
 
-/* 标签内容区域 */
 .tab-content {
   padding-bottom: 100rpx;
 }
 
-/* 头条样式 */
-.headline-item {
-  background-color: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.headline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.headline-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-  flex: 1;
-}
-
-.headline-time {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.headline-content {
-  font-size: 28rpx;
-  line-height: 1.6;
-  color: #666;
-  margin-bottom: 20rpx;
-}
-
-.headline-stats {
-  display: flex;
-  gap: 30rpx;
-}
-
-.headline-stats .stat-text {
-  font-size: 24rpx;
-  color: #999;
-}
-
-/* 关注样式 */
-.follow-item {
-  background-color: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.follow-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.user-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  margin-right: 20rpx;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.username {
-  display: block;
-  font-size: 28rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.follow-time,
-.predict-time,
-.soup-time {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.follow-btn {
-  background-color: #f0f0f0;
-  padding: 8rpx 16rpx;
-  border-radius: 15rpx;
-}
-
-.btn-text {
-  font-size: 22rpx;
-  color: #666;
-}
-
-.follow-content {
-  font-size: 28rpx;
-  line-height: 1.6;
-  color: #333;
-}
-
-/* 预测列表样式 */
+/* 预测列表 */
 .predict-list {
   padding: 20rpx;
   background-color: #f8f8f8;
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
 }
 
 .no-posts-tip {
@@ -1867,34 +885,6 @@ textarea {
   padding: 40rpx;
   color: var(--light-text-color);
   font-size: 35rpx;
-}
-
-/* 鸡汤样式 */
-.soup-item {
-  background-color: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.soup-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.soup-content {
-  font-size: 28rpx;
-  line-height: 1.8;
-  color: #333;
-  margin-bottom: 20rpx;
-  font-style: italic;
-}
-
-.soup-footer {
-  border-top: 1rpx solid #f0f0f0;
-  padding-top: 20rpx;
 }
 
 /* 发布按钮 */
@@ -1918,8 +908,6 @@ textarea {
   padding: 10rpx;
   border: 6rpx solid #ffffff;
   box-shadow: 0 4rpx 20rpx rgba(11, 15, 14, 0.6);
-  /* 优化触摸性能 */
-  touch-action: manipulation;
   transition: transform 0.2s ease;
   z-index: 10;
 }
@@ -1928,7 +916,7 @@ textarea {
   transform: scale(0.95);
 }
 
-/* 发布弹出层样式 */
+/* 发布弹出层 */
 .publish-modal {
   background-color: #fff;
   border-radius: 30rpx 30rpx 0 0;
@@ -1937,12 +925,6 @@ textarea {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  position: relative;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
-  will-change: transform;
-  /* 防止滚动穿透 */
-  overscroll-behavior: contain;
 }
 
 .modal-header {
@@ -1960,41 +942,23 @@ textarea {
   color: #333;
 }
 
-.close-btn {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: #f5f5f5;
-}
-
 .modal-content {
   padding: 30rpx;
   flex: 1;
   overflow-y: auto;
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
-  /* 防止滚动穿透 */
-  overscroll-behavior: contain;
-  /* 优化触摸性能 */
-  touch-action: pan-y;
 }
 
-/* 期号标题 */
 .period-title {
   text-align: center;
   margin-bottom: 30rpx;
 }
 
-.period-text {
+.period-title .period-text {
   font-size: 36rpx;
   font-weight: 600;
   color: #333;
 }
 
-/* 协议确认 */
 .agreement-section {
   margin-bottom: 20rpx;
   padding: 20rpx;
@@ -2036,7 +1000,6 @@ textarea {
   color: #ff4757;
 }
 
-/* 功能按钮区域 */
 .function-buttons {
   margin-bottom: 10rpx;
 }
@@ -2057,8 +1020,6 @@ textarea {
   align-items: center;
   flex: 1;
   margin: 0 15rpx;
-  /* 优化触摸性能 */
-  touch-action: manipulation;
   transition: transform 0.2s ease;
 }
 
@@ -2087,14 +1048,6 @@ textarea {
   background-color: #ff6b35;
 }
 
-.filter-icon {
-  background-color: #9b59b6;
-}
-
-.soup-icon {
-  background-color: #3498db;
-}
-
 .btn-text {
   font-size: 35rpx;
   color: #333;
@@ -2102,7 +1055,6 @@ textarea {
   line-height: 1.4;
 }
 
-/* 底部按钮 */
 .modal-footer {
   padding: 30rpx;
   border-top: 1rpx solid #f0f0f0;
@@ -2118,7 +1070,7 @@ textarea {
   padding: 20rpx 40rpx;
 }
 
-/* 筛选弹窗样式 */
+/* 筛选弹窗 */
 .filter-dialog-mask {
   position: fixed;
   top: 0;
@@ -2140,12 +1092,6 @@ textarea {
   padding: 40rpx;
   max-height: 80vh;
   overflow-y: auto;
-  /* 优化滚动性能 */
-  -webkit-overflow-scrolling: touch;
-  /* 防止滚动穿透 */
-  overscroll-behavior: contain;
-  /* 优化触摸性能 */
-  touch-action: pan-y;
 }
 
 .filter-header {
