@@ -12,7 +12,7 @@
               </view>
             </view>
           </ScratchCard>
-          <button class="submit-btn" @click="refreshScratchCard">刷新</button>
+          <!-- <button class="submit-btn" @click="refreshScratchCard">刷新</button> -->
         </view>
 
         <!-- 卡片：基本信息 -->
@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     refreshScratchCard() {
-      this.$refs.scratchCardRef.reset();
+      // this.$refs.scratchCardRef.reset();
     },
     getFullHimgUrl(himg) {
       if (typeof himg !== "string" || himg.trim() === "") {
