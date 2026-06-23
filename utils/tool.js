@@ -180,7 +180,7 @@ const tool = {
 
     return newObj;
   },
-  isLogin(text) {
+  isLogin(text, redirect) {
     const userStore = useUserStore();
     if (userStore.getUserInfo.account) {
       return true;
@@ -190,7 +190,7 @@ const tool = {
         content: text || "该功能需要登录，是否前往",
         success: async (res) => {
           if (res.confirm) {
-            uni.navigateTo({ url: "/pages/login/login" });
+            uni.navigateTo({ url: "/pages/login/login" + `${redirect? `?redirect=${redirect}` :""}` });
           }
         },
         showCancel: true,
