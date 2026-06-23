@@ -239,7 +239,7 @@
       <postCard
             v-for="(item, index) in lotteryList"
             :key="index"
-            :item="item"
+            :post="item"
           />
       <view class="no-more">没有更多帖子了</view>
     </view>
@@ -262,7 +262,7 @@ import updateAppPupop from "../../components/updateApp-pupop/updateApp-pupop.vue
 import ActivityHover from "@/components/activity-hover.vue";
 import { createShareUrl } from "@/utils/createShareUrl";
 import { useLoadLotteryList } from "./loadLotteryPostListHooks.js";
-import postCard from "../forum/components/post-card.vue";
+import postCard from "../../components/post-card/post-card.vue";
 
 export default {
   inject: ["useOldManModeStore"],
