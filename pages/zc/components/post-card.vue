@@ -1,31 +1,43 @@
 <template>
   <view class="post-card" @click="onPostCard">
-    <!-- 头部：用户信息 -->
-    <view class="header">
-      <view class="user-info" @click="toUserDetail">
-        <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
-        <view class="text-info">
-          <view class="name-row">
-            <text class="nickname">{{ postData.uname }}</text>
+    <view class="card-row" :class="{ 'has-cover': postData.fimg }">
+      <view class="card-left">
+        <!-- 头部：用户信息 -->
+        <view class="header">
+          <view class="user-info" @click="toUserDetail">
+            <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
+            <view class="text-info">
+              <view class="name-row">
+                <text class="nickname">{{ postData.uname }}</text>
+              </view>
+              <view class="meta-info">
+                <text>{{ getTimeAgo(postData.create_time) }}</text>
+              </view>
+            </view>
           </view>
-          <view class="meta-info">
-            <text>{{ getTimeAgo(postData.create_time) }}</text>
-          </view>
+          <!-- <button class="follow-btn" @click="handleFollow">+ 关注</button> -->
+        </view>
+
+        <!-- 内容区 -->
+        <view class="content">
+          <view class="title" v-if="postData.title">{{ postData.title }}</view>
+          <view class="description">{{ postData.expertAnalysis }}</view>
         </view>
       </view>
-      <!-- <button class="follow-btn" @click="handleFollow">+ 关注</button> -->
-    </view>
 
-    <!-- 内容区 -->
-    <view class="content">
-      <view class="title" v-if="postData.title">{{ postData.title }}</view>
-      <view class="description">{{ postData.expertAnalysis }}</view>
+      <!-- 封面图 -->
+      <image
+        v-if="postData.fimg"
+        class="cover-img"
+        :src="tool.oss.getFullUrl(postData.fimg)"
+        mode="aspectFill"
+      />
     </view>
 
     <!-- 底部：互动栏 -->
     <view class="footer">
       <view class="action-item" @click="onComment">
-        <uni-icons class="icon-img" type="chat" size="16" />
+        <uni-icons class="icon-img" type="chat" size="22" />
         {{ postData.count }}
       </view>
       <!-- <view class="action-item" @click="onLike">
@@ -80,6 +92,26 @@ const onLike = () => emit("like");
   padding: 32rpx;
   font-family: sans-serif;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+
+  .card-row {
+    display: flex;
+    gap: 20rpx;
+  }
+
+  .card-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cover-img {
+    width: 280rpx;
+    height: 160rpx;
+    border-radius: 12rpx;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0;
+    background-color: #f0f0f0;
+  }
 
   .header {
     display: flex;
@@ -160,25 +192,23 @@ const onLike = () => emit("like");
   .footer {
     display: flex;
     justify-content: space-around;
-    padding-top: 24rpx;
     border-top: 1rpx solid #f5f5f5; // 可选，增加分割感
     font-size: 28rpx;
+    
+      justify-content: flex-start;
 
     .action-item {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      flex: 1;
+      padding: 5rpx 15rpx;
+      background-color: #eee;
+      border-radius: 10rpx;
 
       // 模拟图标（实际项目中请使用 <uni-icons> 或图片）
       .icon-img {
-        width: 40rpx;
-        height: 40rpx;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        margin-right: 4rpx;
-        display: inline-block;
+        width: 45rpx;
+        height: 45rpx;
+        margin-right: 8rpx;
       }
     }
   }

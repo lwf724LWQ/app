@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <top-navigation-bar title="发布看法" />
+    <top-navigation-bar :title="isEditMode ? '修改看法' : '发布看法'" />
     <scroll-view class="scroll" :scroll-y="true" :show-scrollbar="false">
       <!-- 创建预测方案的表单 -->
       <view class="create-prognosis-form">
@@ -23,6 +23,24 @@
             </view>
           </view>
         </view>
+        <!-- 上传封面 -->
+        <view class="form-card">
+          <view class="form-item">
+            <view class="form-label">
+              <view class="label-icon"></view>
+              <text class="label-text">上传封面</text>
+            </view>
+          </view>
+          <view class="form-item-content">
+            <view class="cover-upload-area" @click="uploadCoverImg">
+              <image v-if="form.fimg" :src="tool.oss.getFullUrl(form.fimg)" class="cover-preview" mode="aspectFill" />
+              <view v-else class="cover-placeholder">
+                <text class="cover-placeholder-icon">+</text>
+                <text class="cover-placeholder-text">点击上传封面图片</text>
+              </view>
+            </view>
+          </view>
+        </view>
         <!-- 专家分析 -->
         <view class="form-card">
           <view class="form-item">
@@ -32,13 +50,7 @@
             </view>
           </view>
           <view class="form-item-content">
-            <textarea
-              class="form-textarea"
-              v-model="form.expertAnalysis"
-              placeholder="请输入帖子内容"
-              maxlength="8000"
-              :auto-height="true"
-            ></textarea>
+            <myEditor ref="editorRef" />
           </view>
         </view>
       </view>
@@ -46,18 +58,25 @@
 
     <!-- 底部提交按钮 -->
     <view class="fixed-bottom">
-      <view class="submit-btn" @click="submitPrognosis">发布</view>
+      <view class="submit-btn" @click="submitPrognosis">{{ isEditMode ? '保存修改' : '发布' }}</view>
     </view>
   </view>
 </template>
 <script setup>
 import { ref, reactive, computed, nextTick } from "vue";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
-import { addFootBallPost } from "@/api/apis.js";
+import myEditor from "@/components/myEditor.vue";
+import { addFootBallPost, getFootBallPostDetail, editFootball } from "@/api/apis.js";
 import NumberInput from "@/components/number-input.vue";
+import { onLoad } from "@dcloudio/uni-app";
+import tool from "@/utils/tool.js";
 
 const matchInfo = ref({});
+const editorRef = ref(null);
+const isEditMode = ref(false);
+const editId = ref("");
 const form = reactive({
+  title: "",
   enableWinDrawLose: false,
   enableWinDrawLose_handicap: false,
   enableHalfTime: false,
@@ -68,6 +87,7 @@ const form = reactive({
   price: 10,
 
   expertAnalysis: "",
+  fimg: "",
 });
 
 const dataTree = ref([]);
@@ -77,6 +97,26 @@ const dataPicker = ref(null);
 const pickerViewVisible = ref(false);
 const indicatorStyle = ref(`height: 50px;`);
 const temp_matchInfo = ref({});
+
+// 上传封面图片
+function uploadCoverImg() {
+  uni.chooseImage({
+    count: 1,
+    success: async (res) => {
+      uni.showLoading({ title: "上传封面中..." });
+      try {
+        const uploadedPath = await tool.oss.uploadImgForTempPath(res.tempFilePaths[0], "postCover");
+        form.fimg = uploadedPath;
+        uni.hideLoading();
+        uni.showToast({ title: "封面上传成功", icon: "success" });
+      } catch (e) {
+        uni.hideLoading();
+        uni.showToast({ title: "封面上传失败", icon: "none" });
+      }
+    }
+  });
+}
+
 // 打开赛事选择框
 function openDataPicker() {
   // 将当前的matchInfo转化为picker能使用的value
@@ -109,20 +149,34 @@ function bindChangeMatch(e) {
 }
 
 async function submitPrognosis() {
-  const resultForm = {
-    expertAnalysis: form.expertAnalysis,
-  };
-  if (form.expertAnalysis.trim() === "") {
-    uni.showModal({ title: "提示", content: "请输入预测内容" });
+  let expertAnalysisDelta = null;
+  let expertAnalysisHtml = "";
+  try {
+    const contents = await editorRef.value.getContents();
+    expertAnalysisDelta = {
+      delta: contents.delta
+    }
+    expertAnalysisHtml = contents.html
+  } catch (e) {
+    uni.showModal({ title: "提示", content: "获取编辑器内容失败" });
+    return;
+  }
+  if (!expertAnalysisHtml.trim() || expertAnalysisHtml.trim() === "<p><br></p>") {
+    uni.showModal({ title: "提示", content: "请输入帖子内容" });
     return;
   }
   if (form.title.trim() === "") {
     uni.showModal({ title: "提示", content: "请输入预测标题" });
     return;
   }
+  form.expertAnalysis = JSON.stringify(expertAnalysisDelta);
+  const resultForm = {
+    expertAnalysis: expertAnalysisDelta,
+  };
   const confirmForm = {
     ftype: 2,
     title: form.title,
+    fimg: form.fimg,
 
     // 预测价格
     price: form.enablePrice ? form.price : 0,
@@ -132,11 +186,18 @@ async function submitPrognosis() {
     result: JSON.stringify(resultForm),
   };
 
+  if (isEditMode.value) {
+    confirmForm.id = editId.value;
+  }
+
   try {
     uni.showLoading({
       title: "提交中...",
     });
-    const res = await addFootBallPost(confirmForm);
+    const res = isEditMode.value
+      ? await editFootball(confirmForm)
+      : await addFootBallPost(confirmForm);
+    uni.hideLoading();
     uni
       .showModal({
         title: res.msg,
@@ -147,9 +208,42 @@ async function submitPrognosis() {
           uni.navigateBack();
         }
       });
-  } catch (e) {}
-  uni.hideLoading();
+  } catch (e) {
+    uni.hideLoading();
+  }
 }
+
+onLoad(async (option) => {
+  if (option && option.id) {
+    isEditMode.value = true;
+    editId.value = option.id;
+    try {
+      uni.showLoading({ title: "加载中..." });
+      const res = await getFootBallPostDetail(option.id);
+      const postData = res.data.fbpost || res.data;
+      form.title = postData.title || "";
+      form.enablePrice = !!postData.flag;
+      form.price = postData.price || 0;
+      form.fimg = postData.fimg || "";
+      if (postData.result) {
+        try {
+          const parsed = JSON.parse(postData.result);
+          form.expertAnalysis = parsed.expertAnalysis || "";
+          await nextTick();
+          if (form.expertAnalysis) {
+            editorRef.value.setContents(form.expertAnalysis);
+          }
+        } catch (e) {
+          form.expertAnalysis = "";
+        }
+      }
+      uni.hideLoading();
+    } catch (e) {
+      uni.hideLoading();
+      uni.showToast({ title: "加载数据失败", icon: "none" });
+    }
+  }
+});
 </script>
 <style lang="scss" scoped>
 /* 主容器 */
@@ -203,6 +297,49 @@ async function submitPrognosis() {
 .create-prognosis-form {
   // padding: 24rpx 32rpx;
 }
+/* 封面上传区域 */
+.cover-upload-area {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #f8f9fa;
+  border: 2rpx dashed #d0d5dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &:active {
+    border-color: #007aff;
+    background: #eef2ff;
+  }
+}
+
+.cover-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .cover-placeholder-icon {
+    font-size: 64rpx;
+    color: #c0c4cc;
+    line-height: 1;
+    margin-bottom: 12rpx;
+  }
+
+  .cover-placeholder-text {
+    font-size: 26rpx;
+    color: #999;
+  }
+}
+
 /* 卡片样式 */
 .form-card {
   background: #fff;

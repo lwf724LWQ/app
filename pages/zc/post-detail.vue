@@ -15,7 +15,9 @@
 
         <view class="post-content">
           <view class="title">{{ postDetail.title }}</view>
-          <view class="body">{{ postDetail.description }}</view>
+          <view class="body">
+            <My-editor ref="editorRef" :read-only="true"/>
+          </view>
         </view>
       </view>
 
@@ -72,9 +74,11 @@ import commentCard from "./components/comment-card.vue";
 import myPage from "@/components/myPage.vue";
 import { getFootBallPostDetail, addComment, commentList } from "@/api/apis.js";
 import tool from "@/utils/tool";
+import MyEditor from "../../components/myEditor.vue";
+
 
 export default {
-  components: { commentCard, myPage },
+  components: { commentCard, myPage, MyEditor },
   data() {
     return {
       id: "",
@@ -123,7 +127,17 @@ export default {
       try {
         const res = await getFootBallPostDetail(this.id);
         const a = JSON.parse(res.data.fbpost.result);
+        
         this.postDetail = { uname: res.data.uname, himg: res.data.himg, ...res.data.fbpost,description: a.expertAnalysis };
+        this.$nextTick(()=>{
+          let s = a.expertAnalysis
+          try {
+            s = JSON.parse(a.expertAnalysis)
+          } catch (error) {
+            
+          }
+          this.$refs.editorRef.setContents(s)
+        })
       } catch (error) {
         uni.showToast({
           title: error.msg || "加载失败",
