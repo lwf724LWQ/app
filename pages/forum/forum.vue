@@ -345,7 +345,9 @@ onMounted(() => {
 
   const savedLotteryType = uni.getStorageSync("currentLotteryType");
   if (savedLotteryType) {
-    currentLotteryType.value = savedLotteryType;
+    if (lotteryTypes.value.find(savedLotteryType)) {
+      currentLotteryType.value = savedLotteryType; 
+    }
   }
 
   loadLotteryData(currentLotteryType.value);

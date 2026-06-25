@@ -147,7 +147,6 @@ export default {
             },
           });
       }
-      
     },
     handleEdit() {
       const createTime = this.data.createTime;

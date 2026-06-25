@@ -1,5 +1,5 @@
 <template>
-  <view class="post-card" @click="onPostCard">
+  <view class="post-card" @click="onPostCard" @longpress.stop="onLongPress">
     <view class="card-row" :class="{ 'has-cover': postData.fimg }">
       <view class="card-left">
         <!-- 头部：用户信息 -->
@@ -51,6 +51,8 @@
 <script setup>
 import { defineProps, defineEmits } from "vue";
 import tool from "@/utils/tool.js"
+import {getAccount} from "../../../utils/request"
+import {delFootball} from "../../../api/apis"
 
 // 定义组件接收的属性
 const props = defineProps({
@@ -74,6 +76,46 @@ function getFullImgUrl(url){
 function toUserDetail(){
   uni.navigateTo({
     url: `/pages/user/space?account=${props.postData.account}`,
+  });
+}
+
+function onLongPress() {
+  if (props.postData.account === getAccount()) {
+      const itemList = ["修改", "删除"];
+      uni.showActionSheet({
+        itemList,
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            handleEdit();
+          } else if (res.tapIndex === 1) {
+            handleDelete();
+          }
+        },
+      });
+  }
+}
+function handleEdit() {
+  uni.navigateTo({
+    url: `/pages/zc/creaet-post?id=${props.postData.id}`,
+  });
+}
+function handleDelete() {
+  uni.showModal({
+    title: "确认删除",
+    content: "确定要删除这条帖子吗？",
+    success: async (modalRes) => {
+      if (modalRes.confirm) {
+        try {
+          uni.showLoading({ title: "删除中..." });
+          await delFootball(props.postData.id);
+          uni.hideLoading();
+          uni.showToast({ title: "删除成功" });
+        } catch (e) {
+          uni.hideLoading();
+          uni.showToast({ title: e.msg || "删除失败", icon: "none" });
+        }
+      }
+    },
   });
 }
 
