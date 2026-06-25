@@ -294,6 +294,11 @@ matchList.leagueListChangeCallback(function(list){
   }
   leagueListWithPinyin.value = list
 })
+
+uni.$on("openZcPostList", ()=>{
+  pickerIndex.value = 4
+})
+
 onUnmounted(()=>{
   matchList.unleagueListChangeCallback()
 })

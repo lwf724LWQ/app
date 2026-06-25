@@ -220,8 +220,18 @@
         </view> -->
       </view>
     </view>
+    
+    <view class="post-container">
+      <view class="post-title">
+        足球热门讨论
+        <view class="more-post-btn" @click="goToZcPostList">
+          更多
+        </view>
+      </view>
+      <zcPostCard v-for="item in zcList" :postData="item" @postCard="openZcPostDetail(item)" />
+    </view>
 
-    <view>
+    <view class="post-container">
       <view class="post-title">
         热门预测贴
       </view>
@@ -237,10 +247,10 @@
         </view>
       </view>
       <postCard
-            v-for="(item, index) in lotteryList"
-            :key="index"
-            :post="item"
-          />
+        v-for="(item, index) in lotteryList"
+        :key="index"
+        :post="item"
+      />
       <view class="no-more">没有更多帖子了</view>
     </view>
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
@@ -263,12 +273,15 @@ import ActivityHover from "@/components/activity-hover.vue";
 import { createShareUrl } from "@/utils/createShareUrl";
 import { useLoadLotteryList } from "./loadLotteryPostListHooks.js";
 import postCard from "../../components/post-card/post-card.vue";
+import zcPostCard from "../zc/components/post-card.vue"
+import useZcPostListHooks from "./zc-postListHooks.js"
 
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard, zcPostCard },
   data() {
     this.lotteryListHooks = useLoadLotteryList()
+    this.zcPostListHooks = useZcPostListHooks()
     return {
       currentTab: "plw",
       fc3dNumbers: ["3", "8", "5"],
@@ -292,9 +305,15 @@ export default {
   computed: {
     lotteryList(){
       return this.lotteryListHooks.list.value
+    },
+    zcList(){
+      return this.zcPostListHooks.list.value
     }
   },
   methods: {
+    openZcPostDetail(item){
+      this.zcPostListHooks.openDetail(item)
+    },
     swiperChange(e){
       this.swiperIndex = e.detail.current
     },
@@ -567,6 +586,16 @@ export default {
         }
       })
     },
+    goToZcPostList(){
+      uni.switchTab({
+        url: "/pages/zc/index",
+        success: function(){
+          setTimeout(()=>{
+            uni.$emit("openZcPostList")
+          }, 1000)
+        }
+      })
+    },
     selectLotteryType(lotteryName){
       this.currentLotteryTag = lotteryName
       this.loadLotteryList(true)
@@ -584,11 +613,13 @@ export default {
     this.$refs.updateAppPupopRef.check();
     
     this.loadLotteryList(true)
+
   },
   async onPullDownRefresh(){
     try {
       await this.loadLotteryList(true)
-      await this.loadLotteryResults() 
+      await this.loadLotteryResults()
+      await this.zcPostListHooks.getList()
     } catch (error) {
       
     }
@@ -1179,15 +1210,25 @@ export default {
   padding-bottom: 150rpx;
 }
 
-.post-title{
-  border-left: 10rpx solid #F00;
-  padding: 12rpx;
-  margin: 12rpx 0;
-  font-weight: bold;
-  font-size: 42rpx;
-  background-color: #f0f69e;
-}
+.post-container{
+  
+  .post-title{
+    border-left: 6rpx solid #F00;
+    padding: 12rpx;
+    margin: 12rpx 0;
+    font-weight: bold;
+    font-size: 38rpx;
+    display: flex;
+    
+    justify-content: space-between;
+    // background-color: #f0f69e;
+  }
+  .more-post-btn{
+    font-size: 36rpx;
+    font-weight: lighter;
+  }
 
+}
 
 /* 切换标签栏 */
 .switch-tabs {
