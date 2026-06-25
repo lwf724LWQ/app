@@ -2,7 +2,27 @@
   <view class="post-card" @click="onPostCard" @longpress.stop="onLongPress">
     <view class="card-row" :class="{ 'has-cover': postData.fimg }">
       <view class="card-left">
-        <!-- 头部：用户信息 -->
+        
+
+        <!-- 内容区 -->
+        <view class="content">
+          <view class="title" v-if="postData.title">{{ postData.title }}</view>
+          <!-- 封面图 -->
+          <image
+            v-if="postData.fimg"
+            class="cover-img"
+            :src="tool.oss.getFullUrl(postData.fimg)"
+            mode="aspectFill"
+          />
+        </view>
+      </view>
+
+      
+    </view>
+
+    <!-- 底部：互动栏 -->
+    <view class="footer">
+      <!-- 头部：用户信息 -->
         <view class="header">
           <view class="user-info" @click="toUserDetail">
             <image class="avatar" :src="getFullImgUrl(postData.himg)" mode="aspectFill" />
@@ -15,27 +35,8 @@
               </view>
             </view>
           </view>
-          <!-- <button class="follow-btn" @click="handleFollow">+ 关注</button> -->
         </view>
 
-        <!-- 内容区 -->
-        <view class="content">
-          <view class="title" v-if="postData.title">{{ postData.title }}</view>
-          <view class="description">{{ postData.expertAnalysis }}</view>
-        </view>
-      </view>
-
-      <!-- 封面图 -->
-      <image
-        v-if="postData.fimg"
-        class="cover-img"
-        :src="tool.oss.getFullUrl(postData.fimg)"
-        mode="aspectFill"
-      />
-    </view>
-
-    <!-- 底部：互动栏 -->
-    <view class="footer">
       <view class="action-item" @click="onComment">
         <uni-icons class="icon-img" type="chat" size="22" />
         {{ postData.count }}
@@ -159,15 +160,15 @@ const onLike = () => emit("like");
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
+    flex: 1;
 
     .user-info {
       display: flex;
       align-items: center;
 
       .avatar {
-        width: 96rpx;
-        height: 96rpx;
+        width: 66rpx;
+        height: 66rpx;
         border-radius: 50%;
         margin-right: 10rpx;
         background-color: #eee;
@@ -192,7 +193,6 @@ const onLike = () => emit("like");
         .meta-info {
           font-size: 24rpx;
           color: #999;
-          margin-top: 8rpx;
         }
       }
     }
@@ -215,13 +215,13 @@ const onLike = () => emit("like");
   }
 
   .content {
-    margin-bottom: 32rpx;
-
+    display: flex;
     .title {
       font-size: 36rpx;
       font-weight: 500;
       color: #333;
       margin-bottom: 16rpx;
+      flex: 1;
     }
 
     .description {
@@ -233,18 +233,20 @@ const onLike = () => emit("like");
 
   .footer {
     display: flex;
-    justify-content: space-around;
     border-top: 1rpx solid #f5f5f5; // 可选，增加分割感
     font-size: 28rpx;
     
-      justify-content: flex-start;
-
+    justify-content: flex-start;
+    align-items: center;
+    
     .action-item {
       display: flex;
       align-items: center;
-      padding: 5rpx 15rpx;
+      padding: 5rpx 20rpx;
       background-color: #eee;
       border-radius: 10rpx;
+      height: 56rpx;
+      margin-left: 20rpx;
 
       // 模拟图标（实际项目中请使用 <uni-icons> 或图片）
       .icon-img {
