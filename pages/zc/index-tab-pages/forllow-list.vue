@@ -5,13 +5,8 @@
     :tabIndex="5"
     :currentIndex="pickerIndex"
     @query="onQuery"
-    cell-height-mode="dynamic"
+    :cellHeightMode="'dynamic'"
   >
-    <view v-if="matchInfoList.length === 0 && !isLoading">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
-      </view>
-    </view>
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
         <MatchScoreCard :match="match" />
@@ -47,9 +42,6 @@ const props = defineProps({
 const emit = defineEmits(["video-click"]);
 
 const matchInfoList = ref([]);
-const isLoading = ref(false);
-const hasMore = ref(true);
-const currentPage = ref(1);
 const isNeedRefresh = ref(false);
 
 async function onQuery(pageNo, pageSize, from) {
@@ -58,11 +50,9 @@ async function onQuery(pageNo, pageSize, from) {
     return;
   }
   try {
-    isLoading.value = true;
-    currentPage.value = pageNo;
     const form = {
-      page: currentPage.value,
-      limit: props.limit,
+      page: pageNo,
+      limit: pageSize,
     };
 
     const res = await forllowFootballList(form);
@@ -75,15 +65,12 @@ async function onQuery(pageNo, pageSize, from) {
         matchInfoList.value = [...matchInfoList.value, ...list];
       }
       userStore.setFollowCount(res.data.total);
-      hasMore.value = list.length >= props.limit;
     }
 
     swiperItemRef.value?.complete(matchInfoList.value);
   } catch (error) {
     console.error("获取关注列表失败:", error);
     swiperItemRef.value?.complete([]);
-  } finally {
-    isLoading.value = false;
   }
 }
 
@@ -127,22 +114,5 @@ defineExpose({
   display: grid;
   grid-template-columns: 1fr;
   gap: 10rpx;
-}
-
-.no-data-container {
-  .no-data-text {
-    text-align: center;
-    font-size: 32rpx;
-    color: #666;
-    margin-top: 50rpx;
-  }
-}
-
-.no-more {
-  text-align: center;
-  padding: 20rpx;
-  color: #999;
-  font-size: 28rpx;
-  padding-bottom: 150rpx;
 }
 </style>

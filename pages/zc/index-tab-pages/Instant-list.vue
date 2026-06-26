@@ -5,7 +5,7 @@
     :tabIndex="0"
     :currentIndex="pickerIndex"
     @query="onQuery"
-    cell-height-mode="dynamic"
+    :loading-more-enabled="false"
   >
     <!-- 内容通过默认 slot 插入，展示日期分组列表 -->
     <template v-for="(item, index) in matchListWithDay" :key="item.datestr">
@@ -16,11 +16,6 @@
         :match="match"
       />
     </template>
-    <view v-if="matchInfoList.length === 0 && !loading">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
-      </view>
-    </view>
   </z-paging-swiper-item>
 </template>
 
@@ -55,7 +50,6 @@ const emit = defineEmits(["updateMatchList"]);
 
 const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
-const loading = ref(false);
 
 const matchListSorting = computed(() => {
   return matchInfoList.value
@@ -100,7 +94,6 @@ watch(
 
 async function onQuery(pageNo, pageSize, from) {
   try {
-    loading.value = true;
     const currentPageDate = dayjs(new Date());
     const fdateStr = currentPageDate.format("YYYY/M/D");
     const onlyShijiebei = props.searchParams.onlyShijiebei;
@@ -130,8 +123,6 @@ async function onQuery(pageNo, pageSize, from) {
   } catch (error) {
     console.error("获取即时列表失败:", error);
     swiperItemRef.value?.complete([]);
-  } finally {
-    loading.value = false;
   }
 }
 

@@ -14,7 +14,6 @@
         @openDetail="openDetail"
       />
     </view>
-    <view class="no-more" v-if="isNoMore">没有更多了</view>
   </z-paging-swiper-item>
   <PaymentWrapper ref="PaymentWrapperRef" :enableIntegralPay="true" @payOver="payOver">
     <template v-slot:payMethodSelector-header>
@@ -55,11 +54,7 @@ export default {
         price: "10",
       },
       scratchBottomData: {},
-      isLoading: false,
-      currentPage: 1,
       list: [],
-      isNoMore: false,
-      total: 0,
       UserBadgeAccuracyMap: {},
       isNeedRefresh: false
     };
@@ -99,15 +94,12 @@ export default {
     },
 
     async onQuery(pageNo, pageSize, from) {
-      if (this.isLoading) return;
-      this.isLoading = true;
-      this.currentPage = 1;
       try {
         let res = null;
         if (this.findByAccount) {
           res = await findByAccountWithFbpost({
-            page: this.currentPage,
-            limit: 20,
+            page: pageNo,
+            limit: pageSize,
             ftype: 1,
             account: this.findByAccount
           });
@@ -120,26 +112,18 @@ export default {
           res.data.list = res.data.records;
         } else {
           res = await getFootBallPostList({
-            page: this.currentPage,
-            limit: 20,
+            page: pageNo,
+            limit: pageSize,
             ftype: 1,
           });
         }
         this.UserBadgeAccuracyMap = res.data.result || {};
         this.list = res.data.list;
-        this.isNoMore = res.data.list.length < 20;
-        this.total = res.data.total;
         this.$refs.swiperItemRef?.complete(this.list);
       } catch (e) {
         uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });
-        this.$refs.swiperItemRef?.complete([]);
-      } finally {
-        this.isLoading = false;
+        this.$refs.swiperItemRef?.complete(false);
       }
-    },
-
-    async loadMore() {
-      // z-paging 会自动触发 @query，pagination 由 z-paging 管理
     },
 
     payOver(e) {
@@ -182,13 +166,6 @@ export default {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
-
-.no-more {
-  text-align: center;
-  font-size: 28rpx;
-  color: #333333;
-  padding: 20rpx 0;
 }
 
 .pay-method-selector-header {

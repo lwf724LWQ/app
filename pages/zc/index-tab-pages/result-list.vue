@@ -6,15 +6,16 @@
     :auto="false"
     :useVirtualList="true"
     :useInnerList="true"
-    cell-height-mode="dynamic"
+    :cellHeightMode="'dynamic'"
     @query="onQuery"
     @listChange="onListChange"
+    :loading-more-enabled="false"
   >
     <template #cell="{ item, index }">
       <MatchScoreCard
         :key="item.id"
         :match="item"
-        @height-update="handleHeightUpdate"
+        @height-update="handleHeightUpdate(index)"
       />
     </template>
     <template #header>
@@ -80,13 +81,8 @@ watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
   }
 });
 
-function handleHeightUpdate(matchId) {
-  const idx = matchListSorting.value.findIndex(
-    (m) => (m.matchId || m.id) === matchId
-  );
-  if (idx >= 0) {
-    swiperItemRef.value?.didUpdateVirtualListCell(idx);
-  }
+function handleHeightUpdate(index) {
+  // swiperItemRef.value?.didUpdateVirtualListCell(index);
 }
 
 function onListChange(list) {
@@ -111,7 +107,7 @@ function initRecentOptions() {
 
 function switchDate(dateStr) {
   currentPageDate.value = dateStr;
-  swiperItemRef.value?.reload();
+  swiperItemRef.value?.reload(true);
 }
 
 // 监听 pickerIndex 懒加载
@@ -119,7 +115,7 @@ watch(
   () => props.pickerIndex,
   (newVal) => {
     if (newVal === 2 && !firstLoaded) {
-      swiperItemRef.value?.reload();
+      swiperItemRef.value?.reload(true);
     }
   },
   { immediate: true }

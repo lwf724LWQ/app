@@ -6,9 +6,10 @@
     :auto="false"
     :useVirtualList="true"
     :useInnerList="true"
-    cell-height-mode="dynamic"
+    :cellHeightMode="'dynamic'"
     @query="onQuery"
     @listChange="onListChange"
+    :loading-more-enabled="false"
   >
     <template #cell="{ item, index }">
       <MatchScoreCard
@@ -81,12 +82,7 @@ watch([() => props.isActiveTab, footBallList], ([isActive, list]) => {
 });
 
 function handleHeightUpdate(matchId) {
-  const idx = matchListSorting.value.findIndex(
-    (m) => (m.matchId || m.id) === matchId
-  );
-  if (idx >= 0) {
-    swiperItemRef.value?.didUpdateVirtualListCell(idx);
-  }
+  
 }
 
 function onListChange(list) {
@@ -111,7 +107,7 @@ function initRecentOptions() {
 
 function switchDate(dateStr) {
   currentPageDate.value = dateStr;
-  swiperItemRef.value?.reload();
+  swiperItemRef.value?.reload(true);
 }
 
 // 监听 pickerIndex 懒加载
@@ -119,7 +115,7 @@ watch(
   () => props.pickerIndex,
   (newVal) => {
     if (newVal === 1 && !firstLoaded) {
-      swiperItemRef.value?.reload();
+      swiperItemRef.value?.reload(true);
     }
   },
   { immediate: true }
@@ -147,7 +143,7 @@ async function onQuery(pageNo, pageSize, from) {
 watch(
   () => props.searchParams,
   () => {
-    swiperItemRef.value?.reload();
+    swiperItemRef.value?.reload(true);
   },
   { deep: true }
 );
