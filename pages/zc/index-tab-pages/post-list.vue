@@ -3,6 +3,9 @@
     ref="swiperItemRef"
     :fixed="false"
     :auto="false"
+    use-virtual-list
+      :force-close-inner-list="true"
+    :cellHeightMode="'dynamic'"
     @query="onQuery"
   >
     <view class="prognosis-container">
@@ -10,7 +13,6 @@
         v-for="item in list"
         :key="item.id"
         :postData="item"
-        :badgeData="getUserBadgeData(item.account)"
         @postCard="openDetail(item)"
       />
     </view>
@@ -55,7 +57,6 @@ export default {
       },
       scratchBottomData: {},
       list: [],
-      UserBadgeAccuracyMap: {},
       isNeedRefresh: false,
       firstLoaded: false,
     };
@@ -71,9 +72,6 @@ export default {
     }
   },
   methods: {
-    getUserBadgeData(account) {
-      return this.UserBadgeAccuracyMap[account] || [];
-    },
     async openDetail(data) {
       if (tool.isLogin()) {
         uni.navigateTo({
@@ -112,8 +110,11 @@ export default {
           item.description = a.expertAnalysis;
         });
 
-        this.UserBadgeAccuracyMap = res.data.result || {};
-        this.list = res.data.list;
+        if (pageNo === 1) {
+          this.list = res.data.list;
+        } else {
+          this.list = [...this.list, ...res.data.list];
+        }
         this.$refs.swiperItemRef?.complete(this.list);
         this.firstLoaded = true;
       } catch (e) {

@@ -4,6 +4,7 @@
     :fixed="false"
     :auto="false"
     @query="onQuery"
+    :cellHeightMode="'dynamic'"
   >
     <view class="prognosis-container">
       <PrognosisCard
@@ -129,7 +130,11 @@ export default {
           });
         }
         this.UserBadgeAccuracyMap = res.data.result || {};
-        this.list = res.data.list;
+        if (pageNo === 1) {
+          this.list = res.data.list;
+        } else {
+          this.list = [...this.list, ...res.data.list];
+        }
         this.$refs.swiperItemRef?.complete(this.list);
         this.firstLoaded = true;
       } catch (e) {
