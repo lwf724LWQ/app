@@ -7,13 +7,13 @@
     :useVirtualList="true"
     :useInnerList="true"
     @query="onQuery"
+    cell-height-mode="dynamic"
   >
     <template #cell="{ item, index }">
       <MatchScoreCard
         :key="item.id"
         :match="item"
-        :expanded="expandedMatchIndex === index"
-        @toggle-expand="handleToggleExpand"
+        @height-update="handleHeightUpdate"
       />
     </template>
     <template #header>
@@ -65,9 +65,6 @@ const matchInfoList = ref([]);
 const currentPageDate = ref("");
 const recentOptions = ref([]);
 
-const expandedMatchId = ref(null);
-const expandedMatchIndex = ref(-1);
-
 const matchListSorting = computed(() => {
   return matchInfoList.value
     .filter(filterItem(props.searchParams))
@@ -81,17 +78,13 @@ watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
   }
 });
 
-function handleToggleExpand(matchId) {
-  if (expandedMatchId.value === matchId) {
-    expandedMatchId.value = null;
-    expandedMatchIndex.value = -1;
-    return;
-  }
-  expandedMatchId.value = matchId;
+function handleHeightUpdate(matchId) {
   const idx = matchListSorting.value.findIndex(
     (m) => (m.matchId || m.id) === matchId
   );
-  expandedMatchIndex.value = idx >= 0 ? idx : -1;
+  if (idx >= 0) {
+    swiperItemRef.value?.didUpdateVirtualListCell(idx);
+  }
 }
 
 function initRecentOptions() {
@@ -123,17 +116,6 @@ async function onQuery(pageNo, pageSize, from) {
     const res = await getFootBallList(currentPageDate.value, 2, "", getAccount());
     if (res.code === 200 && res.data && Array.isArray(res.data)) {
       matchInfoList.value = res.data;
-      if (expandedMatchId.value) {
-        const idx = matchListSorting.value.findIndex(
-          (m) => (m.matchId || m.id) === expandedMatchId.value
-        );
-        if (idx >= 0) {
-          expandedMatchIndex.value = idx;
-        } else {
-          expandedMatchId.value = null;
-          expandedMatchIndex.value = -1;
-        }
-      }
     }
     swiperItemRef.value?.complete(matchListSorting.value);
   } catch (error) {

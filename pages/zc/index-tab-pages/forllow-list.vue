@@ -5,6 +5,7 @@
     :tabIndex="5"
     :currentIndex="pickerIndex"
     @query="onQuery"
+    cell-height-mode="dynamic"
   >
     <view v-if="matchInfoList.length === 0 && !isLoading">
       <view class="no-data-container">
@@ -13,11 +14,7 @@
     </view>
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
-        <MatchScoreCard
-          :match="match"
-          :expanded="expandedMatchId === (match.matchId || match.id)"
-          @toggle-expand="handleToggleExpand"
-        />
+        <MatchScoreCard :match="match" />
       </view>
     </view>
   </z-paging-swiper-item>
@@ -55,20 +52,6 @@ const hasMore = ref(true);
 const currentPage = ref(1);
 const isNeedRefresh = ref(false);
 
-const expandedMatchId = ref(null);
-
-function handleToggleExpand(matchId) {
-  if (expandedMatchId.value === matchId) {
-    expandedMatchId.value = null;
-    return;
-  }
-  expandedMatchId.value = matchId;
-}
-
-function closeExpanded() {
-  expandedMatchId.value = null;
-}
-
 async function onQuery(pageNo, pageSize, from) {
   if (!getAccount()) {
     swiperItemRef.value?.complete([]);
@@ -90,14 +73,6 @@ async function onQuery(pageNo, pageSize, from) {
         matchInfoList.value = [...list];
       } else {
         matchInfoList.value = [...matchInfoList.value, ...list];
-      }
-      if (expandedMatchId.value) {
-        const stillExists = [...list].some(
-          (m) => (m.matchId || m.id) === expandedMatchId.value
-        );
-        if (!stillExists) {
-          closeExpanded();
-        }
       }
       userStore.setFollowCount(res.data.total);
       hasMore.value = list.length >= props.limit;
@@ -121,14 +96,6 @@ function updateMatchList(list) {
     }
   });
   matchInfoList.value = newArr;
-  if (expandedMatchId.value) {
-    const stillExists = newArr.some(
-      (m) => (m.matchId || m.id) === expandedMatchId.value
-    );
-    if (!stillExists) {
-      closeExpanded();
-    }
-  }
 }
 
 const userStore = useUserStore();
@@ -152,7 +119,6 @@ defineExpose({
   updateMatchList,
   refreshVideoList: () => swiperItemRef.value?.reload(),
   onshow,
-  closeExpanded,
 });
 </script>
 <style lang="scss" scoped>

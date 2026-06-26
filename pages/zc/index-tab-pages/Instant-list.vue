@@ -5,6 +5,7 @@
     :tabIndex="0"
     :currentIndex="pickerIndex"
     @query="onQuery"
+    cell-height-mode="dynamic"
   >
     <!-- 内容通过默认 slot 插入，展示日期分组列表 -->
     <template v-for="(item, index) in matchListWithDay" :key="item.datestr">
@@ -13,8 +14,6 @@
         v-for="(match, idx) in item.list"
         :key="match.id"
         :match="match"
-        :expanded="expandedMatchId === (match.matchId || match.id)"
-        @toggle-expand="handleToggleExpand"
       />
     </template>
     <view v-if="matchInfoList.length === 0 && !loading">
@@ -57,7 +56,6 @@ const emit = defineEmits(["updateMatchList"]);
 const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
 const loading = ref(false);
-const expandedMatchId = ref(null);
 
 const matchListSorting = computed(() => {
   return matchInfoList.value
@@ -100,18 +98,6 @@ watch(
   { deep: true }
 );
 
-function handleToggleExpand(matchId) {
-  if (expandedMatchId.value === matchId) {
-    expandedMatchId.value = null;
-    return;
-  }
-  expandedMatchId.value = matchId;
-}
-
-function closeExpanded() {
-  expandedMatchId.value = null;
-}
-
 async function onQuery(pageNo, pageSize, from) {
   try {
     loading.value = true;
@@ -138,12 +124,6 @@ async function onQuery(pageNo, pageSize, from) {
       const counArr = [...Videoinfo.data, ...videoInfo2];
       matchInfoList.value = counArr;
       emit("updateMatchList", counArr);
-      if (expandedMatchId.value) {
-        const stillExists = counArr.some((m) => (m.matchId || m.id) === expandedMatchId.value);
-        if (!stillExists) {
-          closeExpanded();
-        }
-      }
     }
 
     swiperItemRef.value?.complete(matchInfoList.value);
@@ -167,10 +147,6 @@ onBeforeUnmount(() => {
     clearInterval(refreshTimer);
     refreshTimer = null;
   }
-});
-
-defineExpose({
-  closeExpanded,
 });
 </script>
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 <template>
-  <view class="match-card" :class="{ 'score-flash': isFlashing }" @click.stop="onScoreClick">
+  <view class="match-card" :class="{ 'score-flash': isFlashing }">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
       <view class="league-name">{{ match.leagueChsShort }}</view>
@@ -58,14 +58,8 @@
     </view>
 
     <!-- 球赛事件列表：左右分栏 -->
-    <view class="events-container" v-if="expanded">
-      <view class="events-loading" v-if="eventsLoading">
-        <text>加载中...</text>
-      </view>
-      <view class="events-empty" v-else-if="displayEvents.length === 0">
-        <text>暂无事件数据</text>
-      </view>
-      <view class="events-columns" v-else>
+    <view class="events-container" v-if="displayEvents.length">
+      <view class="events-columns" >
         <!-- 主队事件（左列） -->
         <view class="events-column home-column">
           <view class="event-item" v-for="event in homeEvents" :key="event.id">
@@ -120,24 +114,16 @@ function addTimer(cb){
 
 export default {
   props: {
-    match: { type: Object },
-    expanded: {
-      type: Boolean,
-      default: false
-    }
+    match: { type: Object }
   },
-  emits: ['toggle-expand'],
+  emits: ['height-update'],
   data() {
     return {
       isFavorite: false,
       isFlashing: false,
       timerIndex: false,
 
-      nowTime: new Date(),
-
-      events: [],
-      eventsLoading: false,
-      baseHeight: 0
+      nowTime: new Date()
     };
   },
   watch: {
@@ -152,11 +138,6 @@ export default {
             newMatch.homeYellow != oldMatch.homeYellow ||
             newMatch.awayYellow != oldMatch.awayYellow
           ) {
-
-            // 比赛变化且处于展开状态时，重新请求事件列表
-            if(this.expanded){
-              this.fetchEvents();
-            }
             this.scoreUpdate();
           }
 
@@ -170,15 +151,29 @@ export default {
       },
       deep: true,
     },
-    expanded(newVal) {
-      if (newVal) {
-        this.fetchEvents();
-      } else {
-        this.events = [];
-      }
+    displayEvents: {
+      handler(events) {
+        if (events && events.length > 0) {
+          this.$nextTick(() => {
+            this.notifyHeightUpdate();
+          });
+        }
+      },
+      immediate: true
     }
   },
   computed: {
+    events(){
+      try {
+        if (this.match?.matchInfo?.minfo) {
+          return JSON.parse(this.match?.matchInfo?.minfo)
+        } 
+      } catch (error) {
+        
+      }
+
+      return []
+    },
     isInProgress() {
       return [-1, 1, 2, 3, 4, 5].includes(this.match.mstate);
     },
@@ -335,30 +330,6 @@ export default {
     }
   },
   methods: {
-    onScoreClick() {
-      if (!this.isInProgress) return;
-      this.$emit('toggle-expand', this.match.matchId || this.match.id);
-    },
-    async fetchEvents() {
-      if (this.eventsLoading) return;
-      this.eventsLoading = true;
-      try {
-        const matchId = this.match.matchId || this.match.id;
-        const res = await getFootBallEvent(matchId);
-        if (res.code === 200 && res.data) {
-          const events = JSON.parse(res.data.minfo)
-          console.log(events)
-          this.events = events;
-        }else{
-          this.events = [];
-        }
-      } catch (error) {
-        console.error("获取球赛事件失败:", error);
-        this.events = [];
-      } finally {
-        this.eventsLoading = false;
-      }
-    },
     scoreUpdate() {
       this.isFlashing = true;
       setTimeout(() => {
@@ -454,9 +425,8 @@ export default {
         winner,            // 获胜方: 1=主队获胜, 2=客队获胜
       };
     },
-    // 供父组件调用关闭事件列表
-    closeEvents() {
-      this.$emit('toggle-expand', null);
+    notifyHeightUpdate() {
+      this.$emit('height-update', this.match.matchId || this.match.id);
     },
     getEventIcon(kind) {
       const icons = {
@@ -477,10 +447,6 @@ export default {
     this.timerIndex = addTimer((time)=>{
       this.nowTime = time
     })
-
-    if(this.expanded){
-      this.fetchEvents();
-    }
   },
   unmounted(){
     closeTimer(this.timerIndex)
@@ -672,14 +638,33 @@ export default {
 }
   .events-columns {
     display: flex;
-    justify-content: space-evenly;
     font-size: 20rpx;
     .events-column{
+      flex: 1;
+      &.home-column{
+        margin-right: 50rpx;
+        .event-item{
+          justify-content: flex-end;
+          &::after{
+            right: 11rpx;
+          }
+        }      
+      }
+      &.away-column{
+        .event-item{
+          &::after{
+            left: 11rpx;
+          }
+        }
+      }
     }
+    
   .event-item {
     display: flex;
     align-items: center;
     padding: 8rpx 0;
+    
+      position: relative;
     .event-time{
       margin: 0 8rpx;
     }
@@ -689,17 +674,16 @@ export default {
       width: 10rpx;
       height: 10rpx;
       margin:0 8rpx;
-      position: relative;
     }
 
-    &:not(:last-child) .poi::after{
-        position: absolute;
-        content: "";
-        height: 50rpx;
-        left: 4rpx;
-        width:3rpx;
-        background-color: #d6d6d6;
-      }
+    &:not(:last-child)::after{
+      position: absolute;
+      content: "";
+      height: 100%;
+      top: 50%;
+      width:3rpx;
+      background-color: #d6d6d6;
+    }
   }
   
   
