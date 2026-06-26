@@ -22,21 +22,16 @@
       </view>
     </view>
     <view v-if="matchInfoList.length > 0 && !hasMore" class="no-more">— 没有更多了 —</view>
-
-    <!-- 进球/红黄牌底部弹窗通知 -->
-    <MatchEventNotification ref="eventNotificationRef" />
   </z-paging-swiper-item>
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount, watch } from "vue";
+import { ref, watch } from "vue";
 import { forllowFootballList } from "@/api/apis";
 import { getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
-import MatchEventNotification from "@/components/MatchEventNotification.vue";
 
-const eventNotificationRef = ref(null);
 const swiperItemRef = ref(null);
 
 const props = defineProps({
@@ -149,10 +144,6 @@ watch(
   },
   { immediate: true }
 );
-
-onBeforeUnmount(() => {
-  eventNotificationRef.value?.destroy();
-});
 
 function onshow() {
   if (isNeedRefresh.value) {
