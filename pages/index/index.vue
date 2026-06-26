@@ -577,23 +577,15 @@ export default {
       
     },
     openShijiebei(){
+      uni.setStorageSync("toShijiebei", true)
       uni.switchTab({
-        url: "/pages/zc/index",
-        success: function(){
-          setTimeout(()=>{
-            uni.$emit("openOnlyShijiebei")
-          }, 1000)
-        }
+        url: "/pages/zc/index"
       })
     },
     goToZcPostList(){
+      uni.setStorageSync("openZcPostList", true)
       uni.switchTab({
-        url: "/pages/zc/index",
-        success: function(){
-          setTimeout(()=>{
-            uni.$emit("openZcPostList")
-          }, 1000)
-        }
+        url: "/pages/zc/index"
       })
     },
     selectLotteryType(lotteryName){

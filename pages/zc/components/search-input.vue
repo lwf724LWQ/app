@@ -208,7 +208,9 @@ function toShijiebei(){
   closeIndexedList()
 }
 
+
 defineExpose({
+  toShijiebei
 });
 </script>
 

@@ -221,6 +221,18 @@ const prognosisRef = ref(null);
 
 const pageIsShow = ref(false);
 onShow((e) => {
+  if (uni.getStorageSync("openZcPostList")) {
+    nextTick(()=>{
+      pickerIndex.value = 4
+    })
+    uni.setStorageSync("openZcPostList", false)
+  }
+  if(uni.getStorageSync("toShijiebei")){
+    uni.setStorageSync("toShijiebei", false)
+    nextTick(()=>{
+      searchInputRef.value.toShijiebei()
+    })
+  }
   pageIsShow.value = true;
   nextTick(() => {
     postListRef.value?.onshow();
@@ -291,10 +303,6 @@ matchList.leagueListChangeCallback(function (list) {
     return;
   }
   leagueListWithPinyin.value = list;
-});
-
-uni.$on("openZcPostList", () => {
-  pickerIndex.value = 4;
 });
 
 onUnmounted(() => {
