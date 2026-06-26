@@ -53,7 +53,7 @@
       </view>
     </view>
 
-    <view class="extraExplainStr">
+    <view class="extraExplainStr" v-if="extraExplainStr">
       {{ extraExplainStr }}
     </view>
 
@@ -244,7 +244,7 @@ export default {
     },
     extraExplainStr(){
       const extraExplainObj = this.formatExtraExplain(this.match.extraExplain);
-      let str = "-"
+      let str = ""
       if (extraExplainObj) {
         if(extraExplainObj.kickoff){
           const kickoff = extraExplainObj.kickoff
