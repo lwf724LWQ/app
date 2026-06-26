@@ -14,7 +14,6 @@
         :match="item"
         :expanded="expandedMatchIndex === index"
         @toggle-expand="handleToggleExpand"
-        @height-change="handleHeightChange"
       />
     </template>
     <template #header>
@@ -93,10 +92,6 @@ function handleToggleExpand(matchId) {
     (m) => (m.matchId || m.id) === matchId
   );
   expandedMatchIndex.value = idx >= 0 ? idx : -1;
-}
-
-function handleHeightChange({ matchId, extraHeight: h }) {
-  // z-paging 虚拟列表模式下预留
 }
 
 function initRecentOptions() {

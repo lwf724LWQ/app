@@ -15,7 +15,6 @@
         :match="match"
         :expanded="expandedMatchId === (match.matchId || match.id)"
         @toggle-expand="handleToggleExpand"
-        @height-change="handleHeightChange"
       />
     </template>
     <view v-if="matchInfoList.length === 0 && !loading">
@@ -108,8 +107,6 @@ function handleToggleExpand(matchId) {
   }
   expandedMatchId.value = matchId;
 }
-
-function handleHeightChange({ matchId, extraHeight }) {}
 
 function closeExpanded() {
   expandedMatchId.value = null;

@@ -17,11 +17,9 @@
           :match="match"
           :expanded="expandedMatchId === (match.matchId || match.id)"
           @toggle-expand="handleToggleExpand"
-          @height-change="handleHeightChange"
         />
       </view>
     </view>
-    <view v-if="matchInfoList.length > 0 && !hasMore" class="no-more">— 没有更多了 —</view>
   </z-paging-swiper-item>
 </template>
 
@@ -66,8 +64,6 @@ function handleToggleExpand(matchId) {
   }
   expandedMatchId.value = matchId;
 }
-
-function handleHeightChange({ matchId, extraHeight }) {}
 
 function closeExpanded() {
   expandedMatchId.value = null;
