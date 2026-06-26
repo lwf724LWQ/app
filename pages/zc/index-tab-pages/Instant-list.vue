@@ -1,29 +1,15 @@
 <template>
-  <!-- 即时列表 -->
-  <scroll-view
-    class="scroll-view"
-    :scroll-y="true"
-    :show-scrollbar="false"
-    :refresher-enabled="true"
-    :refresher-triggered="refresher"
-    :lower-threshold="150"
-    :scroll-top="scrollTop"
-    @refresherrefresh="fetchVideoList"
-    @scrolltolower="loadMore"
-    @scroll="scroll"
-    :data="matchListSorting"
-    :item-height="itemHeight"
+  <!-- 即时列表 - 使用 z-paging-swiper-item，内部 z-paging 处理滚动 -->
+  <z-paging-swiper-item
+    ref="swiperItemRef"
+    :tabIndex="0"
+    :currentIndex="pickerIndex"
+    @query="onQuery"
   >
-    <view v-if="matchListSorting.length === 0">
-      <view class="no-data-container">
-        <view class="no-data-text">暂无数据</view>
-      </view>
-    </view>
-    <template
-      v-for="(item, index) in matchListWithDay"
-    >
-    <view class="matchdatestr">{{ item.datestr }}</view>
-    <MatchScoreCard
+    <!-- 内容通过默认 slot 插入，展示日期分组列表 -->
+    <template v-for="(item, index) in matchListWithDay" :key="item.datestr">
+      <view class="matchdatestr">{{ item.datestr }}</view>
+      <MatchScoreCard
         v-for="(match, idx) in item.list"
         :key="match.id"
         :match="match"
@@ -31,90 +17,90 @@
         @toggle-expand="handleToggleExpand"
         @height-change="handleHeightChange"
       />
-  </template>
-     
-  </scroll-view>
+    </template>
+    <view v-if="matchInfoList.length === 0 && !loading">
+      <view class="no-data-container">
+        <view class="no-data-text">暂无数据</view>
+      </view>
+    </view>
+  </z-paging-swiper-item>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { getFootBallList } from "@/api/apis";
-import { getToken, getAccount } from "@/utils/request.js";
-import { useUserStore } from "@/stores/userStore";
+import { getAccount } from "@/utils/request.js";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
 import { useMatchList, filterItem } from "../matchListHooks.js";
-import CustomVirtualList from '@/components/custom-virtual-list/list.vue';
 
-// 接收的props
 const props = defineProps({
-  limit: {
+  pickerIndex: {
     type: Number,
-    default: 10,
+    default: 0
   },
   isActiveTab: {
     type: Boolean,
-    default: -1
+    default: false
   },
   searchParams: {
     type: Object,
-    default: {
+    default: () => ({
       keyword: "",
-      leagueList: []
-    }
+      leagueList: [],
+      onlyShijiebei: false
+    })
   }
 });
 
-const itemHeight = ref(uni.upx2px(160))
+const emit = defineEmits(["updateMatchList"]);
 
-// 定义事件
-const emit = defineEmits(["video-click", "updateMatchList"]);
-
-// 响应式数据
+const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
-const isLoading = ref(false);
-
-const currentPageDate = ref(new Date());
-
-// 展开状态管理
+const loading = ref(false);
 const expandedMatchId = ref(null);
 
 const matchListSorting = computed(() => {
-  return matchInfoList.value.filter(filterItem(props.searchParams)).sort((a,b) => dayjs(a.matchTime) - dayjs(b.matchTime)).sort((a, b) => b.flag - a.flag);
+  return matchInfoList.value
+    .filter(filterItem(props.searchParams))
+    .sort((a, b) => dayjs(a.matchTime) - dayjs(b.matchTime))
+    .sort((a, b) => b.flag - a.flag);
 });
 
 const matchListWithDay = computed(() => {
-  const dayList = []
+  const dayList = [];
   for (let index = 0; index < matchListSorting.value.length; index++) {
     const element = matchListSorting.value[index];
-    const formatDataStr = dayjs(element.matchTime).format("YYYY/MM/DD dddd")
-    const daylistitem = dayList.find(i => i.datestr === formatDataStr)
+    const formatDataStr = dayjs(element.matchTime).format("YYYY/MM/DD dddd");
+    const daylistitem = dayList.find((i) => i.datestr === formatDataStr);
     if (daylistitem) {
-      daylistitem.list.push(element)
-    }else{
+      daylistitem.list.push(element);
+    } else {
       dayList.push({
         datestr: formatDataStr,
-        list: [element]
-      })
+        list: [element],
+      });
     }
   }
-  return dayList
-})
+  return dayList;
+});
 
-const matchListHooks = useMatchList()
+const matchListHooks = useMatchList();
 watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
   if (isActive) {
-    matchListHooks.setMatchList(list)
+    matchListHooks.setMatchList(list);
   }
-})
+});
 
-watch(() => props.searchParams, (newVal, oldVal) => {
-  if(newVal.onlyShijiebei != oldVal.onlyShijiebei){
-    fetchVideoList()
-  }
-})
+// 监听 searchParams 变化，重新加载列表
+watch(
+  () => props.searchParams,
+  () => {
+    swiperItemRef.value?.reload();
+  },
+  { deep: true }
+);
 
-// 处理展开/收起切换
 function handleToggleExpand(matchId) {
   if (expandedMatchId.value === matchId) {
     expandedMatchId.value = null;
@@ -123,190 +109,59 @@ function handleToggleExpand(matchId) {
   expandedMatchId.value = matchId;
 }
 
-// 处理高度变化（Instant-list 不使用虚拟列表，所以不需要 extraHeight 重新计算）
-function handleHeightChange({ matchId, extraHeight }) {
-  // 这里不需要重新计算虚拟列表高度，因为 Instant-list 使用普通 scroll-view
-}
+function handleHeightChange({ matchId, extraHeight }) {}
 
-// 提供关闭方法
 function closeExpanded() {
   expandedMatchId.value = null;
 }
 
-// 刷新视频列表
-const refreshVideoList = async () => {
-  await fetchVideoList(1);
-};
-
-// 加载更多
-const loadMore = async () => {
-  if (isLoading.value) return;
-  await fetchVideoList();
-};
-
-const formatDate = (date) => {
-  const d = new Date(date);
-  return `${d.getMonth() + 1}月${d.getDate()}日`;
-};
-
-const oldScrollTop = ref(0);
-function scroll(e) {
-  oldScrollTop.value = e.detail.scrollTop;
-}
-const scrollTop = ref(0);
-const refresher = ref(false);
-// 获取视频列表的函数
-const fetchVideoList = async (isShowRefresher = true) => {
+async function onQuery(pageNo, pageSize, from) {
   try {
-    if (isLoading.value) return;
-    isLoading.value = true;
-    refresher.value = isShowRefresher;
-    // 构建请求参数
-    currentPageDate.value = dayjs(new Date());
-    const fdateStr = currentPageDate.value.format("YYYY/M/D");
-    let onlyShijiebei = props.searchParams.onlyShijiebei;
-    
+    loading.value = true;
+    const currentPageDate = dayjs(new Date());
+    const fdateStr = currentPageDate.format("YYYY/M/D");
+    const onlyShijiebei = props.searchParams.onlyShijiebei;
 
-    const Videoinfo = onlyShijiebei ? await getFootBallList("", 0, "世界杯", getAccount())
-                                    : await getFootBallList(fdateStr, 0, "", getAccount());
-    let videoInfo2 = []
-    const fdateStr2 = dayjs(new Date()).add(1, "day").format("YYYY/M/D")
+    const Videoinfo = onlyShijiebei
+      ? await getFootBallList("", 0, "世界杯", getAccount())
+      : await getFootBallList(fdateStr, 0, "", getAccount());
+
+    let videoInfo2 = [];
+    const fdateStr2 = dayjs(new Date()).add(1, "day").format("YYYY/M/D");
     if (!onlyShijiebei) {
       try {
-       const res = await getFootBallList(fdateStr2, 0, "", getAccount())
-        if(res.code === 200 && res.data && res.data instanceof Array){
-          videoInfo2 = res.data
-        } 
-      } catch (error) {
-        
-      }
+        const res = await getFootBallList(fdateStr2, 0, "", getAccount());
+        if (res.code === 200 && res.data && res.data instanceof Array) {
+          videoInfo2 = res.data;
+        }
+      } catch (error) {}
     }
-    
 
     if (Videoinfo.code === 200 && Videoinfo.data && Array.isArray(Videoinfo.data)) {
-      const counArr = [...Videoinfo.data, ...videoInfo2]
+      const counArr = [...Videoinfo.data, ...videoInfo2];
       matchInfoList.value = counArr;
       emit("updateMatchList", counArr);
-      // 数据更新后，如果之前有展开的matchId，检查是否还存在
       if (expandedMatchId.value) {
-        const stillExists = counArr.some(m => (m.matchId || m.id) === expandedMatchId.value);
+        const stillExists = counArr.some((m) => (m.matchId || m.id) === expandedMatchId.value);
         if (!stillExists) {
           closeExpanded();
         }
       }
-    } else {
-      console.warn("API 返回数据格式不符合预期:", Videoinfo);
-      uni.showToast({
-        title: Videoinfo.msg || "数据格式错误",
-        icon: "none",
-      });
     }
+
+    swiperItemRef.value?.complete(matchInfoList.value);
   } catch (error) {
-    console.error("获取视频失败:", error);
-    if (currentPage.value === 1) {
-      uni.showToast({
-        title: "获取视频失败，请检查网络",
-        icon: "none",
-      });
-    }
+    console.error("获取即时列表失败:", error);
+    swiperItemRef.value?.complete([]);
   } finally {
-     
-      isLoading.value = false;
-    setTimeout(() => {
-       
-    refresher.value = false;
-    }, 150);
-
-    // 停止下拉刷新
-    uni.stopPullDownRefresh();
-  }
-};
-
-// 播放视频方法 - 新增付费检查
-const userStore = useUserStore();
-const playVideo = async (video) => {
-  const token = getToken();
-
-  if (userStore.videoCount <= 0 && !token && video.flag) {
-    uni.showModal({
-      title: "提示",
-      content: "付费视频观看次数已用完，需要注册才能继续观看",
-      success: async (res) => {
-        if (res.confirm) {
-          uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
-        }
-      },
-      showCancel: true,
-    });
-    return;
-  }
-
-  // 记录视频已经点击过
-  recodeVideoId(video);
-
-  // 将当前视频保存到 Pinia store
-  videoStore.setCurrentVideo(video);
-  uni.navigateTo({
-    url: `/pages/video/play?id=${video.id}`,
-  });
-};
-
-// 记录视频已经点击过
-function recodeVideoId(video) {
-  try {
-    const r = uni.getStorageSync("videoClickList") || [];
-    r.push(video.id);
-    video.isClicked = true;
-    uni.setStorageSync("videoClickList", r);
-  } catch (error) {}
-}
-function videoMenu(video) {
-  if (video.account == getAccount()) {
-    uni.showActionSheet({
-      itemList: ["删除"],
-      success: async (res) => {
-        if (res.tapIndex === 0) {
-          uni.showLoading({
-            title: "正在处理...",
-          });
-          await delVideo(video.id)
-            .then((res) => {
-              uni.showToast({
-                title: "删除成功",
-                icon: "success",
-              });
-
-              videoList.value = videoList.value.filter((item) => item.id !== video.id);
-            })
-            .catch((res) => {
-              uni.showToast({
-                title: "删除失败",
-                icon: "error",
-              });
-            });
-          uni.hideLoading();
-        }
-      },
-    });
+    loading.value = false;
   }
 }
 
-// 监听类型变化，重新获取数据
-watch(
-  () => props.videoType,
-  (newType) => {
-    refreshVideoList(false);
-  },
-  { immediate: true }
-);
-
-// 组件挂载时加载数据
 let refreshTimer = null;
 onMounted(() => {
-  refreshVideoList();
-  // 每5秒自动刷新
   refreshTimer = setInterval(() => {
-    refreshVideoList();
+    swiperItemRef.value?.reload();
   }, 5000);
 });
 
@@ -315,80 +170,22 @@ onBeforeUnmount(() => {
     clearInterval(refreshTimer);
     refreshTimer = null;
   }
-  // eventNotificationRef.value?.destroy();
 });
 
-// 暴露 refreshVideoList 函数给父组件
 defineExpose({
-  refreshVideoList,
   closeExpanded,
 });
 </script>
 <style lang="scss" scoped>
-.area {
-  padding: 10rpx;
-  display: grid;
-  grid-template-columns: 1fr;
-  /* 两列等宽 */
-  gap: 10rpx;
-  /* 间距 */
-  .title {
-    min-width: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10rpx;
-    box-sizing: border-box;
-  }
-}
-
-.video-image {
-  width: 100%;
-  height: 200rpx;
-}
-
-.video-title {
-  padding: 10rpx 20rpx 5rpx 20rpx;
-  flex: 1;
-  font-size: 32rpx;
-  font-weight: bold;
-}
-
-.video-clicked {
-  .video-title {
-    color: #192afe;
-  }
-}
-
-.video-info {
-  padding: 5rpx 20rpx;
-  > text {
-    padding: 5rpx 10rpx;
-    border-radius: 6rpx;
-    font-size: 26rpx;
-  }
-
-  .video-price {
-    background-color: #e74c3c;
-    color: #fff;
-  }
-
-  .video-free {
-    background-color: #2ecc71;
-    color: #fff;
-  }
-}
-
 .scroll-view {
   height: 100%;
 }
 
-.matchdatestr{
+.matchdatestr {
   text-align: center;
   font-size: 24rpx;
   background-color: #ececec;
   padding: 8rpx 0;
-   
 }
 
 .no-data-container {
@@ -398,39 +195,5 @@ defineExpose({
     color: #666;
     margin-top: 50rpx;
   }
-}
-
-.loading-more,
-.no-more {
-  text-align: center;
-  padding: 20rpx;
-  color: #999;
-  font-size: 28rpx;
-  padding-bottom: 150rpx;
-}
-
-.day-header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-
-  background-color: #fff;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
-}
-
-.day-title {
-  font-size: 28rpx;
-  color: #666;
-  font-weight: 500;
-}
-
-.day-count {
-  font-size: 24rpx;
-  color: #999;
 }
 </style>

@@ -2,7 +2,6 @@
   <view class="match-card" :class="{ 'score-flash': isFlashing }" @click.stop="onScoreClick">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
-      <text class="match-status"></text>
       <view class="league-name">{{ match.leagueChsShort }}</view>
       <text class="match-time">{{ matchTime }}</text>
       <text class="match-status" :class="statusClass">{{ matchStatus }}</text>
@@ -241,7 +240,7 @@ export default {
       if ([0, -10, -11, -12, -13, -14].includes(this.match.mstate)) {
         return false;
       } else {
-        return `${this.match.homeScore}:${this.match.awayScore}`;
+        return `${this.match.homeScore} - ${this.match.awayScore}`;
       }
     },
     extraExplainStr(){
@@ -299,7 +298,7 @@ export default {
       });
       // 第二遍：反向遍历分配序号，remaining 从最大值递减到 1
       const remaining = { ...totals };
-      return this.events.slice().reverse().map(event => {
+      return this.events.filter(item => [1,7,8,14].includes(item.kind)).slice().reverse().map(event => {
         const kind = event.kind;
         const side = event.isHome ? 'home' : 'away';
         const key = side + '_' + kind;
@@ -526,8 +525,9 @@ export default {
 .footer {
   display: flex;
   align-items: center;
-  font-size: 24rpx;
+  font-size: 26rpx;
   position: relative;
+  margin-bottom: 8rpx;
 
   & > :first-child,
   & > :last-child {
@@ -543,8 +543,6 @@ export default {
 }
 
 .league-name {
-  position: absolute;
-  left: 20rpx;
   color: #5c5c5c;
 }
 
@@ -568,9 +566,9 @@ export default {
   align-items: center;
   flex: 1;
 
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 30rpx;
+  font-weight:normal;
+  color: #111;
 }
 
 .league-icon {
@@ -583,6 +581,7 @@ export default {
   margin: 0 20rpx;
   text-align: center;
   &.no-score .score {
+    font-size: 38rpx;
     color: #4caf50;
   }
   &.clickable {
@@ -591,8 +590,8 @@ export default {
 }
 
 .score {
-  font-size: 36rpx;
-  font-weight: 800;
+  font-size: 58rpx;
+  font-weight: lighter;
   color: #ff4d4f;
 }
 

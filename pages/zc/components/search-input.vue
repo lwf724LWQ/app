@@ -283,11 +283,11 @@ defineExpose({
 
 /* 索引列表面板 */
 .indexed-panel {
-  position: fixed;
-  bottom: 0;
+  position: absolute;
   left: 0;
   right: 0;
   top: 20%;
+  bottom: 0;
   z-index: 999;
   background-color: #fff;
   border-radius: 24rpx 24rpx 0 0;
