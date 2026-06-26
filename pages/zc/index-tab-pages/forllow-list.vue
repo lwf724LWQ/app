@@ -4,8 +4,11 @@
     ref="swiperItemRef"
     :fixed="false"
     :auto="false"
-    @query="onQuery"
+    use-virtual-list
+    :force-close-inner-list="true"
     :cellHeightMode="'dynamic'"
+    @query="onQuery"
+    @virtualListChange="virtualListChange"
   >
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
@@ -56,6 +59,10 @@ watch(
   { immediate: true }
 );
 
+function virtualListChange(vList) {
+  matchInfoList.value = vList;
+}
+
 async function onQuery(pageNo, pageSize, from) {
   if (!getAccount()) {
     swiperItemRef.value?.complete([]);
@@ -71,15 +78,11 @@ async function onQuery(pageNo, pageSize, from) {
 
     if (res.code === 200 && res.data && Array.isArray(res.data.list)) {
       const list = res.data.list.map((item) => ({ ...item, flag: true }));
-      if (pageNo === 1) {
-        matchInfoList.value = [...list];
-      } else {
-        matchInfoList.value = [...matchInfoList.value, ...list];
-      }
       userStore.setFollowCount(res.data.total);
+      swiperItemRef.value?.complete(list);
     }
 
-    swiperItemRef.value?.complete(matchInfoList.value);
+    
     firstLoaded = true;
   } catch (error) {
     console.error("获取关注列表失败:", error);
