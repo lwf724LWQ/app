@@ -1,13 +1,14 @@
 <template>
-  <!-- 赛果列表 - 使用 z-paging-swiper-item 虚拟列表 -->
-  <z-paging-swiper-item
+  <!-- 赛果列表 - 使用 z-paging 虚拟列表 -->
+  <z-paging
     ref="swiperItemRef"
-    :tabIndex="2"
-    :currentIndex="pickerIndex"
+    :fixed="false"
+    :auto="false"
     :useVirtualList="true"
     :useInnerList="true"
-    @query="onQuery"
     cell-height-mode="dynamic"
+    @query="onQuery"
+    @listChange="onListChange"
   >
     <template #cell="{ item, index }">
       <MatchScoreCard
@@ -30,7 +31,7 @@
         </view>
       </view>
     </template>
-  </z-paging-swiper-item>
+  </z-paging>
 </template>
 
 <script setup>
@@ -64,6 +65,7 @@ const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
 const currentPageDate = ref("");
 const recentOptions = ref([]);
+let firstLoaded = false;
 
 const matchListSorting = computed(() => {
   return matchInfoList.value
@@ -87,6 +89,10 @@ function handleHeightUpdate(matchId) {
   }
 }
 
+function onListChange(list) {
+  // list change callback
+}
+
 function initRecentOptions() {
   recentOptions.value = [];
   const nowDate = dayjs();
@@ -108,6 +114,17 @@ function switchDate(dateStr) {
   swiperItemRef.value?.reload();
 }
 
+// 监听 pickerIndex 懒加载
+watch(
+  () => props.pickerIndex,
+  (newVal) => {
+    if (newVal === 2 && !firstLoaded) {
+      swiperItemRef.value?.reload();
+    }
+  },
+  { immediate: true }
+);
+
 async function onQuery(pageNo, pageSize, from) {
   if (!currentPageDate.value) {
     initRecentOptions();
@@ -118,9 +135,11 @@ async function onQuery(pageNo, pageSize, from) {
       matchInfoList.value = res.data;
     }
     swiperItemRef.value?.complete(matchListSorting.value);
+    firstLoaded = true;
   } catch (error) {
     console.error("获取赛果列表失败:", error);
     swiperItemRef.value?.complete([]);
+    firstLoaded = true;
   }
 }
 
