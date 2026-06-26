@@ -89,7 +89,7 @@ watch(
   () => props.pickerIndex,
   (newVal) => {
     if (newVal === 0 && !firstLoaded) {
-      swiperItemRef.value?.reload();
+      swiperItemRef.value?.reload(true);
     }
   },
   { immediate: true }
@@ -99,7 +99,7 @@ watch(
 watch(
   () => props.searchParams,
   () => {
-    swiperItemRef.value?.reload();
+    swiperItemRef.value?.reload(true);
   },
   { deep: true }
 );
@@ -140,19 +140,10 @@ async function onQuery(pageNo, pageSize, from) {
   }
 }
 
-let refreshTimer = null;
 onMounted(() => {
-  refreshTimer = setInterval(() => {
-    swiperItemRef.value?.reload();
-  }, 5000);
+  swiperItemRef.value?.reload(true);
 });
 
-onBeforeUnmount(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
-  }
-});
 </script>
 <style lang="scss" scoped>
 .matchdatestr {
