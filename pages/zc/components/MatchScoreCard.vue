@@ -69,25 +69,19 @@
         <!-- 主队事件（左列） -->
         <view class="events-column home-column">
           <view class="event-item" v-for="event in homeEvents" :key="event.id">
-            <view class="event-info">
-              <text class="event-count">{{ event.countLabel }}</text>
-              <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
-              <text class="event-player">{{ event.nameChs }}</text>
-            </view>
+            <text class="event-player">{{ event.nameChs }}</text>
             <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
-            <view class="event-indicator home"></view>
+            <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
+            <view class="poi"></view>
           </view>
         </view>
         <!-- 客队事件（右列） -->
         <view class="events-column away-column">
           <view class="event-item" v-for="event in awayEvents" :key="event.id">
-            <view class="event-indicator away"></view>
+            <view class="poi"></view>
+            <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
             <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
-            <view class="event-info">
-              <text class="event-count">{{ event.countLabel }}</text>
-              <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
-              <text class="event-player">{{ event.nameChs }}</text>
-            </view>
+            <text class="event-player">{{ event.nameChs }}</text>
           </view>
         </view>
       </view>
@@ -670,119 +664,44 @@ export default {
 }
 
 // 事件列表样式
-  .events-container {
-  margin-top: 10rpx;
-  padding-top: 10rpx;
-  border-top: 1rpx dashed #e0e0e0;
-
-  .events-loading,
-  .events-empty {
-    text-align: center;
-    padding: 20rpx;
-    color: #999;
-    font-size: 24rpx;
-  }
-
+.events-empty{
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 24rpx;
+}
   .events-columns {
     display: flex;
-    flex-direction: row;
-  }
-
-  .events-column {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .home-column {
-    padding-right: 15rpx;
-
-    .event-item {
-      flex-direction: row-reverse;
+    justify-content: space-evenly;
+    font-size: 20rpx;
+    .events-column{
     }
-
-    .event-info {
-      flex-direction: row-reverse;
-      text-align: right;
-    }
-
-    .event-indicator {
-      margin-right: 0;
-      margin-left: 8rpx;
-    }
-
-    .event-time {
-      text-align: right;
-    }
-
-    .event-count {
-      margin-right: 0;
-      margin-left: 6rpx;
-    }
-
-    .event-icon-text {
-      margin-right: 0;
-      margin-left: 8rpx;
-    }
-  }
-
-  .away-column {
-    padding-left: 15rpx;
-  }
-
   .event-item {
     display: flex;
     align-items: center;
     padding: 8rpx 0;
-
-    .event-indicator {
-      width: 12rpx;
-      height: 12rpx;
+    .event-time{
+      margin: 0 8rpx;
+    }
+    .poi{
+      background-color: #d6d6d6;
       border-radius: 50%;
-      flex-shrink: 0;
-      margin-right: 8rpx;
+      width: 10rpx;
+      height: 10rpx;
+      margin:0 8rpx;
+      position: relative;
+    }
 
-      &.home {
-        background-color: #ff4d4f;
+    &:not(:last-child) .poi::after{
+        position: absolute;
+        content: "";
+        height: 50rpx;
+        left: 4rpx;
+        width:3rpx;
+        background-color: #d6d6d6;
       }
-      &.away {
-        background-color: #007df9;
-      }
-    }
-
-    .event-time {
-      width: 60rpx;
-      flex-shrink: 0;
-      color: #999;
-      font-size: 22rpx;
-    }
-
-    .event-info {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      min-width: 0;
-    }
-
-    .event-count {
-      margin-right: 6rpx;
-      color: #666;
-      font-size: 22rpx;
-      flex-shrink: 0;
-    }
-
-    .event-icon-text {
-      margin-right: 6rpx;
-      font-size: 26rpx;
-      flex-shrink: 0;
-    }
-
-    .event-player {
-      color: #333;
-      font-size: 24rpx;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
+  
+  
 }
 </style>
