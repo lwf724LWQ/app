@@ -7,7 +7,7 @@
       ref="pagingRef"
       use-virtual-list
       :force-close-inner-list="true"
-      :cell-height-mode="dynamic"
+      :cell-height-mode="'dynamic'"
       @query="queryList"
       @virtualListChange="virtualListChange"
       :auto="false"

@@ -58,7 +58,7 @@
     </view>
 
     <!-- 球赛事件列表：左右分栏 -->
-    <view class="events-container" v-if="displayEvents.length">
+    <view class="events-container">
       <view class="events-columns" >
         <!-- 主队事件（左列） -->
         <view class="events-column home-column">
@@ -103,7 +103,6 @@ setInterval(() => {
 }, 1000);
 
 function closeTimer(index){
-  console.log(i)
   delete timerCallFns[index]
 }
 function addTimer(cb){
@@ -154,9 +153,7 @@ export default {
     displayEvents: {
       handler(events) {
         if (events && events.length > 0) {
-          this.$nextTick(() => {
-            this.notifyHeightUpdate();
-          });
+          this.notifyHeightUpdate();
         }
       },
       immediate: true

@@ -3,15 +3,17 @@
     ref="swiperItemRef"
     :fixed="false"
     :auto="false"
-    @query="onQuery"
+    use-virtual-list
+    :force-close-inner-list="true"
     :cellHeightMode="'dynamic'"
+    @query="onQuery"
+    @virtualListChange="virtualListChange"
   >
     <view class="prognosis-container">
       <PrognosisCard
         v-for="item in list"
         :key="item.id"
         :data="item"
-        :badgeData="getUserBadgeData(item.account)"
         @openDetail="openDetail"
       />
     </view>
@@ -56,7 +58,6 @@ export default {
       },
       scratchBottomData: {},
       list: [],
-      UserBadgeAccuracyMap: {},
       isNeedRefresh: false,
       firstLoaded: false
     };
@@ -72,8 +73,9 @@ export default {
     }
   },
   methods: {
-    getUserBadgeData(account) {
-      return this.UserBadgeAccuracyMap[account] || [];
+    virtualListChange(list){
+      console.log(list)
+      this.list = list
     },
     async openDetail(data) {
       if (tool.isLogin()) {
@@ -129,13 +131,7 @@ export default {
             ftype: 1,
           });
         }
-        this.UserBadgeAccuracyMap = res.data.result || {};
-        if (pageNo === 1) {
-          this.list = res.data.list;
-        } else {
-          this.list = [...this.list, ...res.data.list];
-        }
-        this.$refs.swiperItemRef?.complete(this.list);
+        this.$refs.swiperItemRef?.complete(res.data.list);
         this.firstLoaded = true;
       } catch (e) {
         uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });

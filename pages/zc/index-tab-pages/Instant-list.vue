@@ -6,6 +6,7 @@
     :auto="false"
     :loading-more-enabled="false"
     @query="onQuery"
+    :cellHeightMode="'dynamic'"
   >
     <template v-for="(item, index) in matchListWithDay" :key="item.datestr">
       <view class="matchdatestr">{{ item.datestr }}</view>

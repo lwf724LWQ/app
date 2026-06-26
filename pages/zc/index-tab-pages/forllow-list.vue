@@ -5,6 +5,7 @@
     :fixed="false"
     :auto="false"
     @query="onQuery"
+    :cellHeightMode="'dynamic'"
   >
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">

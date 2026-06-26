@@ -4,9 +4,10 @@
     :fixed="false"
     :auto="false"
     use-virtual-list
-      :force-close-inner-list="true"
+    :force-close-inner-list="true"
     :cellHeightMode="'dynamic'"
     @query="onQuery"
+    @virtualListChange="virtualListChange"
   >
     <view class="prognosis-container">
       <PostCard
@@ -79,12 +80,14 @@ export default {
         });
       }
     },
-
+    virtualListChange(list){
+      this.list = list
+    },
     async onQuery(pageNo, pageSize, from) {
       try {
-        let res = null;
+        let list = [];
         if (this.findByAccount) {
-          res = await findByAccountWithFbpost({
+          const res = await findByAccountWithFbpost({
             page: pageNo,
             limit: pageSize,
             ftype: 2,
@@ -96,26 +99,22 @@ export default {
             item.uname = userdata.nickname;
             item.himg = userdata.avatar;
           });
-          res.data.list = res.data.records;
+          list = res.data.records;
         } else {
-          res = await getFootBallPostList({
+          const res = await getFootBallPostList({
             page: pageNo,
             limit: pageSize,
             ftype: 2,
           });
+          list = res.data.list
         }
 
-        res.data.list.forEach((item) => {
+        list.forEach((item) => {
           const a = JSON.parse(item.result);
           item.description = a.expertAnalysis;
         });
 
-        if (pageNo === 1) {
-          this.list = res.data.list;
-        } else {
-          this.list = [...this.list, ...res.data.list];
-        }
-        this.$refs.swiperItemRef?.complete(this.list);
+        this.$refs.swiperItemRef?.complete(list);
         this.firstLoaded = true;
       } catch (e) {
         uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });
