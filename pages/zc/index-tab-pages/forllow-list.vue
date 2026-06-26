@@ -1,18 +1,17 @@
 <template>
   <!-- 关注列表 -->
-  <z-paging-swiper-item
+  <z-paging
     ref="swiperItemRef"
-    :tabIndex="5"
-    :currentIndex="pickerIndex"
+    :fixed="false"
+    :auto="false"
     @query="onQuery"
-    :cellHeightMode="'dynamic'"
   >
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
         <MatchScoreCard :match="match" />
       </view>
     </view>
-  </z-paging-swiper-item>
+  </z-paging>
 </template>
 
 <script setup>
@@ -43,6 +42,18 @@ const emit = defineEmits(["video-click"]);
 
 const matchInfoList = ref([]);
 const isNeedRefresh = ref(false);
+let firstLoaded = false;
+
+// 监听 pickerIndex 懒加载
+watch(
+  () => props.pickerIndex,
+  (newVal) => {
+    if (newVal === 5 && !firstLoaded) {
+      swiperItemRef.value?.reload();
+    }
+  },
+  { immediate: true }
+);
 
 async function onQuery(pageNo, pageSize, from) {
   if (!getAccount()) {
@@ -68,9 +79,11 @@ async function onQuery(pageNo, pageSize, from) {
     }
 
     swiperItemRef.value?.complete(matchInfoList.value);
+    firstLoaded = true;
   } catch (error) {
     console.error("获取关注列表失败:", error);
     swiperItemRef.value?.complete([]);
+    firstLoaded = true;
   }
 }
 

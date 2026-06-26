@@ -1,8 +1,8 @@
 <template>
-  <z-paging-swiper-item
+  <z-paging
     ref="swiperItemRef"
-    :tabIndex="3"
-    :currentIndex="pickerIndex"
+    :fixed="false"
+    :auto="false"
     @query="onQuery"
   >
     <view class="prognosis-container">
@@ -14,7 +14,7 @@
         @openDetail="openDetail"
       />
     </view>
-  </z-paging-swiper-item>
+  </z-paging>
   <PaymentWrapper ref="PaymentWrapperRef" :enableIntegralPay="true" @payOver="payOver">
     <template v-slot:payMethodSelector-header>
       <view class="pay-method-selector-header">
@@ -56,8 +56,19 @@ export default {
       scratchBottomData: {},
       list: [],
       UserBadgeAccuracyMap: {},
-      isNeedRefresh: false
+      isNeedRefresh: false,
+      firstLoaded: false
     };
+  },
+  watch: {
+    pickerIndex: {
+      handler(newVal) {
+        if (newVal === 3 && !this.firstLoaded) {
+          this.$refs.swiperItemRef?.reload();
+        }
+      },
+      immediate: true
+    }
   },
   methods: {
     getUserBadgeData(account) {
@@ -120,9 +131,11 @@ export default {
         this.UserBadgeAccuracyMap = res.data.result || {};
         this.list = res.data.list;
         this.$refs.swiperItemRef?.complete(this.list);
+        this.firstLoaded = true;
       } catch (e) {
         uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });
         this.$refs.swiperItemRef?.complete(false);
+        this.firstLoaded = true;
       }
     },
 

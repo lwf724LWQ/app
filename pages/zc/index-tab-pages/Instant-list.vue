@@ -1,13 +1,12 @@
 <template>
-  <!-- 即时列表 - 使用 z-paging-swiper-item，内部 z-paging 处理滚动 -->
-  <z-paging-swiper-item
+  <!-- 即时列表 -->
+  <z-paging
     ref="swiperItemRef"
-    :tabIndex="0"
-    :currentIndex="pickerIndex"
-    @query="onQuery"
+    :fixed="false"
+    :auto="false"
     :loading-more-enabled="false"
+    @query="onQuery"
   >
-    <!-- 内容通过默认 slot 插入，展示日期分组列表 -->
     <template v-for="(item, index) in matchListWithDay" :key="item.datestr">
       <view class="matchdatestr">{{ item.datestr }}</view>
       <MatchScoreCard
@@ -16,7 +15,7 @@
         :match="match"
       />
     </template>
-  </z-paging-swiper-item>
+  </z-paging>
 </template>
 
 <script setup>
@@ -50,6 +49,7 @@ const emit = defineEmits(["updateMatchList"]);
 
 const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
+let firstLoaded = false;
 
 const matchListSorting = computed(() => {
   return matchInfoList.value
@@ -82,6 +82,17 @@ watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
     matchListHooks.setMatchList(list);
   }
 });
+
+// 监听 pickerIndex 懒加载
+watch(
+  () => props.pickerIndex,
+  (newVal) => {
+    if (newVal === 0 && !firstLoaded) {
+      swiperItemRef.value?.reload();
+    }
+  },
+  { immediate: true }
+);
 
 // 监听 searchParams 变化，重新加载列表
 watch(
@@ -120,9 +131,11 @@ async function onQuery(pageNo, pageSize, from) {
     }
 
     swiperItemRef.value?.complete(matchInfoList.value);
+    firstLoaded = true;
   } catch (error) {
     console.error("获取即时列表失败:", error);
     swiperItemRef.value?.complete([]);
+    firstLoaded = true;
   }
 }
 
@@ -141,23 +154,10 @@ onBeforeUnmount(() => {
 });
 </script>
 <style lang="scss" scoped>
-.scroll-view {
-  height: 100%;
-}
-
 .matchdatestr {
   text-align: center;
   font-size: 24rpx;
   background-color: #ececec;
   padding: 8rpx 0;
-}
-
-.no-data-container {
-  .no-data-text {
-    text-align: center;
-    font-size: 32rpx;
-    color: #666;
-    margin-top: 50rpx;
-  }
 }
 </style>

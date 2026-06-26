@@ -1,8 +1,8 @@
 <template>
-  <z-paging-swiper-item
+  <z-paging
     ref="swiperItemRef"
-    :tabIndex="4"
-    :currentIndex="pickerIndex"
+    :fixed="false"
+    :auto="false"
     @query="onQuery"
   >
     <view class="prognosis-container">
@@ -14,8 +14,7 @@
         @postCard="openDetail(item)"
       />
     </view>
-    <view class="no-more" v-if="isNoMore">没有更多了</view>
-  </z-paging-swiper-item>
+  </z-paging>
   <PaymentWrapper ref="PaymentWrapperRef" :enableIntegralPay="true" @payOver="payOver">
     <template v-slot:payMethodSelector-header>
       <view class="pay-method-selector-header">
@@ -55,14 +54,21 @@ export default {
         price: "10",
       },
       scratchBottomData: {},
-      isLoading: false,
-      currentPage: 1,
       list: [],
-      isNoMore: false,
-      total: 0,
       UserBadgeAccuracyMap: {},
       isNeedRefresh: false,
+      firstLoaded: false,
     };
+  },
+  watch: {
+    pickerIndex: {
+      handler(newVal) {
+        if (newVal === 4 && !this.firstLoaded) {
+          this.$refs.swiperItemRef?.reload();
+        }
+      },
+      immediate: true
+    }
   },
   methods: {
     getUserBadgeData(account) {
@@ -77,15 +83,12 @@ export default {
     },
 
     async onQuery(pageNo, pageSize, from) {
-      if (this.isLoading) return;
-      this.isLoading = true;
-      this.currentPage = 1;
       try {
         let res = null;
         if (this.findByAccount) {
           res = await findByAccountWithFbpost({
-            page: this.currentPage,
-            limit: 20,
+            page: pageNo,
+            limit: pageSize,
             ftype: 2,
             account: this.findByAccount,
           });
@@ -98,8 +101,8 @@ export default {
           res.data.list = res.data.records;
         } else {
           res = await getFootBallPostList({
-            page: this.currentPage,
-            limit: 20,
+            page: pageNo,
+            limit: pageSize,
             ftype: 2,
           });
         }
@@ -111,14 +114,12 @@ export default {
 
         this.UserBadgeAccuracyMap = res.data.result || {};
         this.list = res.data.list;
-        this.isNoMore = res.data.list.length < 20;
-        this.total = res.data.total;
         this.$refs.swiperItemRef?.complete(this.list);
+        this.firstLoaded = true;
       } catch (e) {
         uni.showToast({ title: e?.msg || "刷新失败，请检查网络或稍后再试" });
-        this.$refs.swiperItemRef?.complete([]);
-      } finally {
-        this.isLoading = false;
+        this.$refs.swiperItemRef?.complete(false);
+        this.firstLoaded = true;
       }
     },
 
@@ -159,13 +160,6 @@ export default {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
-
-.no-more {
-  text-align: center;
-  font-size: 28rpx;
-  color: #333333;
-  padding: 20rpx 0;
 }
 
 .pay-method-selector-header {
