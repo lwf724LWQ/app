@@ -1,8 +1,7 @@
 <template>
-  <view class="match-card" :class="{ 'score-flash': isFlashing }" @click.stop="onScoreClick">
+  <view class="match-card" :class="{ 'score-flash': isFlashing }">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
-      <text class="match-status"></text>
       <view class="league-name">{{ match.leagueChsShort }}</view>
       <text class="match-time">{{ matchTime }}</text>
       <text class="match-status" :class="statusClass">{{ matchStatus }}</text>
@@ -54,29 +53,30 @@
       </view>
     </view>
 
-    <view class="extraExplainStr">
+    <view class="extraExplainStr" v-if="extraExplainStr">
       {{ extraExplainStr }}
     </view>
 
-    <!-- 球赛事件列表 -->
-    <view class="events-container" v-if="expanded">
-      <view class="events-loading" v-if="eventsLoading">
-        <text>加载中...</text>
-      </view>
-      <view class="events-empty" v-else-if="displayEvents.length === 0">
-        <text>暂无事件数据</text>
-      </view>
-      <view class="event-item" v-for="event in displayEvents" :key="event.id">
-        <!-- 状态点：主队红色，客队蓝色 -->
-        <view class="event-indicator" :class="event.isHome ? 'home' : 'away'"></view>
-        <!-- 时间 -->
-        <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
-        <!-- 事件序号+图标+球员名 -->
-        <view class="event-info">
-          <text class="event-teamname">{{ event.isHome ? match.homeChs : match.awayChs }}</text>
-          <text class="event-count">{{ event.countLabel }}</text>
-          <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
-          <text class="event-player">{{ event.nameChs }}</text>
+    <!-- 球赛事件列表：左右分栏 -->
+    <view class="events-container">
+      <view class="events-columns" >
+        <!-- 主队事件（左列） -->
+        <view class="events-column home-column">
+          <view class="event-item" v-for="event in homeEvents" :key="event.id">
+            <text class="event-player">{{ event.nameChs }}</text>
+            <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
+            <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
+            <view class="poi"></view>
+          </view>
+        </view>
+        <!-- 客队事件（右列） -->
+        <view class="events-column away-column">
+          <view class="event-item" v-for="event in awayEvents" :key="event.id">
+            <view class="poi"></view>
+            <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
+            <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
+            <text class="event-player">{{ event.nameChs }}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -103,7 +103,6 @@ setInterval(() => {
 }, 1000);
 
 function closeTimer(index){
-  console.log(i)
   delete timerCallFns[index]
 }
 function addTimer(cb){
@@ -114,24 +113,16 @@ function addTimer(cb){
 
 export default {
   props: {
-    match: { type: Object },
-    expanded: {
-      type: Boolean,
-      default: false
-    }
+    match: { type: Object }
   },
-  emits: ['toggle-expand', 'height-change'],
+  emits: ['height-update'],
   data() {
     return {
       isFavorite: false,
       isFlashing: false,
       timerIndex: false,
 
-      nowTime: new Date(),
-
-      events: [],
-      eventsLoading: false,
-      baseHeight: 0
+      nowTime: new Date()
     };
   },
   watch: {
@@ -146,11 +137,6 @@ export default {
             newMatch.homeYellow != oldMatch.homeYellow ||
             newMatch.awayYellow != oldMatch.awayYellow
           ) {
-
-            // 比赛变化且处于展开状态时，重新请求事件列表
-            if(this.expanded){
-              this.fetchEvents();
-            }
             this.scoreUpdate();
           }
 
@@ -164,15 +150,27 @@ export default {
       },
       deep: true,
     },
-    expanded(newVal) {
-      if (newVal) {
-        this.fetchEvents();
-      } else {
-        this.events = [];
-      }
+    displayEvents: {
+      handler(events) {
+        if (events && events.length > 0) {
+          this.notifyHeightUpdate();
+        }
+      },
+      immediate: true
     }
   },
   computed: {
+    events(){
+      try {
+        if (this.match?.matchInfo?.minfo) {
+          return JSON.parse(this.match?.matchInfo?.minfo)
+        } 
+      } catch (error) {
+        
+      }
+
+      return []
+    },
     isInProgress() {
       return [-1, 1, 2, 3, 4, 5].includes(this.match.mstate);
     },
@@ -241,12 +239,12 @@ export default {
       if ([0, -10, -11, -12, -13, -14].includes(this.match.mstate)) {
         return false;
       } else {
-        return `${this.match.homeScore}:${this.match.awayScore}`;
+        return `${this.match.homeScore} - ${this.match.awayScore}`;
       }
     },
     extraExplainStr(){
       const extraExplainObj = this.formatExtraExplain(this.match.extraExplain);
-      let str = "-"
+      let str = ""
       if (extraExplainObj) {
         if(extraExplainObj.kickoff){
           const kickoff = extraExplainObj.kickoff
@@ -299,7 +297,7 @@ export default {
       });
       // 第二遍：反向遍历分配序号，remaining 从最大值递减到 1
       const remaining = { ...totals };
-      return this.events.slice().reverse().map(event => {
+      return this.events.filter(item => [1,7,8,14].includes(item.kind)).slice().reverse().map(event => {
         const kind = event.kind;
         const side = event.isHome ? 'home' : 'away';
         const key = side + '_' + kind;
@@ -320,49 +318,15 @@ export default {
           countLabel: labels[kind] || '第' + count + '个'
         };
       });
+    },
+    homeEvents() {
+      return this.displayEvents.filter(e => e.isHome);
+    },
+    awayEvents() {
+      return this.displayEvents.filter(e => !e.isHome);
     }
   },
   methods: {
-    onScoreClick() {
-      if (!this.isInProgress) return;
-      this.$emit('toggle-expand', this.match.matchId || this.match.id);
-    },
-    async fetchEvents() {
-      if (this.eventsLoading) return;
-      this.eventsLoading = true;
-      try {
-        const matchId = this.match.matchId || this.match.id;
-        const res = await getFootBallEvent(matchId);
-        if (res.code === 200 && res.data) {
-          const events = JSON.parse(res.data.minfo)
-          console.log(events)
-          this.events = events;
-        }else{
-          this.events = [];
-        }
-      } catch (error) {
-        console.error("获取球赛事件失败:", error);
-        this.events = [];
-      } finally {
-        this.eventsLoading = false;
-        this.$nextTick(() => {
-          this.measureHeight();
-        });
-      }
-    },
-    measureHeight() {
-      const query = uni.createSelectorQuery().in(this);
-      query.select('.match-card').boundingClientRect(data => {
-        if (data && data.height) {
-          const baseH = uni.upx2px(160);
-          const extraH = Math.max(0, data.height - baseH);
-          this.$emit('height-change', {
-            matchId: this.match.matchId || this.match.id,
-            extraHeight: extraH
-          });
-        }
-      }).exec();
-    },
     scoreUpdate() {
       this.isFlashing = true;
       setTimeout(() => {
@@ -458,9 +422,8 @@ export default {
         winner,            // 获胜方: 1=主队获胜, 2=客队获胜
       };
     },
-    // 供父组件调用关闭事件列表
-    closeEvents() {
-      this.$emit('toggle-expand', null);
+    notifyHeightUpdate() {
+      this.$emit('height-update', this.match.matchId || this.match.id);
     },
     getEventIcon(kind) {
       const icons = {
@@ -481,10 +444,6 @@ export default {
     this.timerIndex = addTimer((time)=>{
       this.nowTime = time
     })
-
-    if(this.expanded){
-      this.fetchEvents();
-    }
   },
   unmounted(){
     closeTimer(this.timerIndex)
@@ -526,8 +485,9 @@ export default {
 .footer {
   display: flex;
   align-items: center;
-  font-size: 24rpx;
+  font-size: 26rpx;
   position: relative;
+  margin-bottom: 8rpx;
 
   & > :first-child,
   & > :last-child {
@@ -543,8 +503,6 @@ export default {
 }
 
 .league-name {
-  position: absolute;
-  left: 20rpx;
   color: #5c5c5c;
 }
 
@@ -568,9 +526,9 @@ export default {
   align-items: center;
   flex: 1;
 
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
+  font-size: 30rpx;
+  font-weight:normal;
+  color: #111;
 }
 
 .league-icon {
@@ -583,6 +541,7 @@ export default {
   margin: 0 20rpx;
   text-align: center;
   &.no-score .score {
+    font-size: 38rpx;
     color: #4caf50;
   }
   &.clickable {
@@ -591,8 +550,8 @@ export default {
 }
 
 .score {
-  font-size: 36rpx;
-  font-weight: 800;
+  font-size: 58rpx;
+  font-weight: normal;
   color: #ff4d4f;
 }
 
@@ -668,77 +627,62 @@ export default {
 }
 
 // 事件列表样式
-.events-container {
-  margin-top: 10rpx;
-  padding-top: 10rpx;
-  border-top: 1rpx dashed #e0e0e0;
-
-  .events-loading,
-  .events-empty {
-    text-align: center;
-    padding: 20rpx;
-    color: #999;
-    font-size: 24rpx;
-  }
-
+.events-empty{
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+  .events-columns {
+    display: flex;
+    font-size: 20rpx;
+    .events-column{
+      flex: 1;
+      &.home-column{
+        margin-right: 50rpx;
+        .event-item{
+          justify-content: flex-end;
+          &::after{
+            right: 11rpx;
+          }
+        }      
+      }
+      &.away-column{
+        .event-item{
+          &::after{
+            left: 11rpx;
+          }
+        }
+      }
+    }
+    
   .event-item {
     display: flex;
     align-items: center;
     padding: 8rpx 0;
-
-    .event-indicator {
-      width: 12rpx;
-      height: 12rpx;
+    
+      position: relative;
+    .event-time{
+      margin: 0 8rpx;
+    }
+    .poi{
+      background-color: #d6d6d6;
       border-radius: 50%;
-      flex-shrink: 0;
-      margin-right: 12rpx;
-
-      &.home {
-        background-color: #ff4d4f;
-      }
-      &.away {
-        background-color: #007df9;
-      }
+      width: 10rpx;
+      height: 10rpx;
+      margin:0 8rpx;
     }
 
-    .event-time {
-      width: 70rpx;
-      flex-shrink: 0;
-      color: #999;
-      font-size: 24rpx;
-    }
-
-    .event-info {
-      flex: 1;
-      display: flex;
-      align-items: center;
-    }
-
-    .event-teamname{
-      color: #333;
-      font-size: 26rpx;
-      margin-right: 10rpx;
-    }
-
-    .event-count {
-      margin-right: 6rpx;
-      color: #666;
-      font-size: 24rpx;
-      flex-shrink: 0;
-    }
-
-    .event-icon-text {
-      margin-right: 8rpx;
-      font-size: 28rpx;
-    }
-
-    .event-player {
-      color: #333;
-      font-size: 26rpx;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    &:not(:last-child)::after{
+      position: absolute;
+      content: "";
+      height: 100%;
+      top: 50%;
+      width:3rpx;
+      background-color: #d6d6d6;
     }
   }
+  
+  
 }
 </style>
