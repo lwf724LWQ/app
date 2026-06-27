@@ -66,7 +66,7 @@ export default {
     pickerIndex: {
       handler(newVal) {
         if (newVal === 3 && !this.firstLoaded) {
-          this.$refs.swiperItemRef?.reload();
+          this.$refs.swiperItemRef?.reload(true);
         }
       },
       immediate: true
@@ -166,7 +166,7 @@ export default {
     },
     onshow(){
       if(this.isNeedRefresh){
-        this.$refs.swiperItemRef?.reload();
+        this.$refs.swiperItemRef?.reload(true);
         this.isNeedRefresh = false;
       }
     }

@@ -180,7 +180,7 @@ export default {
     scoreColor() {
       const mstate = this.match.mstate;
       if ([-10, -11, -12, -13, -14].includes(mstate)) return "color:#007df9;";
-      if ([1, 3, 4, 5].includes(mstate)) return "color:#ff4d4f;";
+      if ([1, 3, 4, 5].includes(mstate)) return "color:#ff2e31;";
       if ([2].includes(mstate)) return "color:#007df9;";
       return "color:#4caf50;";
     },
@@ -456,7 +456,7 @@ export default {
   background-color: #fff;
   padding: 15rpx 10rpx;
   overflow: hidden;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #dbdbdb;
   font-family: Arial, sans-serif;
   transition: background-color 0.3s ease;
 
@@ -488,6 +488,7 @@ export default {
   font-size: 26rpx;
   position: relative;
   margin-bottom: 8rpx;
+  padding: 0 40rpx;
 
   & > :first-child,
   & > :last-child {
@@ -503,17 +504,17 @@ export default {
 }
 
 .league-name {
-  color: #5c5c5c;
+  color: #8C969F;
 }
 
 .match-time {
-  color: #353535;
+  color: #5f666d;
   text-align: center;
   margin: 0 20rpx;
 }
 
 .match-status {
-  color: #333333;
+  color: #8C969F;
 }
 
 .status-highlight {
@@ -528,7 +529,7 @@ export default {
 
   font-size: 30rpx;
   font-weight:normal;
-  color: #111;
+  color: #000;
 }
 
 .league-icon {
@@ -552,20 +553,20 @@ export default {
 .score {
   font-size: 58rpx;
   font-weight: normal;
-  color: #ff4d4f;
+  color: #ff2629;
 }
 
 .favorite-btn {
   position: absolute;
   right: 0;
   margin-left: 15rpx;
-  font-size: 40rpx;
-  color: #ff4d4f;
+  font-size: 50rpx;
+  color: #ff2629;
   cursor: pointer;
 }
 
 .favorite-btn.active {
-  color: #ff4d4f;
+  color: #ff2629;
 }
 
 .footer {
@@ -666,7 +667,7 @@ export default {
       margin: 0 8rpx;
     }
     .poi{
-      background-color: #d6d6d6;
+      background-color: #E4E7EB;
       border-radius: 50%;
       width: 10rpx;
       height: 10rpx;
@@ -679,7 +680,7 @@ export default {
       height: 100%;
       top: 50%;
       width:3rpx;
-      background-color: #d6d6d6;
+      background-color:#E4E7EB ;
     }
   }
   

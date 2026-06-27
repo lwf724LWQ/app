@@ -53,7 +53,7 @@ watch(
   () => props.pickerIndex,
   (newVal) => {
     if (newVal === 5 && !firstLoaded) {
-      swiperItemRef.value?.reload();
+      swiperItemRef.value?.reload(true);
     }
   },
   { immediate: true }
@@ -107,21 +107,21 @@ const userStore = useUserStore();
 watch(
   () => props.videoType,
   () => {
-    swiperItemRef.value?.reload();
+    swiperItemRef.value?.reload(true);
   },
   { immediate: true }
 );
 
 function onshow() {
   if (isNeedRefresh.value) {
-    swiperItemRef.value?.reload();
+    swiperItemRef.value?.reload(true);
     isNeedRefresh.value = false;
   }
 }
 
 defineExpose({
   updateMatchList,
-  refreshVideoList: () => swiperItemRef.value?.reload(),
+  refreshVideoList: () => swiperItemRef.value?.reload(true),
   onshow,
 });
 </script>

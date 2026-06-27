@@ -148,8 +148,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .matchdatestr {
   text-align: center;
-  font-size: 24rpx;
-  background-color: #ececec;
-  padding: 8rpx 0;
+  font-size: 28rpx;
+  background-color: #F5F6F7;
+  padding: 16rpx 0;
 }
 </style>

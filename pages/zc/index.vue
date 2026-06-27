@@ -147,7 +147,7 @@ const searchInputRef = ref(null);
 const pickerIndex = ref(0);
 
 // 彩票类型
-const lotteryTypes = ref(["即时", "赛程", "赛果", "预测", "评论", "关注"]);
+const lotteryTypes = ref(["即时", "赛程", "赛果", "专家", "评论", "关注"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -235,8 +235,8 @@ onShow((e) => {
   }
   pageIsShow.value = true;
   nextTick(() => {
-    postListRef.value?.onshow();
-    prognosisRef.value?.onshow();
+    // postListRef.value?.onshow();
+    // prognosisRef.value?.onshow();
   });
 });
 
