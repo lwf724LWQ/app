@@ -83,18 +83,12 @@
 
         <!-- 预测 (index=3) -->
         <swiper-item>
-          <PrognosisList
-            :pickerIndex="pickerIndex"
-            ref="prognosisRef"
-          />
+          <PrognosisList :pickerIndex="pickerIndex" ref="prognosisRef" />
         </swiper-item>
 
         <!-- 评论 (index=4) -->
         <swiper-item>
-          <PostList
-            :pickerIndex="pickerIndex"
-            ref="postListRef"
-          />
+          <PostList :pickerIndex="pickerIndex" ref="postListRef" />
         </swiper-item>
 
         <!-- 关注 (index=5) -->
@@ -222,16 +216,16 @@ const prognosisRef = ref(null);
 const pageIsShow = ref(false);
 onShow((e) => {
   if (uni.getStorageSync("openZcPostList")) {
-    nextTick(()=>{
-      pickerIndex.value = 4
-    })
-    uni.setStorageSync("openZcPostList", false)
+    nextTick(() => {
+      pickerIndex.value = 4;
+    });
+    uni.setStorageSync("openZcPostList", false);
   }
-  if(uni.getStorageSync("toShijiebei")){
-    uni.setStorageSync("toShijiebei", false)
-    nextTick(()=>{
-      searchInputRef.value.toShijiebei()
-    })
+  if (uni.getStorageSync("toShijiebei")) {
+    uni.setStorageSync("toShijiebei", false);
+    nextTick(() => {
+      searchInputRef.value.toShijiebei();
+    });
   }
   pageIsShow.value = true;
   nextTick(() => {
