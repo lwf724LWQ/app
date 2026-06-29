@@ -89,6 +89,11 @@ import { forllowFootball, delForllowFootball, getFootBallEvent } from "@/api/api
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 
+import {
+    goToAppNotificationSettings,
+    isNotificationEnabled,
+} from "@/uni_modules/xtf-jpush"
+
 let i = 0
 const timerCallFns = {}
 
@@ -346,6 +351,16 @@ export default {
             userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
+		  
+		  if(isNotificationEnabled && !isNotificationEnabled()){
+			  uni.showModal({
+			  	title: "提示",
+				content: "当前为开启通知权限，是否前往开启",
+				success(){
+					goToAppNotificationSettings()
+				}
+			  })
+		  }
         } catch (error) {
           console.log(error);
           uni.showToast({

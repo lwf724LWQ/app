@@ -5,6 +5,11 @@ import { provide } from "vue";
 import {getToken} from "@/utils/request.js"
 import tool from "./utils/tool";
 
+import {
+    initializeJpush,
+    onListenerJpushMessage,
+} from "@/uni_modules/xtf-jpush"
+
 // 初始化并提供 store
 const oldManModeStore = useOldManModeStore();
 provide(oldManModeStoreKey, oldManModeStore);
@@ -51,6 +56,41 @@ if (!staffInvitationCode && !getToken()) {
   });
 }
 
+const messageListener = {
+    onRegister(id) {
+        console.log("onRegister", id)
+		
+		const registrationId = getRegistrationID()
+		console.log("registrationId", registrationId)
+    },
+    onServerConnect(state) {
+        console.log("onServerConnect", state)
+    },
+    multiActionClicked(msg) {
+        console.log("multiActionClicked", msg)
+    },
+    messageListener(msg) {
+        console.log("messageListener", msg)
+    },
+    notityMessageOpened(msg) {
+        console.log("notityMessageOpened", msg)
+    },
+    notifyMessageDismiss(msg) {
+        console.log("notifyMessageDismiss", msg)
+    },
+    notifyMessageArrived(msg) {
+        console.log("notifyMessageArrived", msg)
+    },
+    commandResult(msg) {
+        console.log("commandResult", msg)
+    }
+}
+try{
+onListenerJpushMessage && onListenerJpushMessage(messageListener)
+initializeJpush()	
+}catch(e){
+	
+}
 
 </script>
 
