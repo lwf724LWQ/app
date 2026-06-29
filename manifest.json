@@ -26,8 +26,7 @@
             "Camera" : {},
             "VideoPlayer" : {},
             "Share" : {},
-            "OAuth" : {},
-            "Push" : {}
+            "OAuth" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
