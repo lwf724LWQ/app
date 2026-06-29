@@ -1,0 +1,108 @@
+{
+	"id": "xtf-jpush",
+	"displayName": "安卓ios鸿蒙 极光 jpush 官方原生SDK极光推送 支持厂家推送",
+	"version": "1.0.6",
+	"description": "安卓ios鸿蒙 极光推送JPush官方SDK 极光实时推送插件，极光实时消息推送  支持厂家推送",
+	"keywords": [
+        "极光推送",
+        "极光",
+        "推送",
+        "jpush",
+        "实时推送"
+    ],
+	"repository": "",
+	"engines": {
+		"HBuilderX": "^3.6.8",
+		"uni-app": "^4.26",
+		"uni-app-x": "^4.32"
+	},
+	"dcloudext": {
+		"type": "uts",
+		"sale": {
+			"regular": {
+				"price": "6.66"
+			},
+			"sourcecode": {
+				"price": "888.00"
+			}
+		},
+		"contact": {
+			"qq": ""
+		},
+		"declaration": {
+			"ads": "无",
+			"data": "极光",
+			"permissions": "极光所需权限，请参考极光推送官网"
+		},
+		"npmurl": "",
+		"darkmode": "√",
+		"i18n": "√",
+		"widescreen": "√"
+	},
+	"uni_modules": {
+		"dependencies": [],
+		"encrypt": [],
+		"platforms": {
+			"cloud": {
+				"tcb": "x",
+				"aliyun": "x",
+				"alipay": "x"
+			},
+			"client": {
+				"uni-app": {
+					"vue": {
+						"vue2": "√",
+						"vue3": "√"
+					},
+					"web": {
+						"safari": "-",
+						"chrome": "-"
+					},
+					"app": {
+						"vue": "√",
+						"nvue": "√",
+						"android": {
+                            "extVersion": "",
+                            "minVersion": "21"
+                        },
+						"ios": "√",
+						"harmony": "√"
+					},
+					"mp": {
+						"weixin": "-",
+						"alipay": "-",
+						"toutiao": "-",
+						"baidu": "-",
+						"kuaishou": "-",
+						"jd": "-",
+						"harmony": "-",
+						"qq": "-",
+                        "lark": "-",
+                        "xhs": "-"
+					},
+					"quickapp": {
+						"huawei": "-",
+						"union": "-"
+					}
+				},
+				"uni-app-x": {
+					"web": {
+						"safari": "-",
+						"chrome": "-"
+					},
+					"app": {
+						"android": {
+                            "extVersion": "",
+                            "minVersion": "21"
+                        },
+						"ios": "√",
+						"harmony": "√"
+					},
+					"mp": {
+						"weixin": "-"
+					}
+				}
+			}
+		}
+	}
+}

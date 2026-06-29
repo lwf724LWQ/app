@@ -1,0 +1,13 @@
+{
+  "string": [
+	{
+      "name": "jpush_appkey",
+      "value": "5c400da7eb3e8b7ea92a379c"
+    },
+	{
+	  "name": "jpush_channel",
+	  "value": "huawei store"
+	}
+	
+  ]
+}

@@ -51,6 +51,7 @@ const emit = defineEmits(["updateMatchList"]);
 const swiperItemRef = ref(null);
 const matchInfoList = ref([]);
 let firstLoaded = false;
+let refreshTimer = null;
 
 const matchListSorting = computed(() => {
   return matchInfoList.value
@@ -140,8 +141,27 @@ async function onQuery(pageNo, pageSize, from) {
   }
 }
 
+function startRefreshTimer() {
+  stopRefreshTimer();
+  refreshTimer = setInterval(() => {
+    onQuery()
+  }, 3000);
+}
+
+function stopRefreshTimer() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
 onMounted(() => {
   swiperItemRef.value?.reload(true);
+  startRefreshTimer();
+});
+
+onBeforeUnmount(() => {
+  stopRefreshTimer();
 });
 
 </script>

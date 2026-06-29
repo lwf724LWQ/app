@@ -1,0 +1,15 @@
+{
+    "JPUSH_APPKEY": "你的极光 AppKey",
+    "JPUSH_CHANNEL": "default_developer",
+    "MEIZU_APPKEY": "魅族 AppKey",
+    "MEIZU_APPID": "魅族 AppID",
+    "XIAOMI_APPID": "小米 AppID",
+    "XIAOMI_APPKEY": "小米 AppKey",
+    "OPPO_APPKEY": "OPPO AppKey",
+    "OPPO_APPID": "OPPO AppID",
+    "OPPO_APPSECRET": "OPPO AppSecret",
+    "VIVO_APPKEY": "VIVO AppKey",
+    "VIVO_APPID": "VIVO AppID",
+    "HONOR_APPID": "HONOR AppID",
+    "NIO_APPID": "NIO AppID"
+}

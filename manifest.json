@@ -2,7 +2,7 @@
     "name" : "五七仔",
     "appid" : "__UNI__FA93A0C",
     "description" : "五七仔",
-    "versionName" : "1.13.4",
+    "versionName" : "1.13.5",
     "versionCode" : 20260519,
     "transformPx" : false,
     /* 5+App特有相关 */
@@ -26,7 +26,8 @@
             "Camera" : {},
             "VideoPlayer" : {},
             "Share" : {},
-            "OAuth" : {}
+            "OAuth" : {},
+            "Push" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -94,6 +95,19 @@
                     "weixin" : {
                         "appid" : "wxcc8965020c482056",
                         "UniversalLinks" : "https://caimizm.com/"
+                    }
+                },
+                "push" : {
+                    "unipush" : {
+                        "version" : "2",
+                        "offline" : true,
+                        "hms" : {},
+                        "oppo" : {},
+                        "vivo" : {},
+                        "meizu" : {},
+                        "mi" : {},
+                        "honor" : {},
+                        "fcm" : {}
                     }
                 }
             },

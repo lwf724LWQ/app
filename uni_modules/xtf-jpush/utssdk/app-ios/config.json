@@ -1,0 +1,20 @@
+{
+  "frameworks": [
+    "CoreLocation.framework",
+    "CoreTelephony.framework",
+    "UserNotifications.framework",
+    "SystemConfiguration.framework",
+    "Security.framework",
+    "WebKit.framework",
+    "Network.framework",
+    "AVFoundation.framework",
+    "AdSupport.framework",
+    "MobileCoreServices.framework",
+    "libz.tbd",
+    "libresolv.tbd",
+    "libc++.tbd",
+    "libsqlite3.tbd"
+  ],
+  "deploymentTarget": "12",
+	"dependencies-pods": []
+}
