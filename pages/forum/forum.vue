@@ -143,7 +143,7 @@
             v-for="item in collectionPostCardList"
             :key="item.id"  
             :postData="item"
-            @postCard="openDetail(item)"
+            @postCard="openCollectionDetail(item)"
           />
         </view>
 
