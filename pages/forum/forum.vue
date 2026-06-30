@@ -71,6 +71,13 @@
       >
         <text class="tab-text">预测</text>
       </view>
+      <view
+        class="tab-item"
+        :class="{ active: activeTab === 'collection' }"
+        @click="switchTab('collection')"
+      >
+        <text class="tab-text">精彩合集</text>
+      </view>
     </view>
 
     <!-- 搜索栏 -->
@@ -95,6 +102,7 @@
         </view>
       </view>
     </view>
+
 
     <!-- 搜索建议下拉框 -->
     <view v-if="showSearchSuggestions && searchSuggestions.length > 0" class="search-suggestions">
@@ -130,7 +138,16 @@
           <text class="search-count">共{{ filteredPredictList.length }}条</text>
         </view>
 
-        <view class="predict-list">
+        <view class="" v-else-if="activeTab === 'collection'">
+          <collectionPostCard
+            v-for="item in collectionPostCardList"
+            :key="item.id"  
+            :postData="item"
+            @postCard="openDetail(item)"
+          />
+        </view>
+
+        <view v-else class="predict-list">
           <postCard
             v-for="(item, index) in isSearching && searchKeyword
               ? filteredPredictList
@@ -142,6 +159,8 @@
             <text>暂无预测帖子</text>
           </view>
         </view>
+        
+        
       </view>
     </scroll-view>
 
@@ -194,6 +213,10 @@
                   <uni-icons type="redo" size="24" color="#fff"></uni-icons>
                 </view>
                 <text class="btn-text">规律帖(上传规律)</text>
+              </view>
+              <view class="function-btn" @click="creaetCollectionPost">
+                <view class="btn-icon predict-icon">免</view>
+                <text class="btn-text">集合贴</text>
               </view>
             </view>
           </view>
@@ -268,7 +291,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
-import { apiGetIssueNo, apiPostListQuery, post_select_by_follow } from "@/api/apis.js";
+import { apiGetIssueNo, apiPostListQuery, post_select_by_follow, getFootBallPostList } from "@/api/apis.js";
 import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
 import tool from "@/utils/tool.js";
@@ -276,6 +299,8 @@ import postCard from "../../components/post-card/post-card.vue";
 import followUserList from "./components/follow-user-list.vue";
 import { usePostSearch } from "./composables/usePostSearch.js";
 import dayjs from "dayjs";
+
+import collectionPostCard from "../zc/components/post-card.vue";
 
 const {
   searchKeyword,
@@ -339,6 +364,7 @@ const isOpen = computed(()=>{
   }
   return '已开奖';
 })
+const collectionPostCardList = ref([])
 
 onMounted(() => {
   if (isPageInitialized.value) return;
@@ -512,9 +538,16 @@ const loadPredictPosts = async () => {
     let response;
     if (activeTab.value === "predict") {
       response = await apiPostListQuery(queryData);
-    } else {
+    } else if (activeTab.value === "follow") {
       delete queryData.account;
       response = await post_select_by_follow(queryData);
+    } else {
+      const res = await getFootBallPostList({
+          page: 1,
+          limit: 40,
+          ftype: 3,
+        })
+      collectionPostCardList.value = res.data.list
     }
 
     let allPosts = [];
@@ -562,6 +595,23 @@ async function nextPage(res) {
 const isLoadingPosts = ref(false);
 const isLoadingLottery = ref(false);
 const currentQueryKey = ref(null);
+
+
+// 打开集合贴
+async function openCollectionDetail(data) {
+  if (tool.isLogin()) {
+    uni.navigateTo({
+      url: `/pages/zc/post-detail?id=${data.id}`,
+    });
+  }
+}
+// 创建集合贴
+function creaetCollectionPost(){
+  uni.navigateTo({
+    url: "/pages/forum/creaet-collection-post"
+  })
+}
+
 </script>
 
 <style scoped lang="scss">

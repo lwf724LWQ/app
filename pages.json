@@ -440,7 +440,14 @@
 	        "navigationBarTitleText": "比赛提示",
 	        "navigationStyle": "custom"
 	      }
-		}
+		},
+    {
+	      "path": "pages/forum/creaet-collection-post",
+	      "style": {
+	        "navigationBarTitleText": "创建帖子",
+	        "navigationStyle": "custom"
+	      }
+	    }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

@@ -233,6 +233,16 @@
 
     <view class="post-container">
       <view class="post-title">
+        中奖精彩合集
+        <view class="more-post-btn" @click="goToCollectionList">
+          更多
+        </view>
+      </view>
+      <zcPostCard v-for="item in collectionList" :postData="item" @postCard="openZcPostDetail(item)" />
+    </view>
+
+    <view class="post-container">
+      <view class="post-title">
         热门预测贴
       </view>
       <view class="switch-tabs">
@@ -275,6 +285,7 @@ import { useLoadLotteryList } from "./loadLotteryPostListHooks.js";
 import postCard from "../../components/post-card/post-card.vue";
 import zcPostCard from "../zc/components/post-card.vue"
 import useZcPostListHooks from "./zc-postListHooks.js"
+import usecollectionHooks from "./loadCollectionHooks.js"
 
 export default {
   inject: ["useOldManModeStore"],
@@ -282,6 +293,7 @@ export default {
   data() {
     this.lotteryListHooks = useLoadLotteryList()
     this.zcPostListHooks = useZcPostListHooks()
+    this.collectionHooks = usecollectionHooks()
     return {
       currentTab: "plw",
       fc3dNumbers: ["3", "8", "5"],
@@ -308,6 +320,9 @@ export default {
     },
     zcList(){
       return this.zcPostListHooks.list.value
+    },
+    collectionList(){
+      return this.collectionHooks.list.value
     }
   },
   methods: {
@@ -588,6 +603,12 @@ export default {
         url: "/pages/zc/index"
       })
     },
+    goToCollectionList(){
+      uni.setStorageSync("openCollectionList", true)
+      uni.switchTab({
+        url: "/pages/forum/forum"
+      })
+    },
     selectLotteryType(lotteryName){
       this.currentLotteryTag = lotteryName
       this.loadLotteryList(true)
@@ -611,6 +632,7 @@ export default {
     try {
       await this.loadLotteryList(true)
       await this.loadLotteryResults()
+      await this.collectionHooks.getList()
       await this.zcPostListHooks.getList()
     } catch (error) {
       

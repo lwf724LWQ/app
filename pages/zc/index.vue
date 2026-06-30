@@ -235,11 +235,16 @@ onShow((e) => {
 });
 
 onHide((opt) => {
+  // #ifdef APP-PLUS
   var pages = getCurrentPages();
   var page = pages[pages.length - 1];
   if(page.route !== "pages/zc/index"){
-	  pageIsShow.value = false;
+    pageIsShow.value = false;
   }
+  // #endif
+  // #ifdef H5
+  pageIsShow.value = false;
+  // #endif
 });
 
 // 搜索事件
