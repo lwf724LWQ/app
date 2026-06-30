@@ -8,6 +8,7 @@ import tool from "./utils/tool";
 import {
     initializeJpush,
     onListenerJpushMessage,
+	getRegistrationID
 } from "@/uni_modules/xtf-jpush"
 
 // 初始化并提供 store
@@ -60,11 +61,12 @@ const messageListener = {
     onRegister(id) {
         console.log("onRegister", id)
 		
-		const registrationId = getRegistrationID()
-		console.log("registrationId", registrationId)
+		
     },
     onServerConnect(state) {
         console.log("onServerConnect", state)
+		const registrationId = getRegistrationID()
+		console.log("registrationId", registrationId)
     },
     multiActionClicked(msg) {
         console.log("multiActionClicked", msg)

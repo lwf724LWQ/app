@@ -234,8 +234,12 @@ onShow((e) => {
   });
 });
 
-onHide(() => {
-  pageIsShow.value = false;
+onHide((opt) => {
+  var pages = getCurrentPages();
+  var page = pages[pages.length - 1];
+  if(page.route !== "pages/zc/index"){
+	  pageIsShow.value = false;
+  }
 });
 
 // 搜索事件

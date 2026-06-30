@@ -116,21 +116,23 @@ function showNotificationPopup(notification) {
 
   // 推送通知
   try {
-    // plus.push.createMessage(((notification)=>{
-    //   const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
-    //   if (notification.type === "goal") {
-    //     // 进球
-    //     return `${side}进球! 现比分 ${notification.homeScore}:${notification.awayScore}`
-    //   }else if(notification.type === "corner"){
-    //     // 角球
-    //     return `${side}j角球! 第${notification.cornerCount}个`
-    //   }else if(notification.type === "red"){
-    //     return `${side}被罚红牌!`
-    //   }else if(notification.type === "yellow"){
-    //     return `${side}被罚黄牌!`
-    //   }
-    // })(notification))
-  } catch (error) {}
+    plus.push.createMessage(((notification)=>{
+      const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
+      if (notification.type === "goal") {
+        // 进球
+        return `${side}进球! 现比分 ${notification.homeScore}:${notification.awayScore}`
+      }else if(notification.type === "corner"){
+        // 角球
+        return `${side}j角球! 第${notification.cornerCount}个`
+      }else if(notification.type === "red"){
+        return `${side}被罚红牌!`
+      }else if(notification.type === "yellow"){
+        return `${side}被罚黄牌!`
+      }
+    })(notification))
+  } catch (error) {
+	  console.log("推送错误")
+  }
 
   // 触发进入动画
   popupState.value = "entering";

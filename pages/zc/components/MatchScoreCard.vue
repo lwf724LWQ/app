@@ -351,16 +351,20 @@ export default {
             userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
+		  try{
+        if(isNotificationEnabled && !isNotificationEnabled()){
+          uni.showModal({
+            title: "提示",
+          content: "当前为开启通知权限，是否前往开启",
+          success(){
+            goToAppNotificationSettings()
+          }
+          })
+        }
+      }catch(e){
+
+      }
 		  
-		  if(isNotificationEnabled && !isNotificationEnabled()){
-			  uni.showModal({
-			  	title: "提示",
-				content: "当前为开启通知权限，是否前往开启",
-				success(){
-					goToAppNotificationSettings()
-				}
-			  })
-		  }
         } catch (error) {
           console.log(error);
           uni.showToast({
