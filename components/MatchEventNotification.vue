@@ -45,6 +45,11 @@ import { ref, computed } from "vue";
 import { useZcSettingsStore } from "@/stores/zcSettings";
 import { useZcSoundPlayer } from "@/hooks/useZcSoundPlayer";
 
+// #ifdef APP-PLUS
+import {
+	getRegistrationID
+} from "@/uni_modules/xtf-jpush"
+// #endif
 const setting = useZcSettingsStore();
 const soundPlayer = useZcSoundPlayer();
 
@@ -116,7 +121,9 @@ function showNotificationPopup(notification) {
 
   // 推送通知
   try {
-    plus.push.createMessage(((notification)=>{
+    // #ifdef APP-PLUS
+    if (getRegistrationID) {
+      plus.push.createMessage(((notification)=>{
       const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
       if (notification.type === "goal") {
         // 进球
@@ -130,6 +137,8 @@ function showNotificationPopup(notification) {
         return `${side}被罚黄牌!`
       }
     })(notification))
+    }
+    // #endif
   } catch (error) {
 	  console.log("推送错误")
   }
