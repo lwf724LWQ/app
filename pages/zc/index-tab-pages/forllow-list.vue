@@ -12,7 +12,7 @@
   >
     <view class="area">
       <view v-for="(match, index) in matchInfoList" :key="index" class="day-group">
-        <MatchScoreCard :match="match" />
+        <MatchScoreCard :match="match" :isPro="searchParams.isProMode" />
       </view>
     </view>
   </z-paging>
@@ -40,6 +40,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  searchParams: {
+    type: Object,
+    default: () => ({
+      keyword: "",
+      leagueList: [],
+      isProMode: false
+    })
+  }
 });
 
 const emit = defineEmits(["video-click"]);

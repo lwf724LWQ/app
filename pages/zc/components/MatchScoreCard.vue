@@ -20,14 +20,10 @@
       <view class="team-section right">
         {{ match.awayChs }}
       </view>
-
-      <view class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: match.flag }">
-        <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text>
-      </view>
     </view>
 
     <!-- 底部：详细数据 -->
-    <view class="footer" v-if="[1, 2, 3, 4, 5, -1].includes(match.mstate)">
+    <view class="footer" v-if="isPro && [1, 2, 3, 4, 5, -1].includes(match.mstate)">
       <!-- 上半场，中场，下半场，加时，点球，完赛才显示底部数据 -->
       <!-- 主队数据 -->
       <view class="stat-group">
@@ -53,7 +49,7 @@
       </view>
     </view>
 
-    <view class="extraExplainStr" v-if="extraExplainStr">
+    <view class="extraExplainStr" v-if="isPro && extraExplainStr">
       {{ extraExplainStr }}
     </view>
 
@@ -69,6 +65,12 @@
             <view class="poi"></view>
           </view>
         </view>
+        
+        <view class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: match.flag }">
+          <!-- <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text> -->
+          <uni-icons class="star-icon" type="notification" size="30" :color="match.flag ? '#ff2629' : ''"></uni-icons>
+        </view>
+
         <!-- 客队事件（右列） -->
         <view class="events-column away-column">
           <view class="event-item" v-for="event in awayEvents" :key="event.id">
@@ -118,7 +120,8 @@ function addTimer(cb){
 
 export default {
   props: {
-    match: { type: Object }
+    match: { type: Object },
+    isPro: { type: Boolean, default: true }
   },
   emits: ['height-update'],
   data() {
@@ -137,20 +140,16 @@ export default {
           if (
             newMatch.homeScore != oldMatch.homeScore ||
             newMatch.awayScore != oldMatch.awayScore ||
-            newMatch.homeRed != oldMatch.homeRed ||
-            newMatch.awayRed != oldMatch.awayRed ||
-            newMatch.homeYellow != oldMatch.homeYellow ||
-            newMatch.awayYellow != oldMatch.awayYellow
+            (this.isPro ? (
+              newMatch.homeRed != oldMatch.homeRed ||
+              newMatch.awayRed != oldMatch.awayRed ||
+              newMatch.homeYellow != oldMatch.homeYellow ||
+              newMatch.awayYellow != oldMatch.awayYellow
+            ) : false)            
           ) {
             this.scoreUpdate();
           }
 
-        }
-        if(newMatch.extraExplain){
-          console.log(newMatch.homeChs, newMatch.leagueChsShort)
-          console.log(newMatch.extraExplain)
-          console.log(this.formatExtraExplain(newMatch.extraExplain))
-          console.log("-----------------------------------------------")
         }
       },
       deep: true,
@@ -355,10 +354,10 @@ export default {
         if(isNotificationEnabled && !isNotificationEnabled()){
           uni.showModal({
             title: "提示",
-          content: "当前为开启通知权限，是否前往开启",
-          success(){
-            goToAppNotificationSettings()
-          }
+            content: "当前未开启通知权限，是否前往开启",
+            success(){
+              goToAppNotificationSettings()
+            }
           })
         }
       }catch(e){
@@ -473,11 +472,24 @@ export default {
 <style scoped lang="scss">
 .match-card {
   background-color: #fff;
-  padding: 15rpx 10rpx;
+  padding: 30rpx 10rpx;
   overflow: hidden;
-  border-bottom: 1rpx solid #dbdbdb;
+  border-bottom: none;
   font-family: Arial, sans-serif;
   transition: background-color 0.3s ease;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2rpx;
+    background-color: #dbdbdb;
+    transform: scaleY(0.5);
+    transform-origin: bottom;
+  }
 
   &.score-flash {
     animation: flash-bg 5s ease;
@@ -576,11 +588,9 @@ export default {
 }
 
 .favorite-btn {
-  position: absolute;
   right: 0;
-  margin-left: 15rpx;
   font-size: 50rpx;
-  color: #ff2629;
+  color: #424242;
   cursor: pointer;
 }
 
@@ -659,7 +669,7 @@ export default {
     .events-column{
       flex: 1;
       &.home-column{
-        margin-right: 50rpx;
+        // margin-right: 50rpx;
         .event-item{
           justify-content: flex-end;
           &::after{

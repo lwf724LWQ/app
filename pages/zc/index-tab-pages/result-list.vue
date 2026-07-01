@@ -15,6 +15,7 @@
       <MatchScoreCard
         :key="item.id"
         :match="item"
+        :isPro="searchParams.isProMode"
         @height-update="handleHeightUpdate(index)"
       />
     </template>
@@ -157,21 +158,51 @@ initRecentOptions();
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
-  padding: 10rpx 0;
+  gap: 8rpx;
+  padding: 8rpx 12rpx;
   background-color: #fff;
-  border-bottom: 1rpx solid #eaeaea;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .recent-option {
-    padding: 10rpx;
-    border-radius: 6rpx;
-    background-color: #f5f5f5;
-    color: #111;
-    font-size: 28rpx;
+    flex-shrink: 0;
+    padding: 14rpx 20rpx;
+    border-radius: 20rpx;
+    background-color: #f7f8fa;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4rpx;
+    animation: all 0.3s ease;
+    transform: translateY(0);
+    box-shadow: 0 6rpx 20rpx rgba(67, 160, 71, 0);
+    border: 1rpx solid #43a04800;
+    .recent-option-text {
+      &:first-child {
+        font-size: 32rpx;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.3;
+      }
+      &:last-child {
+        font-size: 22rpx;
+        font-weight: 400;
+        color: #999;
+        line-height: 1.3;
+      }
+    }
 
     &.active {
-      background-color: hsl(92, 100%, 84%);
+      box-shadow: 0 6rpx 20rpx rgba(67, 160, 71, 0.3);
+      transform: translateY(-2rpx);
+      border: 1rpx solid #43a04881;
     }
   }
 }

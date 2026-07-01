@@ -7,12 +7,23 @@
         <StatusBarPlaceholder></StatusBarPlaceholder>
 
         <!-- 图片 -->
-        <image
+        <!-- <image
           v-show="useOldManModeStore.enabled"
           class="photo"
           src="@/static/zc/t.png"
           mode="aspectFill"
-        ></image>
+        ></image> -->
+
+        <!-- 搜索 -->
+         <!-- 这个原本是搜索框，但是后面改了样式变成顶部栏 -->
+        <view class="search-box">
+          <search-input
+            placeholder="请输入搜索内容"
+            @search="onSearch"
+            :indexde-data="leagueListWithPinyin"
+            ref="searchInputRef"
+          />
+        </view>
 
         <!-- 切换标签栏（参考 forum.vue 风格） -->
         <view class="switch-tabs">
@@ -32,15 +43,7 @@
           </view>
         </view>
 
-        <!-- 搜索 -->
-        <view class="search-box" v-show="[0, 1, 2].includes(pickerIndex)">
-          <search-input
-            placeholder="请输入搜索内容"
-            @search="onSearch"
-            :indexde-data="leagueListWithPinyin"
-            ref="searchInputRef"
-          />
-        </view>
+        
       </template>
 
       <swiper
@@ -97,6 +100,7 @@
             :pickerIndex="pickerIndex"
             ref="forllowListRef"
             :isActiveTab="pickerIndex == 5"
+            :searchParams="searchParams"
           />
         </swiper-item>
       </swiper>
@@ -308,6 +312,10 @@ matchList.leagueListChangeCallback(function (list) {
   leagueListWithPinyin.value = list;
 });
 
+onMounted(() => {
+  forllowListRef.value?.refreshVideoList();
+})
+
 onUnmounted(() => {
   matchList.unleagueListChangeCallback();
 });
@@ -384,7 +392,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  height: 88rpx;
+  height: 62rpx;
   background-color: #fff;
   z-index: 10;
   display: flex;
@@ -402,19 +410,24 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   font-weight: bold;
 
+  margin: 0 30rpx;
+
   &.bigwidth {
     flex: 1.6;
   }
 }
 
 .tab-item.active {
-  border-bottom-color: #ff4757;
+  border-bottom-color: #30B544;
+  .tab-text {
+    color: #30B544;
+  }
 }
 
 .tab-text {
   color: #000000;
-  font-weight: bold;
-  font-size: 36rpx;
+  font-weight: normal;
+  font-size: 26rpx;
   position: relative;
 
   .redDot {
@@ -431,11 +444,6 @@ onUnmounted(() => {
     border-radius: 50%;
   }
 }
-
-.tab-item.active .tab-text {
-  color: #ff4757;
-}
-
 .search-box {
   padding: 10rpx;
   background-color: #fff;

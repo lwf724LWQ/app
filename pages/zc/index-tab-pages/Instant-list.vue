@@ -14,6 +14,7 @@
         v-for="(match, idx) in item.list"
         :key="match.id"
         :match="match"
+        :isPro="searchParams.isProMode"
       />
     </template>
   </z-paging>

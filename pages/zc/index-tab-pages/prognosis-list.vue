@@ -74,7 +74,6 @@ export default {
   },
   methods: {
     virtualListChange(list){
-      console.log(list)
       this.list = list
     },
     async openDetail(data) {

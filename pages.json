@@ -461,9 +461,11 @@
     "color": "#000000",
     "selectedColor": "#f70000",
     "height": "60px",
-	"iconWidth": "28px",
-	"fontSize": "15px",
-	"iconfontSrc": "/static/iconfont/uniicons.ttf",
+    "iconWidth": "28px",
+    "fontSize": "15px",
+    "iconfontSrc": "/static/iconfont/uniicons.ttf",
+    "backgroundColor": "#fff",
+    "borderStyle": "white",
     "list": [
       {
         "text": "推荐",

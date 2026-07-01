@@ -2,7 +2,7 @@
   <!-- Part 1: 搜索栏展示 -->
   <view class="search-input-wrapper">
     <view class="search-bar-box">
-      <view class="search-bar">
+      <!-- <view class="search-bar">
         <uni-icons type="search" size="36rpx" color="#999"></uni-icons>
 
         <input
@@ -14,13 +14,22 @@
           cursor-spacing="10"
           confirm-type="搜索"
         />
+      </view> -->
+      <view class="search-setting-icon" @click="openSetting">
+        <uni-icons type="gear-filled" size="50rpx"></uni-icons>
       </view>
+
+      <view class="mode-toggle-wrapper">
+        <view class="mode-toggle-group">
+          <view :class="['mode-toggle-item', { active: !isProMode }]" @click="setMode(false)">干净版</view>
+          <view :class="['mode-toggle-item', { active: isProMode }]" @click="setMode(true)">专业版</view> 
+        </view>
+      </view>
+
       <view class="search-selection-icon" @click="openIndexedList">
         <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
       </view>
-      <view class="search-setting-icon" @click="openSetting">
-        <uni-icons type="gear-filled" size="55rpx"></uni-icons>
-      </view>
+      
     </view>
 
     <!-- 索引列表面板遮罩 -->
@@ -96,6 +105,7 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+const isProMode = ref(uni.getStorageSync("searchProMode") || false);
 
 
 uni.$on("openOnlyShijiebei", ()=>{
@@ -104,6 +114,12 @@ uni.$on("openOnlyShijiebei", ()=>{
   onlyShijiebei.value = true
   temponlyShijiebei.value = true
 })
+
+
+function setMode(pro) {
+  isProMode.value = pro;
+  uni.setStorageSync("searchProMode", pro);
+}
 
 const keyword = ref("");
 const leagueList = ref([]);
@@ -130,12 +146,13 @@ const allLeagues = computed(() => {
 
 const emit = defineEmits(["search"]);
 watch(
-  [keyword, leagueList, onlyShijiebei],
+  [keyword, leagueList, onlyShijiebei, isProMode],
   () => {
     emit("search", {
       keyword: keyword.value,
       leagueList: leagueList.value,
-      onlyShijiebei: onlyShijiebei.value
+      onlyShijiebei: onlyShijiebei.value,
+      isProMode: isProMode.value
     });
   },
   { deep: true }
@@ -208,6 +225,12 @@ function toShijiebei(){
   closeIndexedList()
 }
 
+emit("search", {
+      keyword: keyword.value,
+      leagueList: leagueList.value,
+      onlyShijiebei: onlyShijiebei.value,
+      isProMode: isProMode.value
+    });
 
 defineExpose({
   toShijiebei
@@ -244,8 +267,8 @@ defineExpose({
 }
 .search-selection-icon {
   position: relative;
-  width: 75rpx;
-  height: 65rpx;
+  width: 50rpx;
+  height: 50rpx;
   background: url("/static/icons/selection-icon.png") no-repeat;
   background-size: 100%;
   background-position: center;
@@ -268,6 +291,39 @@ defineExpose({
   justify-content: center;
   line-height: 1;
 }
+.mode-toggle-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+
+  .mode-toggle-group{
+    background-color: #F5F6F7;
+    padding: 8rpx;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20rpx;
+  }
+}
+
+.mode-toggle-item {
+  padding: 10rpx 20rpx;
+  font-size: 26rpx;
+  font-weight: normal;
+  color: #8E98A1;
+  transition: all 0.2s ease;
+  border-radius: 20rpx;
+
+  &.active {
+    background-color: #fff;
+    color: #30B544;
+    
+  }
+}
+
 .search-setting-icon {
   margin-left: auto;
 }
