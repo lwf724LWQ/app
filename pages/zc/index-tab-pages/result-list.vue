@@ -180,7 +180,7 @@ initRecentOptions();
     align-items: center;
     justify-content: center;
     gap: 4rpx;
-    animation: all 0.3s ease;
+    transform: all 0.3s ease;
     transform: translateY(0);
     box-shadow: 0 6rpx 20rpx rgba(67, 160, 71, 0);
     border: 1rpx solid #43a04800;
@@ -200,6 +200,7 @@ initRecentOptions();
     }
 
     &.active {
+      background-color: #fff;
       box-shadow: 0 6rpx 20rpx rgba(67, 160, 71, 0.3);
       transform: translateY(-2rpx);
       border: 1rpx solid #43a04881;
