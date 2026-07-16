@@ -88,6 +88,8 @@ const form = reactive({
 
   expertAnalysis: "",
   fimg: "",
+
+  ftype: 2
 });
 
 const dataTree = ref([]);
@@ -174,7 +176,7 @@ async function submitPrognosis() {
     expertAnalysis: expertAnalysisDelta,
   };
   const confirmForm = {
-    ftype: 2,
+    ftype: form.ftype,
     title: form.title,
     fimg: form.fimg,
 
@@ -185,7 +187,6 @@ async function submitPrognosis() {
     // 预测结果
     result: JSON.stringify(resultForm),
   };
-
   if (isEditMode.value) {
     confirmForm.id = editId.value;
   }
@@ -225,6 +226,7 @@ onLoad(async (option) => {
       form.enablePrice = !!postData.flag;
       form.price = postData.price || 0;
       form.fimg = postData.fimg || "";
+      form.ftype = postData.ftype
       if (postData.result) {
         try {
           const parsed = JSON.parse(postData.result);

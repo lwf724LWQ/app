@@ -371,7 +371,7 @@ onMounted(() => {
 
   const savedLotteryType = uni.getStorageSync("currentLotteryType");
   if (savedLotteryType) {
-    if (lotteryTypes.value.find(savedLotteryType)) {
+    if (lotteryTypes.value.find(item => item === savedLotteryType)) {
       currentLotteryType.value = savedLotteryType; 
     }
   }
@@ -383,9 +383,14 @@ onMounted(() => {
 
 const followUserListRef = ref(null);
 onShow(() => {
+  if (uni.getStorageSync("openCollectionList")) {
+    uni.setStorageSync("openCollectionList", false)
+    activeTab.value = 'collection'
+  }
+  
   if (!isLoad.value) return;
   followUserListRef.value?.reload();
-  onRefresh();
+  onRefresh()
 });
 
 function onRefresh() {

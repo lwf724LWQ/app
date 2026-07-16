@@ -68,7 +68,7 @@
         
         <view class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: match.flag }">
           <!-- <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text> -->
-          <uni-icons class="star-icon" type="notification" size="30" :color="match.flag ? '#ff2629' : ''"></uni-icons>
+          <uni-icons class="star-icon" :type="match.flag?'notification-filled':'notification'" size="30" :color="match.flag ? '#ff2629' : ''"></uni-icons>
         </view>
 
         <!-- 客队事件（右列） -->
