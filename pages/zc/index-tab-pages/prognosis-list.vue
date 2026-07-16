@@ -65,7 +65,7 @@ export default {
   watch: {
     pickerIndex: {
       handler(newVal) {
-        if (newVal === 3 && !this.firstLoaded) {
+        if (newVal === 1 && !this.firstLoaded) {
           this.$refs.swiperItemRef?.reload(true);
         }
       },

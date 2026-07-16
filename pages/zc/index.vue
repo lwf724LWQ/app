@@ -35,7 +35,7 @@
             @click="switchTabByIndex(index)"
           >
             <text class="tab-text">
-              <view v-if="index === 5 && userStore.followCount > 0" class="redDot">
+              <view v-if="index === 3 && userStore.followCount > 0" class="redDot">
                 {{ userStore.followCount }}
               </view>
               {{ item }}
@@ -59,6 +59,7 @@
         <!-- 即时 (index=0) -->
         <swiper-item>
           <InstantList
+            ref="instantListRef"
             :pickerIndex="pickerIndex"
             :isActiveTab="pickerIndex == 0"
             @updateMatchList="updateMatchList"
@@ -67,22 +68,22 @@
         </swiper-item>
 
         <!-- 赛程 (index=1) -->
-        <swiper-item>
+        <!-- <swiper-item>
           <InprogressList
             :pickerIndex="pickerIndex"
             :isActiveTab="pickerIndex == 1"
             :searchParams="searchParams"
           />
-        </swiper-item>
+        </swiper-item> -->
 
         <!-- 赛果 (index=2) -->
-        <swiper-item>
+        <!-- <swiper-item>
           <ResultList
             :pickerIndex="pickerIndex"
             :isActiveTab="pickerIndex == 2"
             :searchParams="searchParams"
           />
-        </swiper-item>
+        </swiper-item> -->
 
         <!-- 预测 (index=3) -->
         <swiper-item>
@@ -99,7 +100,7 @@
           <ForllowList
             :pickerIndex="pickerIndex"
             ref="forllowListRef"
-            :isActiveTab="pickerIndex == 5"
+            :isActiveTab="pickerIndex == 3"
             :searchParams="searchParams"
           />
         </swiper-item>
@@ -113,7 +114,7 @@
 
 <script setup>
 import { onShow, onHide, onPullDownRefresh } from "@dcloudio/uni-app";
-import { ref, onMounted, inject, computed, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, inject, computed, onUnmounted, nextTick, watch } from "vue";
 
 // 导入 Pinia store
 const useOldManModeStore = inject("useOldManModeStore");
@@ -145,7 +146,7 @@ const searchInputRef = ref(null);
 const pickerIndex = ref(0);
 
 // 彩票类型
-const lotteryTypes = ref(["即时", "赛程", "赛果", "专家", "评论", "关注"]);
+const lotteryTypes = ref(["即时", "专家", "评论", "关注"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -164,7 +165,7 @@ function swiperChange(e) {
 
 // 标签切换
 const switchTabByIndex = (index) => {
-  if (index === 5 && !getToken()) {
+  if (index === 3 && !getToken()) {
     uni.showModal({
       title: "提示",
       content: "该功能需要注册才能使用",
@@ -178,7 +179,7 @@ const switchTabByIndex = (index) => {
     return;
   }
 
-  if (index === 5) {
+  if (index === 3) {
     nextTick(() => {
       try {
         forllowListRef.value.refreshVideoList();
@@ -218,20 +219,35 @@ const postListRef = ref(null);
 const prognosisRef = ref(null);
 
 const pageIsShow = ref(false);
+const lastShowPageDate = ref(new Date().getTime())
+
+const instantListRef = ref(null)
 onShow((e) => {
+  
+  pageIsShow.value = true;
+
+  // 离开页面超过20秒即重新全量更新子页面的足球赛事
+  if (new Date().getTime() - new Date().getTime() > 20000) {
+    instantListRef.value?.refresherAll()
+  }
+
   if (uni.getStorageSync("openZcPostList")) {
     nextTick(() => {
-      pickerIndex.value = 4;
+      pickerIndex.value = 1;
     });
     uni.setStorageSync("openZcPostList", false);
+    return
   }
   if (uni.getStorageSync("toShijiebei")) {
     uni.setStorageSync("toShijiebei", false);
     nextTick(() => {
       searchInputRef.value.toShijiebei();
     });
+    return
   }
-  pageIsShow.value = true;
+
+  
+
   nextTick(() => {
     // postListRef.value?.onshow();
     // prognosisRef.value?.onshow();
@@ -250,6 +266,10 @@ onHide((opt) => {
   pageIsShow.value = false;
   // #endif
 });
+
+watch((pageIsShow)=>{
+  lastShowPageDate.value = new Date().getTime()
+})
 
 // 搜索事件
 const searchParams = ref({});
@@ -298,7 +318,7 @@ const updateMatchList = (list) => {
       eventNotificationRef.value?.onDataUpdate(list);
     }
   }
-  if (pickerIndex.value === 5) {
+  if (pickerIndex.value === 3) {
     try {
       forllowListRef.value.updateMatchList(list);
     } catch (error) {}
@@ -432,7 +452,7 @@ onUnmounted(() => {
 
   .redDot {
     position: absolute;
-    right: -15rpx;
+    right: -25rpx;
     top: -15rpx;
     width: 35rpx;
     height: 35rpx;
