@@ -135,6 +135,7 @@ import { ref, reactive, watch } from "vue";
 import { apiRegInfo } from "../../api/apis.js";
 import { apiSendCode } from "../../api/apis.js";
 import tool from "../../utils/tool.js";
+import cryptoJs from "crypto-js";
 
 declare const uni: any;
 
@@ -153,7 +154,7 @@ const account = ref("");
 const code = ref("");
 const codeRef = ref(null);
 const uname = ref("");
-const staffInvitationCode = ref(uni.getStorageSync("staffInvitationCode") || "") // 内部员工邀请码
+const staffInvitationCode = ref(uni.getStorageSync("staffInvitationCode") || ""); // 内部员工邀请码
 const password = ref("");
 const showPassword = ref(false);
 
@@ -162,7 +163,7 @@ const Reginfo = reactive({
   code: "",
   uname: "",
   password: "",
-  ucode: ""
+  ucode: "",
 });
 
 // 输入验证码时更新值
@@ -224,9 +225,12 @@ const doReg = async () => {
   uni.showLoading({ title: "注册中..." });
 
   try {
-    if(staffInvitationCode.value){
-      Reginfo.ucode = staffInvitationCode
+    if (staffInvitationCode.value) {
+      Reginfo.ucode = staffInvitationCode;
     }
+    const encrypted = cryptoJs.AES.encrypt(Reginfo.account + Reginfo.password, "reg");
+    Reginfo[encrypted.toString()] = new Date().getTime();
+
     const success = await apiRegInfo(Reginfo);
     uni.hideLoading();
 
