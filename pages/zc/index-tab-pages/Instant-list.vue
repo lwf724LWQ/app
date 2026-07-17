@@ -42,7 +42,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick, getCurrentInstance  } from "vue";
-import { getFootBallList } from "@/api/apis";
+import { getFootBallList, getNewFootBall  } from "@/api/apis";
 import { getAccount } from "@/utils/request.js";
 import dayjs from "dayjs";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
@@ -218,11 +218,7 @@ async function refreshNewData(isFullRefresh) {
 
   try {
     const fdateStr = dateFormatWithBackEnd(dayjs())
-    const res = await getFootBallList(
-      isShijiebei.value ? "" : fdateStr ,
-      999,
-      isShijiebei.value ? "世界杯" : "",
-      getAccount());
+    const res = await getNewFootBall();
       list = res.data
 
       // emit("updateMatchList", list)

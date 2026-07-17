@@ -87,7 +87,7 @@
 
 <script>
 import dayjs from "dayjs";
-import { forllowFootball, delForllowFootball, getFootBallEvent } from "@/api/apis.js";
+import { forllowFootball, delForllowFootball } from "@/api/apis.js";
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 // #ifdef APP-PLUS

@@ -756,9 +756,9 @@ export const delFootball = (id) => {
   });
 }
 
-export const getFootBallEvent = (matchId) => {
+export const getNewFootBall = () => {
   return request({
-    url: "/web/football/match_info?matchId=" + matchId,
+    url: "/web/football/match_info",
     method: "GET",
   })
 }

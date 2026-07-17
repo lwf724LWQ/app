@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import { forllowFootballList } from "@/api/apis";
+import { forllowFootballList, getNewFootBall } from "@/api/apis";
 import { getAccount } from "@/utils/request.js";
 import { useUserStore } from "@/stores/userStore";
 import MatchScoreCard from "../components/MatchScoreCard.vue";
@@ -88,6 +88,8 @@ async function onQuery(pageNo, pageSize, from) {
       const list = res.data.list.map((item) => ({ ...item, flag: true }));
       userStore.setFollowCount(res.data.total);
       swiperItemRef.value?.complete(list);
+    }else{
+      swiperItemRef.value?.complete([]);
     }
 
     
