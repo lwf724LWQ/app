@@ -182,6 +182,13 @@
     "uniStatistics" : {
         "enable" : false
     },
+    "h5" : {
+        "publicPath" : "http://video.caimizm.com/frontend-staticdir/",
+        "router" : {
+            "mode" : "history",
+            "base" : ""
+        }
+    },
     "vueVersion" : "3"
 }
 /* 模块配置 */

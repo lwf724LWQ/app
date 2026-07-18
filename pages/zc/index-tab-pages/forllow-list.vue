@@ -106,7 +106,7 @@ function updateMatchList(list) {
   newArr.forEach((item, index) => {
     const a = list.find((newitem) => item.matchId == newitem.matchId);
     if (a) {
-      newArr[index] = a;
+      newArr[index] = { ...newArr[index], ...a};
     }
   });
   matchInfoList.value = newArr;

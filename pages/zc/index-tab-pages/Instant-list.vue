@@ -213,7 +213,12 @@ async function getCurrentDay() {
   swiperItemRef.value?.complete(list)
 }
 
+const isLoadRefresh = ref(false)
 async function refreshNewData(isFullRefresh) {
+  if (isLoadRefresh.value) {
+    return
+  }
+  isLoadRefresh.value = true
   let list = []
 
   try {
@@ -234,10 +239,13 @@ async function refreshNewData(isFullRefresh) {
         }
       })
 
+      emit("updateMatchList", list)
+
       matchInfoList.value = _matchInfoList
   } catch (error) {
     console.log(error)
   }
+  isLoadRefresh.value = false
 }
 
 const currentLastDay = ref()
