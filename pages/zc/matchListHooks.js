@@ -1,15 +1,12 @@
 import { ref, watch, computed } from "vue";
 import lpinyin from "lpinyin"
+import { getFootBallLeagueList } from "@/api/apis"
 
-let matchList = []
-
-let mathchLeaguesBypinyin = []
-
-function computedPinyinList(){
+function computedPinyinList(list){
     const obj = {}
-    matchList.forEach(item => {
-        const leagueChsShort = item.leagueChsShort
-        const a = ((s)=>{
+    console.log(`开始处理拼音`, list)
+     list.forEach(item => {
+        const pingyin = ((s)=>{
             if (typeof s === "string") {
                 try {
                     return new lpinyin(s)[0][0][0]
@@ -18,53 +15,47 @@ function computedPinyinList(){
                 }
             }
             return "#"
-        })(leagueChsShort) 
-        
-        if (obj[a]) {
-            const leagueList = obj[a].leagueList
-            const leagueObj = leagueList.find(item => item.name === leagueChsShort)
+        })(item.leagueChsShort)
+
+        if (obj[pingyin]) {
+            const leagueList = obj[pingyin].leagueList
+            const leagueObj = leagueList.find(item => item.name === item.leagueChsShort)
             if (leagueObj) {
                 leagueObj.count ++
             }else{
-                obj[a].leagueList.push({
-                    name: leagueChsShort, count: 1
+                obj[pingyin].leagueList.push({
+                    name: item.leagueChsShort, count: 1
                 })
             }
         }else{
-            obj[a] = {
-                leagueList: [{name: leagueChsShort, count: 1}]
+            obj[pingyin] = {
+                leagueList: [{name: item.leagueChsShort, count: 1}]
             }
         }
     })
-    mathchLeaguesBypinyin = obj
+    console.log("拼音处理结果", obj)
+    return obj
 }
-const cbs = []
 
+const leagueList = ref({})
+const leagueListWithPinyin = ref([])
 export function useMatchList(){
     let cbIndex = false
+
+    if (leagueList.value != {}) {
+        getFootBallLeagueList().then((res) => {
+            const sjbIndex = res.data.findIndex(item => item.leagueChsShort === "世界杯")
+            const list = res.data.map((item, index) => ({index, ...item}))
+            list.splice(0, 0, ...list.splice(sjbIndex, 1));
+
+            leagueList.value = [...list].map((item, index) => ({id: index, name: item.leagueChsShort, ...item}))
+            leagueListWithPinyin.value = computedPinyinList(list)
+        })
+    }
+
     return {
-        setMatchList(list){
-            matchList = list
-            computedPinyinList()
-            cbs.forEach(cb => {
-                if (typeof cb === "function") {
-                    try {
-                        cb(mathchLeaguesBypinyin)
-                    } catch (error) {
-                        
-                    }
-                }
-            })
-        },
-        leagueListChangeCallback(newcb){
-            if(cbIndex !== false){
-                cbs[cbIndex] === null
-            }
-            cbIndex = cbs.push(newcb)
-        },
-        unleagueListChangeCallback(){
-            cbs[cbIndex] === null
-        }
+        leagueList: leagueList,
+        leagueListWithPinyin: leagueListWithPinyin
     }
 }
 
@@ -80,13 +71,13 @@ export function filterItem(searchParams){
             leagueFlag = false
             leagueFlag = leagueList.map(league => league.name).includes(item.leagueChsShort)
         }
-        
+
         if(name instanceof Array && name.length > 0){
             nameFlag = false
             const searchStr = `${item.homeChs} ${item.awayChs} ${item.leagueChsShort}`
             nameFlag = name.some(n => (searchStr.indexOf(n) >= 0))
         }
-        
+
         return nameFlag && leagueFlag
     }
 }

@@ -1,43 +1,68 @@
 <template>
   <!-- 即时列表 -->
-  <z-paging
-    ref="swiperItemRef"
-    :fixed="false"
-    :auto="false"
-    :loading-more-enabled="true"
-    :use-virtual-list="true"
-    v-model="matchInfoList"
+   <z-paging-swiper>
+      <!-- 顶部固定的标签栏和搜索框 -->
+      <template #top>
+        <uv-sticky bgColor="#fff" customNavHeight="0">
+          <uv-tabs :list="leagueList" lineColor="#30B544" :current="pickerIndex" @change="tagChange"></uv-tabs>
+        </uv-sticky>
+      </template>
 
-    @query="onQuery"
-    @listChange="virtualListChange"
-    @virtualListChange="virtualListChange"
-    @refresherStatusChange="refresherStatusChange"
+      <swiper
+        class="video-swiper"
+        :indicator-dots="false"
+        :autoplay="false"
+        :circular="false"
+        :vertical="false"
+        :current="pickerIndex"
+        easing-function="default"
+        @change="swiperChange"
+      >
+        <swiper-item v-for="i in leagueList">
 
-    :cellHeightMode="'dynamic'"
-    :refresher-default-text="refresherText.default"
-    :refresher-pulling-text="refresherText.pulling"
-    :refresher-refreshing-text="refresherText.refreshing"
-    :refresher-complete-text="refresherText.complete"
-    :autoScrollToTopWhenReload="false"
-    
-  >
+          <z-paging
+            ref="swiperItemRef"
+            :fixed="false"
+            :auto="false"
+            :loading-more-enabled="true"
+            :use-virtual-list="true"
+            v-model="matchInfoList"
 
-    <template v-for="(item, index) in matchListWithDay" :key="item.datestr" v-if="!isRefreshMode">
-        <view class="matchdatestr">{{ item.datestr }}</view>
-        <view v-if="item.list.length === 0" class="no-match-text">该天无匹配赛事</view>
-        <MatchScoreCard
-          v-for="(match, idx) in item.list"
-          :id="`id_${match.id}`"
-          :key="match.id"
-          ref="zPagingItemRef"
-          :match="match"
-          :isPro="searchParams.isProMode"
-        />
-    </template>
-    <view class="toTop" @click="toTop">
-      <text>回到今天</text>
-    </view>
-  </z-paging>
+            @query="onQuery"
+            @listChange="virtualListChange"
+            @virtualListChange="virtualListChange"
+            @refresherStatusChange="refresherStatusChange"
+
+            :cellHeightMode="'dynamic'"
+            :refresher-default-text="refresherText.default"
+            :refresher-pulling-text="refresherText.pulling"
+            :refresher-refreshing-text="refresherText.refreshing"
+            :refresher-complete-text="refresherText.complete"
+            :autoScrollToTopWhenReload="false"
+            
+          >
+
+
+          <template v-for="(item, index) in matchListWithDay" :key="item.datestr" v-if="!isRefreshMode">
+            <view class="matchdatestr">{{ item.datestr }}</view>
+            <view v-if="item.list.length === 0" class="no-match-text">该天无匹配赛事</view>
+            <MatchScoreCard
+              v-for="(match, idx) in item.list"
+              :id="`id_${match.id}`"
+              :key="match.id"
+              ref="zPagingItemRef"
+              :match="match"
+              :isPro="searchParams.isProMode"
+            />
+          </template>
+
+          <view class="toTop" @click="toTop">
+            <text>回到今天</text>
+          </view>
+          </z-paging>
+        </swiper-item>
+      </swiper>
+    </z-paging-swiper>
 </template>
 
 <script setup>
@@ -285,11 +310,7 @@ function toTop(){
 }
 
 const matchListHooks = useMatchList();
-watch([() => props.isActiveTab, matchInfoList], ([isActive, list]) => {
-  if (isActive) {
-    matchListHooks.setMatchList(list);
-  }
-});
+const leagueList = computed(()=>matchListHooks.leagueList.value)
 
 
 // 监听 searchParams 变化，重新加载列表
@@ -327,6 +348,17 @@ function stopRefreshTimer() {
     clearInterval(refreshTimer);
     refreshTimer = null;
   }
+}
+
+// 选项与当前索引
+const pickerIndex = ref(0);
+function tagChange(e){
+  pickerIndex.value = e.index;
+}
+
+function swiperChange(e){
+  const index = e.detail.current
+  pickerIndex.value = index
 }
 
 window.tttt = refresherAll

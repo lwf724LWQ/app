@@ -29,7 +29,6 @@
       <view class="search-selection-icon" @click="openIndexedList">
         <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
       </view>
-      
     </view>
 
     <!-- 索引列表面板遮罩 -->
@@ -78,7 +77,6 @@
           </template>
         </IndexedList>
         </view>
-        
       </view>
 
       <view class="indexed-panel-footer">

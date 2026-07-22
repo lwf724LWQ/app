@@ -324,13 +324,7 @@ const updateMatchList = (list) => {
     } catch (error) {}
   }
 };
-const leagueListWithPinyin = ref({});
-matchList.leagueListChangeCallback(function (list) {
-  if (searchParams.value.onlyShijiebei) {
-    return;
-  }
-  leagueListWithPinyin.value = list;
-});
+const leagueListWithPinyin = computed(()=>matchList.leagueListWithPinyin.value)
 
 onMounted(() => {
   forllowListRef.value?.refreshVideoList();

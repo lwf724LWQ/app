@@ -762,3 +762,10 @@ export const getNewFootBall = () => {
     method: "GET",
   })
 }
+
+export const getFootBallLeagueList = () => {
+  return request({
+    url: "/web/football/find_sort",
+    method: "GET",
+  })
+}
