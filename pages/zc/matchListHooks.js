@@ -44,9 +44,7 @@ export function useMatchList(){
 
     if (leagueList.value != {}) {
         getFootBallLeagueList().then((res) => {
-            const sjbIndex = res.data.findIndex(item => item.leagueChsShort === "世界杯")
             const list = res.data.map((item, index) => ({index, ...item}))
-            list.splice(0, 0, ...list.splice(sjbIndex, 1));
 
             leagueList.value = [...list].map((item, index) => ({id: index, name: item.leagueChsShort, ...item}))
             leagueListWithPinyin.value = computedPinyinList(list)

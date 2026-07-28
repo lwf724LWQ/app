@@ -42,7 +42,7 @@
               :autoScrollToTopWhenReload="false"
             >
             <template v-for="(dayItem, index) in (matchListWithDayMap[idx] || [])" :key="dayItem.datestr" v-if="!isRefreshMode">
-              <view class="matchdatestr">{{ dayItem.datestr }}</view>
+              <view class="matchdatestr" :id="`id_${dayItem.id}`">{{ dayItem.datestr }}</view>
               <view v-if="dayItem.list.length === 0" class="no-match-text">该天无匹配赛事</view>
               <MatchScoreCard
                 v-for="(match, mIdx) in dayItem.list"
@@ -164,15 +164,17 @@ function initTabData(idx) {
 // ========== Day list computation ==========
 function computeDayList(virtualList, beforeDay, lastDay) {
   const dayList = [];
-
+  let i = 0
   if (beforeDay && lastDay) {
     let day = beforeDay;
     while (dayjs(day).isBefore(lastDay) || dayjs(day).isSame(lastDay, "day")) {
       const formatDataStr = dayjs(day).format("YYYY/MM/DD dddd");
       dayList.push({
         datestr: formatDataStr,
+        id: i,
         list: [],
       });
+      i++
       day = dayjs(day).add(1, "day");
     }
   }
@@ -180,6 +182,7 @@ function computeDayList(virtualList, beforeDay, lastDay) {
   const sorted = [...virtualList]
     .sort((a, b) => dayjs(a.matchTime) - dayjs(b.matchTime));
 
+  
   for (let index = 0; index < sorted.length; index++) {
     const element = sorted[index];
     const formatDataStr = dayjs(element.matchTime).format("YYYY/MM/DD dddd");
@@ -189,8 +192,10 @@ function computeDayList(virtualList, beforeDay, lastDay) {
     } else {
       dayList.push({
         datestr: formatDataStr,
+        id: i,
         list: [element],
       });
+      i++
     }
   }
 
@@ -291,7 +296,14 @@ async function refreshNewData(isFullRefresh) {
   isLoadRefresh.value = true
 
   try {
-    const res = await getNewFootBall();
+    // const res = await getNewFootBall();
+    const fdateStr = dateFormatWithBackEnd(dayjs())
+    const res = await getFootBallList(
+      fdateStr,
+      0,
+      "",
+      getAccount()
+    )
     const list = res.data || []
 
     emit("updateMatchList", list)
@@ -362,6 +374,12 @@ async function getNextDayData(tabIndex) {
 }
 
 async function refresherAll() {
+  console.log(props.searchParams.leagueList)
+  const nowLeagueIndex = leagueList.value.findIndex(item=>item.name === props.searchParams.leagueList)
+  if (props.searchParams.leagueList != "" && nowLeagueIndex !== pickerIndex.value) {
+      pickerIndex.value = nowLeagueIndex
+  }
+
   isRefreshMode.value = true
   const currentDay = dayjs()
 
@@ -386,12 +404,12 @@ async function refresherAll() {
 function toTop(idx){
   const dayList = matchListWithDayMap.value[idx] || []
   const a = dayList.find(item => item.datestr === dayjs().format("YYYY/MM/DD dddd"))
-  if (a && a.list.length > 0) {
+  
     const swiperRef = swiperItemRefs.value[idx]
     if (swiperRef) {
-      swiperRef.scrollIntoViewById(`id_${a.list[0].id}`, 0, true)
+      swiperRef.scrollIntoViewById(`id_${a.id}`, 0, true)
     }
-  }
+  
 }
 
 // ========== League list ==========

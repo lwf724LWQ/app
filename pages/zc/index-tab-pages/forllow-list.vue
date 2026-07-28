@@ -80,6 +80,7 @@ async function onQuery(pageNo, pageSize, from) {
     const form = {
       page: pageNo,
       limit: pageSize,
+      account: getAccount()
     };
 
     const res = await forllowFootballList(form);

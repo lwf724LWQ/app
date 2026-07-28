@@ -25,10 +25,9 @@
           <view :class="['mode-toggle-item', { active: isProMode }]" @click="setMode(true)">专业版</view> 
         </view>
       </view>
-      <view></view>
-      <!-- <view class="search-selection-icon" @click="openIndexedList">
+      <view class="search-selection-icon" @click="openIndexedList">
         <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
-      </view> -->
+      </view>
     </view>
 
     <!-- 索引列表面板遮罩 -->
@@ -48,10 +47,10 @@
       </view>
 
       <view class="indexed-panel-body">
-        <view class="shijiebei" @click="toShijiebei" :class="{'selected': temponlyShijiebei}">
+        <!-- <view class="shijiebei" @click="toShijiebei" :class="{'selected': temponlyShijiebei}">
           <view class="shijiebeiLOGO"></view>
           世界杯
-        </view>
+        </view> -->
         <view class="indexedList">
           <IndexedList
           ref="indexedListRef"
@@ -71,7 +70,6 @@
                 @click="toggleLeague(item)"
               >
                 <text class="league-name">{{ item.name }}</text>
-                <text class="league-count">（{{ item.count }}）</text>
               </view>
             </view>
           </template>
@@ -79,11 +77,11 @@
         </view>
       </view>
 
-      <view class="indexed-panel-footer">
+      <!-- <view class="indexed-panel-footer">
         <view class="footer-btn btn-select-all" @click="selectAll">全选</view>
         <view class="footer-btn btn-invert" @click="invertSelection">反选</view>
         <view class="footer-btn btn-confirm" @click="confirmSelection">确定</view>
-      </view>
+      </view> -->
     </view>
   </view>
 </template>
@@ -121,7 +119,6 @@ function setMode(pro) {
 
 const keyword = ref("");
 const leagueList = ref([]);
-const tempLeagueList = ref("");
 const temponlyShijiebei = ref(false);
 const showIndexedPanel = ref(false);
 const indexedListRef = ref(null);
@@ -158,35 +155,13 @@ watch(
 
 // 切换单个联赛选中状态（操作临时变量 tempLeagueList）
 function toggleLeague(item) {
-  tempLeagueList.value = item.name
+  leagueList.value = item.name
+  closeIndexedList()
 }
 
-// 全选（操作临时变量 tempLeagueList）
-function selectAll() {
-  tempLeagueList.value = allLeagues.value.map((item) => ({ ...item }));
-}
-
-// 反选（操作临时变量 tempLeagueList）
-function invertSelection() {
-  const currentNames = new Set(tempLeagueList.value.map((l) => l.name));
-  tempLeagueList.value = allLeagues.value
-    .filter((item) => !currentNames.has(item.name))
-    .map((item) => ({ ...item }));
-}
-
-// 确定选择：将临时变量同步到 leagueList，触发 emit 传递到父组件
-function confirmSelection() {
-  leagueList.value = [...tempLeagueList.value];
-  if (onlyShijiebei.value && tempLeagueList.value.length > 0) {
-    onlyShijiebei.value = false
-  }
-  showIndexedPanel.value = false;
-  onlyShijiebei.value = temponlyShijiebei.value
-}
 
 // 打开索引列表：用当前 leagueList 初始化临时变量
 function openIndexedList() {
-  tempLeagueList.value = leagueList.value.map((item) => ({ ...item }));
   showIndexedPanel.value = true;
 }
 
