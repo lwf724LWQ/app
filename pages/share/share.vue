@@ -53,8 +53,8 @@
           <view style="width: 600rpx">
             <uni-link
               class="link"
-              href="http://www.caimizm.com/"
-              text="官网地址：http://www.caimizm.com"
+              href="http://57zi.com/"
+              text="官网地址：http://57zi.com"
             ></uni-link>
           </view>
         </view>
@@ -83,7 +83,7 @@ function share(type) {
   sharePopupRef.value.open(type);
 }
 function copyLink() {
-  let txt = "http://www.caimizm.com/";
+  let txt = "http://57zi.com/";
   uni.setClipboardData({
     data: txt,
     success: function () {
