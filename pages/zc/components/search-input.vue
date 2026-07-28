@@ -25,10 +25,10 @@
           <view :class="['mode-toggle-item', { active: isProMode }]" @click="setMode(true)">专业版</view> 
         </view>
       </view>
-
-      <view class="search-selection-icon" @click="openIndexedList">
+      <view></view>
+      <!-- <view class="search-selection-icon" @click="openIndexedList">
         <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
-      </view>
+      </view> -->
     </view>
 
     <!-- 索引列表面板遮罩 -->
@@ -67,7 +67,7 @@
               <view
                 v-for="item in sectionData.leagueList"
                 :key="item.name"
-                :class="['league-item', { selected: isLeagueSelected(item) }]"
+                :class="['league-item']"
                 @click="toggleLeague(item)"
               >
                 <text class="league-name">{{ item.name }}</text>
@@ -121,7 +121,7 @@ function setMode(pro) {
 
 const keyword = ref("");
 const leagueList = ref([]);
-const tempLeagueList = ref([]);
+const tempLeagueList = ref("");
 const temponlyShijiebei = ref(false);
 const showIndexedPanel = ref(false);
 const indexedListRef = ref(null);
@@ -156,23 +156,9 @@ watch(
   { deep: true }
 );
 
-// 判断联赛是否已选中（基于临时变量 tempLeagueList）
-function isLeagueSelected(item) {
-  return tempLeagueList.value.some((l) => l.name === item.name);
-}
-
 // 切换单个联赛选中状态（操作临时变量 tempLeagueList）
 function toggleLeague(item) {
-  if (temponlyShijiebei.value) {
-    temponlyShijiebei.value = false;
-    tempLeagueList.value = [];
-  }
-  const idx = tempLeagueList.value.findIndex((l) => l.name === item.name);
-  if (idx >= 0) {
-    tempLeagueList.value.splice(idx, 1);
-  } else {
-    tempLeagueList.value.push({ ...item });
-  }
+  tempLeagueList.value = item.name
 }
 
 // 全选（操作临时变量 tempLeagueList）
