@@ -66,7 +66,7 @@ function getConfig() {
     return {
       provider: "weixin",
       type: 2,
-      imageUrl: "http://video.caimizm.com/changtiao/fileqIXDuBnAcozQ.png",
+      imageUrl: "http://video.caimizm.com/app-config/filemoP63X0DsuB3.png",
     };
   }
 }
