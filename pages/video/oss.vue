@@ -265,13 +265,25 @@ const startUpload = async () => {
   const todayVideoList = await apiFindTodayVideo({account: getAccount(), tname: tname})
   const paidVideoFlag = isCharge.value === 2
   if (todayVideoList.data.find(item => item.flag === paidVideoFlag)) {
-    uni.showModal({
-      title: "视频上传达到上限",
-      content: `您今日上传的${paidVideoFlag?"收费":"免费"}视频已达到上限!`
-    })
-    return
+    if (tname === "福彩3D" && paidVideoFlag) {
+      // 如果tname为福彩3d，且为收费视频时，此时可上传的视频为3个
+      if (todayVideoList.data.filter(item => item.flag === paidVideoFlag).length >= 3) {
+        uni.showModal({
+          title: "视频上传达到上限,",
+          content: `福彩3d每天最多可上传3个收费视频!`
+        })
+        return
+      }
+    }else{
+      uni.showModal({
+        title: "视频上传达到上限",
+        content: `您今日上传的${paidVideoFlag?"收费":"免费"}视频已达到上限!`
+      })
+      return
+    }
   }
   
+
 
   statusMessage.value = "正在上传...";
   statusClass.value = "status-warning";
