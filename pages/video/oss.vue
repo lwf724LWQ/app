@@ -265,12 +265,12 @@ const startUpload = async () => {
   const todayVideoList = await apiFindTodayVideo({account: getAccount(), tname: tname})
   const paidVideoFlag = isCharge.value === 2
   if (todayVideoList.data.find(item => item.flag === paidVideoFlag)) {
-    if (tname === "福彩3D" && paidVideoFlag) {
-      // 如果tname为福彩3d，且为收费视频时，此时可上传的视频为3个
+    if (tname === "七星彩" && paidVideoFlag) {
+      // 如果tname为七星彩，且为收费视频时，此时可上传的视频为3个
       if (todayVideoList.data.filter(item => item.flag === paidVideoFlag).length >= 3) {
         uni.showModal({
           title: "视频上传达到上限,",
-          content: `福彩3d每天最多可上传3个收费视频!`
+          content: `七星彩每天最多可上传3个收费视频!`
         })
         return
       }
@@ -444,7 +444,7 @@ const startUpload = async () => {
       }
     } catch (error) {
       statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || "视频"}"上传失败: ${
-        error.message
+        error.message || error.msg
       }`;
       statusClass.value = "status-error";
       
