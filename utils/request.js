@@ -72,6 +72,9 @@ export function request({ url, data = {}, method = "GET", header = {}, timeout =
           if (handleServerError(res.data)) {
             resolve(res.data);
           } else {
+            if (res.data?.msg) {
+              res.data.msg = "服务器：" + res.data.msg
+            }
             reject(res.data);
           }
 

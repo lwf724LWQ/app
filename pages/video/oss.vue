@@ -447,6 +447,11 @@ const startUpload = async () => {
         error.message
       }`;
       statusClass.value = "status-error";
+      
+      if (error && error.msg) {
+      }
+      uni.showToast({title: error.msg,
+                icon: "none"})
     }
     isUploading.value = false;
   }
