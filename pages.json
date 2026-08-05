@@ -293,8 +293,7 @@
     {
       "path": "pages/forum/post/detail",
       "style": {
-        "navigationBarTitleText": "帖子详情",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "帖子详情"
       }
     },
     {
