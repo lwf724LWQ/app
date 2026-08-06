@@ -100,6 +100,7 @@ const matchListWithDayMap = ref({});
 const currentBeforeDayMap = ref({});
 const currentLastDayMap = ref({});
 const firstLoadedMap = ref({});
+const nowMatchInfoList = ref([]);
 
 let refreshTimer = null;
 let refreshTimer2 = null;
@@ -139,6 +140,9 @@ function getLeagueName(idx) {
 
 // Only render z-paging for tabs within ±2 range of current pickerIndex
 function isInVisibleRange(idx) {
+  if (idx == 0) {
+    return true
+  }
   return Math.abs(idx - pickerIndex.value) <= 2
 }
 
@@ -228,6 +232,13 @@ async function getBeforeDayData(tabIndex) {
   let list = []
   const beforeDay = currentBeforeDayMap.value[tabIndex]
   if (!beforeDay) return
+
+  if (tabIndex == 0) {
+    setTimeout(()=>{
+      swiperRef.complete(nowMatchInfoList.value)
+    }, 500)
+    return
+  }
   
   const newDay = beforeDay.add(-1, "day")
   const fdateStr = dateFormatWithBackEnd(newDay)
@@ -268,6 +279,12 @@ async function getBeforeDayData(tabIndex) {
 async function getCurrentDay(tabIndex) {
   const swiperRef = swiperItemRefs.value[tabIndex]
   if (!swiperRef) return
+  if (tabIndex == 0) {
+    setTimeout(()=>{
+      swiperRef.complete(nowMatchInfoList.value)
+    }, 500)
+    return
+  }
 
   let list = []
   const leagueName = getLeagueName(tabIndex)
@@ -306,12 +323,13 @@ async function refreshNewData(isFullRefresh) {
     )
     const list = res.data || []
 
+    nowMatchInfoList.value = list
     emit("updateMatchList", list)
 
     // Update each loaded tab's matchInfoListMap with matching items
     const loadedTabs = Object.keys(firstLoadedMap.value).filter(k => firstLoadedMap.value[k])
     const newMap = { ...matchInfoListMap.value }
-
+    newMap[0] = list
     for (const idx of loadedTabs) {
       const leagueName = getLeagueName(parseInt(idx))
       const tabList = [...(newMap[idx] || [])]
@@ -454,6 +472,7 @@ async function onQuery(pageNo, pageSize, from, tabIndex) {
 
 function startRefreshTimer() {
   stopRefreshTimer();
+  refreshNewData()
   refreshTimer = setInterval(() => {
     refreshNewData()
   }, 3000);

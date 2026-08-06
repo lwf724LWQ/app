@@ -39,12 +39,29 @@ function computedPinyinList(list){
 
 const leagueList = ref({})
 const leagueListWithPinyin = ref([])
+
+const TOP_LEAGUE_NAMES = ['中超', '英超', '西甲', '意甲', '德甲', '法甲'] // 置顶数组
+
 export function useMatchList(){
     let cbIndex = false
 
     if (leagueList.value != {}) {
         getFootBallLeagueList().then((res) => {
-            const list = res.data.map((item, index) => ({index, ...item}))
+            const dataMap = new Map()
+            res.data.forEach(item => {
+                dataMap.set(item.leagueChsShort, item)
+            })
+            // 按置顶数组顺序构建置顶列表（缺失则补占位项）
+            const topItems = TOP_LEAGUE_NAMES.map(name => {
+                return dataMap.get(name) || { leagueChsShort: name }
+            })
+
+            const otherItems = res.data.filter(item => !TOP_LEAGUE_NAMES.includes(item.leagueChsShort));
+
+            const sortedData = [...topItems, ...otherItems];
+            // 添加“全部”在最前面
+            const fullData = [{leagueChsShort: "全部"}, ...sortedData];
+            const list = fullData.map((item, index) => ({index, ...item}))
 
             leagueList.value = [...list].map((item, index) => ({id: index, name: item.leagueChsShort, ...item}))
             leagueListWithPinyin.value = computedPinyinList(list)
