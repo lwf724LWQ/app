@@ -53,6 +53,7 @@
         :circular="false"
         :vertical="false"
         :current="pickerIndex"
+        :disable-touch="pickerIndex === 0"
         easing-function="default"
         @change="swiperChange"
       >
