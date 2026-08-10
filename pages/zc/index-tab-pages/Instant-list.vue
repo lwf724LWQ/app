@@ -16,8 +16,6 @@
         :modules="swiperModules"
         :virtualList="leagueList"
         :initial-slide="0"
-        :nested="true"
-        :resistance-ratio="0.85"
         :custom-style="{ height: '100%', width: '100%' }"
         @swiper="onZebraSwiper"
         @slideChange="swiperChange"
