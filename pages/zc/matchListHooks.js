@@ -1,39 +1,53 @@
-import { ref, watch, computed } from "vue";
+import { ref } from "vue";
 import lpinyin from "lpinyin"
 import { getFootBallLeagueList } from "@/api/apis"
 
+export function getPinyinInfo(s) {
+    if (typeof s !== "string" || !s) {
+        return { letter: "#", pinyin: "", pinyinInitials: "" }
+    }
+    try {
+        const result = new lpinyin(s)
+        const words = []
+        for (let i = 0; i < result.length; i++) {
+            const raw = result[i]?.[0]
+            const word = Array.isArray(raw) ? raw.join("") : String(raw || "")
+            if (word) words.push(word.toLowerCase())
+        }
+        const pinyin = words.join("")
+        const pinyinInitials = words.map((word) => word[0] || "").join("")
+        const letter = pinyinInitials[0] || s[0] || "#"
+        return { letter, pinyin, pinyinInitials }
+    } catch (error) {
+        return { letter: (s[0] || "#").toUpperCase(), pinyin: "", pinyinInitials: "" }
+    }
+}
+
 function computedPinyinList(list){
     const obj = {}
-    console.log(`开始处理拼音`, list)
-     list.forEach(item => {
-        const pingyin = ((s)=>{
-            if (typeof s === "string") {
-                try {
-                    return new lpinyin(s)[0][0][0]
-                } catch (error) {
-                    return s[0]
-                }
-            }
-            return "#"
-        })(item.leagueChsShort)
+    list.forEach(item => {
+        const { letter, pinyin, pinyinInitials } = getPinyinInfo(item.leagueChsShort)
+        const leagueItem = {
+            name: item.leagueChsShort,
+            count: 1,
+            pinyin,
+            pinyinInitials
+        }
 
-        if (obj[pingyin]) {
-            const leagueList = obj[pingyin].leagueList
-            const leagueObj = leagueList.find(item => item.name === item.leagueChsShort)
+        if (obj[letter]) {
+            const leagueList = obj[letter].leagueList
+            const leagueObj = leagueList.find((league) => league.name === item.leagueChsShort)
             if (leagueObj) {
-                leagueObj.count ++
-            }else{
-                obj[pingyin].leagueList.push({
-                    name: item.leagueChsShort, count: 1
-                })
+                leagueObj.count++
+            } else {
+                leagueList.push(leagueItem)
             }
-        }else{
-            obj[pingyin] = {
-                leagueList: [{name: item.leagueChsShort, count: 1}]
+        } else {
+            obj[letter] = {
+                leagueList: [leagueItem]
             }
         }
     })
-    console.log("拼音处理结果", obj)
     return obj
 }
 

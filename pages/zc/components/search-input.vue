@@ -26,7 +26,6 @@
         </view>
       </view>
       <view class="search-selection-icon" @click="openIndexedList">
-        <view v-if="leagueList.length > 0" class="selection-badge">{{ leagueList.length }}</view>
       </view>
     </view>
 
@@ -46,34 +45,50 @@
         </view>
       </view>
 
-      <view class="indexed-panel-body">
-        <!-- <view class="shijiebei" @click="toShijiebei" :class="{'selected': temponlyShijiebei}">
-          <view class="shijiebeiLOGO"></view>
-          世界杯
-        </view> -->
-        <view class="indexedList">
-          <IndexedList
-          ref="indexedListRef"
-          :list="indexdeData"
-          sort="asc"
+      <view class="indexed-panel-search">
+        <uni-icons type="search" size="32rpx" color="#999"></uni-icons>
+        <input
+          class="indexed-panel-search-input"
+          v-model="leagueSearchKeyword"
+          type="text"
+          confirm-type="search"
+          :placeholder="placeholder"
+          placeholder-style="color: #999;"
+        />
+        <view
+          v-if="leagueSearchKeyword"
+          class="indexed-panel-search-clear"
+          @click="leagueSearchKeyword = ''"
         >
-          <template
-            v-for="(_, key) in indexdeData"
-            :key="key"
-            #[key]="{ sectionData }"
+          <uni-icons type="clear" size="32rpx" color="#c0c0c0"></uni-icons>
+        </view>
+      </view>
+
+      <view class="indexed-panel-body">
+        <view v-if="!hasFilteredLeagues" class="indexed-empty">暂无匹配联赛</view>
+        <view v-else class="indexedList">
+          <IndexedList
+            ref="indexedListRef"
+            :list="filteredIndexdeData"
+            sort="asc"
           >
-            <view class="league-grid">
-              <view
-                v-for="item in sectionData.leagueList"
-                :key="item.name"
-                :class="['league-item']"
-                @click="toggleLeague(item)"
-              >
-                <text class="league-name">{{ item.name }}</text>
+            <template
+              v-for="(_, key) in filteredIndexdeData"
+              :key="key"
+              #[key]="{ sectionData }"
+            >
+              <view class="league-grid">
+                <view
+                  v-for="item in sectionData.leagueList"
+                  :key="item.name"
+                  :class="['league-item']"
+                  @click="toggleLeague(item)"
+                >
+                  <text class="league-name">{{ item.name }}</text>
+                </view>
               </view>
-            </view>
-          </template>
-        </IndexedList>
+            </template>
+          </IndexedList>
         </view>
       </view>
 
@@ -89,7 +104,7 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import IndexedList from "@/components/indexed-list/indexed-list.vue";
-import { useMatchList } from "../matchListHooks";
+import { useMatchList, getPinyinInfo } from "../matchListHooks";
 
 const props = defineProps({
   placeholder: {
@@ -118,26 +133,47 @@ function setMode(pro) {
 }
 
 const keyword = ref("");
+const leagueSearchKeyword = ref("");
 const leagueList = ref([]);
 const temponlyShijiebei = ref(false);
 const showIndexedPanel = ref(false);
 const indexedListRef = ref(null);
 const onlyShijiebei = ref(false)
 
-// 所有可选的联赛（从 indexdeData 扁平化提取）
-// indexdeData 结构: { "A": { leagueList: [...] }, "B": { leagueList: [...] } }
-const allLeagues = computed(() => {
-  const leagues = [];
-  Object.values(props.indexdeData).forEach((section) => {
-    const list = section?.leagueList;
-    if (Array.isArray(list)) {
-      list.forEach((item) => {
-        leagues.push(item);
-      });
+const filteredIndexdeData = computed(() => {
+  const rawKeyword = leagueSearchKeyword.value.trim();
+  const source = props.indexdeData || {};
+  if (!rawKeyword) return source;
+
+  const keywordText = rawKeyword.toUpperCase();
+  const keywordPinyinInfo = getPinyinInfo(rawKeyword);
+  const keywordPinyin = String(keywordPinyinInfo.pinyin || "").toUpperCase();
+  const keywordInitials = String(keywordPinyinInfo.pinyinInitials || "").toUpperCase();
+
+  const result = {};
+  Object.keys(source).forEach((key) => {
+    const list = source[key]?.leagueList;
+    if (!Array.isArray(list)) return;
+    const matched = list.filter((item) => {
+      const name = String(item?.name || "").toUpperCase();
+      const pinyin = String(item?.pinyin || "").toUpperCase();
+      const initials = String(item?.pinyinInitials || "").toUpperCase();
+      return (
+        name.includes(keywordText) ||
+        pinyin.includes(keywordText) ||
+        initials.includes(keywordText) ||
+        (keywordPinyin && (pinyin.includes(keywordPinyin) || initials.includes(keywordPinyin))) ||
+        (keywordInitials && initials.includes(keywordInitials))
+      );
+    });
+    if (matched.length) {
+      result[key] = { ...source[key], leagueList: matched };
     }
   });
-  return leagues;
+  return result;
 });
+
+const hasFilteredLeagues = computed(() => Object.keys(filteredIndexdeData.value).length > 0);
 
 const emit = defineEmits(["search"]);
 watch(
@@ -162,12 +198,13 @@ function toggleLeague(item) {
 
 // 打开索引列表：用当前 leagueList 初始化临时变量
 function openIndexedList() {
+  leagueSearchKeyword.value = "";
   showIndexedPanel.value = true;
 }
 
-// 关闭索引列表：丢弃临时变量，不更新 leagueList，不传递到父组件
 function closeIndexedList() {
   showIndexedPanel.value = false;
+  leagueSearchKeyword.value = "";
 }
 
 // 打开设置页面
@@ -192,7 +229,8 @@ emit("search", {
     });
 
 defineExpose({
-  toShijiebei
+  toShijiebei,
+  openIndexedList
 });
 </script>
 
@@ -300,15 +338,15 @@ defineExpose({
 
 /* 索引列表面板 */
 .indexed-panel {
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
-  top: 20%;
-  bottom: 0;
+  top: 0;
+  bottom: var(--window-bottom);
   z-index: 999;
   background-color: #fff;
   border-radius: 24rpx 24rpx 0 0;
-  max-height: 80vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transform: translateY(100%);
@@ -317,6 +355,37 @@ defineExpose({
   &--visible {
     transform: translateY(0);
   }
+}
+
+.indexed-panel-search {
+  display: flex;
+  align-items: center;
+  margin: 8rpx 32rpx 16rpx;
+  height: 72rpx;
+  padding: 0 24rpx;
+  background-color: #f5f5f5;
+  border-radius: 36rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.indexed-panel-search-input {
+  flex: 1;
+  margin-left: 12rpx;
+  font-size: 28rpx;
+  color: #333;
+  height: 72rpx;
+}
+
+.indexed-panel-search-clear {
+  padding-left: 8rpx;
+}
+
+.indexed-empty {
+  padding: 80rpx 0;
+  text-align: center;
+  font-size: 28rpx;
+  color: #999;
 }
 
 .indexed-panel-header {

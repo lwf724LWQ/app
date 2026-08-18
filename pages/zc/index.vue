@@ -43,7 +43,19 @@
           </view>
         </view>
 
-        
+        <uv-tabs
+          v-show="pickerIndex === 0"
+          :list="instantLeagueList"
+          lineColor="#30B544"
+          :current="instantLeagueIndex"
+          @change="onLeagueTagChange"
+        >
+          <template #right>
+            <view class="tab-expand-btn" @click.stop="openLeagueSelector">
+              <uni-icons type="plusempty" size="22" color="#666"></uni-icons>
+            </view>
+          </template>
+        </uv-tabs>
       </template>
 
       <swiper
@@ -52,51 +64,27 @@
         :autoplay="false"
         :circular="false"
         :vertical="false"
-        :current="pickerIndex"
-        :disable-touch="pickerIndex === 0"
+        :current="swiperCurrent"
+        :duration="250"
         easing-function="default"
         @change="swiperChange"
       >
-        <!-- 即时 (index=0) -->
-        <swiper-item>
+        <swiper-item v-for="(tab, idx) in instantLeagueList" :key="tab.name">
           <InstantList
-            ref="instantListRef"
-            :pickerIndex="pickerIndex"
-            :isActiveTab="pickerIndex == 0"
-            @updateMatchList="updateMatchList"
-            :searchParams="searchParams"
+            :tab="tab"
+            :idx="idx"
+            :isActive="pickerIndex === 0 && instantLeagueIndex === idx"
           />
         </swiper-item>
 
-        <!-- 赛程 (index=1) -->
-        <!-- <swiper-item>
-          <InprogressList
-            :pickerIndex="pickerIndex"
-            :isActiveTab="pickerIndex == 1"
-            :searchParams="searchParams"
-          />
-        </swiper-item> -->
-
-        <!-- 赛果 (index=2) -->
-        <!-- <swiper-item>
-          <ResultList
-            :pickerIndex="pickerIndex"
-            :isActiveTab="pickerIndex == 2"
-            :searchParams="searchParams"
-          />
-        </swiper-item> -->
-
-        <!-- 预测 (index=3) -->
         <swiper-item>
           <PrognosisList :pickerIndex="pickerIndex" ref="prognosisRef" />
         </swiper-item>
 
-        <!-- 评论 (index=4) -->
         <swiper-item>
           <PostList :pickerIndex="pickerIndex" ref="postListRef" />
         </swiper-item>
 
-        <!-- 关注 (index=5) -->
         <swiper-item>
           <ForllowList
             :pickerIndex="pickerIndex"
@@ -140,11 +128,39 @@ import searchInput from "./components/search-input.vue";
 import { getToken, getAccount } from "../../utils/request.js";
 
 import { useMatchList } from "./matchListHooks.js";
+import { useInstantList, setInstantListEmitter } from "./instantListHooks.js";
 
 const searchInputRef = ref(null);
+const instant = useInstantList();
+const instantLeagueList = instant.leagueList;
+const instantLeagueIndex = instant.pickerIndex;
 
-// 选项与当前索引
 const pickerIndex = ref(0);
+const swiperCurrent = ref(0);
+
+function leagueCount() {
+  return instantLeagueList.value.length;
+}
+
+function syncMainTabFromSwiper(index) {
+  const n = leagueCount();
+  if (index < n) {
+    pickerIndex.value = 0;
+    instant.setPickerIndex(index);
+  } else {
+    pickerIndex.value = index - n + 1;
+  }
+}
+
+function jumpToMainTab(index) {
+  pickerIndex.value = index;
+  currentLotteryType.value = lotteryTypes.value[index];
+  if (index === 0) {
+    swiperCurrent.value = instant.pickerIndex.value;
+  } else {
+    swiperCurrent.value = leagueCount() + index - 1;
+  }
+}
 
 // 彩票类型
 const lotteryTypes = ref(["即时", "专家", "评论", "关注"]);
@@ -161,7 +177,23 @@ function refreshCurrentTab() {
 }
 
 function swiperChange(e) {
-  switchTabByIndex(e.detail.current);
+  const index = e.detail.current;
+  swiperCurrent.value = index;
+  syncMainTabFromSwiper(index);
+  if (pickerIndex.value === 3) {
+    nextTick(() => {
+      try {
+        forllowListRef.value.refreshVideoList();
+      } catch (error) {}
+    });
+  }
+}
+
+function onLeagueTagChange(e) {
+  const idx = e.index;
+  instant.setPickerIndex(idx);
+  pickerIndex.value = 0;
+  swiperCurrent.value = idx;
 }
 
 // 标签切换
@@ -188,8 +220,7 @@ const switchTabByIndex = (index) => {
     });
   }
 
-  pickerIndex.value = index;
-  currentLotteryType.value = lotteryTypes.value[index];
+  jumpToMainTab(index);
 };
 
 let isNeedRefresh = false;
@@ -222,19 +253,17 @@ const prognosisRef = ref(null);
 const pageIsShow = ref(false);
 const lastShowPageDate = ref(new Date().getTime())
 
-const instantListRef = ref(null)
 onShow((e) => {
   
   pageIsShow.value = true;
 
-  // 离开页面超过20秒即重新全量更新子页面的足球赛事
   if (new Date().getTime() - new Date().getTime() > 20000) {
-    instantListRef.value?.refresherAll()
+    instant.refresherAll()
   }
 
   if (uni.getStorageSync("openZcPostList")) {
     nextTick(() => {
-      pickerIndex.value = 1;
+      jumpToMainTab(1);
     });
     uni.setStorageSync("openZcPostList", false);
     return
@@ -276,9 +305,16 @@ watch((pageIsShow)=>{
 const searchParams = ref({});
 function onSearch(params) {
   searchParams.value = params;
+  instant.onSearch?.(params);
   if (params.onlyShijiebei) {
-    pickerIndex.value = 0;
+    jumpToMainTab(0);
+  } else if (pickerIndex.value === 0) {
+    swiperCurrent.value = instant.pickerIndex.value;
   }
+}
+
+function openLeagueSelector() {
+  searchInputRef.value?.openIndexedList?.();
 }
 
 const userStore = useUserStore();
@@ -327,11 +363,29 @@ const updateMatchList = (list) => {
 };
 const leagueListWithPinyin = computed(()=>matchList.leagueListWithPinyin.value)
 
+watch(
+  () => instantLeagueList.value.length,
+  (n, prev) => {
+    if (pickerIndex.value > 0 && typeof prev === "number") {
+      swiperCurrent.value = n + pickerIndex.value - 1;
+    }
+  }
+);
+
+watch(instantLeagueIndex, (idx) => {
+  if (pickerIndex.value === 0) {
+    swiperCurrent.value = idx;
+  }
+});
+
 onMounted(() => {
+  setInstantListEmitter(updateMatchList);
+  instant.initInstantList();
   forllowListRef.value?.refreshVideoList();
 })
 
 onUnmounted(() => {
+  instant.stopRefreshTimer();
   matchList.unleagueListChangeCallback();
 });
 </script>
@@ -462,6 +516,15 @@ onUnmounted(() => {
 .search-box {
   padding: 10rpx;
   background-color: #fff;
+}
+
+.tab-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20rpx;
+  height: 100%;
+  min-height: 80rpx;
 }
 
 .video-image:hover {
