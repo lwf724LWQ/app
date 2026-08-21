@@ -227,40 +227,39 @@ function computeDayList(matchList, beforeDay, lastDay, { fillEmptyDays = true } 
 
 function flattenAllCells(list) {
   const matchList = (list || []).filter((item) => item && item.matchId);
-  const liveList = sortAllTabList(matchList.filter(isLiveMatch));
-  const restList = matchList.filter((item) => !isLiveMatch(item));
   const dayList = computeDayList(
-    restList,
+    matchList,
     currentBeforeDayMap.value[ALL_TAB_NAME],
     currentLastDayMap.value[ALL_TAB_NAME],
     { fillEmptyDays: false }
   );
   const cells = [];
-  if (liveList.length) {
+  const todayStr = dayjs().format("YYYY/MM/DD dddd");
+  const sortedDays = [...dayList].sort(
+    (a, b) =>
+      dayjs(a.datestr.split(" ")[0]).valueOf() - dayjs(b.datestr.split(" ")[0]).valueOf()
+  );
+  for (const day of sortedDays) {
+    const dayKey = `day_all_${day.datestr}`;
     cells.push({
-      id: "day_all_live",
-      zpKey: "day_all_live",
+      id: dayKey,
+      zpKey: dayKey,
       _cellType: "date",
-      datestr: "进行中"
+      datestr: day.datestr === todayStr ? "今日全部赛事" : day.datestr
     });
-    for (const match of liveList) {
-      cells.push({ ...match, _cellType: "match" });
-    }
-  }
-  const restMatches = [];
-  for (const day of dayList) {
+    const dayMatches = [];
     for (const league of day.leagues) {
-      restMatches.push(...league.list);
+      dayMatches.push(...(league.list || []));
     }
-  }
-  if (restMatches.length) {
-    cells.push({
-      id: "day_all_today",
-      zpKey: "day_all_today",
-      _cellType: "date",
-      datestr: "今日全部赛事"
-    });
-    for (const match of restMatches) {
+    if (!dayMatches.length) {
+      cells.push({
+        id: `empty_all_${day.datestr}`,
+        zpKey: `empty_all_${day.datestr}`,
+        _cellType: "empty"
+      });
+      continue;
+    }
+    for (const match of sortMatchList(dayMatches)) {
       cells.push({ ...match, _cellType: "match" });
     }
   }
@@ -274,7 +273,7 @@ function setAllPagingRef(el) {
 function syncAllPaging(list, { complete = false, noMore = null } = {}) {
   const cells = flattenAllCells(sortAllTabList(list));
   const paging = allPagingRef.value;
-  if (!paging) return;
+  if (!paging) return cells;
   if (complete) {
     paging.complete(cells);
   } else {
@@ -283,6 +282,98 @@ function syncAllPaging(list, { complete = false, noMore = null } = {}) {
   if (noMore != null) {
     paging.completeByNoMore?.([], noMore);
   }
+  return cells;
+}
+
+function getDayCellRange(cells, day) {
+  const datestr = dayjs(day).format("YYYY/MM/DD dddd");
+  const todayStr = dayjs().format("YYYY/MM/DD dddd");
+  const label = datestr === todayStr ? "今日全部赛事" : datestr;
+  const dayKey = `day_all_${datestr}`;
+  let start = -1;
+  let end = -1;
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i];
+    if (cell._cellType === "date" && (cell.zpKey === dayKey || cell.datestr === label)) {
+      start = i;
+      end = i;
+      continue;
+    }
+    if (start >= 0) {
+      if (cell._cellType === "date") break;
+      end = i;
+    }
+  }
+  return start >= 0 ? { start, end } : null;
+}
+
+/** 取某一天「按状态排序后」场次的倒数第二个（不足则取最后一个） */
+function getDaySortedSecondLastMatch(dayMatches) {
+  const sorted = sortMatchList(dayMatches || []);
+  if (!sorted.length) return null;
+  return sorted[Math.max(0, sorted.length - 2)];
+}
+
+function scrollAllPagingToDaySecondLast(day, cells) {
+  const list = cells || [];
+  const range = getDayCellRange(list, day);
+  const paging = allPagingRef.value;
+  if (!range || !paging) return;
+
+  const dayMatches = [];
+  for (let i = range.start; i <= range.end; i++) {
+    if (list[i]?._cellType === "match") dayMatches.push(list[i]);
+  }
+  const targetMatch = getDaySortedSecondLastMatch(dayMatches);
+  let targetIndex = range.start;
+  if (targetMatch) {
+    const found = list.findIndex(
+      (cell, idx) =>
+        idx >= range.start &&
+        idx <= range.end &&
+        cell._cellType === "match" &&
+        cell.id === targetMatch.id
+    );
+    if (found >= 0) targetIndex = found;
+  }
+
+  nextTick(() => {
+    setTimeout(() => {
+      const ref = allPagingRef.value;
+      if (!ref) return;
+      const cache = ref.virtualHeightCacheList;
+      if (cache && cache[targetIndex]) {
+        ref.scrollIntoViewByIndex?.(targetIndex, 0, false);
+        return;
+      }
+      const measured = (cache || []).filter((item) => item && item.height > 0);
+      const avg = measured.length
+        ? measured.reduce((sum, item) => sum + item.height, 0) / measured.length
+        : 120;
+      ref.scrollToY?.(avg * targetIndex, 0, false);
+    }, 150);
+  });
+}
+
+function scrollLeagueToDaySecondLast(tabIdx, day) {
+  const dayList = matchListWithDayMap.value[tabIdx] || [];
+  const datestr = dayjs(day).format("YYYY/MM/DD dddd");
+  const dayItem = dayList.find((item) => item.datestr === datestr);
+  if (!dayItem) return;
+
+  const dayMatches = [];
+  for (const league of dayItem.leagues || []) {
+    dayMatches.push(...(league.list || []));
+  }
+  const targetMatch = getDaySortedSecondLastMatch(dayMatches);
+  const targetId = targetMatch
+    ? `id_${targetMatch.id}`
+    : dayAnchorId(tabIdx, dayItem.id);
+
+  scrollIntoViewMap.value[tabIdx] = "";
+  nextTick(() => {
+    scrollIntoViewMap.value[tabIdx] = targetId;
+  });
 }
 
 function rebuildDayMap(idx) {
@@ -410,34 +501,33 @@ async function getBeforeDayData(tabIdx = pickerIndex.value) {
     return;
   }
 
-  if (tabIdx === 0) {
-    await getCurrentDay({ tabIdx: 0 });
-    return;
-  }
-
   loadingBeforeMap.value[tabKey] = true;
   const newDay = (currentBeforeDayMap.value[tabKey] || dayjs()).add(-1, "day");
+  const state = fetchState(isAllTab);
 
   try {
-    const list = await fetchDayMatches(newDay, fetchState(isAllTab), getRequestLeagueName(tabIdx));
+    const list = await fetchDayMatches(newDay, state, getRequestLeagueName(tabIdx));
     const merged = mergeMatchList(matchListMap.value[tabKey] || [], list);
     const finalList = isAllTab ? sortAllTabList(merged) : merged;
     currentBeforeDayMap.value[tabKey] = newDay;
+    matchListMap.value[tabKey] = finalList;
 
     if (isAllTab) {
-      matchListMap.value[tabKey] = finalList;
-      allPagingRef.value?.endRefresh?.();
-      syncAllPaging(finalList);
+      const cells = syncAllPaging(finalList, { complete: true });
+      scrollAllPagingToDaySecondLast(newDay, cells);
     } else {
       await delay(REFRESHER_CLOSE_DELAY);
-      matchListMap.value[tabKey] = finalList;
       rebuildDayMap(tabIdx);
       refresherTriggered.value = false;
+      scrollLeagueToDaySecondLast(tabIdx, newDay);
     }
   } catch (error) {
     console.log(error);
-    if (isAllTab) allPagingRef.value?.endRefresh?.();
-    else delayCloseRefresher();
+    if (isAllTab) {
+      allPagingRef.value?.complete(false);
+    } else {
+      delayCloseRefresher();
+    }
   } finally {
     loadingBeforeMap.value[tabKey] = false;
   }

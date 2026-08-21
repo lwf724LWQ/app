@@ -55,7 +55,7 @@
         refresher-default-style="none"
         :lower-threshold="100"
         :scroll-into-view="scrollIntoViewMap[idx] || ''"
-        :scroll-with-animation="true"
+        :scroll-with-animation="false"
         @refresherrefresh="onPullDown"
         @refresherrestore="onRefresherRestore"
         @refresherabort="onRefresherRestore"
