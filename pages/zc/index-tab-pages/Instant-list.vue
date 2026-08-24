@@ -7,16 +7,20 @@
         class="match-scroll"
         :fixed="false"
         :auto="false"
+        :refresher-enabled="true"
         :show-refresher-when-reload="true"
-        :loading-more-enabled="false"
+        :loading-more-enabled="true"
+        :default-page-size="20"
         use-virtual-list
         :force-close-inner-list="true"
         :safe-area-inset-bottom="false"
         :hide-empty-view="true"
         :cellHeightMode="'dynamic'"
         :autoScrollToTopWhenReload="false"
+        :auto-hide-loading-after-first-loaded="true"
         @query="onAllQuery"
         @virtualListChange="onAllVirtualListChange"
+        @scrollTopChange="onAllScrollTopChange"
       >
         <template v-for="item in allVirtualList" :key="item.zpKey || item.id">
           <view
@@ -32,13 +36,16 @@
             v-else-if="item._cellType === 'league'"
             class="league-section-title"
           >{{ item.name }}</view>
-          <MatchScoreCard
+          <view
             v-else
             :id="`id_${item.id}`"
-            :match="item"
-            :isPro="isProMode"
-            @flag-change="onMatchFlagChange"
-          />
+          >
+            <MatchScoreCard
+              :match="item"
+              :isPro="isProMode"
+              @flag-change="onMatchFlagChange"
+            />
+          </view>
         </template>
 
         <view v-if="isActive" class="toTop" @click="toTopAll">
@@ -130,6 +137,7 @@ const {
   dayAnchorId,
   onAllQuery,
   onAllVirtualListChange,
+  onAllScrollTopChange,
   onPullDown,
   onRefresherRestore,
   onLoadMore,

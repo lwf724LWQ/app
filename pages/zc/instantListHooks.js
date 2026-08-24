@@ -10,6 +10,11 @@ const MAX_CUSTOM_LEAGUES = 3;
 const REFRESHER_CLOSE_DELAY = 300;
 export const MOUNT_RANGE = 1;
 const LIVE_MSTATES = [1, 2, 3, 4, 5];
+const ALL_PAGE_SIZE = 20;
+/** 距顶部多少 px 内视为触顶，触发缓存分页插入 */
+const ALL_TOP_LOAD_DISTANCE = 280;
+/** 离开顶部多远后，才允许再次触顶插页（避免首次进入误触发） */
+const ALL_LEFT_TOP_DISTANCE = 360;
 
 const BASE_LEAGUE_TABS = [
   { id: 0, name: ALL_TAB_NAME, leagueChsShort: ALL_TAB_NAME },
@@ -67,7 +72,17 @@ const isLoadRefresh = ref(false);
 const scrollIntoViewMap = ref({});
 const allPagingRef = ref(null);
 const allVirtualList = ref([]);
+const allCellsCache = ref([]);
+/** 全部列表当前展示窗口（相对 allCellsCache） */
+const allWindowStart = ref(0);
+const allWindowEnd = ref(0);
+let allBeforeLoading = false;
+let allTopLoadLockUntil = 0;
+let allHasLeftTop = false;
+/** 下拉新拉入上一天后，首次插页需滚到该天倒数第二 */
+let allPendingScrollDay = null;
 const isProMode = ref(!!uni.getStorageSync("searchProMode"));
+const pageVisible = ref(true);
 
 const allRefresherText = {
   default: "继续下拉加载上一天",
@@ -271,19 +286,246 @@ function setAllPagingRef(el) {
   allPagingRef.value = el || null;
 }
 
-function syncAllPaging(list, { complete = false, noMore = null } = {}) {
-  const cells = flattenAllCells(sortAllTabList(list));
-  const paging = allPagingRef.value;
-  if (!paging) return cells;
-  if (complete) {
-    paging.complete(cells);
-  } else {
-    paging.resetTotalData?.(cells);
+function getAllPageSize() {
+  const size = Number(allPagingRef.value?.defaultPageSize);
+  return size > 0 ? size : ALL_PAGE_SIZE;
+}
+
+function buildAllCells(list) {
+  return flattenAllCells(sortAllTabList(list || []));
+}
+
+function cellKey(cell) {
+  return cell?.zpKey || cell?.id || cell?.matchId;
+}
+
+function remapAllWindow(oldCells, newCells, start, end) {
+  const oldFirst = oldCells[start];
+  const key = cellKey(oldFirst);
+  let newStart = key != null ? newCells.findIndex((c) => cellKey(c) === key) : -1;
+  const len = Math.max(0, end - start);
+  if (newStart < 0) {
+    newStart = Math.min(start, Math.max(0, newCells.length - len));
   }
-  if (noMore != null) {
-    paging.completeByNoMore?.([], noMore);
+  const newEnd = Math.min(newCells.length, Math.max(newStart + len, newStart + getAllPageSize()));
+  return { start: newStart, end: newEnd };
+}
+
+function applyAllWindow({ complete = false } = {}) {
+  const cells = allCellsCache.value;
+  const start = allWindowStart.value;
+  const end = allWindowEnd.value;
+  const shown = cells.slice(start, end);
+  const paging = allPagingRef.value;
+  if (!paging) return shown;
+
+  paging.isLocalPaging = false;
+  paging.pageNo = Math.max(1, Math.ceil(Math.max(end - start, 1) / getAllPageSize()));
+  paging.customNoMore = 0;
+  paging.loadingStatus = "default";
+
+  if (complete) {
+    return Promise.resolve(paging.complete(shown)).then(() => {
+      paging.customNoMore = 0;
+      paging.loadingStatus = "default";
+      return shown;
+    });
+  }
+  paging.resetTotalData?.(shown);
+  return shown;
+}
+
+/**
+ * 全部列表前端分页：
+ * - hard: 重置窗口为第 1 页
+ * - soft: 保持当前窗口（轮询、关注）
+ */
+async function syncAllPaging(list, { mode = "hard" } = {}) {
+  const cells = buildAllCells(list);
+  const paging = allPagingRef.value;
+  const pageSize = getAllPageSize();
+
+  if (mode === "soft" && allCellsCache.value.length) {
+    const mapped = remapAllWindow(
+      allCellsCache.value,
+      cells,
+      allWindowStart.value,
+      allWindowEnd.value
+    );
+    allCellsCache.value = cells;
+    allWindowStart.value = mapped.start;
+    allWindowEnd.value = mapped.end;
+    applyAllWindow();
+    return cells;
+  }
+
+  allCellsCache.value = cells;
+  allWindowStart.value = 0;
+  allWindowEnd.value = Math.min(pageSize, cells.length);
+  allHasLeftTop = false;
+  allPendingScrollDay = null;
+  if (!paging) return cells;
+
+  paging.isLocalPaging = false;
+  paging.pageNo = 1;
+  // 首次加载：明确 complete 第一页
+  const firstPage = cells.slice(0, allWindowEnd.value);
+  await paging.complete(firstPage);
+  paging.customNoMore = 0;
+  paging.loadingStatus = "default";
+  // 个别端 complete 后 virtualList 未及时刷新，再兜底一次
+  if (!(paging.realTotalData || []).length && firstPage.length) {
+    paging.resetTotalData?.(firstPage);
   }
   return cells;
+}
+
+/** 拉取更早一天并入缓存，窗口下标整体后移；空天会推进日期游标 */
+async function fetchMergeBeforeDayForAll() {
+  const tabKey = ALL_TAB_NAME;
+  initTabState(tabKey);
+  if (loadingBeforeMap.value[tabKey]) return false;
+
+  loadingBeforeMap.value[tabKey] = true;
+  const newDay = (currentBeforeDayMap.value[tabKey] || dayjs()).add(-1, "day");
+
+  try {
+    const list = await fetchDayMatches(newDay, fetchState(true), "");
+    currentBeforeDayMap.value[tabKey] = newDay;
+    if (!list.length) return false;
+
+    const merged = mergeMatchList(matchListMap.value[tabKey] || [], list);
+    const finalList = sortAllTabList(merged);
+    matchListMap.value[tabKey] = finalList;
+
+    const oldStart = allWindowStart.value;
+    const oldEnd = allWindowEnd.value;
+    const oldLen = allCellsCache.value.length;
+    const cells = buildAllCells(finalList);
+    let range = getDayCellRange(cells, newDay);
+    let dayCount = range ? range.end - range.start + 1 : 0;
+
+    // 日期头匹配失败时，用新增 cell 数量兜底
+    if (!dayCount) {
+      dayCount = Math.max(0, cells.length - oldLen);
+    }
+    if (!dayCount) return false;
+
+    allCellsCache.value = cells;
+    allWindowStart.value = dayCount + oldStart;
+    allWindowEnd.value = Math.min(cells.length, dayCount + Math.max(oldEnd, getAllPageSize()));
+    allPendingScrollDay = newDay;
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  } finally {
+    loadingBeforeMap.value[tabKey] = false;
+  }
+}
+
+/** 从缓存往顶部插一页；首次插入新一天时滚到该天倒数第二 */
+function prependAllCachedPage() {
+  const pageSize = getAllPageSize();
+  const paging = allPagingRef.value;
+  if (!paging) return false;
+  if (allWindowStart.value <= 0) return false;
+
+  const cells = allCellsCache.value;
+  const oldStart = allWindowStart.value;
+  const newStart = Math.max(0, oldStart - pageSize);
+  if (newStart >= oldStart) return false;
+
+  const chunk = cells.slice(newStart, oldStart);
+  if (!chunk.length) return false;
+
+  allWindowStart.value = newStart;
+  const scrollDay = allPendingScrollDay;
+  allPendingScrollDay = null;
+
+  // addDataFromTop 内部会 reverse，这里先 reverse 一次以保持正序
+  const forTop = [...chunk].reverse();
+  if (typeof paging.addDataFromTop === "function") {
+    paging.addDataFromTop(forTop, false, false);
+  } else {
+    const current = Array.isArray(paging.realTotalData) ? paging.realTotalData : [];
+    paging.resetTotalData?.([...chunk, ...current]);
+  }
+
+  if (scrollDay) {
+    scrollDisplayedToDaySecondLast(scrollDay);
+  }
+
+  paging.customNoMore = 0;
+  paging.loadingStatus = "default";
+  return true;
+}
+
+/** 触顶：只插入已缓存分页，不请求接口 */
+async function loadAllBeforeByScroll() {
+  if (allBeforeLoading) return;
+  if (Date.now() < allTopLoadLockUntil) return;
+  if (pickerIndex.value !== 0) return;
+  if (allWindowStart.value <= 0) return;
+
+  allBeforeLoading = true;
+  allTopLoadLockUntil = Date.now() + 450;
+  try {
+    prependAllCachedPage();
+  } finally {
+    allBeforeLoading = false;
+  }
+}
+
+/** 下拉：缓存无上一页时请求上一天，再插入一页 */
+async function loadAllBeforeByPull() {
+  const paging = allPagingRef.value;
+  if (allBeforeLoading) {
+    paging?.endRefresh?.();
+    return;
+  }
+
+  allBeforeLoading = true;
+  try {
+    if (allWindowStart.value > 0) {
+      const ok = prependAllCachedPage();
+      if (!ok) {
+        // 窗口异常时重建当前窗口，避免空白
+        applyAllWindow();
+      }
+      paging?.endRefresh?.();
+      return;
+    }
+
+    let loaded = false;
+    for (let i = 0; i < 7 && allWindowStart.value <= 0; i++) {
+      loaded = await fetchMergeBeforeDayForAll();
+      if (loaded) break;
+    }
+    if (allWindowStart.value > 0) {
+      const ok = prependAllCachedPage();
+      if (!ok) applyAllWindow();
+    }
+    paging?.endRefresh?.();
+  } catch (error) {
+    console.log(error);
+    paging?.complete?.(false);
+    paging?.endRefresh?.();
+  } finally {
+    allBeforeLoading = false;
+  }
+}
+
+function onAllScrollTopChange(scrollTop) {
+  if (scrollTop == null) return;
+  const top = Number(scrollTop);
+  if (top > ALL_LEFT_TOP_DISTANCE) {
+    allHasLeftTop = true;
+    return;
+  }
+  if (!allHasLeftTop) return;
+  if (top > ALL_TOP_LOAD_DISTANCE) return;
+  loadAllBeforeByScroll();
 }
 
 function getDayCellRange(cells, day) {
@@ -315,45 +557,33 @@ function getDaySortedSecondLastMatch(dayMatches) {
   return sorted[Math.max(0, sorted.length - 2)];
 }
 
-function scrollAllPagingToDaySecondLast(day, cells) {
-  const list = cells || [];
-  const range = getDayCellRange(list, day);
+/** 在当前展示窗口内，用 id 滚到指定天倒数第二场（无动画） */
+function scrollDisplayedToDaySecondLast(day) {
+  const cells = allCellsCache.value;
+  const range = getDayCellRange(cells, day);
   const paging = allPagingRef.value;
   if (!range || !paging) return;
 
   const dayMatches = [];
   for (let i = range.start; i <= range.end; i++) {
-    if (list[i]?._cellType === "match") dayMatches.push(list[i]);
+    if (cells[i]?._cellType === "match") dayMatches.push(cells[i]);
   }
   const targetMatch = getDaySortedSecondLastMatch(dayMatches);
-  let targetIndex = range.start;
-  if (targetMatch) {
-    const found = list.findIndex(
-      (cell, idx) =>
-        idx >= range.start &&
-        idx <= range.end &&
-        cell._cellType === "match" &&
-        cell.id === targetMatch.id
-    );
-    if (found >= 0) targetIndex = found;
-  }
+  const matchId = targetMatch?.id ?? targetMatch?.matchId;
+  if (matchId == null) return;
 
+  const sel = `id_${matchId}`;
   nextTick(() => {
     setTimeout(() => {
       const ref = allPagingRef.value;
       if (!ref) return;
-      const cache = ref.virtualHeightCacheList;
-      if (cache && cache[targetIndex]) {
-        ref.scrollIntoViewByIndex?.(targetIndex, 0, false);
-        return;
-      }
-      const measured = (cache || []).filter((item) => item && item.height > 0);
-      const avg = measured.length
-        ? measured.reduce((sum, item) => sum + item.height, 0) / measured.length
-        : 120;
-      ref.scrollToY?.(avg * targetIndex, 0, false);
-    }, 150);
+      ref.scrollIntoViewById?.(sel, 0, false);
+    }, 200);
   });
+}
+
+function scrollAllPagingToDaySecondLast(day, cells) {
+  scrollDisplayedToDaySecondLast(day);
 }
 
 function scrollLeagueToDaySecondLast(tabIdx, day) {
@@ -465,7 +695,7 @@ async function getCurrentDay({ tabIdx = pickerIndex.value } = {}) {
     firstLoadedMap.value[tabKey] = true;
 
     if (isAllTab) {
-      syncAllPaging(finalList, { complete: true });
+      await syncAllPaging(finalList, { mode: "hard" });
     } else {
       rebuildDayMap(tabIdx);
     }
@@ -474,6 +704,7 @@ async function getCurrentDay({ tabIdx = pickerIndex.value } = {}) {
     matchListMap.value[tabKey] = [];
     firstLoadedMap.value[tabKey] = true;
     if (isAllTab) {
+      allCellsCache.value = [];
       allPagingRef.value?.complete(false);
     } else {
       rebuildDayMap(tabIdx);
@@ -496,39 +727,32 @@ async function getBeforeDayData(tabIdx = pickerIndex.value) {
   initTabState(tabKey);
   const isAllTab = tabKey === ALL_TAB_NAME;
 
+  if (isAllTab) {
+    await loadAllBeforeByPull();
+    return;
+  }
+
   if (loadingBeforeMap.value[tabKey]) {
-    if (isAllTab) allPagingRef.value?.endRefresh?.();
-    else delayCloseRefresher();
+    delayCloseRefresher();
     return;
   }
 
   loadingBeforeMap.value[tabKey] = true;
   const newDay = (currentBeforeDayMap.value[tabKey] || dayjs()).add(-1, "day");
-  const state = fetchState(isAllTab);
 
   try {
-    const list = await fetchDayMatches(newDay, state, getRequestLeagueName(tabIdx));
+    const list = await fetchDayMatches(newDay, fetchState(false), getRequestLeagueName(tabIdx));
     const merged = mergeMatchList(matchListMap.value[tabKey] || [], list);
-    const finalList = isAllTab ? sortAllTabList(merged) : merged;
+    matchListMap.value[tabKey] = merged;
     currentBeforeDayMap.value[tabKey] = newDay;
-    matchListMap.value[tabKey] = finalList;
 
-    if (isAllTab) {
-      const cells = syncAllPaging(finalList, { complete: true });
-      scrollAllPagingToDaySecondLast(newDay, cells);
-    } else {
-      await delay(REFRESHER_CLOSE_DELAY);
-      rebuildDayMap(tabIdx);
-      refresherTriggered.value = false;
-      scrollLeagueToDaySecondLast(tabIdx, newDay);
-    }
+    await delay(REFRESHER_CLOSE_DELAY);
+    rebuildDayMap(tabIdx);
+    refresherTriggered.value = false;
+    scrollLeagueToDaySecondLast(tabIdx, newDay);
   } catch (error) {
     console.log(error);
-    if (isAllTab) {
-      allPagingRef.value?.complete(false);
-    } else {
-      delayCloseRefresher();
-    }
+    delayCloseRefresher();
   } finally {
     loadingBeforeMap.value[tabKey] = false;
   }
@@ -559,7 +783,20 @@ async function getNextDayData(tabIdx = pickerIndex.value) {
     noMoreMap.value[tabKey] = isMore;
 
     if (isAllTab) {
-      syncAllPaging(finalList, { noMore: isMore });
+      const pageSize = getAllPageSize();
+      const cells = buildAllCells(finalList);
+      allCellsCache.value = cells;
+      const oldEnd = allWindowEnd.value;
+      allWindowEnd.value = Math.min(cells.length, Math.max(oldEnd + pageSize, oldEnd));
+      const page = cells.slice(oldEnd, allWindowEnd.value);
+      const paging = allPagingRef.value;
+      if (!page.length) {
+        paging?.completeByNoMore([], !!isMore);
+      } else if (allWindowEnd.value >= cells.length && isMore) {
+        paging?.completeByNoMore(page, true);
+      } else {
+        paging?.complete(page);
+      }
     } else {
       rebuildDayMap(tabIdx);
     }
@@ -575,14 +812,38 @@ function onAllVirtualListChange(vList) {
   allVirtualList.value = vList || [];
 }
 
+async function loadAllAfterPage() {
+  const pageSize = getAllPageSize();
+  const cells = allCellsCache.value;
+  const paging = allPagingRef.value;
+
+  if (allWindowEnd.value < cells.length) {
+    const oldEnd = allWindowEnd.value;
+    allWindowEnd.value = Math.min(cells.length, oldEnd + pageSize);
+    const page = cells.slice(oldEnd, allWindowEnd.value);
+    if (allWindowEnd.value >= cells.length) {
+      if (!noMoreMap.value[ALL_TAB_NAME]) {
+        await getNextDayData(0);
+        return;
+      }
+      paging?.completeByNoMore(page, true);
+    } else {
+      paging?.complete(page);
+    }
+    return;
+  }
+
+  await getNextDayData(0);
+}
+
 async function onAllQuery(pageNo, pageSize, from) {
   initTabState(ALL_TAB_NAME);
   if (from === "reload") {
     await getCurrentDay({ tabIdx: 0 });
   } else if (from === "user-pull-down") {
-    await getBeforeDayData(0);
+    await loadAllBeforeByPull();
   } else if (from === "load-more") {
-    await getNextDayData(0);
+    await loadAllAfterPage();
   }
 }
 
@@ -597,12 +858,25 @@ function hasSameMatchSnapshot(prev, next) {
   return true;
 }
 
+function isCurrentZcPage() {
+  try {
+    const pages = getCurrentPages();
+    const page = pages[pages.length - 1];
+    return page?.route === "pages/zc/index";
+  } catch (e) {
+    return false;
+  }
+}
+
 async function refreshNewData() {
+  // 只在足球首页可见时轮询
+  if (!pageVisible.value || !isCurrentZcPage()) return;
   if (isLoadRefresh.value) return;
   isLoadRefresh.value = true;
 
   try {
     const list = await fetchDayMatches(dayjs(), 0, "");
+    if (!pageVisible.value || !isCurrentZcPage()) return;
     onUpdateMatchList(list);
 
     const loadedKeys = Object.keys(firstLoadedMap.value).filter((k) => firstLoadedMap.value[k]);
@@ -631,7 +905,7 @@ async function refreshNewData() {
     }
 
     if (firstLoadedMap.value[ALL_TAB_NAME] && allChanged) {
-      syncAllPaging(matchListMap.value[ALL_TAB_NAME] || []);
+      syncAllPaging(matchListMap.value[ALL_TAB_NAME] || [], { mode: "soft" });
     }
     rebuildVisibleDayMaps();
   } catch (error) {
@@ -778,23 +1052,33 @@ function onMatchFlagChange(payload = {}) {
   });
 
   if (firstLoadedMap.value[ALL_TAB_NAME]) {
-    syncAllPaging(matchListMap.value[ALL_TAB_NAME] || []);
+    syncAllPaging(matchListMap.value[ALL_TAB_NAME] || [], { mode: "soft" });
   }
   rebuildVisibleDayMaps();
 }
 
 function startRefreshTimer() {
   stopRefreshTimer();
+  if (!pageVisible.value || !isCurrentZcPage()) return;
   refreshNewData();
   refreshTimer = setInterval(() => {
     refreshNewData();
-  }, 3000);
+  }, 10000);
 }
 
 function stopRefreshTimer() {
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;
+  }
+}
+
+function setPageVisible(visible) {
+  pageVisible.value = !!visible;
+  if (pageVisible.value) {
+    if (started) startRefreshTimer();
+  } else {
+    stopRefreshTimer();
   }
 }
 
@@ -837,6 +1121,7 @@ export function useInstantList() {
     dayAnchorId,
     onAllQuery,
     onAllVirtualListChange,
+    onAllScrollTopChange,
     onPullDown,
     onRefresherRestore,
     onLoadMore,
@@ -848,6 +1133,7 @@ export function useInstantList() {
     refresherAll,
     initInstantList,
     stopRefreshTimer,
+    setPageVisible,
     ensureTabData
   };
 }
