@@ -2,7 +2,7 @@
   <view class="match-card" :class="{ 'score-flash': isFlashing }">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
-      <view class="league-name">{{ match.leagueChsShort }}</view>
+      <view class="league-name" :style="{color: match.color}">{{ match.leagueChsShort }}</view>
       <text class="match-time">{{ matchTime }}</text>
       <text class="match-status" :class="statusClass">{{ matchStatus }}</text>
     </view>
@@ -123,7 +123,7 @@ export default {
     match: { type: Object },
     isPro: { type: Boolean, default: true }
   },
-  emits: ['height-update'],
+  emits: ['height-update', 'flag-change'],
   data() {
     return {
       isFavorite: false,
@@ -166,11 +166,15 @@ export default {
   computed: {
     events(){
       try {
-        if (this.match?.matchInfo?.minfo) {
-          return JSON.parse(this.match?.matchInfo?.minfo)
-        } 
-      } catch (error) {
+        if (this.match?.matchInfo?.minfo){
+          return JSON.parse(this.match?.matchInfo.minfo)
+        }
+        if (this.match?.matchInfo) {
+          return JSON.parse(this.match?.matchInfo)
+        }
         
+      } catch (error) {
+        console.log(error)
       }
 
       return []
@@ -350,6 +354,11 @@ export default {
             userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
+          this.$emit('flag-change', {
+            matchId: this.match.matchId,
+            id: this.match.id,
+            flag: this.match.flag
+          });
 		  try{
         if(isNotificationEnabled && !isNotificationEnabled()){
           uni.showModal({

@@ -256,6 +256,7 @@ const lastShowPageDate = ref(new Date().getTime())
 onShow((e) => {
   
   pageIsShow.value = true;
+  instant.setPageVisible?.(true);
 
   if (new Date().getTime() - new Date().getTime() > 20000) {
     instant.refresherAll()
@@ -285,16 +286,8 @@ onShow((e) => {
 });
 
 onHide((opt) => {
-  // #ifdef APP-PLUS
-  var pages = getCurrentPages();
-  var page = pages[pages.length - 1];
-  if(page.route !== "pages/zc/index"){
-    pageIsShow.value = false;
-  }
-  // #endif
-  // #ifdef H5
   pageIsShow.value = false;
-  // #endif
+  instant.setPageVisible?.(false);
 });
 
 watch((pageIsShow)=>{
