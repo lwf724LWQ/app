@@ -185,7 +185,7 @@
     "h5" : {
         "publicPath" : "http://video.caimizm.com/frontend-staticdir/",
         "router" : {
-            "mode" : "history",
+            "mode" : "hash",
             "base" : ""
         }
     },
