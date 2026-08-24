@@ -751,7 +751,7 @@ export const editFootball = (data) => {
 
 export const delFootball = (id) => {
   return request({
-    url: "/web/fbpost/delete?id=" + id,
+    url: "/web/fbpost/delete?fbpostId=" + id,
     method: "GET"
   });
 }

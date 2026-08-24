@@ -551,6 +551,7 @@ const loadPredictPosts = async () => {
           page: 1,
           limit: 40,
           ftype: 3,
+          mtype: currentLotteryType.value
         })
       collectionPostCardList.value = res.data.list
     }
@@ -613,7 +614,7 @@ async function openCollectionDetail(data) {
 // 创建集合贴
 function creaetCollectionPost(){
   uni.navigateTo({
-    url: "/pages/forum/creaet-collection-post"
+    url: "/pages/forum/creaet-collection-post?currentLotteryType=" + currentLotteryType.value
   })
 }
 

@@ -559,7 +559,7 @@ export default {
   flex: 1;
 
   font-size: 30rpx;
-  font-weight:normal;
+  font-weight:bold;
   color: #000;
 }
 
