@@ -75,6 +75,7 @@ const matchInfo = ref({});
 const editorRef = ref(null);
 const isEditMode = ref(false);
 const editId = ref("");
+const mtype = ref("");
 const form = reactive({
   title: "",
   enableWinDrawLose: false,
@@ -188,8 +189,11 @@ async function submitPrognosis() {
 
   if (isEditMode.value) {
     confirmForm.id = editId.value;
+    confirmForm.mtype = form.value;
+  }else{
+    confirmForm.mtype = mtype.value
   }
-
+  debugger
   try {
     uni.showLoading({
       title: "提交中...",
@@ -214,6 +218,8 @@ async function submitPrognosis() {
 }
 
 onLoad(async (option) => {
+  
+  mtype.value = option.currentLotteryType;
   if (option && option.id) {
     isEditMode.value = true;
     editId.value = option.id;
@@ -225,6 +231,7 @@ onLoad(async (option) => {
       form.enablePrice = !!postData.flag;
       form.price = postData.price || 0;
       form.fimg = postData.fimg || "";
+      form.mtype = postData.mtype
       if (postData.result) {
         try {
           const parsed = JSON.parse(postData.result);
