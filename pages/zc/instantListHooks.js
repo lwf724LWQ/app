@@ -12,17 +12,17 @@ export const MOUNT_RANGE = 1;
 const LIVE_MSTATES = [1, 2, 3, 4, 5];
 const ALL_PAGE_SIZE = 20;
 /** 距顶部多少 px 内视为触顶，触发缓存分页插入 */
-const ALL_TOP_LOAD_DISTANCE = 280;
+const ALL_TOP_LOAD_DISTANCE = 480;
 /** 离开顶部多远后，才允许再次触顶插页（避免首次进入误触发） */
-const ALL_LEFT_TOP_DISTANCE = 360;
+const ALL_LEFT_TOP_DISTANCE = 560;
 
 const BASE_LEAGUE_TABS = [
   { id: 0, name: ALL_TAB_NAME, leagueChsShort: ALL_TAB_NAME },
   ...TOP_LEAGUE_NAMES.map((name, index) => ({
     id: index + 1,
     name,
-    leagueChsShort: name
-  }))
+    leagueChsShort: name,
+  })),
 ];
 
 function loadCustomLeagues() {
@@ -52,7 +52,7 @@ const leagueList = computed(() => {
     id: BASE_LEAGUE_TABS.length + index,
     name,
     leagueChsShort: name,
-    isCustom: true
+    isCustom: true,
   }));
   return [...BASE_LEAGUE_TABS, ...customs];
 });
@@ -88,7 +88,7 @@ const allRefresherText = {
   default: "继续下拉加载上一天",
   pulling: "松开开始加载",
   refreshing: "正在加载...",
-  complete: "加载成功"
+  complete: "加载成功",
 };
 
 const refresherStatusText = computed(() =>
@@ -123,8 +123,15 @@ function compareMatchOrder(a, b) {
   return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
 }
 
+function compareMatchTime(a, b) {
+  const aFlag = flagWeight(a);
+  const bFlag = flagWeight(b);
+  if (bFlag !== aFlag) return bFlag - aFlag;
+  return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
+}
+
 function sortAllTabList(list) {
-  return [...(list || [])].sort(compareMatchOrder);
+  return [...(list || [])].sort(compareMatchTime);
 }
 
 function getTabKey(tabIdx = pickerIndex.value) {
@@ -172,7 +179,7 @@ function extractLeagueName(selected) {
   if (Array.isArray(selected)) {
     const first = selected[0];
     if (!first) return "";
-    return typeof first === "string" ? first : (first?.name || "");
+    return typeof first === "string" ? first : first?.name || "";
   }
   if (typeof selected === "object") return selected.name || "";
   return "";
@@ -234,7 +241,7 @@ function computeDayList(matchList, beforeDay, lastDay, { fillEmptyDays = true } 
 
     dayItem.leagues = sortLeagueNames([...leagueMap.keys()]).map((name) => ({
       name,
-      list: sortMatchList(leagueMap.get(name))
+      list: sortMatchList(leagueMap.get(name)),
     }));
   }
 
@@ -252,8 +259,7 @@ function flattenAllCells(list) {
   const cells = [];
   const todayStr = dayjs().format("YYYY/MM/DD dddd");
   const sortedDays = [...dayList].sort(
-    (a, b) =>
-      dayjs(a.datestr.split(" ")[0]).valueOf() - dayjs(b.datestr.split(" ")[0]).valueOf()
+    (a, b) => dayjs(a.datestr.split(" ")[0]).valueOf() - dayjs(b.datestr.split(" ")[0]).valueOf()
   );
   for (const day of sortedDays) {
     const dayKey = `day_all_${day.datestr}`;
@@ -261,7 +267,7 @@ function flattenAllCells(list) {
       id: dayKey,
       zpKey: dayKey,
       _cellType: "date",
-      datestr: day.datestr === todayStr ? "今日全部赛事" : day.datestr
+      datestr: day.datestr === todayStr ? "今日全部赛事" : day.datestr,
     });
     const dayMatches = [];
     for (const league of day.leagues) {
@@ -271,11 +277,11 @@ function flattenAllCells(list) {
       cells.push({
         id: `empty_all_${day.datestr}`,
         zpKey: `empty_all_${day.datestr}`,
-        _cellType: "empty"
+        _cellType: "empty",
       });
       continue;
     }
-    for (const match of sortMatchList(dayMatches)) {
+    for (const match of [...dayMatches].sort(compareMatchTime)) {
       cells.push({ ...match, _cellType: "match" });
     }
   }
@@ -297,6 +303,20 @@ function buildAllCells(list) {
 
 function cellKey(cell) {
   return cell?.zpKey || cell?.id || cell?.matchId;
+}
+
+function findNearestLiveMatchCell(cells) {
+  const now = Date.now();
+  let nearestIdx = -1;
+  let nearestDiff = Infinity;
+  for (let i = 0; i < cells.length; i++) {
+    const c = cells[i];
+    if (c._cellType !== "match") continue;
+    if (isLiveMatch(c)) {
+      return i;
+    }
+  }
+  return nearestIdx;
 }
 
 function remapAllWindow(oldCells, newCells, start, end) {
@@ -364,19 +384,43 @@ async function syncAllPaging(list, { mode = "hard" } = {}) {
   allWindowEnd.value = Math.min(pageSize, cells.length);
   allHasLeftTop = false;
   allPendingScrollDay = null;
+
+  const liveIdx = findNearestLiveMatchCell(cells);
+  if (liveIdx >= 0) {
+    const livePage = Math.floor(liveIdx / pageSize);
+    const startPage = Math.max(0, livePage - 1);
+    allWindowStart.value = startPage * pageSize;
+    allWindowEnd.value = Math.min(cells.length, (livePage + 1) * pageSize);
+  }
+
   if (!paging) return cells;
 
   paging.isLocalPaging = false;
-  paging.pageNo = 1;
-  // 首次加载：明确 complete 第一页
-  const firstPage = cells.slice(0, allWindowEnd.value);
+  paging.pageNo = Math.max(
+    1,
+    Math.ceil(Math.max(allWindowEnd.value - allWindowStart.value, 1) / pageSize)
+  );
+  const firstPage = cells.slice(allWindowStart.value, allWindowEnd.value);
   await paging.complete(firstPage);
   paging.customNoMore = 0;
   paging.loadingStatus = "default";
-  // 个别端 complete 后 virtualList 未及时刷新，再兜底一次
   if (!(paging.realTotalData || []).length && firstPage.length) {
     paging.resetTotalData?.(firstPage);
   }
+
+  if (liveIdx >= 0) {
+    const matchCell = cells[liveIdx];
+    const matchId = matchCell.id ?? matchCell.matchId;
+    if (matchId != null) {
+      const sel = `id_${matchId}`;
+      nextTick(() => {
+        setTimeout(() => {
+          allPagingRef.value?.scrollIntoViewById?.(sel, 0, false);
+        }, 300);
+      });
+    }
+  }
+
   return cells;
 }
 
@@ -552,7 +596,7 @@ function getDayCellRange(cells, day) {
 
 /** 取某一天「按状态排序后」场次的倒数第二个（不足则取最后一个） */
 function getDaySortedSecondLastMatch(dayMatches) {
-  const sorted = sortMatchList(dayMatches || []);
+  const sorted = sortAllTabList(dayMatches || []);
   if (!sorted.length) return null;
   return sorted[Math.max(0, sorted.length - 2)];
 }
@@ -564,10 +608,7 @@ function scrollDisplayedToDaySecondLast(day) {
   const paging = allPagingRef.value;
   if (!range || !paging) return;
 
-  const dayMatches = [];
-  for (let i = range.start; i <= range.end; i++) {
-    if (cells[i]?._cellType === "match") dayMatches.push(cells[i]);
-  }
+  const dayMatches = cells.slice(range.start, range.end + 1);
   const targetMatch = getDaySortedSecondLastMatch(dayMatches);
   const matchId = targetMatch?.id ?? targetMatch?.matchId;
   if (matchId == null) return;
@@ -597,9 +638,7 @@ function scrollLeagueToDaySecondLast(tabIdx, day) {
     dayMatches.push(...(league.list || []));
   }
   const targetMatch = getDaySortedSecondLastMatch(dayMatches);
-  const targetId = targetMatch
-    ? `id_${targetMatch.id}`
-    : dayAnchorId(tabIdx, dayItem.id);
+  const targetId = targetMatch ? `id_${targetMatch.id}` : dayAnchorId(tabIdx, dayItem.id);
 
   scrollIntoViewMap.value[tabIdx] = "";
   nextTick(() => {
@@ -889,10 +928,7 @@ async function refreshNewData() {
         const i = tabList.findIndex((m) => m.id === item.id);
         if (i >= 0) {
           tabList[i] = { ...tabList[i], ...item };
-        } else if (
-          tabKey !== ALL_TAB_NAME &&
-          dayjs(item.matchTime).isSame(dayjs(), "day")
-        ) {
+        } else if (tabKey !== ALL_TAB_NAME && dayjs(item.matchTime).isSame(dayjs(), "day")) {
           // 轮询是 state=0，不能把这些场次追加进「全部」
           tabList.push(item);
         }
@@ -1047,8 +1083,7 @@ function onMatchFlagChange(payload = {}) {
       return { ...item, flag: nextFlag };
     });
     if (!changed) return;
-    matchListMap.value[tabKey] =
-      tabKey === ALL_TAB_NAME ? sortAllTabList(nextList) : nextList;
+    matchListMap.value[tabKey] = tabKey === ALL_TAB_NAME ? sortAllTabList(nextList) : nextList;
   });
 
   if (firstLoadedMap.value[ALL_TAB_NAME]) {
@@ -1134,6 +1169,6 @@ export function useInstantList() {
     initInstantList,
     stopRefreshTimer,
     setPageVisible,
-    ensureTabData
+    ensureTabData,
   };
 }

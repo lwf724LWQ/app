@@ -23,28 +23,15 @@
         @scrollTopChange="onAllScrollTopChange"
       >
         <template v-for="item in allVirtualList" :key="item.zpKey || item.id">
-          <view
-            v-if="item._cellType === 'date'"
-            class="matchdatestr"
-            :id="item.zpKey"
-          >{{ item.datestr }}</view>
-          <view
-            v-else-if="item._cellType === 'empty'"
-            class="no-match-text"
-          >该天无匹配赛事</view>
-          <view
-            v-else-if="item._cellType === 'league'"
-            class="league-section-title"
-          >{{ item.name }}</view>
-          <view
-            v-else
-            :id="`id_${item.id}`"
-          >
-            <MatchScoreCard
-              :match="item"
-              :isPro="isProMode"
-              @flag-change="onMatchFlagChange"
-            />
+          <view v-if="item._cellType === 'date'" class="matchdatestr" :id="item.zpKey">
+            {{ item.datestr }}
+          </view>
+          <view v-else-if="item._cellType === 'empty'" class="no-match-text">该天无匹配赛事</view>
+          <view v-else-if="item._cellType === 'league'" class="league-section-title">
+            {{ item.name }}
+          </view>
+          <view v-else :id="`id_${item.id}`">
+            <MatchScoreCard :match="item" :isPro="isProMode" @flag-change="onMatchFlagChange" />
           </view>
         </template>
 
@@ -73,14 +60,13 @@
           <text>{{ refresherStatusText }}</text>
         </view>
 
-        <template v-for="dayItem in (matchListWithDayMap[idx] || [])" :key="dayItem.datestr">
+        <template v-for="dayItem in matchListWithDayMap[idx] || []" :key="dayItem.datestr">
           <view class="matchdatestr" :id="dayAnchorId(idx, dayItem.id)">{{ dayItem.datestr }}</view>
           <view v-if="dayItem.leagues.length === 0" class="no-match-text">该天无匹配赛事</view>
           <template v-for="league in dayItem.leagues" :key="`${dayItem.datestr}_${league.name}`">
-            <view
-              v-if="(dayItem.leagues.length > 1) && league.name"
-              class="league-section-title"
-            >{{ league.name }}</view>
+            <view v-if="dayItem.leagues.length > 1 && league.name" class="league-section-title">
+              {{ league.name }}
+            </view>
             <MatchScoreCard
               v-for="match in league.list"
               :id="`id_${match.id}`"
@@ -110,16 +96,16 @@ import { ALL_TAB_NAME, useInstantList } from "../instantListHooks.js";
 const props = defineProps({
   tab: {
     type: Object,
-    required: true
+    required: true,
   },
   idx: {
     type: Number,
-    required: true
+    required: true,
   },
   isActive: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 const {
@@ -143,7 +129,7 @@ const {
   onLoadMore,
   toTop,
   toTopAll,
-  onMatchFlagChange
+  onMatchFlagChange,
 } = useInstantList();
 </script>
 
@@ -175,7 +161,7 @@ const {
   z-index: 99;
   text-align: center;
   font-size: 28rpx;
-  background-color: #F5F6F7;
+  background-color: #f5f6f7;
   padding: 16rpx 0;
 }
 
@@ -198,7 +184,7 @@ const {
   position: fixed;
   right: 10rpx;
   bottom: 30rpx;
-  background-color: #30B544;
+  background-color: #30b544;
   color: #fff;
   padding: 15rpx;
   border-radius: 20rpx;
