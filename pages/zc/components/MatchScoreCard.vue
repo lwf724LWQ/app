@@ -123,7 +123,7 @@ export default {
     match: { type: Object },
     isPro: { type: Boolean, default: true }
   },
-  emits: ['height-update'],
+  emits: ['height-update', 'flag-change'],
   data() {
     return {
       isFavorite: false,
@@ -350,6 +350,11 @@ export default {
             userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
+          this.$emit('flag-change', {
+            matchId: this.match.matchId,
+            id: this.match.id,
+            flag: this.match.flag
+          });
 		  try{
         if(isNotificationEnabled && !isNotificationEnabled()){
           uni.showModal({

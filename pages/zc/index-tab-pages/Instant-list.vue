@@ -37,6 +37,7 @@
             :id="`id_${item.id}`"
             :match="item"
             :isPro="isProMode"
+            @flag-change="onMatchFlagChange"
           />
         </template>
 
@@ -79,6 +80,7 @@
               :key="match.id"
               :match="match"
               :isPro="isProMode"
+              @flag-change="onMatchFlagChange"
             />
           </template>
         </template>
@@ -132,7 +134,8 @@ const {
   onRefresherRestore,
   onLoadMore,
   toTop,
-  toTopAll
+  toTopAll,
+  onMatchFlagChange
 } = useInstantList();
 </script>
 

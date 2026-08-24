@@ -93,15 +93,23 @@ function isLiveMatch(match) {
   return LIVE_MSTATES.includes(Number(match?.mstate));
 }
 
+function flagWeight(match) {
+  return match?.flag === true || match?.flag === 1 || match?.flag === "1" ? 1 : 0;
+}
+
+function compareMatchOrder(a, b) {
+  const aFlag = flagWeight(a);
+  const bFlag = flagWeight(b);
+  if (bFlag !== aFlag) return bFlag - aFlag;
+  const aLive = isLiveMatch(a) ? 1 : 0;
+  const bLive = isLiveMatch(b) ? 1 : 0;
+  if (bLive !== aLive) return bLive - aLive;
+  if ((b.mstate || 0) !== (a.mstate || 0)) return (b.mstate || 0) - (a.mstate || 0);
+  return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
+}
+
 function sortAllTabList(list) {
-  return [...(list || [])].sort((a, b) => {
-    const aLive = isLiveMatch(a) ? 1 : 0;
-    const bLive = isLiveMatch(b) ? 1 : 0;
-    if (bLive !== aLive) return bLive - aLive;
-    if ((b.flag || 0) !== (a.flag || 0)) return (b.flag || 0) - (a.flag || 0);
-    if ((b.mstate || 0) !== (a.mstate || 0)) return (b.mstate || 0) - (a.mstate || 0);
-    return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
-  });
+  return [...(list || [])].sort(compareMatchOrder);
 }
 
 function getTabKey(tabIdx = pickerIndex.value) {
@@ -167,14 +175,7 @@ function sortLeagueNames(names) {
 }
 
 function sortMatchList(list) {
-  return [...list].sort((a, b) => {
-    const aLive = isLiveMatch(a) ? 1 : 0;
-    const bLive = isLiveMatch(b) ? 1 : 0;
-    if (bLive !== aLive) return bLive - aLive;
-    if ((b.flag || 0) !== (a.flag || 0)) return (b.flag || 0) - (a.flag || 0);
-    if ((b.mstate || 0) !== (a.mstate || 0)) return (b.mstate || 0) - (a.mstate || 0);
-    return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
-  });
+  return [...list].sort(compareMatchOrder);
 }
 
 function computeDayList(matchList, beforeDay, lastDay, { fillEmptyDays = true } = {}) {
@@ -758,6 +759,30 @@ function onSearch(params = {}) {
   return pickerIndex.value;
 }
 
+function onMatchFlagChange(payload = {}) {
+  const matchId = payload.matchId ?? payload.id;
+  if (matchId == null) return;
+  const nextFlag = !!payload.flag;
+
+  Object.keys(matchListMap.value).forEach((tabKey) => {
+    const list = matchListMap.value[tabKey] || [];
+    let changed = false;
+    const nextList = list.map((item) => {
+      if (item?.id !== matchId && item?.matchId !== matchId) return item;
+      changed = true;
+      return { ...item, flag: nextFlag };
+    });
+    if (!changed) return;
+    matchListMap.value[tabKey] =
+      tabKey === ALL_TAB_NAME ? sortAllTabList(nextList) : nextList;
+  });
+
+  if (firstLoadedMap.value[ALL_TAB_NAME]) {
+    syncAllPaging(matchListMap.value[ALL_TAB_NAME] || []);
+  }
+  rebuildVisibleDayMaps();
+}
+
 function startRefreshTimer() {
   stopRefreshTimer();
   refreshNewData();
@@ -819,6 +844,7 @@ export function useInstantList() {
     toTopAll,
     setPickerIndex,
     onSearch,
+    onMatchFlagChange,
     refresherAll,
     initInstantList,
     stopRefreshTimer,
