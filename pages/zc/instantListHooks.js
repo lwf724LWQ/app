@@ -306,13 +306,18 @@ function cellKey(cell) {
 }
 
 function findNearestLiveMatchCell(cells) {
-  const now = Date.now();
+  const now = dayjs();
   let nearestIdx = -1;
-  let nearestDiff = Infinity;
   for (let i = 0; i < cells.length; i++) {
     const c = cells[i];
     if (c._cellType !== "match") continue;
     if (isLiveMatch(c)) {
+      return i;
+    }
+    if (dayjs(c.matchTime).hour() === now.hour()) {
+      return i;
+    }
+    if (dayjs(c.matchTime).isAfter(now, "hour") && dayjs(c.matchTime).day() === now.day()) {
       return i;
     }
   }
