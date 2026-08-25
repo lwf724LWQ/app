@@ -113,9 +113,9 @@ function flagWeight(match) {
 }
 
 function compareMatchOrder(a, b) {
-  const aFlag = flagWeight(a);
-  const bFlag = flagWeight(b);
-  if (bFlag !== aFlag) return bFlag - aFlag;
+  // const aFlag = flagWeight(a);
+  // const bFlag = flagWeight(b);
+  // if (bFlag !== aFlag) return bFlag - aFlag;
   const aLive = isLiveMatch(a) ? 1 : 0;
   const bLive = isLiveMatch(b) ? 1 : 0;
   if (bLive !== aLive) return bLive - aLive;
@@ -124,9 +124,9 @@ function compareMatchOrder(a, b) {
 }
 
 function compareMatchTime(a, b) {
-  const aFlag = flagWeight(a);
-  const bFlag = flagWeight(b);
-  if (bFlag !== aFlag) return bFlag - aFlag;
+  // const aFlag = flagWeight(a);
+  // const bFlag = flagWeight(b);
+  // if (bFlag !== aFlag) return bFlag - aFlag;
   return dayjs(a.matchTime).valueOf() - dayjs(b.matchTime).valueOf();
 }
 
