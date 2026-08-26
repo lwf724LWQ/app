@@ -2,7 +2,7 @@
   <view class="match-card" :class="{ 'score-flash': isFlashing }">
     <!-- 顶部：联赛名称和时间 -->
     <view class="header">
-      <view class="league-name" :style="{color: match.color}">{{ match.leagueChsShort }}</view>
+      <view class="league-name" :style="{ color: match.color }">{{ match.leagueChsShort }}</view>
       <text class="match-time">{{ matchTime }}</text>
       <text class="match-status" :class="statusClass">{{ matchStatus }}</text>
     </view>
@@ -11,6 +11,14 @@
     <view class="main-content">
       <view class="team-section left">
         {{ match.homeChs }}
+        <image
+          v-if="homeLogoError === false"
+          lazy-load
+          mode="aspectFit"
+          class="team-logo"
+          :src="homeTeamLogo"
+          @error="homeLogoError = true"
+        />
       </view>
 
       <view class="score-section" :class="{ 'no-score': !score, clickable: isInProgress }">
@@ -18,6 +26,14 @@
       </view>
 
       <view class="team-section right">
+        <image
+          v-if="awayLogoError === false"
+          lazy-load
+          mode="aspectFit"
+          class="team-logo"
+          :src="awayTeamLogo"
+          @error="awayLogoError = true"
+        />
         {{ match.awayChs }}
       </view>
     </view>
@@ -55,20 +71,31 @@
 
     <!-- 球赛事件列表：左右分栏 -->
     <view class="events-container">
-      <view class="events-columns" >
+      <view class="events-columns">
         <!-- 主队事件（左列） -->
         <view class="events-column home-column">
           <view class="event-item" v-for="event in homeEvents" :key="event.id">
             <text class="event-player">{{ event.nameChs }}</text>
-            <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
+            <view class="event-time">
+              {{
+                event.overtime && event.overtime !== "0"
+                  ? event.time + "+" + event.overtime + "'"
+                  : event.time + "'"
+              }}
+            </view>
             <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
             <view class="poi"></view>
           </view>
         </view>
-        
+
         <view class="favorite-btn" @click.stop="toggleFavorite" :class="{ active: match.flag }">
           <!-- <text class="star-icon">{{ match.flag ? "★" : "☆" }}</text> -->
-          <uni-icons class="star-icon" :type="match.flag?'notification-filled':'notification'" size="30" :color="match.flag ? '#ff2629' : ''"></uni-icons>
+          <uni-icons
+            class="star-icon"
+            :type="match.flag ? 'notification-filled' : 'notification'"
+            size="30"
+            :color="match.flag ? '#ff2629' : ''"
+          ></uni-icons>
         </view>
 
         <!-- 客队事件（右列） -->
@@ -76,7 +103,13 @@
           <view class="event-item" v-for="event in awayEvents" :key="event.id">
             <view class="poi"></view>
             <text class="event-icon-text">{{ getEventIcon(event.kind) }}</text>
-            <view class="event-time">{{ event.overtime && event.overtime !== '0' ? event.time + '+' + event.overtime + "'" : event.time + "'" }}</view>
+            <view class="event-time">
+              {{
+                event.overtime && event.overtime !== "0"
+                  ? event.time + "+" + event.overtime + "'"
+                  : event.time + "'"
+              }}
+            </view>
             <text class="event-player">{{ event.nameChs }}</text>
           </view>
         </view>
@@ -91,46 +124,46 @@ import { forllowFootball, delForllowFootball } from "@/api/apis.js";
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 // #ifdef APP-PLUS
-import {
-    goToAppNotificationSettings,
-    isNotificationEnabled,
-} from "@/uni_modules/xtf-jpush"
+import { goToAppNotificationSettings, isNotificationEnabled } from "@/uni_modules/xtf-jpush";
 // #endif
-let i = 0
-const timerCallFns = {}
+let i = 0;
+const timerCallFns = {};
 
 setInterval(() => {
-  const date = new Date()
-  Object.keys(timerCallFns).forEach(key =>{
+  const date = new Date();
+  Object.keys(timerCallFns).forEach((key) => {
     const fn = timerCallFns[key];
     if (typeof fn === "function") {
-      fn(date)
+      fn(date);
     }
-  })
+  });
 }, 1000);
 
-function closeTimer(index){
-  delete timerCallFns[index]
+function closeTimer(index) {
+  delete timerCallFns[index];
 }
-function addTimer(cb){
+function addTimer(cb) {
   i++;
-  timerCallFns[i] = cb
-  return i
+  timerCallFns[i] = cb;
+  return i;
 }
 
 export default {
   props: {
     match: { type: Object },
-    isPro: { type: Boolean, default: true }
+    isPro: { type: Boolean, default: true },
   },
-  emits: ['height-update', 'flag-change'],
+  emits: ["height-update", "flag-change"],
   data() {
     return {
       isFavorite: false,
       isFlashing: false,
       timerIndex: false,
 
-      nowTime: new Date()
+      homeLogoError: false,
+      awayLogoError: false,
+
+      nowTime: new Date(),
     };
   },
   watch: {
@@ -140,16 +173,15 @@ export default {
           if (
             newMatch.homeScore != oldMatch.homeScore ||
             newMatch.awayScore != oldMatch.awayScore ||
-            (this.isPro ? (
-              newMatch.homeRed != oldMatch.homeRed ||
-              newMatch.awayRed != oldMatch.awayRed ||
-              newMatch.homeYellow != oldMatch.homeYellow ||
-              newMatch.awayYellow != oldMatch.awayYellow
-            ) : false)            
+            (this.isPro
+              ? newMatch.homeRed != oldMatch.homeRed ||
+                newMatch.awayRed != oldMatch.awayRed ||
+                newMatch.homeYellow != oldMatch.homeYellow ||
+                newMatch.awayYellow != oldMatch.awayYellow
+              : false)
           ) {
             this.scoreUpdate();
           }
-
         }
       },
       deep: true,
@@ -160,24 +192,35 @@ export default {
           this.notifyHeightUpdate();
         }
       },
-      immediate: true
-    }
+      immediate: true,
+    },
   },
   computed: {
-    events(){
+    homeTeamLogo() {
+      if (this.match) {
+        return `http://video.caimizm.com/league-logo/logo/${this.match.homeId}.png`;
+      }
+      return "";
+    },
+    awayTeamLogo() {
+      if (this.match) {
+        return `http://video.caimizm.com/league-logo/logo/${this.match.awayId}.png`;
+      }
+      return "";
+    },
+    events() {
       try {
-        if (this.match?.matchInfo?.minfo){
-          return JSON.parse(this.match?.matchInfo.minfo)
+        if (this.match?.matchInfo?.minfo) {
+          return JSON.parse(this.match?.matchInfo.minfo);
         }
         if (this.match?.matchInfo) {
-          return JSON.parse(this.match?.matchInfo)
+          return JSON.parse(this.match?.matchInfo);
         }
-        
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
 
-      return []
+      return [];
     },
     isInProgress() {
       return [-1, 1, 2, 3, 4, 5].includes(this.match.mstate);
@@ -216,21 +259,21 @@ export default {
         return "";
       }
       let time = this.match.matchTime;
-      const teetime = Number(dayjs(dayjs(this.nowTime) - dayjs(this.match.startTime)).format("mm"))
+      const teetime = Number(dayjs(dayjs(this.nowTime) - dayjs(this.match.startTime)).format("mm"));
       if (this.match.mstate == 3) {
         if (!Number.isNaN(teetime)) {
           if (teetime > 45) {
-            return `90+'`
-          }else{
-            return `${teetime + 45}'`
+            return `90+'`;
+          } else {
+            return `${teetime + 45}'`;
           }
         }
       } else if (this.match.mstate == 1) {
         if (!Number.isNaN(teetime)) {
           if (teetime > 45) {
-            return `45+'`
-          }else{
-            return `${teetime}'`
+            return `45+'`;
+          } else {
+            return `${teetime}'`;
           }
         }
       }
@@ -250,45 +293,45 @@ export default {
         return `${this.match.homeScore} - ${this.match.awayScore}`;
       }
     },
-    extraExplainStr(){
+    extraExplainStr() {
       const extraExplainObj = this.formatExtraExplain(this.match.extraExplain);
-      let str = ""
+      let str = "";
       if (extraExplainObj) {
-        if(extraExplainObj.kickoff){
-          const kickoff = extraExplainObj.kickoff
-          str += `${kickoff == 1 ? "主队开球" : "客队开球" } `
+        if (extraExplainObj.kickoff) {
+          const kickoff = extraExplainObj.kickoff;
+          str += `${kickoff == 1 ? "主队开球" : "客队开球"} `;
         }
-        if(extraExplainObj.regularMinutes){
-          const regularMinutes = extraExplainObj.regularMinutes
-          str += `${regularMinutes}分钟`
+        if (extraExplainObj.regularMinutes) {
+          const regularMinutes = extraExplainObj.regularMinutes;
+          str += `${regularMinutes}分钟`;
         }
         if (extraExplainObj.regularScore) {
-          const regularScore = extraExplainObj.regularScore
-          str += `[${regularScore}],`
+          const regularScore = extraExplainObj.regularScore;
+          str += `[${regularScore}],`;
         }
-        if(extraExplainObj.aggregateScore){
-          const aggregateScore = extraExplainObj.aggregateScore
-          str += `[${aggregateScore}],`
+        if (extraExplainObj.aggregateScore) {
+          const aggregateScore = extraExplainObj.aggregateScore;
+          str += `[${aggregateScore}],`;
         }
-        if(extraExplainObj.extraTimeType){
-          const extraTimeType = extraExplainObj.extraTimeType
+        if (extraExplainObj.extraTimeType) {
+          const extraTimeType = extraExplainObj.extraTimeType;
           str += {
             1: "120分钟",
             2: "加时",
-            3: "加时中"
-          }[extraTimeType]
-          str += ","
+            3: "加时中",
+          }[extraTimeType];
+          str += ",";
         }
-        if(extraExplainObj.penaltyScore){
-          const penaltyScore = extraExplainObj.penaltyScore
-          str += `[${penaltyScore}],`
+        if (extraExplainObj.penaltyScore) {
+          const penaltyScore = extraExplainObj.penaltyScore;
+          str += `[${penaltyScore}],`;
         }
-        if(extraExplainObj.winner){
-          const winner = extraExplainObj.winner
-          str += `${winner == 1 ? "主队获胜" : "客队获胜"}`
+        if (extraExplainObj.winner) {
+          const winner = extraExplainObj.winner;
+          str += `${winner == 1 ? "主队获胜" : "客队获胜"}`;
         }
       }
-      return str
+      return str;
     },
     /**
      * 为每个事件添加同类型累计序号标签（主客队分别统计）
@@ -297,42 +340,46 @@ export default {
     displayEvents() {
       // 第一遍：统计各类型总数（按原始顺序从早到晚）
       const totals = {};
-      this.events.forEach(event => {
+      this.events.forEach((event) => {
         const kind = event.kind;
-        const side = event.isHome ? 'home' : 'away';
-        const key = side + '_' + kind;
+        const side = event.isHome ? "home" : "away";
+        const key = side + "_" + kind;
         totals[key] = (totals[key] || 0) + 1;
       });
       // 第二遍：反向遍历分配序号，remaining 从最大值递减到 1
       const remaining = { ...totals };
-      return this.events.filter(item => [1,7,8,14].includes(item.kind)).slice().reverse().map(event => {
-        const kind = event.kind;
-        const side = event.isHome ? 'home' : 'away';
-        const key = side + '_' + kind;
-        const count = remaining[key]--;
-        const labels = {
-          1: '第' + count + '球',
-          2: '第' + count + '张红牌',
-          3: '第' + count + '张黄牌',
-          7: '第' + count + '个点球',
-          8: '第' + count + '个乌龙',
-          9: '第' + count + '张红牌',
-          11: '第' + count + '次换人',
-          13: '第' + count + '次失点',
-          14: '第' + count + '次VAR'
-        };
-        return {
-          ...event,
-          countLabel: labels[kind] || '第' + count + '个'
-        };
-      });
+      return this.events
+        .filter((item) => [1, 7, 8, 14].includes(item.kind))
+        .slice()
+        .reverse()
+        .map((event) => {
+          const kind = event.kind;
+          const side = event.isHome ? "home" : "away";
+          const key = side + "_" + kind;
+          const count = remaining[key]--;
+          const labels = {
+            1: "第" + count + "球",
+            2: "第" + count + "张红牌",
+            3: "第" + count + "张黄牌",
+            7: "第" + count + "个点球",
+            8: "第" + count + "个乌龙",
+            9: "第" + count + "张红牌",
+            11: "第" + count + "次换人",
+            13: "第" + count + "次失点",
+            14: "第" + count + "次VAR",
+          };
+          return {
+            ...event,
+            countLabel: labels[kind] || "第" + count + "个",
+          };
+        });
     },
     homeEvents() {
-      return this.displayEvents.filter(e => e.isHome);
+      return this.displayEvents.filter((e) => e.isHome);
     },
     awayEvents() {
-      return this.displayEvents.filter(e => !e.isHome);
-    }
+      return this.displayEvents.filter((e) => !e.isHome);
+    },
   },
   methods: {
     scoreUpdate() {
@@ -354,25 +401,22 @@ export default {
             userStore.addFollowCount();
           }
           this.match.flag = !this.match.flag;
-          this.$emit('flag-change', {
+          this.$emit("flag-change", {
             matchId: this.match.matchId,
             id: this.match.id,
-            flag: this.match.flag
+            flag: this.match.flag,
           });
-		  try{
-        if(isNotificationEnabled && !isNotificationEnabled()){
-          uni.showModal({
-            title: "提示",
-            content: "当前未开启通知权限，是否前往开启",
-            success(){
-              goToAppNotificationSettings()
+          try {
+            if (isNotificationEnabled && !isNotificationEnabled()) {
+              uni.showModal({
+                title: "提示",
+                content: "当前未开启通知权限，是否前往开启",
+                success() {
+                  goToAppNotificationSettings();
+                },
+              });
             }
-          })
-        }
-      }catch(e){
-
-      }
-		  
+          } catch (e) {}
         } catch (error) {
           console.log(error);
           uni.showToast({
@@ -406,75 +450,75 @@ export default {
     formatExtraExplain(str) {
       if (!str) return null;
       // 用 "|" 分隔为两大部分
-      const parts = str.split('|');
+      const parts = str.split("|");
       if (parts.length < 2) return null;
 
       // 先开球方说明: "2;"
       const kickoffPart = parts[0];
-      const kickoffData = kickoffPart.split(';')[0];
+      const kickoffData = kickoffPart.split(";")[0];
       const kickoff = parseInt(kickoffData) || null;
 
       // 赛果说明: "90,1-0;2-2;1,1-0;2-4;2"
       const resultPart = parts[1];
-      const resultParts = resultPart.split(';');
+      const resultParts = resultPart.split(";");
       if (resultParts.length < 5) return null;
 
       // 常规时间比分说明 "90,1-0"
-      const regularTimeData = resultParts[0].split(',');
-      const regularMinutes = regularTimeData[0] || '';
-      const regularScore = regularTimeData[1] || '';
+      const regularTimeData = resultParts[0].split(",");
+      const regularMinutes = regularTimeData[0] || "";
+      const regularScore = regularTimeData[1] || "";
 
       // 两回合总比分 "2-2"
-      const aggregateScore = resultParts[1] || '';
+      const aggregateScore = resultParts[1] || "";
 
       // 加时阶段比分说明 "1,1-0"
-      const extraTimeData = resultParts[2].split(',');
+      const extraTimeData = resultParts[2].split(",");
       const extraTimeType = parseInt(extraTimeData[0]) || null;
-      const extraTimeScore = extraTimeData[1] || '';
+      const extraTimeScore = extraTimeData[1] || "";
 
       // 点球大战比分 "2-4"
-      const penaltyScore = resultParts[3] || '';
+      const penaltyScore = resultParts[3] || "";
 
       // 获胜方 "2"
       const winner = parseInt(resultParts[4]) || null;
 
       return {
-        kickoff,           // 先开球方: 1=主队先开球, 2=客队先开球
-        regularMinutes,    // 常规时间分钟数
-        regularScore,      // 常规时间比分
-        aggregateScore,    // 两回合总比分（仅在有加时/点球时更新）
-        extraTimeType,     // 加时阶段类型: 1=120分钟, 2=加时(室内/沙滩), 3=加时中
-        extraTimeScore,    // 加时阶段比分
-        penaltyScore,      // 点球大战比分
-        winner,            // 获胜方: 1=主队获胜, 2=客队获胜
+        kickoff, // 先开球方: 1=主队先开球, 2=客队先开球
+        regularMinutes, // 常规时间分钟数
+        regularScore, // 常规时间比分
+        aggregateScore, // 两回合总比分（仅在有加时/点球时更新）
+        extraTimeType, // 加时阶段类型: 1=120分钟, 2=加时(室内/沙滩), 3=加时中
+        extraTimeScore, // 加时阶段比分
+        penaltyScore, // 点球大战比分
+        winner, // 获胜方: 1=主队获胜, 2=客队获胜
       };
     },
     notifyHeightUpdate() {
-      this.$emit('height-update', this.match.matchId || this.match.id);
+      this.$emit("height-update", this.match.matchId || this.match.id);
     },
     getEventIcon(kind) {
       const icons = {
-        1: '⚽',     // 入球
-        2: '🟥',     // 红牌
-        3: '🟨',     // 黄牌
-        7: '点⚽',    // 点球
-        8: '乌⚽',    // 乌龙
-        9: '🟥🟨',   // 两黄变红
-        11: '换',     // 换人
-        13: '✕点',   // 射失点球
-        14: 'VR'      // 视频裁判
+        1: "⚽", // 入球
+        2: "🟥", // 红牌
+        3: "🟨", // 黄牌
+        7: "点⚽", // 点球
+        8: "乌⚽", // 乌龙
+        9: "🟥🟨", // 两黄变红
+        11: "换", // 换人
+        13: "✕点", // 射失点球
+        14: "VR", // 视频裁判
       };
-      return icons[kind] || '';
-    }
+      return icons[kind] || "";
+    },
   },
-  mounted(){
-    this.timerIndex = addTimer((time)=>{
-      this.nowTime = time
-    })
+  mounted() {
+    this.timerIndex = addTimer((time) => {
+      this.nowTime = time;
+    });
   },
-  unmounted(){
-    closeTimer(this.timerIndex)
-  }
+  unmounted() {
+    closeTimer(this.timerIndex);
+  },
 };
 </script>
 
@@ -544,7 +588,7 @@ export default {
 }
 
 .league-name {
-  color: #8C969F;
+  color: #8c969f;
 }
 
 .match-time {
@@ -554,7 +598,7 @@ export default {
 }
 
 .match-status {
-  color: #8C969F;
+  color: #8c969f;
 }
 
 .status-highlight {
@@ -568,8 +612,14 @@ export default {
   flex: 1;
 
   font-size: 30rpx;
-  font-weight:bold;
+  font-weight: bold;
   color: #000;
+
+  .team-logo {
+    width: 48rpx;
+    height: 48rpx;
+    margin: 10rpx;
+  }
 }
 
 .league-icon {
@@ -659,69 +709,67 @@ export default {
   font-size: 24rpx;
 }
 
-.extraExplainStr{
+.extraExplainStr {
   text-align: center;
   color: #222;
   font-size: 26rpx;
 }
 
 // 事件列表样式
-.events-empty{
+.events-empty {
   text-align: center;
   padding: 20rpx;
   color: #999;
   font-size: 24rpx;
 }
-  .events-columns {
-    display: flex;
-    font-size: 20rpx;
-    .events-column{
-      flex: 1;
-      &.home-column{
-        // margin-right: 50rpx;
-        .event-item{
-          justify-content: flex-end;
-          &::after{
-            right: 11rpx;
-          }
-        }      
-      }
-      &.away-column{
-        .event-item{
-          &::after{
-            left: 11rpx;
-          }
+.events-columns {
+  display: flex;
+  font-size: 20rpx;
+  .events-column {
+    flex: 1;
+    &.home-column {
+      // margin-right: 50rpx;
+      .event-item {
+        justify-content: flex-end;
+        &::after {
+          right: 11rpx;
         }
       }
     }
-    
+    &.away-column {
+      .event-item {
+        &::after {
+          left: 11rpx;
+        }
+      }
+    }
+  }
+
   .event-item {
     display: flex;
     align-items: center;
     padding: 8rpx 0;
-    
-      position: relative;
-    .event-time{
+
+    position: relative;
+    .event-time {
       margin: 0 8rpx;
     }
-    .poi{
-      background-color: #E4E7EB;
+    .poi {
+      background-color: #e4e7eb;
       border-radius: 50%;
       width: 10rpx;
       height: 10rpx;
-      margin:0 8rpx;
+      margin: 0 8rpx;
     }
 
-    &:not(:last-child)::after{
+    &:not(:last-child)::after {
       position: absolute;
       content: "";
       height: 100%;
       top: 50%;
-      width:3rpx;
-      background-color:#E4E7EB ;
+      width: 3rpx;
+      background-color: #e4e7eb;
     }
   }
-  
-  
 }
 </style>
