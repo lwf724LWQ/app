@@ -729,16 +729,27 @@ async function getCurrentDay({ tabIdx = pickerIndex.value } = {}) {
   const tabKey = getTabKey(tabIdx);
   initTabState(tabKey);
   const isAllTab = tabKey === ALL_TAB_NAME;
+  const isFirstLoad = !firstLoadedMap.value[tabKey];
   const leagueName = getRequestLeagueName(tabIdx);
 
   try {
     const list = await fetchDayMatches(dayjs(), fetchState(isAllTab), leagueName);
-    const finalList = isAllTab ? sortAllTabList(list) : list;
+    let finalList = isAllTab ? sortAllTabList(list) : list;
     matchListMap.value[tabKey] = finalList;
     resetTabRange(tabKey);
     firstLoadedMap.value[tabKey] = true;
 
-    if (isAllTab) {
+    // 联赛 tab 首次加载：顺带拉取下一天
+    if (!isAllTab && isFirstLoad) {
+      const nextDay = dayjs().add(1, "day");
+      const nextList = await fetchDayMatches(nextDay, fetchState(false), leagueName);
+      finalList = mergeMatchList(finalList, nextList);
+      matchListMap.value[tabKey] = finalList;
+      currentLastDayMap.value[tabKey] = nextDay;
+      noMoreMap.value[tabKey] =
+        dayjs().diff(nextDay, "day") > 5 || nextList.length === 0;
+      rebuildDayMap(tabIdx);
+    } else if (isAllTab) {
       await syncAllPaging(finalList, { mode: "hard" });
     } else {
       rebuildDayMap(tabIdx);
