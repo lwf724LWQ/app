@@ -616,8 +616,8 @@ export default {
   color: #000;
 
   .team-logo {
-    width: 48rpx;
-    height: 48rpx;
+    width: 66rpx;
+    height: 66rpx;
     margin: 10rpx;
   }
 }
