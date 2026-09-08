@@ -475,7 +475,6 @@ export const getStyleConfig = (type, theme) => {
   const typeMap = {
     排列五: 'plw',
     福彩3D: 'fc3d',
-    七星彩: 'qxc'
   }
   let layoutType = typeMap[type]
   if (theme === '其他') layoutType = `other-${layoutType}`

@@ -43,9 +43,6 @@
         <VideoList ref="plwVideoListRef" video-type="排列五" />
       </swiper-item>
       <swiper-item>
-        <VideoList ref="qxcVideoListRef" video-type="七星彩" />
-      </swiper-item>
-      <swiper-item>
         <reviewContainer ref="reviewContainerRef" />
       </swiper-item>
     </swiper>
@@ -94,7 +91,7 @@ import { createShareUrl } from "../../utils/createShareUrl.js";
 const pickerIndex = ref(2);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "七星彩", "精彩回顾"]);
+const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "精彩回顾"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
@@ -198,9 +195,10 @@ const onHoverClick = () => {
       content: "请分享后让好友将链接复制到浏览器中打开",
       showCancel: false,
       success: (res) => {
-        uni.share({
+        uni.createShareUrl()({
           provider: "weixin",
           type: 1,
+          href: createShareUrl(),
           summary: createShareUrl(),
           scene: "WXSceneSession",
           success(res) {},

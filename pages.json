@@ -488,12 +488,6 @@
 		          "selectedColor": "#f70000"
 		        }
       },
-	  {
-	    "text": "足球",
-	    "pagePath": "pages/zc/index",
-	    "iconPath":"/static/image/zc2.png",
-	    "selectedIconPath":"/static/image/zc2.png"
-	  },
       {
         "text": "彩友圈",
         "pagePath": "pages/forum/forum",

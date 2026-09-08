@@ -124,7 +124,7 @@ import { forllowFootball, delForllowFootball } from "@/api/apis.js";
 import { getToken } from "../../../utils/request";
 import { useUserStore } from "@/stores/userStore";
 // #ifdef APP-PLUS
-import { goToAppNotificationSettings, isNotificationEnabled } from "@/uni_modules/xtf-jpush";
+// import { goToAppNotificationSettings, isNotificationEnabled } from "@/uni_modules/xtf-jpush";
 // #endif
 let i = 0;
 const timerCallFns = {};

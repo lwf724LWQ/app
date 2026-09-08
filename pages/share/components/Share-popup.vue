@@ -53,8 +53,9 @@ function getConfig() {
     return {
       provider: "weixin",
       type: 1,
-      title: "http://www.caimizm.com/",
-      summary: "http://www.caimizm.com/",
+      title: "http://demo-dow.caimizm.com/",
+      summary: "http://demo-dow.caimizm.com/",
+      href: "http://demo-dow.caimizm.com/"
     };
   } else if (shareType.value === "rqcode") {
     return {
@@ -73,6 +74,16 @@ function getConfig() {
 const shareWx = async () => {
   // #ifdef APP
 
+  uni.shareWithSystem({
+            ...getConfig(),
+            success() {
+              console.log('分享面板已唤起');
+            },
+            fail(err) {
+              console.error('分享失败:', err);
+            }
+          });
+          return
   uni.share({
     ...getConfig(),
     scene: "WXSceneSession",
@@ -94,7 +105,16 @@ const shareWx = async () => {
 
 const shareWxpyq = async () => {
   // #ifdef APP
-
+ uni.shareWithSystem({
+            ...getConfig(),
+            success() {
+              console.log('分享面板已唤起');
+            },
+            fail(err) {
+              console.error('分享失败:', err);
+            }
+          });
+          return
   uni.share({
     ...getConfig(),
     scene: "WXSceneTimeline",

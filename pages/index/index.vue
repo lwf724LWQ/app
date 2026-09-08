@@ -12,11 +12,11 @@
       @change="swiperChange"
     >
       <!-- 世界杯专栏 -->
-      <swiper-item>
+      <!-- <swiper-item>
         <view class="swiper-item" @click="openShijiebei">
           <image src="/static/images/banner-shijiebei.png" mode="scaleToFill"></image>
         </view>
-      </swiper-item>
+      </swiper-item> -->
       <swiper-item>
         <view class="swiper-item">
           <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
@@ -63,29 +63,6 @@
           <view class="winning-numbers-plw">
             <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
               <view class="number-item-plw">{{ num }}</view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
-    <!-- 开奖结果区域 - 七星彩 -->
-    <navigator :url="`/pages/table/table?type=七星彩&period=${qxcPeriod}`">
-      <view class="lottery-results-qxc">
-        <view class="result-item-qxc">
-          <view class="result-header-qxc">
-            <view class="lottery-title-qxc">七星彩 第{{ qxcPeriod }}期</view>
-            <view class="lottery-date">{{ qxcDate }}</view>
-          </view>
-          <view class="winning-numbers-qxc">
-            <view class="number-wrapper" v-for="(num, index) in qxcNumbers" :key="index">
-              <view
-                class="number-item-qxc"
-                :class="{ 'qxc-special': index === qxcNumbers.length - 1 }"
-              >
-                {{ num }}
-              </view>
               <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
             </view>
           </view>
@@ -221,7 +198,7 @@
       </view>
     </view>
     
-    <view class="post-container">
+    <!-- <view class="post-container">
       <view class="post-title">
         足球热门讨论
         <view class="more-post-btn" @click="goToZcPostList">
@@ -229,7 +206,7 @@
         </view>
       </view>
       <zcPostCard v-for="item in zcList" :postData="item" @postCard="openZcPostDetail(item)" />
-    </view>
+    </view> -->
 
     <view class="post-container">
       <view class="post-title">
@@ -310,7 +287,7 @@ export default {
       swiperIndex: 0,
 
       // 彩票帖子
-      lotteryTag: ["排列三", "排列五", "七星彩", "福彩3D"],
+      lotteryTag: ["排列三", "排列五","福彩3D"],
       currentLotteryTag: "排列五"
     };
   },
@@ -571,9 +548,10 @@ export default {
         content: "请分享后让好友将链接复制到浏览器中打开",
         showCancel: false,
         success: (res) => {
-          uni.share({
+          uni.shareWithSystem({
             provider: "weixin",
             type: 1,
+            href: createShareUrl(),
             summary: createShareUrl(),
             scene: "WXSceneSession",
             success(res) {},
@@ -583,7 +561,7 @@ export default {
       });
     },
     dowApp() {
-      window.open("http://www.caimizm.com/");
+      window.open("http://demo-dow.caimizm.com/");
     },
     loadLotteryList(isRefresher = false){
       uni.showLoading()

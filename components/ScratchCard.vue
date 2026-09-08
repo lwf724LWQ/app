@@ -125,7 +125,7 @@ drawScratchCard(newVal) {
     // this.$ownerInstance.callMethod("onScratchProgress", 0)
     const self = this
     const scratchColor = "#cccccc";
-    const watermarkText = "五七仔";
+    const watermarkText = "彩迷";
     const onComplete = this.onComplete;
     const myid = this.myid
     console.log("id:", myid)

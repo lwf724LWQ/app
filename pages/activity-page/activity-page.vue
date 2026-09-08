@@ -1,5 +1,5 @@
 <template>
-  <myPage pageTitle="五七仔">
+  <myPage pageTitle="彩迷">
     <view class="content">
       <image class="bg-img" src="/static/images/activity-bg1.jpg" mode="widthFix"></image>
 
@@ -39,7 +39,7 @@
           </view>
           <view class="rule-content">
             <text class="rule-text">
-              邀请新用户注册五七仔，通过邀请链接下载app并注册成功后，双方都可获得10金币，多邀多得。
+              邀请新用户注册彩迷，通过邀请链接下载app并注册成功后，双方都可获得10金币，多邀多得。
             </text>
           </view>
           <view class="popup-footer">
@@ -65,11 +65,11 @@ function getConfig(username, inviteCode) {
   return {
     provider: "weixin",
     type: 1,
-    summary: `http://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
+    summary: `http://demo.caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
       inviteCode
     )}&username=${encodeURIComponent(username)}`,
     // title: "送您金币，免费查看大师预测！",
-    // summary: "内含排列三排列五，福彩3D七星彩开奖+大师预测，抓局画规分享",
+    // summary: "内含排列三排列五，福彩3D开奖+大师预测，抓局画规分享",
     // imageUrl: logo,
     success(res) {
       // uni.showToast({
@@ -141,10 +141,22 @@ export default {
         content: "请分享后让好友将链接复制到浏览器中打开",
         showCancel: false,
         success: (res) => {
-          uni.share({
-            ...getConfig(this.userInfo.nickname, this.inviteCode),
-            scene: "WXSceneSession",
+
+          uni.shareWithSystem({
+            summary: "内含排列三排列五，福彩3D开奖+大师预测，抓局画规分享",
+            href: getConfig(this.userInfo.nickname, this.inviteCode).summary,
+            success() {
+              console.log('分享面板已唤起');
+            },
+            fail(err) {
+              console.error('分享失败:', err);
+            }
           });
+
+          // uni.share({
+          //   ...getConfig(this.userInfo.nickname, this.inviteCode),
+          //   scene: "WXSceneSession",
+          // });
         },
       });
     },
@@ -154,9 +166,15 @@ export default {
         content: "请分享后让好友将链接复制到浏览器中打开",
         showCancel: false,
         success: (res) => {
-          uni.share({
-            ...getConfig(this.userInfo.nickname, this.inviteCode),
-            scene: "WXSceneTimeline",
+          uni.shareWithSystem({
+            summary: "内含排列三排列五，福彩3D开奖+大师预测，抓局画规分享",
+            href: getConfig(this.userInfo.nickname, this.inviteCode).summary,
+            success() {
+              console.log('分享面板已唤起');
+            },
+            fail(err) {
+              console.error('分享失败:', err);
+            }
           });
         },
       });

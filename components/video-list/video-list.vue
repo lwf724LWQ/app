@@ -211,7 +211,7 @@ const playVideo = async (video) => {
           uni.navigateTo({ url: "/pages/reg/reg" + "?redirect=/pages/video/video" });
           // #endif
           // #ifdef H5
-          window.open("http://www.caimizm.com/");
+          window.open("http://demo-dow.caimizm.com/");
           // #endif
         }
       },

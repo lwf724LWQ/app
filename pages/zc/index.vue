@@ -320,9 +320,10 @@ const onHoverClick = () => {
       content: "请分享后让好友将链接复制到浏览器中打开",
       showCancel: false,
       success: (res) => {
-        uni.share({
+        uni.shareWithSystem({
           provider: "weixin",
           type: 1,
+          href: createShareUrl(),
           summary: createShareUrl(),
           scene: "WXSceneSession",
           success(res) {},

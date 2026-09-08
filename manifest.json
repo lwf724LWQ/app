@@ -1,8 +1,8 @@
 {
-    "name" : "五七仔",
-    "appid" : "__UNI__FA93A0C",
-    "description" : "五七仔",
-    "versionName" : "1.18.49",
+    "name" : "彩迷",
+    "appid" : "__UNI__CB678CE",
+    "description" : "彩迷",
+    "versionName" : "2.0.1",
     "versionCode" : 20260519,
     "transformPx" : false,
     /* 5+App特有相关 */
@@ -25,9 +25,8 @@
             "Payment" : {},
             "Camera" : {},
             "VideoPlayer" : {},
-            "Share" : {},
             "OAuth" : {},
-            "Push" : {}
+            "Share" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -68,9 +67,9 @@
                     }
                 },
                 "privacyDescription" : {
-                    "NSPhotoLibraryUsageDescription" : "五七仔希望访问您的相册，用于修改头像时的使用",
-                    "NSPhotoLibraryAddUsageDescription" : "五七仔希望保存图片到您的相册，用于保存长条，画规图片",
-                    "NSCameraUsageDescription" : "五七仔希望访问您的摄像头，用于修改头像时的使用"
+                    "NSPhotoLibraryUsageDescription" : "彩迷希望访问您的相册，用于修改头像时的使用",
+                    "NSPhotoLibraryAddUsageDescription" : "彩迷希望保存图片到您的相册，用于保存长条，画规图片",
+                    "NSCameraUsageDescription" : "彩迷希望访问您的摄像头，用于修改头像时的使用"
                 }
             },
             /* SDK配置 */
@@ -144,8 +143,8 @@
                     "description" : "安卓原生分享插件，调起安卓系统自带分享，支持分享文字、链接、本地音频视频等文件",
                     "platforms" : "Android",
                     "url" : "https://ext.dcloud.net.cn/plugin?id=15518",
-                    "android_package_name" : "com.caimizm.app.wuqizaic",
-                    "ios_bundle_id" : "com.caimizm.app.wuqizaic",
+                    "android_package_name" : "com.caimizmapp.demo",
+                    "ios_bundle_id" : "com.caimizmapp.demo",
                     "isCloud" : true,
                     "bought" : 1,
                     "pid" : "15518",

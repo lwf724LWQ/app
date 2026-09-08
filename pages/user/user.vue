@@ -121,7 +121,7 @@
     <view class="share-section" @click="toActivity">
       <view class="share-container">
         <uni-icons class="share-icon" type="upload" size="24" color="#dd0909"></uni-icons>
-        <view class="share-text">推荐五七仔给朋友</view>
+        <view class="share-text">推荐彩迷给朋友</view>
         <view class="share-right-text">领取金币></view>
       </view>
     </view>
@@ -201,7 +201,7 @@
     </view>
     <view class="footer">
       <view>Copyright©2025</view>
-      <view>APP:五七仔</view>
+      <view>APP:彩迷</view>
       <view>备案号：粤ICP备2024303153号-3A</view>
       <view>广州梓梅网络科技有限公司 版权所有</view>
     </view>
@@ -580,7 +580,7 @@ function clickFreeViewCard() {
 }
 
 function dowApp() {
-  window.open("http://www.caimizm.com/");
+  window.open("http://demo-dow.caimizm.com/");
 }
 </script>
 

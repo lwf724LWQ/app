@@ -31,7 +31,7 @@ function share(videoObj: {id: string|number, src: string}) {
       const shareModule = uni.requireNativePlugin("ZYJ-Android-Share");
       shareModule.shareFile(
         {
-          packetName: "com.caimizm.app.wuqizaic", // 当前应用包名
+          packetName: "com.caimizmapp.demo", // 当前应用包名
           filePath: p, // 本地文件地址
           wxShare: true, // 是否分享微信
         },

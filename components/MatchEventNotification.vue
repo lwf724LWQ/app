@@ -46,9 +46,9 @@ import { useZcSettingsStore } from "@/stores/zcSettings";
 import { useZcSoundPlayer } from "@/hooks/useZcSoundPlayer";
 
 // #ifdef APP-PLUS
-import {
-	getRegistrationID
-} from "@/uni_modules/xtf-jpush"
+// import {
+// 	getRegistrationID
+// } from "@/uni_modules/xtf-jpush"
 // #endif
 const setting = useZcSettingsStore();
 const soundPlayer = useZcSoundPlayer();
@@ -122,7 +122,7 @@ function showNotificationPopup(notification) {
   // 推送通知
   try {
     // #ifdef APP-PLUS
-    if (getRegistrationID) {
+    if (false && getRegistrationID) {
       plus.push.createMessage(((notification)=>{
       const side = notification.side === "home" ? notification.homeChs : notification.awayChs;
       if (notification.type === "goal") {

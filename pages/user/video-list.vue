@@ -68,7 +68,7 @@ function virtualListChange(vList) {
   virtualList.value = vList;
 }
 const pagingRef = ref(null);
-const tnameList = ["全部", "排列三", "排列五", "七星彩", "福彩3D"];
+const tnameList = ["全部", "排列三", "排列五", "福彩3D"];
 const currentTname = ref("全部");
 function switchTab(tname) {
   currentTname.value = tname;

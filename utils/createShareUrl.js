@@ -13,7 +13,7 @@ export function createShareUrl() {
   const username = userInfo.nickname;
   const inviteCode = encrypt(userInfo.account);
 
-  return `http://caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
+  return `http://demo.caimizm.com/#/pages/activity-page/activity-dowapp?inviteCode=${encodeURIComponent(
     inviteCode
   )}&username=${encodeURIComponent(username)}`;
 }

@@ -6,7 +6,7 @@
     <view class="main-content">
       <view class="invitation-text">
         <text class="username">{{ username }}</text>
-        <text class="invite-text">邀请了你下载五七仔</text>
+        <text class="invite-text">邀请了你下载彩迷</text>
       </view>
 
       <view class="reward-info">
@@ -62,7 +62,7 @@
         </view>
         <view class="rule-content">
           <text class="rule-text">
-            邀请新用户注册五七仔，通过邀请链接下载app并注册成功后，双方都可获得10金币，多邀多得。
+            邀请新用户注册彩迷，通过邀请链接下载app并注册成功后，双方都可获得10金币，多邀多得。
           </text>
         </view>
         <view class="popup-footer">
