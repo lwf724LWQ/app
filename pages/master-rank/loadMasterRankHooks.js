@@ -19,11 +19,11 @@ export const SIDEBAR_TABS = [
   { key: "20", name: "20期榜" },
   { key: "30", name: "30期榜" },
   { key: "lianhong", name: "连红榜" },
-  { key: "xinjin", name: "新晋榜" },
-  { key: "huizong", name: "汇总榜" },
-  // { key: "qianlong", name: "潜龙榜", locked: true },
-  // { key: "lengre", name: "冷热榜", locked: true },
-  // { key: "liancuo", name: "连错榜", locked: true },
+  // { key: "xinjin", name: "新晋榜" },
+  // { key: "huizong", name: "汇总榜" },
+  // { key: "qianlong", name: "潜龙榜", locked: false },
+  // { key: "lengre", name: "冷热榜", locked: false },
+  // { key: "liancuo", name: "连错榜", locked: false },
   // { key: "dashi", name: "大师统计", arrow: true },
 ];
 
@@ -49,12 +49,12 @@ const DEFAULT_AVATAR = "http://video.caimizm.com/himg/user.png";
 
 // MOCK 数据（取自设计稿）
 const MOCK_LIST = [
-  { rank: 1, account: "mock_001", uname: "大师1", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3连中", viewCount: 7 },
-  { rank: 2, account: "mock_002", uname: "大师2", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3连中", viewCount: 7 },
-  { rank: 3, account: "mock_003", uname: "大师3", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高2连中", viewCount: 7 },
-  { rank: 4, account: "mock_004", uname: "大师4", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3现3连中", viewCount: 7 },
-  { rank: 5, account: "mock_005", uname: "大师5", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高2连中", viewCount: 7 },
-  { rank: 6, account: "mock_006", uname: "大师6", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高4连中", viewCount: 7 },
+  { rank: 1, account: "mock_001", uname: "大师1", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3连中", viewCount: 5 },
+  { rank: 2, account: "mock_002", uname: "大师2", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3连中", viewCount: 5 },
+  { rank: 3, account: "mock_003", uname: "大师3", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高2连中", viewCount: 5 },
+  { rank: 4, account: "mock_004", uname: "大师4", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高3现3连中", viewCount: 5 },
+  { rank: 5, account: "mock_005", uname: "大师5", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高2连中", viewCount: 5 },
+  { rank: 6, account: "mock_006", uname: "大师6", rangeCode: 6, recentTotal: 10, recentHit: 5, streakLabel: "最高4连中", viewCount: 5 },
 ];
 
 /**

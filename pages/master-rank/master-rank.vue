@@ -92,7 +92,7 @@
             <view class="mr-foot">
               <text class="mr-foot-text">{{ item.periodText }}</text>
               <view class="mr-view-btn" @click="viewPost(item)">
-                <text class="mr-view-text">查看{{ item.viewCount }}</text>
+                <text class="mr-view-text">查看{{ item.viewCount }}金币</text>
                 <uni-icons type="right" size="12" color="#fff"></uni-icons>
               </view>
             </view>
