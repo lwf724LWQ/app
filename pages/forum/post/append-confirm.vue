@@ -250,7 +250,7 @@ const handlePublish = async () => {
       });
 
       // 清除本地存储的方案数据
-      uni.removeStorageSync("predict_schemes_data");
+      postTool.clearSchemesData();
 
       // 延迟返回论坛页面
       setTimeout(() => {
@@ -341,7 +341,7 @@ const handlePageBack = (event) => {
       if (res.confirm) {
         // 清除本地存储的方案数据
         try {
-          uni.removeStorageSync("predict_schemes_data");
+          postTool.clearSchemesData();
         } catch (error) {}
 
         uni.navigateBack({
@@ -382,7 +382,7 @@ onLoad(async (options) => {
   }
 
   console.log("最终状态 - 帖子ID:", postId.value, "追帖模式:", isAppendMode.value);
-  schemes.value = await postTool.loadSchemesData();
+  schemes.value = await postTool.loadSchemesData(lotteryType.value?.name);
 });
 </script>
 

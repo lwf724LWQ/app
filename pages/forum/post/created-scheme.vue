@@ -36,7 +36,13 @@
         <!-- 根据标签类型显示对应的位数 -->
         <view class="digit-sections">
           <template v-for="name in activeTag.positions" :key="`${activeTag.name}-${name}`">
-            <numSelected :name="name" :maxNum="activeTag.maxNum" v-model="selectedNumbers[name]" />
+            <numSelected
+              :name="name"
+              :maxNum="activeTag.maxNum"
+              :minNum="activeTag.minNum"
+              :numberList="activeTag.numberList"
+              v-model="selectedNumbers[name]"
+            />
           </template>
         </view>
 
@@ -73,6 +79,7 @@ import numSelected from "./components/num-selected.vue";
 import { onLoad } from "@dcloudio/uni-app";
 import tool from "@/utils/tool.js";
 import postTool from "./post-tool";
+import { buildSchemeTags, contentHasTag, validateScheme } from "./scheme-tags";
 
 const disabledTag = ref([]);
 const id = ref(null);
@@ -84,6 +91,9 @@ onLoad(async (options) => {
 
   lotteryType.value = options.lotteryType;
   from.value = options.from || "";
+
+  // 按彩种构建标签集（必须在读取已存方案之前）
+  tags.value = buildSchemeTags(lotteryType.value);
 
   if (from.value !== "upload-diagram") {
     postTool.clearSchemesData();
@@ -105,9 +115,7 @@ onLoad(async (options) => {
       id.value = postid;
 
       disabledTag.value = tags.value
-        .filter((tag) => {
-          return content.includes(tag.name);
-        })
+        .filter((tag) => contentHasTag(content, tag.name))
         .map((tag) => tag.name);
 
       uni.setStorageSync("appendPostData", { postContent: content });
@@ -116,13 +124,13 @@ onLoad(async (options) => {
     // 默认选中第一个没有被禁用的标签
     activeTag.value = tags.value.filter((tag) => !disabledTag.value.includes(tag.name))[0];
 
-    const schemeData = postTool.loadSchemesData();
+    const schemeData = postTool.loadSchemesData(lotteryType.value);
     schemeData.forEach(([tagName, tagData]) => {
-      savedSchemes[tagName] = tagData;
       const tag = tags.value.find((tag) => tag.name === tagName);
-      if (tag) {
-        tag.selectedNumbers = tagData;
-      }
+      // 只接收属于当前彩种标签集的方案，避免切换彩种后把别的彩种的方案带过去
+      if (!tag) return;
+      savedSchemes[tagName] = tagData;
+      tag.selectedNumbers = tagData;
     });
 
     isLoadCompner.value = true;
@@ -153,67 +161,8 @@ const confirmBtnText = computed(() => {
   }
 });
 
-// 左侧标签数据
-const tags = ref(
-  [
-    { name: "定头", maxNum: 6, positions: ["千位"] },
-    { name: "定百", maxNum: 6, positions: ["百位"] },
-    { name: "定十", maxNum: 6, positions: ["十位"] },
-    { name: "定尾", maxNum: 6, positions: ["个位"] },
-    { name: "头尾", maxNum: 6, positions: ["千位", "个位"] },
-    { name: "中肚", maxNum: 6, positions: ["百位", "十位"] },
-    { name: "ABXX", maxNum: 6, positions: ["千位", "百位"] },
-    { name: "AXCX", maxNum: 6, positions: ["千位", "十位"] },
-    { name: "XBXD", maxNum: 6, positions: ["百位", "个位"] },
-    { name: "XXCD", maxNum: 6, positions: ["十位", "个位"] },
-    {
-      name: "ABCX",
-      maxNum: 6,
-      positions: ["千位", "百位", "十位"],
-    },
-    {
-      name: "ABXD",
-      maxNum: 6,
-      positions: ["千位", "百位", "个位"],
-    },
-    {
-      name: "AXCD",
-      maxNum: 6,
-      positions: ["千位", "十位", "个位"],
-    },
-    {
-      name: "XBCD",
-      maxNum: 6,
-      positions: ["百位", "十位", "个位"],
-    },
-    { name: "芝麻", maxNum: 6, positions: ["千位", "百位", "十位", "个位"] },
-    { name: "二字现", maxNum: 4, positions: ["任选二"] },
-    { name: "三字现", maxNum: 15, positions: ["任选三"] },
-    { name: "杀头", maxNum: 2, positions: ["杀头"] },
-    { name: "杀百", maxNum: 2, positions: ["杀百"] },
-    { name: "杀十", maxNum: 2, positions: ["杀十"] },
-    { name: "杀尾", maxNum: 2, positions: ["杀尾"] },
-    { name: "死数", maxNum: 1, positions: ["死数"] },
-    { name: "头尾合", maxNum: 2, positions: ["头尾合"] },
-    { name: "中肚合", maxNum: 2, positions: ["中肚合"] },
-    { name: "千百合", maxNum: 2, positions: ["千百合"] },
-    { name: "千十合", maxNum: 2, positions: ["千十合"] },
-    { name: "百个合", maxNum: 2, positions: ["百个合"] },
-    { name: "十个合", maxNum: 2, positions: ["十个合"] },
-    { name: "头尾不合", maxNum: 2, positions: ["头尾不合"] },
-    { name: "中肚不合", maxNum: 2, positions: ["中肚不合"] },
-    { name: "千百不合", maxNum: 2, positions: ["千百不合"] },
-    { name: "千十不合", maxNum: 2, positions: ["千十不合"] },
-    { name: "百个不合", maxNum: 2, positions: ["百个不合"] },
-    { name: "十个不合", maxNum: 2, positions: ["十个不合"] },
-  ].map((tag) => ({
-    ...tag,
-    selectedNumbers: tag.positions.reduce((acc, pos) => {
-      acc[pos] = { numbers: [], mainAttack: "" };
-      return acc;
-    }, {}),
-  }))
-);
+// 左侧标签数据：由 scheme-tags.js 按彩种构建，onLoad 里赋值
+const tags = ref([]);
 
 // 当前选中的标签
 const activeTag = ref({});
@@ -228,7 +177,7 @@ const handleTagChange = async (tag) => {
   if (isDisabledTag(tag.name)) {
     return;
   }
-  if (!isInScheme(activeTag.value.name) && dataIsGood(selectedNumbers.value)) {
+  if (!isInScheme(activeTag.value.name) && dataIsGood(selectedNumbers.value, activeTag.value)) {
     const res = await uni.showModal({
       title: "提示",
       content: `${activeTag.value.name} 未添加到方案中 \n 是否需要添加到方案中？`,
@@ -267,23 +216,16 @@ const clearScheme = () => {
   delete savedSchemes[activeTag.value.name];
 };
 
-function dataIsGood(scheme) {
-  return !Object.entries(scheme).find(([position, item]) => {
-    if (item.numbers.length == 0) {
-      return true;
-    }
-    if (["任选二", "任选三"].includes(position)) {
-      return item.numbers.find((item) => item.length != { 任选二: 2, 任选三: 3 }[position]);
-    }
-  });
+function dataIsGood(scheme, tag) {
+  return validateScheme(scheme, tag) === "";
 }
 // 添加方案
 const addScheme = () => {
   const scheme = Object.assign({}, selectedNumbers.value);
-  const flag = dataIsGood(scheme);
-  if (!flag) {
+  const errorMsg = validateScheme(scheme, activeTag.value);
+  if (errorMsg) {
     uni.showToast({
-      title: `数据不完整`,
+      title: errorMsg,
       icon: "none",
     });
     return false;
@@ -298,7 +240,7 @@ const addScheme = () => {
     return false;
   }
   savedSchemes[activeTag.value.name] = scheme;
-  uni.setStorageSync("predict_schemes_data", savedSchemes);
+  postTool.saveSchemesData(lotteryType.value, savedSchemes);
   return true;
 };
 // 发布按钮文本

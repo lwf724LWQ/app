@@ -2,11 +2,11 @@
   <view class="digit-section">
     <view class="digit-title">
       <text class="digit-title-left">{{ name }}</text>
-      <text class="digit-title-right">最多选{{ maxNum }}个</text>
+      <text class="digit-title-right" :class="{ 'is-required': isFixed }">{{ ruleText }}</text>
     </view>
-    <view class="number-grid">
+    <view class="number-grid" :class="{ 'is-dense': numberOptions.length > 10 }">
       <view
-        v-for="num in numbers"
+        v-for="num in numberOptions"
         :key="`thousand-${num}`"
         class="number-item"
         :class="{
@@ -48,7 +48,6 @@
 </template>
 <script setup>
 import { ref, defineModel, defineProps, computed } from "vue";
-const numbers = ref(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
 const props = defineProps({
   name: {
@@ -59,11 +58,41 @@ const props = defineProps({
     type: Number,
     default: 6,
   },
+  // 最少要选几个，与 maxNum 相等表示「必须选满」
+  minNum: {
+    type: Number,
+    default: 1,
+  },
+  // 可选号码列表，默认 0-9；和值这类需要 0-27
+  numberList: {
+    type: Array,
+    default: () => ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  },
 });
 
 const model = defineModel({ default: { numbers: [], mainAttack: "" } });
 const selectedNumbers = ref(model.value.numbers);
 model.value.numbers = selectedNumbers;
+
+// 选号区展示的号码
+const numberOptions = computed(() => props.numberList || []);
+
+// 是否「必须选满 N 个」
+const isFixed = computed(() => props.minNum === props.maxNum);
+
+// 数量提示文案
+const ruleText = computed(() => {
+  const min = props.minNum;
+  const max = props.maxNum;
+  const selected = selectedNumbers.value.length;
+  if (min === max) {
+    return `需选${max}个（已选${selected}）`;
+  }
+  if (min > 1) {
+    return `选${min}-${max}个（已选${selected}）`;
+  }
+  return `最多选${max}个（已选${selected}）`;
+});
 
 const isNotOnlyUniaueTypes = computed(() => {
   return ["任选二", "任选三"].includes(props.name); // 这些类型类型的数字是重复选
@@ -187,6 +216,11 @@ const toggleMainAttact = function (num) {
   }
 
   .digit-title-right {
+    /* 必须选满时用红色提示 */
+    &.is-required {
+      color: #ff4757;
+      font-weight: bold;
+    }
   }
 }
 
@@ -194,6 +228,20 @@ const toggleMainAttact = function (num) {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10rpx;
+
+  /* 号码较多时（如和值 0-27）收紧排布 */
+  &.is-dense {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8rpx;
+
+    .number-item {
+      height: 56rpx;
+    }
+
+    .number-text {
+      font-size: 24rpx;
+    }
+  }
 }
 
 .number-item {

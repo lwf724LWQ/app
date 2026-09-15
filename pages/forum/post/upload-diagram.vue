@@ -162,7 +162,7 @@ onShow(() => {
 
 // 从本地存储加载方案数据
 const loadSchemesFromStorage = () => {
-  schemes.value = postTool.loadSchemesData();
+  schemes.value = postTool.loadSchemesData(lotteryType.value.name);
 };
 
 // 加载期号信息
@@ -378,7 +378,7 @@ const handlePublish = async () => {
       });
 
       // 清除本地存储的方案数据和图片URL
-      uni.removeStorageSync("predict_schemes_data");
+      postTool.clearSchemesData();
       selectedImages.value = [];
       uploadedImageUrls.value = [];
 
