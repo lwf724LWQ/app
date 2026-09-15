@@ -143,6 +143,7 @@ export default {
         success: (res) => {
 
           uni.shareWithSystem({
+            type: "text",
             summary: "内含排列三排列五，福彩3D开奖+大师预测，抓局画规分享",
             href: getConfig(this.userInfo.nickname, this.inviteCode).summary,
             success() {
@@ -167,6 +168,7 @@ export default {
         showCancel: false,
         success: (res) => {
           uni.shareWithSystem({
+            type: "text",
             summary: "内含排列三排列五，福彩3D开奖+大师预测，抓局画规分享",
             href: getConfig(this.userInfo.nickname, this.inviteCode).summary,
             success() {

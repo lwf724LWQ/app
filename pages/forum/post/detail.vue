@@ -50,7 +50,7 @@
       </view>
 
       <!-- 帖子底部操作 -->
-      <view class="post-footer">
+      <!-- <view class="post-footer">
         <view
           class="action-item"
           :class="{ 'liked-disabled': post.isLiked }"
@@ -71,7 +71,7 @@
           <uni-icons type="plus" size="18" color="#28B389"></uni-icons>
           <text class="count">追帖</text>
         </view>
-      </view>
+      </view> -->
     </view>
 
     <!-- 评论标题 -->
@@ -82,6 +82,7 @@
 
     <!-- 评论列表 -->
     <scroll-view
+    v-if="false"
       class="comment-list"
       scroll-y
       :refresher-enabled="true"

@@ -35,6 +35,7 @@
 
 <script setup>
 import { ref } from "vue";
+import shareManualPng from "/static/images/share-manual.jpg"
 
 const share = ref(null);
 
@@ -42,7 +43,8 @@ const share = ref(null);
 const shareType = ref("link");
 const open = (type) => {
   shareType.value = type;
-  share.value.open();
+  shareWx()
+  // share.value.open();
 };
 defineExpose({
   open,
@@ -52,7 +54,7 @@ function getConfig() {
   if (shareType.value === "link") {
     return {
       provider: "weixin",
-      type: 1,
+      type: "text", //1,
       title: "http://demo-dow.caimizm.com/",
       summary: "http://demo-dow.caimizm.com/",
       href: "http://demo-dow.caimizm.com/"
@@ -60,14 +62,14 @@ function getConfig() {
   } else if (shareType.value === "rqcode") {
     return {
       provider: "weixin",
-      type: 2,
+      type: "image",//2,
       imageUrl: "/static/dowRqcode.png",
     };
   } else if (shareType.value === "jiaocheng") {
     return {
       provider: "weixin",
-      type: 2,
-      imageUrl: "http://video.caimizm.com/app-config/filelPpMHlLYNi5l.png",
+      type: "image", //2,
+      imageUrl: shareManualPng,
     };
   }
 }

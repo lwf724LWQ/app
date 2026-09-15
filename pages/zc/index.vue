@@ -322,7 +322,7 @@ const onHoverClick = () => {
       success: (res) => {
         uni.shareWithSystem({
           provider: "weixin",
-          type: 1,
+          type: "text",
           href: createShareUrl(),
           summary: createShareUrl(),
           scene: "WXSceneSession",

@@ -95,10 +95,17 @@ export default {
         // 积分支付
         this.createOrder(data);
       } else {
-        this.$refs.payMethodSelectorRef.openPayModal(data);
+        uni.showModal({
+          content: "当前暂时无法充值"
+        })
+        // this.$refs.payMethodSelectorRef.openPayModal(data);
       }
     },
     confirmPayMethod(payMethod) {
+      uni.showModal({
+          content: "当前暂时无法充值"
+        })
+        return
       console.log("payMethod:", payMethod);
       const payType = {
         integral: 1,
