@@ -176,6 +176,17 @@ function goPutreview() {
 }
 
 onShow(async (e) => {
+  // 首页“彩友上传”入口：定位到指定彩种
+  const targetType = uni.getStorageSync("videoLotteryType");
+  if (targetType) {
+    uni.removeStorageSync("videoLotteryType");
+    const idx = lotteryTypes.value.indexOf(targetType);
+    if (idx > -1) {
+      await switchTabByIndex(idx, true);
+      return;
+    }
+  }
+
   if (isNeedRefresh) {
     isNeedRefresh = false;
     refreshCurrentTab();

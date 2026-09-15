@@ -170,63 +170,8 @@
       <uni-icons type="cloud-upload" size="30" color="#fff"></uni-icons>
     </view>
 
-    <!-- 发布弹出层 -->
-    <uni-popup
-      ref="publishPopup"
-      type="bottom"
-      :safe-area="false"
-      :mask-click="false"
-      :animation="true"
-      :mask-background-color="'rgba(0,0,0,0.5)'"
-      :duration="300"
-    >
-      <view class="publish-modal">
-        <view class="modal-header">
-          <text class="modal-title">发布帖子</text>
-          <view class="close-btn" @click="hidePublishModal">
-            <uni-icons type="close" size="20" color="#999"></uni-icons>
-          </view>
-        </view>
-
-        <view class="modal-content">
-          <view class="period-title">
-            <text class="period-text">彩迷</text>
-          </view>
-
-          <view class="agreement-section">
-            <view class="checkbox-wrapper" @click="toggleAgreementManually">
-              <view class="custom-checkbox" :class="{ checked: agreedToTerms }">
-                <view v-if="agreedToTerms" class="checkmark">✓</view>
-              </view>
-              <text class="agreement-text">同意并遵守《彩友圈管理规范》</text>
-            </view>
-          </view>
-
-          <view class="function-buttons">
-            <view class="button-row">
-              <view class="function-btn" @click="selectFunction('predict')">
-                <view class="btn-icon predict-icon">免</view>
-                <text class="btn-text">预测帖(免审)</text>
-              </view>
-              <view class="function-btn" @click="selectFunction('pattern')">
-                <view class="btn-icon pattern-icon">
-                  <uni-icons type="redo" size="24" color="#fff"></uni-icons>
-                </view>
-                <text class="btn-text">规律帖(上传规律)</text>
-              </view>
-              <view class="function-btn" @click="creaetCollectionPost">
-                <view class="btn-icon predict-icon">免</view>
-                <text class="btn-text">集合贴</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <view class="modal-footer">
-          <button class="close-btn-modal" @click="hidePublishModal">关闭</button>
-        </view>
-      </view>
-    </uni-popup>
+    <!-- 发布弹出层（与大师榜单共用组件，规范勾选逻辑只保留一份） -->
+    <postPublishPopup ref="publishPopup" :lotteryType="currentLotteryType" />
 
     <!-- 搜索建议遮罩 -->
     <view
@@ -296,6 +241,7 @@ import { getAccount } from "@/utils/request.js";
 import { getToken } from "../../utils/request";
 import tool from "@/utils/tool.js";
 import postCard from "../../components/post-card/post-card.vue";
+import postPublishPopup from "@/components/post-publish-popup.vue";
 import followUserList from "./components/follow-user-list.vue";
 import { usePostSearch } from "./composables/usePostSearch.js";
 import dayjs from "dayjs";
@@ -328,8 +274,6 @@ const {
 const activeTab = ref("predict");
 const showPeriodDropdown = ref(false);
 const publishPopup = ref(null);
-const agreedToTerms = ref(uni.getStorageSync("postAgreement") || false);
-const selectedFunction = ref("");
 const lotteryTypes = ref(["排列三", "排列五", "福彩3D"]);
 const currentLotteryType = ref(lotteryTypes.value[0]);
 const predictList = ref([]);
@@ -387,7 +331,21 @@ onShow(() => {
     uni.setStorageSync("openCollectionList", false)
     activeTab.value = 'collection'
   }
-  
+
+  // 首页彩种板块的“更多”入口：定位到对应彩种
+  // 注意 tabBar 页面会被缓存，onMounted 只执行一次，所以这里也要处理
+  const pendingTname = uni.getStorageSync("openCollectionTname");
+  if (pendingTname) {
+    uni.removeStorageSync("openCollectionTname");
+    if (lotteryTypes.value.find((item) => item === pendingTname)) {
+      currentLotteryType.value = pendingTname;
+      try {
+        uni.setStorageSync("currentLotteryType", pendingTname);
+      } catch (error) {}
+      pageData.value.page = 1;
+    }
+  }
+
   if (!isLoad.value) return;
   followUserListRef.value?.reload();
   onRefresh()
@@ -461,59 +419,6 @@ const showPublishModal = () => {
   if (tool.isLogin(false, "/pages/forum/forum")) {
     publishPopup.value.open();
   }
-};
-
-const hidePublishModal = () => {
-  publishPopup.value.close();
-};
-
-const toggleAgreementManually = () => {
-  agreedToTerms.value = !agreedToTerms.value;
-};
-
-const selectFunction = async (type) => {
-  if (!agreedToTerms.value) {
-    const res = await uni.showModal({
-      title: "提示",
-      content: "是否同意并遵守《彩友圈管理规范》",
-      showCancel: true,
-      confirmText: "同意",
-      cancelText: "取消",
-    });
-    if (!res.confirm) return;
-    toggleAgreementManually();
-  }
-  uni.setStorageSync("postAgreement", true);
-  selectedFunction.value = type;
-
-  const urlParams = tool.formatUrlParams({
-    lotteryType: currentLotteryType.value,
-  });
-
-  switch (type) {
-    case "predict":
-      uni.navigateTo({
-        url: `/pages/forum/post/created-scheme?${urlParams}`,
-        success: () => hidePublishModal(),
-        fail: () => uni.showToast({ title: "跳转失败", icon: "none" }),
-      });
-      break;
-    case "pattern":
-      uni.navigateTo({
-        url: `/pages/forum/post/upload-diagram?${urlParams}`,
-        success: () => hidePublishModal(),
-        fail: () => uni.showToast({ title: "跳转失败", icon: "none" }),
-      });
-      break;
-    case "filter":
-      uni.showToast({ title: "跳转到过滤王帖发布", icon: "none" });
-      break;
-    case "soup":
-      uni.showToast({ title: "跳转到老母鸡汤发布", icon: "none" });
-      break;
-  }
-
-  hidePublishModal();
 };
 
 const refreshing = ref(false);
@@ -610,12 +515,6 @@ async function openCollectionDetail(data) {
       url: `/pages/zc/post-detail?id=${data.id}`,
     });
   }
-}
-// 创建集合贴
-function creaetCollectionPost(){
-  uni.navigateTo({
-    url: "/pages/forum/creaet-collection-post?currentLotteryType=" + currentLotteryType.value
-  })
 }
 
 </script>
@@ -972,160 +871,6 @@ function creaetCollectionPost(){
 
 .publish-btn:active {
   transform: scale(0.95);
-}
-
-/* 发布弹出层 */
-.publish-modal {
-  background-color: #fff;
-  border-radius: 30rpx 30rpx 0 0;
-  max-height: 65vh;
-  min-height: 400rpx;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-  flex-shrink: 0;
-}
-
-.modal-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.modal-content {
-  padding: 30rpx;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.period-title {
-  text-align: center;
-  margin-bottom: 30rpx;
-}
-
-.period-title .period-text {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.agreement-section {
-  margin-bottom: 20rpx;
-  padding: 20rpx;
-  background-color: #f8f8f8;
-  border-radius: 15rpx;
-}
-
-.checkbox-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.custom-checkbox {
-  width: 40rpx;
-  height: 40rpx;
-  border: 2rpx solid #ddd;
-  border-radius: 6rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15rpx;
-  transition: all 0.3s ease;
-}
-
-.custom-checkbox.checked {
-  background-color: #ff4757;
-  border-color: #ff4757;
-}
-
-.checkmark {
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: bold;
-}
-
-.agreement-text {
-  font-size: 34rpx;
-  font-weight: bold;
-  color: #ff4757;
-}
-
-.function-buttons {
-  margin-bottom: 10rpx;
-}
-
-.button-row {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 20rpx;
-}
-
-.button-row:last-child {
-  margin-bottom: 10rpx;
-}
-
-.function-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  margin: 0 15rpx;
-  transition: transform 0.2s ease;
-}
-
-.function-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-icon {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #fff;
-}
-
-.predict-icon {
-  background-color: #28b389;
-}
-
-.pattern-icon {
-  background-color: #ff6b35;
-}
-
-.btn-text {
-  font-size: 35rpx;
-  color: #333;
-  text-align: center;
-  line-height: 1.4;
-}
-
-.modal-footer {
-  padding: 30rpx;
-  border-top: 1rpx solid #f0f0f0;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.close-btn-modal {
-  background: transparent;
-  border: none;
-  color: #333;
-  font-size: 32rpx;
-  padding: 20rpx 40rpx;
 }
 
 /* 筛选弹窗 */

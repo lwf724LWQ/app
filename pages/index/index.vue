@@ -1,245 +1,408 @@
 <template>
   <view class="lottery-container" :class="useOldManModeStore.enabled ? 'old-man-mode' : ''">
-    <!-- 顶部广告轮播图 -->
-    <swiper
-      class="ad-swiper"
-      indicator-dots="true"
-      autoplay="true"
-      :interval="swiperIndex == 0 ? 10000 : 3000" 
-      duration="500"
-      circular="true"
-      easing-function="default"
-      @change="swiperChange"
-    >
-      <!-- 世界杯专栏 -->
-      <!-- <swiper-item>
-        <view class="swiper-item" @click="openShijiebei">
-          <image src="/static/images/banner-shijiebei.png" mode="scaleToFill"></image>
-        </view>
-      </swiper-item> -->
-      <swiper-item>
-        <view class="swiper-item">
-          <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="swiper-item">
-          <image src="/static/aoRed.jpg" mode="scaleToFill"></image>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="swiper-item" @click="toWxchat">
-          <image src="/static/banner3.jpg" mode="scaleToFill"></image>
-        </view>
-      </swiper-item>
-    </swiper>
-
-    <!-- 开奖结果区域 - 福彩3D -->
-    <navigator :url="`/pages/table/table?type=福彩3D&period=${fc3dPeriod}`">
-      <view class="lottery-results-fc3d">
-        <view class="result-item-fc3d">
-          <view class="result-header-fc3d">
-            <view class="lottery-title-fc3d">福彩3D 第{{ fc3dPeriod }}期</view>
-            <view class="lottery-date">{{ fc3dDate }}</view>
-          </view>
-          <view class="winning-numbers-fc3d">
-            <view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
-              <view class="number-item-fc3d">{{ num }}</view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
-    <!-- 开奖结果区域 - 排列五 -->
-    <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
-      <view class="lottery-results-plw">
-        <view class="result-item-plw">
-          <view class="result-header-plw">
-            <view class="lottery-title-plw">排列三 排列五 第{{ plwPeriod }}期</view>
-            <view class="lottery-date">{{ plwDate }}</view>
-          </view>
-          <view class="winning-numbers-plw">
-            <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
-              <view class="number-item-plw">{{ num }}</view>
-              <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </navigator>
-
-    <!-- 通知横幅 -->
-
-    <swiper
-      class="notice-banner-swiper"
-      indicator-dots="true"
-      autoplay="true"
-      interval="7000"
-      duration="500"
-      circular="true"
-      vertical="true"
-      easing-function="default"
-    >
-      <swiper-item>
-        <view class="notice-banner" @click="toWxchat">
-          <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
-          <text class="notice-text">欢迎各地大师加微详谈！！！</text>
-          <text class="notice-new">NEW</text>
-          <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="notice-banner" @click="toActivity">
-          <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
-          <text class="notice-text">2026 新版本邀请好友福利来了</text>
-          <text class="notice-new">NEW</text>
-          <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
-        </view>
-      </swiper-item>
-    </swiper>
-
-    <!-- 功能图标区 - 15个图标网格 -->
-    <view class="function-area">
-      <view class="function-grid">
-        <!-- 第一行 -->
-        <view class="icon-item" @click="drawGui">
-          <uni-icons type="compose" size="20" color="#4A90E2"></uni-icons>
-          <text>画规</text>
-        </view>
-        <view class="icon-item" @click="toChangtiao">
-          <uni-icons type="bars" size="20" color="#4A90E2"></uni-icons>
-          <text>长条</text>
-        </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/font.png" mode="aspectFit"></image>
-          <text>云规</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/card.png" mode="aspectFit"></image>
-          <text>统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/button.png" mode="aspectFit"></image>
-          <text class="leng3">智能规</text>
-        </view> -->
-        <!-- 第二行 -->
-        <view class="icon-item" @click="goToLive">
-          <uni-icons type="videocam" size="20" color="#4A90E2"></uni-icons>
-          <text>开奖直播</text>
-        </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/badge.png" mode="aspectFit"></image>
-          <text>大师榜单</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/card.png" mode="aspectFit"></image>
-          <text>大师统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/fav.png" mode="aspectFit"></image>
-          <text>奖表统计</text>
-        </view>
-        <view class="icon-item">
-          <image src="/static/icons/search-bar.png" mode="aspectFit"></image>
-          <text>奖表查询</text>
-        </view> -->
-        <!-- 第三行 -->
-        <view class="icon-item" @click="goToDreamInterpretation">
-          <uni-icons type="chat" size="20" color="#4A90E2"></uni-icons>
-          <text>解梦</text>
-        </view>
-        <!-- <view class="icon-item">
-          <image src="/static/icons/collapse.png" mode="aspectFit"></image>
-          <text class="leng3">过滤王</text>
-        </view> -->
-        <view class="icon-item" @click="goToSearchuser">
-          <uni-icons type="search" size="20" color="#4A90E2"></uni-icons>
-          <text>彩友搜索</text>
-        </view>
-        <view class="icon-item" @click="toActivity">
-          <uni-icons type="gift" size="20" color="#4A90E2"></uni-icons>
-          <text>领取金币</text>
-        </view>
-        <view class="icon-item" @click="toWxchat">
-          <uni-icons type="weixin" size="20" color="#4A90E2"></uni-icons>
-          <text>联系我们</text>
-        </view>
-        <view class="icon-item" @click="showAboutAs">
-          <uni-icons type="link" size="20" color="#4A90E2"></uni-icons>
-          <text>关于我们</text>
-        </view>
-        <view class="icon-item" @click="toFollowList">
-          <uni-icons type="staff" size="24" color="#4A90E2"></uni-icons>
-          <text>我的关注</text>
-        </view>
-        <!-- #ifdef APP-PLUS -->
-        <view class="icon-item" @click="toShare">
-          <uni-icons type="redo" size="20" color="#4A90E2"></uni-icons>
-          <text>分享</text>
-        </view>
-        <!-- #endif -->
-        <!-- #ifdef H5 -->
-        <view class="icon-item" @click="dowApp">
-          <uni-icons type="pulldown" size="20" color="#4A90E2"></uni-icons>
-          <text>点我下载</text>
-        </view>
-        <!-- #endif -->
-        <!-- <view class="icon-item icon-item-message">
-          <image src="/static/icons/color.png" mode="aspectFit"></image>
-          <text>我的消息</text>
-          <view class="message-badge">1</view>
-        </view> -->
-        <!-- <view class="icon-item">
-          <image src="/static/icons/grid.png" mode="aspectFit"></image>
-          <text>全部</text>
-        </view> -->
+    <!-- 顶部导航栏 -->
+    <view class="top-nav-bar">
+      <view
+        v-for="(item, index) in topNavList"
+        :key="item.key"
+        class="top-nav-item"
+        :class="{ active: currentNavIndex === index }"
+        @click="switchTopNav(index)"
+      >
+        <text class="top-nav-text">{{ item.name }}</text>
+        <view class="top-nav-line"></view>
       </view>
     </view>
-    
-    <!-- <view class="post-container">
-      <view class="post-title">
-        足球热门讨论
-        <view class="more-post-btn" @click="goToZcPostList">
-          更多
-        </view>
-      </view>
-      <zcPostCard v-for="item in zcList" :postData="item" @postCard="openZcPostDetail(item)" />
-    </view> -->
 
-    <view class="post-container">
-      <view class="post-title">
-        中奖精彩合集
-        <view class="more-post-btn" @click="goToCollectionList">
-          更多
-        </view>
-      </view>
-      <zcPostCard v-for="item in collectionList" :postData="item" @postCard="openZcPostDetail(item)" />
-    </view>
-
-    <view class="post-container">
-      <view class="post-title">
-        热门预测贴
-      </view>
-      <view class="switch-tabs">
-        <view
-          v-for="lotteryType in lotteryTag"
-          :key="lotteryType"
-          class="tab-item"
-          :class="{ active: lotteryType === currentLotteryTag }"
-          @click="selectLotteryType(lotteryType)"
+    <!-- 内容区：通过 swiper 切换 -->
+    <swiper
+      class="main-swiper"
+      :current="currentNavIndex"
+      :indicator-dots="false"
+      :autoplay="false"
+      :circular="false"
+      :duration="250"
+      easing-function="default"
+      @change="mainSwiperChange"
+    >
+      <!-- ==================== 推荐 ==================== -->
+      <swiper-item>
+        <scroll-view
+          class="tab-scroll"
+          scroll-y
+          :refresher-enabled="true"
+          :refresher-triggered="refresherTriggered"
+          refresher-background="#f5f5f5"
+          :lower-threshold="120"
+          @refresherrefresh="onRefresherRefresh"
+          @scrolltolower="onTabScrollToLower"
         >
-          <text class="tab-text">{{ lotteryType }}</text>
-        </view>
-      </view>
-      <postCard
-        v-for="(item, index) in lotteryList"
-        :key="index"
-        :post="item"
-      />
-      <view class="no-more">没有更多帖子了</view>
-    </view>
+          <view class="tab-content">
+            <!-- 顶部广告轮播图 -->
+            <swiper
+              class="ad-swiper"
+              indicator-dots="true"
+              autoplay="true"
+              :interval="swiperIndex == 0 ? 10000 : 3000" 
+              duration="500"
+              circular="true"
+              easing-function="default"
+              @change="swiperChange"
+            >
+              <!-- 世界杯专栏 -->
+              <!-- <swiper-item>
+                <view class="swiper-item" @click="openShijiebei">
+                  <image src="/static/images/banner-shijiebei.png" mode="scaleToFill"></image>
+                </view>
+              </swiper-item> -->
+              <swiper-item>
+                <view class="swiper-item">
+                  <image src="/static/4eec3b5b6deb298f7b35663a70d256bd.png" mode="scaleToFill"></image>
+                </view>
+              </swiper-item>
+              <swiper-item>
+                <view class="swiper-item">
+                  <image src="/static/aoRed.jpg" mode="scaleToFill"></image>
+                </view>
+              </swiper-item>
+              <swiper-item>
+                <view class="swiper-item" @click="toWxchat">
+                  <image src="/static/banner3.jpg" mode="scaleToFill"></image>
+                </view>
+              </swiper-item>
+            </swiper>
+
+            <!-- 开奖结果区域 - 福彩3D -->
+            <navigator :url="`/pages/table/table?type=福彩3D&period=${fc3dPeriod}`">
+              <view class="lottery-results-fc3d">
+                <view class="result-item-fc3d">
+                  <view class="result-header-fc3d">
+                    <view class="lottery-title-fc3d">福彩3D 第{{ fc3dPeriod }}期</view>
+                    <view class="lottery-date">{{ fc3dDate }}</view>
+                  </view>
+                  <view class="winning-numbers-fc3d">
+                    <view class="number-wrapper" v-for="(num, index) in fc3dNumbers" :key="index">
+                      <view class="number-item-fc3d">{{ num }}</view>
+                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </navigator>
+
+            <!-- 开奖结果区域 - 排列五 -->
+            <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
+              <view class="lottery-results-plw">
+                <view class="result-item-plw">
+                  <view class="result-header-plw">
+                    <view class="lottery-title-plw">排列三 排列五 第{{ plwPeriod }}期</view>
+                    <view class="lottery-date">{{ plwDate }}</view>
+                  </view>
+                  <view class="winning-numbers-plw">
+                    <view class="number-wrapper" v-for="(num, index) in plwNumbers" :key="index">
+                      <view class="number-item-plw">{{ num }}</view>
+                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </navigator>
+
+            <!-- 通知横幅 -->
+
+            <swiper
+              class="notice-banner-swiper"
+              indicator-dots="true"
+              autoplay="true"
+              interval="7000"
+              duration="500"
+              circular="true"
+              vertical="true"
+              easing-function="default"
+            >
+              <swiper-item>
+                <view class="notice-banner" @click="toWxchat">
+                  <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
+                  <text class="notice-text">欢迎各地大师加微详谈！！！</text>
+                  <text class="notice-new">NEW</text>
+                  <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
+                </view>
+              </swiper-item>
+              <swiper-item>
+                <view class="notice-banner" @click="toActivity">
+                  <uni-icons type="sound" size="32" color="#FF8C00"></uni-icons>
+                  <text class="notice-text">2026 新版本邀请好友福利来了</text>
+                  <text class="notice-new">NEW</text>
+                  <!-- <uni-icons type="right" size="28" color="#999"></uni-icons> -->
+                </view>
+              </swiper-item>
+            </swiper>
+
+            <!-- 功能图标区（各彩种板块共用） -->
+            <functionIcons :tname="currentLotteryTag" />
+    
+            <!-- <view class="post-container">
+              <view class="post-title">
+                足球热门讨论
+                <view class="more-post-btn" @click="goToZcPostList">
+                  更多
+                </view>
+              </view>
+              <zcPostCard v-for="item in zcList" :postData="item" @postCard="openZcPostDetail(item)" />
+            </view> -->
+
+            <view class="post-container">
+              <view class="post-title">
+                中奖精彩合集
+                <view class="more-post-btn" @click="goToCollectionList()">
+                  更多
+                </view>
+              </view>
+              <zcPostCard v-for="item in collectionList" :postData="item" @postCard="openZcPostDetail(item)" />
+            </view>
+
+            <view class="post-container">
+              <view class="post-title">
+                热门预测贴
+              </view>
+              <view class="switch-tabs">
+                <view
+                  v-for="lotteryType in lotteryTag"
+                  :key="lotteryType"
+                  class="tab-item"
+                  :class="{ active: lotteryType === currentLotteryTag }"
+                  @click="selectLotteryType(lotteryType)"
+                >
+                  <text class="tab-text">{{ lotteryType }}</text>
+                </view>
+              </view>
+              <postCard
+                v-for="(item, index) in lotteryList"
+                :key="index"
+                :post="item"
+              />
+              <view class="no-more">没有更多帖子了</view>
+            </view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
+      <!-- ==================== 排列三 ==================== -->
+      <swiper-item>
+        <scroll-view
+          class="tab-scroll"
+          scroll-y
+          :refresher-enabled="true"
+          :refresher-triggered="refresherTriggered"
+          refresher-background="#f5f5f5"
+          :lower-threshold="120"
+          @refresherrefresh="onRefresherRefresh"
+          @scrolltolower="onTabScrollToLower"
+        >
+          <view class="tab-content">
+            <!-- 排列三开奖结果 -->
+            <navigator :url="`/pages/table/table?type=排列三&period=${plwPeriod}`">
+              <view class="lottery-results-plw">
+                <view class="result-item-plw">
+                  <view class="result-header-plw">
+                    <view class="lottery-title-plw">排列三 第{{ plwPeriod }}期</view>
+                    <view class="lottery-date">{{ plwDate }}</view>
+                  </view>
+                  <view class="winning-numbers-plw">
+                    <view
+                      class="number-wrapper"
+                      v-for="(num, index) in pl3DisplayNumbers"
+                      :key="'pl3-' + index"
+                    >
+                      <view class="number-item-plw">{{ num }}</view>
+                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </navigator>
+
+            <!-- 功能图标区（各彩种板块共用） -->
+            <functionIcons tname="排列三" />
+
+            <!-- 中奖精彩合集（排列三） -->
+            <view class="post-container">
+              <view class="post-title">
+                中奖精彩合集
+                <view class="more-post-btn" @click="goToCollectionList('排列三')">
+                  更多
+                </view>
+              </view>
+              <zcPostCard
+                v-for="item in pl3CollectionList"
+                :key="'pl3-collection-' + item.id"
+                :postData="item"
+                @postCard="openCollectionDetail(item)"
+              />
+              <view class="no-more" v-if="pl3CollectionLoaded && pl3CollectionList.length === 0">暂无中奖精彩合集</view>
+            </view>
+
+            <!-- 排列三预测贴 -->
+            <view class="post-container">
+              <view class="post-title">排列三 热门预测贴</view>
+              <postCard v-for="(item, index) in pl3List" :key="'pl3-post-' + index" :post="item" />
+              <view class="no-more" v-if="pl3Loaded && pl3List.length === 0">暂无排列三预测贴</view>
+              <view class="no-more" v-else-if="pl3List.length > 0">没有更多帖子了</view>
+            </view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
+      <!-- ==================== 排列五 ==================== -->
+      <swiper-item>
+        <scroll-view
+          class="tab-scroll"
+          scroll-y
+          :refresher-enabled="true"
+          :refresher-triggered="refresherTriggered"
+          refresher-background="#f5f5f5"
+          :lower-threshold="120"
+          @refresherrefresh="onRefresherRefresh"
+          @scrolltolower="onTabScrollToLower"
+        >
+          <view class="tab-content">
+            <!-- 排列五开奖结果 -->
+            <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
+              <view class="lottery-results-plw">
+                <view class="result-item-plw">
+                  <view class="result-header-plw">
+                    <view class="lottery-title-plw">排列五 第{{ plwPeriod }}期</view>
+                    <view class="lottery-date">{{ plwDate }}</view>
+                  </view>
+                  <view class="winning-numbers-plw">
+                    <view
+                      class="number-wrapper"
+                      v-for="(num, index) in plwNumbers"
+                      :key="'pl5-' + index"
+                    >
+                      <view class="number-item-plw">{{ num }}</view>
+                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </navigator>
+
+            <!-- 功能图标区（各彩种板块共用） -->
+            <functionIcons tname="排列五" />
+
+            <!-- 中奖精彩合集（排列五） -->
+            <view class="post-container">
+              <view class="post-title">
+                中奖精彩合集
+                <view class="more-post-btn" @click="goToCollectionList('排列五')">
+                  更多
+                </view>
+              </view>
+              <zcPostCard
+                v-for="item in pl5CollectionList"
+                :key="'pl5-collection-' + item.id"
+                :postData="item"
+                @postCard="openCollectionDetail(item)"
+              />
+              <view class="no-more" v-if="pl5CollectionLoaded && pl5CollectionList.length === 0">暂无中奖精彩合集</view>
+            </view>
+
+            <!-- 排列五预测贴 -->
+            <view class="post-container">
+              <view class="post-title">排列五 热门预测贴</view>
+              <postCard v-for="(item, index) in pl5List" :key="'pl5-post-' + index" :post="item" />
+              <view class="no-more" v-if="pl5Loaded && pl5List.length === 0">暂无排列五预测贴</view>
+              <view class="no-more" v-else-if="pl5List.length > 0">没有更多帖子了</view>
+            </view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
+      <!-- ==================== 福彩3D ==================== -->
+      <swiper-item>
+        <scroll-view
+          class="tab-scroll"
+          scroll-y
+          :refresher-enabled="true"
+          :refresher-triggered="refresherTriggered"
+          refresher-background="#f5f5f5"
+          :lower-threshold="120"
+          @refresherrefresh="onRefresherRefresh"
+          @scrolltolower="onTabScrollToLower"
+        >
+          <view class="tab-content">
+            <!-- 福彩3D开奖结果 -->
+            <navigator :url="`/pages/table/table?type=福彩3D&period=${fc3dPeriod}`">
+              <view class="lottery-results-fc3d">
+                <view class="result-item-fc3d">
+                  <view class="result-header-fc3d">
+                    <view class="lottery-title-fc3d">福彩3D 第{{ fc3dPeriod }}期</view>
+                    <view class="lottery-date">{{ fc3dDate }}</view>
+                  </view>
+                  <view class="winning-numbers-fc3d">
+                    <view
+                      class="number-wrapper"
+                      v-for="(num, index) in fc3dNumbers"
+                      :key="'fc3d-' + index"
+                    >
+                      <view class="number-item-fc3d">{{ num }}</view>
+                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </navigator>
+
+            <!-- 功能图标区（各彩种板块共用） -->
+            <functionIcons tname="福彩3D" />
+
+            <!-- 中奖精彩合集（福彩3D） -->
+            <view class="post-container">
+              <view class="post-title">
+                中奖精彩合集
+                <view class="more-post-btn" @click="goToCollectionList('福彩3D')">
+                  更多
+                </view>
+              </view>
+              <zcPostCard
+                v-for="item in fc3dCollectionList"
+                :key="'fc3d-collection-' + item.id"
+                :postData="item"
+                @postCard="openCollectionDetail(item)"
+              />
+              <view class="no-more" v-if="fc3dCollectionLoaded && fc3dCollectionList.length === 0">暂无中奖精彩合集</view>
+            </view>
+
+            <!-- 福彩3D预测贴 -->
+            <view class="post-container">
+              <view class="post-title">福彩3D 热门预测贴</view>
+              <postCard v-for="(item, index) in fc3dList" :key="'fc3d-post-' + index" :post="item" />
+              <view class="no-more" v-if="fc3dLoaded && fc3dList.length === 0">暂无福彩3D预测贴</view>
+              <view class="no-more" v-else-if="fc3dList.length > 0">没有更多帖子了</view>
+            </view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
+      <!-- ==================== 试机号 ==================== -->
+      <swiper-item>
+        <scroll-view
+          class="tab-scroll"
+          scroll-y
+          :refresher-enabled="true"
+          :refresher-triggered="refresherTriggered"
+          refresher-background="#f5f5f5"
+          @refresherrefresh="onRefresherRefresh"
+        >
+          <view class="tab-content">
+            <!-- 试机号列表（每个期号一张卡片） -->
+            <shijihaoList :list="shijihaoList" :isLoaded="shijihaoLoaded" />
+          </view>
+        </scroll-view>
+      </swiper-item>
+    </swiper>
+
     <!-- <PrivacyPolicyModal :visible="true"></PrivacyPolicyModal> -->
     <!-- <bottomBar current-path="/pages/index/index" /> -->
     <updateAppPupop ref="updateAppPupopRef" />
@@ -263,16 +426,47 @@ import postCard from "../../components/post-card/post-card.vue";
 import zcPostCard from "../zc/components/post-card.vue"
 import useZcPostListHooks from "./zc-postListHooks.js"
 import usecollectionHooks from "./loadCollectionHooks.js"
+import useShijihaoList from "./loadShijihaoHooks.js"
+import functionIcons from "./components/function-icons.vue"
+import shijihaoList from "./components/shijihao-list.vue"
 
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard, zcPostCard },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard, zcPostCard, functionIcons, shijihaoList },
   data() {
     this.lotteryListHooks = useLoadLotteryList()
+    this.pl3ListHooks = useLoadLotteryList()
+    this.pl5ListHooks = useLoadLotteryList()
+    this.fc3dListHooks = useLoadLotteryList()
+    // 中奖精彩合集按彩种区分：推荐页为全部彩种，各彩种板块按需加载
+    this.pl3CollectionHooks = usecollectionHooks("排列三", false)
+    this.pl5CollectionHooks = usecollectionHooks("排列五", false)
+    this.fc3dCollectionHooks = usecollectionHooks("福彩3D", false)
+    this.shijihaoHooks = useShijihaoList()
     this.zcPostListHooks = useZcPostListHooks()
     this.collectionHooks = usecollectionHooks()
     return {
       currentTab: "plw",
+
+      // 顶部导航栏（内容通过 swiper 切换）
+      topNavList: [
+        { key: "recommend", name: "推荐" },
+        { key: "pl3", name: "排列三" },
+        { key: "pl5", name: "排列五" },
+        { key: "fc3d", name: "福彩3D" },
+        { key: "shijihao", name: "试机号" },
+      ],
+      currentNavIndex: 0,
+      refresherTriggered: false,
+      pl3Loaded: false,
+      pl5Loaded: false,
+      fc3dLoaded: false,
+      pl3CollectionLoaded: false,
+      pl5CollectionLoaded: false,
+      fc3dCollectionLoaded: false,
+      shijihaoLoaded: false,
+      pl3Numbers: [],
+
       fc3dNumbers: ["3", "8", "5"],
       plwNumbers: ["9", "0", "5", "3", "2"],
       qxcNumbers: ["8", "0", "6", "5", "7", "9", "7"],
@@ -295,6 +489,39 @@ export default {
     lotteryList(){
       return this.lotteryListHooks.list.value
     },
+    // 排列三预测贴
+    pl3List(){
+      return this.pl3ListHooks.list.value
+    },
+    // 排列五预测贴
+    pl5List(){
+      return this.pl5ListHooks.list.value
+    },
+    // 福彩3D预测贴
+    fc3dList(){
+      return this.fc3dListHooks.list.value
+    },
+    // 各彩种的中奖精彩合集
+    pl3CollectionList(){
+      return this.pl3CollectionHooks.list.value
+    },
+    pl5CollectionList(){
+      return this.pl5CollectionHooks.list.value
+    },
+    fc3dCollectionList(){
+      return this.fc3dCollectionHooks.list.value
+    },
+    // 试机号列表
+    shijihaoList(){
+      return this.shijihaoHooks.list.value
+    },
+    // 排列三开奖号码：接口未返回排列三时，取排列五前三位（两者同期开奖）
+    pl3DisplayNumbers(){
+      if (this.pl3Numbers && this.pl3Numbers.length) {
+        return this.pl3Numbers
+      }
+      return this.plwNumbers.slice(0, 3)
+    },
     zcList(){
       return this.zcPostListHooks.list.value
     },
@@ -309,34 +536,146 @@ export default {
     swiperChange(e){
       this.swiperIndex = e.detail.current
     },
-    drawGui() {
-      const tname = this.currentTab === "plw" ? "排列5" : "七星彩";
-      uni.navigateTo({
-        url: `/pages/juWang/peng-liao/drawLine/drawLine?type=排列五`,
-      });
-      // uni.navigateTo({
-      // 	url: `/pages/juWang/drawLine/drawLine`
-      // });
+    // 点击顶部导航切换
+    switchTopNav(index){
+      if (this.currentNavIndex === index) return
+      this.currentNavIndex = index
+      this.ensureTabData(index)
     },
+    // swiper 滑动切换
+    mainSwiperChange(e){
+      const index = e.detail.current
+      this.currentNavIndex = index
+      this.ensureTabData(index)
+    },
+    // 按需加载当前 tab 的数据
+    ensureTabData(index = this.currentNavIndex){
+      const nav = this.topNavList[index]
+      if (!nav) return
+      if (nav.key === "pl3") {
+        if (!this.pl3Loaded) this.loadPl3List(true)
+        if (!this.pl3CollectionLoaded) this.loadPl3Collection()
+      } else if (nav.key === "pl5") {
+        if (!this.pl5Loaded) this.loadPl5List(true)
+        if (!this.pl5CollectionLoaded) this.loadPl5Collection()
+      } else if (nav.key === "fc3d") {
+        if (!this.fc3dLoaded) this.loadFc3dList(true)
+        if (!this.fc3dCollectionLoaded) this.loadFc3dCollection()
+      } else if (nav.key === "shijihao") {
+        if (!this.shijihaoLoaded) this.loadShijihaoList()
+      }
+    },
+    // 试机号列表
+    async loadShijihaoList(){
+      try {
+        await this.shijihaoHooks.getList()
+      } finally {
+        this.shijihaoLoaded = this.shijihaoHooks.isLoaded.value
+      }
+    },
+    // 各彩种的中奖精彩合集
+    async loadPl3Collection(){
+      try {
+        await this.pl3CollectionHooks.getList()
+      } finally {
+        this.pl3CollectionLoaded = true
+      }
+    },
+    async loadPl5Collection(){
+      try {
+        await this.pl5CollectionHooks.getList()
+      } finally {
+        this.pl5CollectionLoaded = true
+      }
+    },
+    async loadFc3dCollection(){
+      try {
+        await this.fc3dCollectionHooks.getList()
+      } finally {
+        this.fc3dCollectionLoaded = true
+      }
+    },
+    // 排列三预测贴
+    async loadPl3List(isRefresher = false){
+      try {
+        await this.pl3ListHooks.loadLotteryData(isRefresher, "排列三")
+      } catch (error) {
+        console.error("加载排列三预测贴失败:", error)
+      } finally {
+        this.pl3Loaded = true
+      }
+    },
+    // 排列五预测贴
+    async loadPl5List(isRefresher = false){
+      try {
+        await this.pl5ListHooks.loadLotteryData(isRefresher, "排列五")
+      } catch (error) {
+        console.error("加载排列五预测贴失败:", error)
+      } finally {
+        this.pl5Loaded = true
+      }
+    },
+    // 福彩3D预测贴
+    async loadFc3dList(isRefresher = false){
+      try {
+        await this.fc3dListHooks.loadLotteryData(isRefresher, "福彩3D")
+      } catch (error) {
+        console.error("加载福彩3D预测贴失败:", error)
+      } finally {
+        this.fc3dLoaded = true
+      }
+    },
+    // 当前 tab 的 scroll-view 触底
+    onTabScrollToLower(){
+      const nav = this.topNavList[this.currentNavIndex]
+      if (!nav) return
+      if (nav.key === "recommend") {
+        this.loadLotteryList()
+      } else if (nav.key === "pl3") {
+        this.loadPl3List()
+      } else if (nav.key === "pl5") {
+        this.loadPl5List()
+      } else if (nav.key === "fc3d") {
+        this.loadFc3dList()
+      }
+    },
+    // 下拉刷新（由各 tab 的 scroll-view 触发）
+    async onRefresherRefresh(){
+      if (this.refresherTriggered) return
+      this.refresherTriggered = true
+      const nav = this.topNavList[this.currentNavIndex]
+      try {
+        await this.loadLotteryResults()
+        if (!nav || nav.key === "recommend") {
+          await this.loadLotteryList(true)
+          await this.collectionHooks.getList()
+          await this.zcPostListHooks.getList()
+        } else if (nav.key === "pl3") {
+          await this.loadPl3List(true)
+          await this.loadPl3Collection()
+        } else if (nav.key === "pl5") {
+          await this.loadPl5List(true)
+          await this.loadPl5Collection()
+        } else if (nav.key === "fc3d") {
+          await this.loadFc3dList(true)
+          await this.loadFc3dCollection()
+        } else if (nav.key === "shijihao") {
+          await this.loadShijihaoList()
+        }
+      } catch (error) {
+        console.error("刷新失败:", error)
+      }
+      setTimeout(() => {
+        this.refresherTriggered = false
+      }, 200)
+    },
+    // 功能图标区的交互统一放在 components/function-icons.vue 内
     toChangtiao() {
       if (tool.isLogin()) {
         uni.navigateTo({
           url: "/pages/changtiao/index",
         });
       }
-    },
-    goToLive() {
-      // #ifdef H5
-      uni.showModal({
-        title: "提示",
-        content: "收看直播功能仅支持APP内使用",
-      });
-      // #endif
-      // #ifdef APP-PLUS
-      uni.navigateTo({
-        url: "/pages/index/live",
-      });
-      // #endif
     },
     goToDreamInterpretation() {
       const userStore = useUserStore();
@@ -366,9 +705,6 @@ export default {
       uni.navigateTo({
         url: "/pages/login/agreement?type=AboutAs",
       });
-    },
-    toShare() {
-      uni.navigateTo({ url: "/pages/share/share" });
     },
     // 加载开奖结果
     async loadLotteryResults() {
@@ -428,6 +764,11 @@ export default {
             if (tname && tname.includes("排列三")) {
               // 排列三和排列五共用期号
               this.plwPeriod = item.issueno;
+              // 排列三开奖号码
+              const pl3 = this.parseNumbers(item.number);
+              if (pl3.length) {
+                this.pl3Numbers = pl3;
+              }
               // 排列三的日期会覆盖排列五的日期（因为排列五在前面）
               if (item.opendate || item.date || item.createTime) {
                 const date = item.opendate || item.date || item.createTime;
@@ -550,7 +891,7 @@ export default {
         success: (res) => {
           uni.shareWithSystem({
             provider: "weixin",
-            type: 1,
+            type: "text",
             href: createShareUrl(),
             summary: createShareUrl(),
             scene: "WXSceneSession",
@@ -560,12 +901,9 @@ export default {
         },
       });
     },
-    dowApp() {
-      window.open("http://demo-dow.caimizm.com/");
-    },
     loadLotteryList(isRefresher = false){
       uni.showLoading()
-      this.lotteryListHooks.loadLotteryData(isRefresher, this.currentLotteryTag)
+      return this.lotteryListHooks.loadLotteryData(isRefresher, this.currentLotteryTag)
       .finally(uni.hideLoading)
       
     },
@@ -581,7 +919,15 @@ export default {
         url: "/pages/zc/index"
       })
     },
-    goToCollectionList(){
+    // 打开中奖精彩合集详情
+    openCollectionDetail(item){
+      this.collectionHooks.openDetail(item)
+    },
+    // 更多：跳到彩友圈的精彩合集；带彩种时定位到对应彩种
+    goToCollectionList(tname){
+      if (typeof tname === "string" && tname) {
+        uni.setStorageSync("openCollectionTname", tname)
+      }
       uni.setStorageSync("openCollectionList", true)
       uni.switchTab({
         url: "/pages/forum/forum"
@@ -597,8 +943,8 @@ export default {
     this.loadLotteryResults();
   },
   onReachBottom(){
-    // 页面触底 加载帖子
-    this.loadLotteryList()
+    // 页面触底 加载当前 tab 的帖子
+    this.onTabScrollToLower()
   },
   mounted() {
     this.$refs.updateAppPupopRef.check();
@@ -606,12 +952,10 @@ export default {
     this.loadLotteryList(true)
 
   },
+  // 页面级下拉刷新（正常由各 tab 的 scroll-view 触发，这里做兜底）
   async onPullDownRefresh(){
     try {
-      await this.loadLotteryList(true)
-      await this.loadLotteryResults()
-      await this.collectionHooks.getList()
-      await this.zcPostListHooks.getList()
+      await this.onRefresherRefresh()
     } catch (error) {
       
     }
@@ -628,7 +972,10 @@ export default {
 .lottery-container:not(.old-man-mode) {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  // 固定高度容器：内容在各自的 scroll-view 内滚动，swiper 才能正常切换
+  height: calc(100vh - var(--window-bottom, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
   background-color: #f5f5f5;
   padding-top: var(--status-bar-height);
 
@@ -848,71 +1195,16 @@ export default {
     margin-right: 10rpx;
   }
 
-  /* 功能图标区 */
-  .function-area {
-    padding: 20rpx;
-    background-color: #f5f5f5;
-  }
-
-  .function-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20rpx 10rpx;
-    background-color: #fff;
-    padding: 30rpx;
-    border-radius: 10rpx;
-    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-  }
-
-  .icon-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
-  .icon-item image {
-    width: 60rpx;
-    height: 60rpx;
-    margin-bottom: 8rpx;
-  }
-
-  /* uni-icons 图标样式 */
-  .icon-item uni-icons {
-    margin-bottom: 8rpx;
-  }
-
-  .icon-item text {
-    font-size: 20rpx;
-    color: #666;
-  }
-
-  .icon-item-message {
-    position: relative;
-  }
-
-  .message-badge {
-    position: absolute;
-    top: -4rpx;
-    right: -4rpx;
-    background-color: #e74c3c;
-    color: #fff;
-    font-size: 18rpx;
-    width: 32rpx;
-    height: 32rpx;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2rpx solid #fff;
-  }
+  /* 功能图标区样式见 components/function-icons.vue */
 }
 
 .lottery-container.old-man-mode {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  // 固定高度容器：内容在各自的 scroll-view 内滚动，swiper 才能正常切换
+  height: calc(100vh - var(--window-bottom, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
   background-color: #f5f5f5;
   padding-top: var(--status-bar-height);
 
@@ -933,6 +1225,25 @@ export default {
   .swiper-item image {
     width: 100%;
     height: 100%;
+  }
+
+  /* 顶部导航栏（老年模式） */
+  .top-nav-bar {
+    height: 110rpx;
+  }
+
+  .top-nav-text {
+    font-size: 42rpx;
+    color: #353434;
+  }
+
+  .top-nav-item.active .top-nav-text {
+    font-size: 46rpx;
+  }
+
+  .top-nav-item.active .top-nav-line {
+    width: 72rpx;
+    height: 8rpx;
   }
 
   /* 福彩3D开奖结果 */
@@ -1126,72 +1437,75 @@ export default {
     margin-right: 10rpx;
   }
 
-  /* 功能图标区 */
-  .function-area {
-    background-color: #f5f5f5;
-  }
-
-  .function-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 20rpx 10rpx;
-    background-color: #fff;
-    padding: 30rpx;
-    box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-  }
-
-  .icon-item {
-    display: flex;
-    flex-direction: column;
-    font-weight: bolder;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
-  .icon-item image {
-    width: 50rpx;
-    height: 50rpx;
-  }
-
-  /* uni-icons 图标样式 */
-  .icon-item uni-icons {
-    font-size: 30rpx;
-    margin-bottom: 8rpx;
-  }
-
-  .icon-item text {
-    font-size: 50rpx;
-    color: #353434;
-
-    // &.leng3 {
-    // 	font-size: 43rpx;
-    // }
-  }
-
-  .icon-item-message {
-    position: relative;
-  }
-
-  .message-badge {
-    position: absolute;
-    top: -4rpx;
-    right: -4rpx;
-    background-color: #e74c3c;
-    color: #fff;
-    font-size: 18rpx;
-    width: 32rpx;
-    height: 32rpx;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2rpx solid #fff;
-  }
+  /* 功能图标区样式见 components/function-icons.vue */
 }
 .notice-banner-swiper {
   margin: 10rpx 0;
   height: 105rpx;
+}
+
+/* ==================== 顶部导航栏 ==================== */
+.top-nav-bar {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 88rpx;
+  background-color: #fff;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.top-nav-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.top-nav-text {
+  font-size: 28rpx;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.top-nav-line {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 6rpx;
+  border-radius: 6rpx;
+  background-color: #ff4757;
+  transition: width 0.2s ease;
+}
+
+.top-nav-item.active .top-nav-text {
+  color: #ff4757;
+  font-weight: bold;
+  font-size: 30rpx;
+}
+
+.top-nav-item.active .top-nav-line {
+  width: 48rpx;
+}
+
+/* ==================== 内容 swiper ==================== */
+.main-swiper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tab-scroll {
+  width: 100%;
+  height: 100%;
+}
+
+.tab-content {
+  padding-bottom: 40rpx;
 }
 
 .no-more {

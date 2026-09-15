@@ -5,7 +5,7 @@
       "style": {
         "navigationBarTitleText": "首页",
         "navigationStyle": "custom",
-        "enablePullDownRefresh": true
+        "enablePullDownRefresh": false
       }
     },
     {
@@ -328,6 +328,13 @@
       "path": "pages/index/searchUser",
       "style": {
         "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/master-rank/master-rank",
+      "style": {
+        "navigationBarTitleText": "大师榜单",
         "navigationStyle": "custom"
       }
     },
