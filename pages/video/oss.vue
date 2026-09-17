@@ -75,7 +75,7 @@
     </view>
 
     <!-- 上传结果 -->
-    <view class="result-area" v-if="uploadResults.length > 0">
+    <!-- <view class="result-area" v-if="uploadResults.length > 0">
       <view class="file-list">
         <view v-for="(result, index) in uploadResults" :key="index" class="file-item">
           <view class="file-icon">
@@ -90,7 +90,7 @@
           </view>
         </view>
       </view>
-    </view>
+    </view> -->
   </view>
 </template>
 
@@ -345,15 +345,8 @@ const startUpload = async () => {
       // 提交视频信息到后端
       const submitResult = await apiSubmitVideo(videoData);
 
-      // 添加到上传结果
-      uploadResults.value.push({
-        name: fileItem.name || selectedVideoName.value,
-        size: fileItem.size || selectedVideoSize.value,
-        url: videoResult.url,
-        coverUrl: coverUrl,
-      });
 
-      statusMessage.value = `文件"${fileItem.name || selectedVideoName.value}"上传成功`;
+      statusMessage.value = `上传成功`;
       statusClass.value = "status-success";
 
       // 如果是付费视频，保存数据并跳转到表单页面
@@ -433,7 +426,7 @@ const startUpload = async () => {
       }
     } catch (error) {
       statusMessage.value = `文件"${fileItem.name || selectedVideoName.value || "视频"}"上传失败: ${
-        error.message || error.msg
+        error.message || error.msg || error
       }`;
       statusClass.value = "status-error";
       
@@ -443,6 +436,7 @@ const startUpload = async () => {
                 icon: "none"})
     }
     isUploading.value = false;
+    return
   }
 };
 

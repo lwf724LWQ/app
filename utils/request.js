@@ -69,14 +69,21 @@ export function request({ url, data = {}, method = "GET", header = {}, timeout =
       timeout,
       success: (res) => {
         if (res.statusCode === 200) {
-          if (handleServerError(res.data)) {
-            resolve(res.data);
-          } else {
-            if (res.data?.msg) {
-              res.data.msg = "服务器：" + res.data.msg
+          if (typeof res.data === "object") {
+            if (handleServerError(res.data)) {
+              resolve(res.data);
+            } else {
+              if (res.data?.msg) {
+                res.data.msg = "服务器：" + res.data.msg
+              }
+              reject(res.data);
             }
-            reject(res.data);
+          }else{
+            reject({
+              msg: "错误1003:" + res.data
+            })
           }
+          
 
           // if(res.data && res.data.code === 200){
           // 	resolve(res.data)
