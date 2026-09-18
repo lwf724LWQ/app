@@ -48,7 +48,7 @@ const props = defineProps({
     default: 10,
   },
 });
-const tabs = ref(["福彩3D", "排列三", "排列五"]);
+const tabs = ref(["福彩3D", "排列三", "排列五", "试机号"]);
 const pickerIndex = ref(2);
 const reviewListRefs = ref(null);
 

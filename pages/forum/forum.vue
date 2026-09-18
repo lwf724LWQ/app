@@ -159,8 +159,6 @@
             <text>暂无预测帖子</text>
           </view>
         </view>
-        
-        
       </view>
     </scroll-view>
 
@@ -274,7 +272,7 @@ const {
 const activeTab = ref("predict");
 const showPeriodDropdown = ref(false);
 const publishPopup = ref(null);
-const lotteryTypes = ref(["排列三", "排列五", "福彩3D"]);
+const lotteryTypes = ref(["排列三", "福彩3D", "试机号"]);
 const currentLotteryType = ref(lotteryTypes.value[0]);
 const predictList = ref([]);
 const isPageInitialized = ref(false);

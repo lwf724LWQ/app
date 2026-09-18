@@ -43,6 +43,9 @@
         <VideoList ref="plwVideoListRef" video-type="排列五" />
       </swiper-item>
       <swiper-item>
+        <VideoList ref="plwVideoListRef" video-type="试机号" />
+      </swiper-item>
+      <swiper-item>
         <reviewContainer ref="reviewContainerRef" />
       </swiper-item>
     </swiper>
@@ -91,7 +94,7 @@ import { createShareUrl } from "../../utils/createShareUrl.js";
 const pickerIndex = ref(2);
 
 // 彩票类型与期号信息（与论坛页一致的请求逻辑）
-const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "精彩回顾"]);
+const lotteryTypes = ref(["福彩3D", "排列三", "排列五", "试机号", "精彩回顾"]);
 
 const currentLotteryType = ref(lotteryTypes.value[2]);
 
