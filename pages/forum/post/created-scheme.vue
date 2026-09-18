@@ -41,6 +41,7 @@
               :maxNum="activeTag.maxNum"
               :minNum="activeTag.minNum"
               :numberList="activeTag.numberList"
+              :showMainAttack="activeTag.showMainAttack"
               v-model="selectedNumbers[name]"
             />
           </template>

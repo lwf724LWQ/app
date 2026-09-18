@@ -68,6 +68,11 @@ const props = defineProps({
     type: Array,
     default: () => ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
   },
+  // 是否提供「主攻」（三位数标签没有主攻）
+  showMainAttack: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const model = defineModel({ default: { numbers: [], mainAttack: "" } });
@@ -179,7 +184,11 @@ const toggleNumber = (num) => {
 const mainAttack = ref(model.value.mainAttack);
 model.value.mainAttack = mainAttack;
 const isShowMainAttackBtn = computed(() => {
-  return selectedNumbers.value.length > 1 && !isNotOnlyUniaueTypes.value;
+  return (
+    props.showMainAttack &&
+    selectedNumbers.value.length > 1 &&
+    !isNotOnlyUniaueTypes.value
+  );
 });
 const popupRef = ref(null);
 function openMainAttackSelectPopup() {

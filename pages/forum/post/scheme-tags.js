@@ -74,7 +74,7 @@ const TAGS_3D = [
   { name: "胆码", minNum: 1, maxNum: 1, positions: ["毒胆","双胆","三胆"] },
   { name: "毒胆", minNum: 1, maxNum: 1, positions: ["毒胆"] },
   // 和值：可选号码为 0-27，固定选 6 个
-  { name: "和值", minNum: 10, maxNum: 10, positions: ["和值"], numberList: SUM_NUMBERS },
+  { name: "和值", minNum: 7, maxNum: 7, positions: ["和值"], numberList: SUM_NUMBERS },
   { name: "复式", minNum: 7, maxNum: 7, positions: ["复式"] },
   { name: "百十和尾", minNum: 6, maxNum: 6, positions: ["百十和尾"] },
   { name: "百个和尾", minNum: 6, maxNum: 6, positions: ["百个和尾"] },
@@ -93,6 +93,13 @@ const TAGS_BY_LOTTERY = {
   福彩3D: TAGS_4D,
 };
 
+// 标签集级别的选项（按集合对象本身区分，以后某个彩种换用同一集合，行为自动一致）
+// showMainAttack: 选号区是否提供「主攻」；三位数的标签没有主攻
+const SET_OPTIONS = new Map([
+  [TAGS_3D, { showMainAttack: false }],
+  [TAGS_4D, { showMainAttack: true }],
+]);
+
 // 取某个彩种的标签集，未知彩种回退到四位数那套
 export function getSchemeTags(lotteryType) {
   return TAGS_BY_LOTTERY[lotteryType] || TAGS_4D;
@@ -103,9 +110,12 @@ export function getSchemeTags(lotteryType) {
  * @param {String} lotteryType 彩种名
  */
 export function buildSchemeTags(lotteryType) {
-  return getSchemeTags(lotteryType).map((tag) => ({
+  const source = getSchemeTags(lotteryType);
+  const options = SET_OPTIONS.get(source) || {};
+  return source.map((tag) => ({
     ...tag,
     minNum: tag.minNum || 1,
+    showMainAttack: options.showMainAttack !== false,
     numberList: tag.numberList || DEFAULT_NUMBERS,
     selectedNumbers: tag.positions.reduce((acc, position) => {
       acc[position] = { numbers: [], mainAttack: "" };
