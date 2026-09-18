@@ -253,72 +253,6 @@
         </scroll-view>
       </swiper-item>
 
-      <!-- ==================== 排列五 ==================== -->
-      <swiper-item>
-        <scroll-view
-          class="tab-scroll"
-          scroll-y
-          :refresher-enabled="true"
-          :refresher-triggered="refresherTriggered"
-          refresher-background="#f5f5f5"
-          :lower-threshold="120"
-          @refresherrefresh="onRefresherRefresh"
-          @scrolltolower="onTabScrollToLower"
-        >
-          <view class="tab-content">
-            <!-- 排列五开奖结果 -->
-            <navigator :url="`/pages/table/table?type=排列五&period=${plwPeriod}`">
-              <view class="lottery-results-plw">
-                <view class="result-item-plw">
-                  <view class="result-header-plw">
-                    <view class="lottery-title-plw">排列五 第{{ plwPeriod }}期</view>
-                    <view class="lottery-date">{{ plwDate }}</view>
-                  </view>
-                  <view class="winning-numbers-plw">
-                    <view
-                      class="number-wrapper"
-                      v-for="(num, index) in plwNumbers"
-                      :key="'pl5-' + index"
-                    >
-                      <view class="number-item-plw">{{ num }}</view>
-                      <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-                    </view>
-                  </view>
-                </view>
-              </view>
-            </navigator>
-
-            <!-- 功能图标区（各彩种板块共用） -->
-            <functionIcons tname="排列五" />
-
-            <!-- 中奖精彩合集（排列五） -->
-            <view class="post-container">
-              <view class="post-title">
-                中奖精彩合集
-                <view class="more-post-btn" @click="goToCollectionList('排列五')">
-                  更多
-                </view>
-              </view>
-              <zcPostCard
-                v-for="item in pl5CollectionList"
-                :key="'pl5-collection-' + item.id"
-                :postData="item"
-                @postCard="openCollectionDetail(item)"
-              />
-              <view class="no-more" v-if="pl5CollectionLoaded && pl5CollectionList.length === 0">暂无中奖精彩合集</view>
-            </view>
-
-            <!-- 排列五预测贴 -->
-            <view class="post-container">
-              <view class="post-title">排列五 热门预测贴</view>
-              <postCard v-for="(item, index) in pl5List" :key="'pl5-post-' + index" :post="item" />
-              <view class="no-more" v-if="pl5Loaded && pl5List.length === 0">暂无排列五预测贴</view>
-              <view class="no-more" v-else-if="pl5List.length > 0">没有更多帖子了</view>
-            </view>
-          </view>
-        </scroll-view>
-      </swiper-item>
-
       <!-- ==================== 福彩3D ==================== -->
       <swiper-item>
         <scroll-view
@@ -396,8 +330,71 @@
           @refresherrefresh="onRefresherRefresh"
         >
           <view class="tab-content">
-            <!-- 试机号列表（每个期号一张卡片） -->
-            <shijihaoList :list="shijihaoList" :isLoaded="shijihaoLoaded" />
+            <!-- 试机号：排列三 / 福彩3D 各一条 -->
+            <view class="lottery-results-plw" v-if="shijihaoData.pl3">
+              <view class="result-item-plw">
+                <view class="result-header-plw">
+                  <view class="lottery-title-plw">
+                    拼搏排列三 第{{ shijihaoData.pl3.issueno }}期
+                  </view>
+                  <view class="lottery-date">{{ shijihaoData.pl3.date }}</view>
+                </view>
+                <view class="winning-numbers-plw">
+                  <view
+                    class="number-wrapper"
+                    v-for="(num, index) in shijihaoData.pl3.numbers"
+                    :key="'pl3-test-' + index"
+                  >
+                    <view class="number-item-plw">{{ num }}</view>
+                    <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+             <view class="lottery-results-plw" v-if="shijihaoData.pl5">
+              <view class="result-item-plw">
+                <view class="result-header-plw">
+                  <view class="lottery-title-plw">
+                    拼搏排列五 第{{ shijihaoData.pl3.issueno }}期
+                  </view>
+                  <view class="lottery-date">{{ shijihaoData.pl5.date }}</view>
+                </view>
+                <view class="winning-numbers-plw">
+                  <view
+                    class="number-wrapper"
+                    v-for="(num, index) in shijihaoData.pl5.numbers"
+                    :key="'pl3-test-' + index"
+                  >
+                    <view class="number-item-plw">{{ num }}</view>
+                    <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            
+            <view class="lottery-results-plw" v-if="shijihaoData.fc3d">
+              <view class="result-item-plw">
+                <view class="result-header-plw">
+                  <view class="lottery-title-plw">
+                    拼搏3D 第{{ shijihaoData.fc3d.issueno }}期
+                  </view>
+                  <view class="lottery-date">{{ shijihaoData.fc3d.date }}</view>
+                </view>
+                <view class="winning-numbers-plw">
+                  <view
+                    class="number-wrapper"
+                    v-for="(num, index) in shijihaoData.fc3d.numbers"
+                    :key="'fc3d-test-' + index"
+                  >
+                    <view class="number-item-plw">{{ num }}</view>
+                    <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <!-- 功能图标区（各彩种板块共用） -->
+            <functionIcons :tname="currentLotteryTag" />
           </view>
         </scroll-view>
       </swiper-item>
@@ -428,11 +425,10 @@ import useZcPostListHooks from "./zc-postListHooks.js"
 import usecollectionHooks from "./loadCollectionHooks.js"
 import useShijihaoList from "./loadShijihaoHooks.js"
 import functionIcons from "./components/function-icons.vue"
-import shijihaoList from "./components/shijihao-list.vue"
 
 export default {
   inject: ["useOldManModeStore"],
-  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard, zcPostCard, functionIcons, shijihaoList },
+  components: { PrivacyPolicyModal, bottomBar, updateAppPupop, ActivityHover, postCard, zcPostCard, functionIcons },
   data() {
     this.lotteryListHooks = useLoadLotteryList()
     this.pl3ListHooks = useLoadLotteryList()
@@ -452,7 +448,6 @@ export default {
       topNavList: [
         { key: "recommend", name: "推荐" },
         { key: "pl3", name: "排列三" },
-        { key: "pl5", name: "排列五" },
         { key: "fc3d", name: "福彩3D" },
         { key: "shijihao", name: "试机号" },
       ],
@@ -511,9 +506,9 @@ export default {
     fc3dCollectionList(){
       return this.fc3dCollectionHooks.list.value
     },
-    // 试机号列表
-    shijihaoList(){
-      return this.shijihaoHooks.list.value
+    // 试机号：{ pl3, fc3d }
+    shijihaoData(){
+      return this.shijihaoHooks.data.value
     },
     // 排列三开奖号码：接口未返回排列三时，取排列五前三位（两者同期开奖）
     pl3DisplayNumbers(){
