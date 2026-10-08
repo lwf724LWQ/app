@@ -70,8 +70,8 @@ const TAGS_3D = [
   // 杀百十个：杀百、杀十、杀个 各固定选 1 个
   { name: "杀百十个", minNum: 1, maxNum: 1, positions: ["杀百", "杀十", "杀个"] },
   // 杀跨度未单独说明，按同组「杀」类处理
-  { name: "杀跨度", minNum: 1, maxNum: 3, positions: ["杀跨度"] },
-  { name: "胆码", minNum: 1, maxNum: 1, positions: ["毒胆","双胆","三胆"] },
+  { name: "杀跨度", minNum: 1, maxNum: 3, positions: ["杀跨度"] }, // 彩票号码中最大与最小数字的差
+  { name: "胆码", minNum: 1, maxNum: 1, positions: ["毒胆","双胆","三胆"] }, // “独胆”，表示最看好的数字，通俗的讲意思就是当天开奖号3个号码中必出的一个，独胆亦被彩民称为“毒胆”
   { name: "毒胆", minNum: 1, maxNum: 1, positions: ["毒胆"] },
   // 和值：可选号码为 0-27，固定选 6 个
   { name: "和值", minNum: 7, maxNum: 7, positions: ["和值"], numberList: SUM_NUMBERS },
@@ -85,12 +85,13 @@ const TAGS_3D = [
   { name: "杀十个和尾", minNum: 1, maxNum: 3, positions: ["杀十个和尾"] },
 ];
 
-// 彩种 -> 标签集（福彩3D 暂时沿用四位数标签集）
+// 彩种 -> 标签集
+// 排列三、福彩3D 都是三位数，共用 TAGS_3D（同时自动不带主攻）
 const TAGS_BY_LOTTERY = {
   排列三: TAGS_3D,
+  福彩3D: TAGS_3D,
   排列五: TAGS_4D,
   七星彩: TAGS_4D,
-  福彩3D: TAGS_4D,
 };
 
 // 标签集级别的选项（按集合对象本身区分，以后某个彩种换用同一集合，行为自动一致）

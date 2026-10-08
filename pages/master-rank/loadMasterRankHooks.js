@@ -87,7 +87,7 @@ export function normalizeRankItem(item = {}, context = {}) {
     tname,
     issueno,
     period: issueno,
-    content: item.postContent || `${tname} ${issueno}期 个人规`,
+    content: item.postContent || `【预测方案】\n\n1.百十个 \n 百位：643891\n十位：712836\n个位：837612\n \n2.跨度 \n 跨度：530168\n \n3.杀百 \n 杀百：167\n \n4.杀十 \n 杀十：234\n \n期号: 第26264期\n发布时间: 2026-10-05 14:51:25`,
     time: item.publishTime || "",
   };
 
