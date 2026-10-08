@@ -352,27 +352,6 @@
               </view>
             </view>
 
-             <view class="lottery-results-plw" v-if="shijihaoData.pl5">
-              <view class="result-item-plw">
-                <view class="result-header-plw">
-                  <view class="lottery-title-plw">
-                    拼搏排列五 第{{ shijihaoData.pl3.issueno }}期
-                  </view>
-                  <view class="lottery-date">{{ shijihaoData.pl5.date }}</view>
-                </view>
-                <view class="winning-numbers-plw">
-                  <view
-                    class="number-wrapper"
-                    v-for="(num, index) in shijihaoData.pl5.numbers"
-                    :key="'pl3-test-' + index"
-                  >
-                    <view class="number-item-plw">{{ num }}</view>
-                    <view class="number-label">{{ String.fromCharCode(65 + index) }}</view>
-                  </view>
-                </view>
-              </view>
-            </view>
-            
             <view class="lottery-results-plw" v-if="shijihaoData.fc3d">
               <view class="result-item-plw">
                 <view class="result-header-plw">
@@ -395,6 +374,35 @@
             </view>
             <!-- 功能图标区（各彩种板块共用） -->
             <functionIcons :tname="currentLotteryTag" />
+
+            <!-- 中奖精彩合集（试机号） -->
+            <view class="post-container">
+              <view class="post-title">
+                中奖精彩合集
+                <view class="more-post-btn" @click="goToCollectionList('试机号')">
+                  更多
+                </view>
+              </view>
+              <zcPostCard
+                v-for="item in shijihaoCollectionList"
+                :key="'shijihao-collection-' + item.id"
+                :postData="item"
+                @postCard="openCollectionDetail(item)"
+              />
+              <view class="no-more" v-if="shijihaoCollectionLoaded && shijihaoCollectionList.length === 0">暂无中奖精彩合集</view>
+            </view>
+
+            <!-- 试机号预测贴 -->
+            <view class="post-container">
+              <view class="post-title">试机号 热门预测贴</view>
+              <postCard
+                v-for="(item, index) in shijihaoPostList"
+                :key="'shijihao-post-' + index"
+                :post="item"
+              />
+              <view class="no-more" v-if="shijihaoPostLoaded && shijihaoPostList.length === 0">暂无试机号预测贴</view>
+              <view class="no-more" v-else-if="shijihaoPostList.length > 0">没有更多帖子了</view>
+            </view>
           </view>
         </scroll-view>
       </swiper-item>
@@ -439,6 +447,9 @@ export default {
     this.pl5CollectionHooks = usecollectionHooks("排列五", false)
     this.fc3dCollectionHooks = usecollectionHooks("福彩3D", false)
     this.shijihaoHooks = useShijihaoList()
+    // 试机号板块的合集与预测贴，按「试机号」彩种过滤
+    this.shijihaoCollectionHooks = usecollectionHooks("试机号", false)
+    this.shijihaoPostHooks = useLoadLotteryList()
     this.zcPostListHooks = useZcPostListHooks()
     this.collectionHooks = usecollectionHooks()
     return {
@@ -460,14 +471,17 @@ export default {
       pl5CollectionLoaded: false,
       fc3dCollectionLoaded: false,
       shijihaoLoaded: false,
+      shijihaoCollectionLoaded: false,
+      shijihaoPostLoaded: false,
       pl3Numbers: [],
 
       fc3dNumbers: ["3", "8", "5"],
       plwNumbers: ["9", "0", "5", "3", "2"],
       qxcNumbers: ["8", "0", "6", "5", "7", "9", "7"],
-      fc3dPeriod: "第25123期",
-      plwPeriod: "第25285期",
-      qxcPeriod: "第25123期",
+      // 期号只存数字：模板里已经写了「第{{ }}期」，接口返回的 issueno 也是纯数字
+      fc3dPeriod: "25123",
+      plwPeriod: "25285",
+      qxcPeriod: "25123",
       fc3dDate: "10.26 周日",
       plwDate: "10.26 周日",
       qxcDate: "10.26 周日",
@@ -509,6 +523,13 @@ export default {
     // 试机号：{ pl3, fc3d }
     shijihaoData(){
       return this.shijihaoHooks.data.value
+    },
+    // 试机号板块的中奖精彩合集 / 预测贴
+    shijihaoCollectionList(){
+      return this.shijihaoCollectionHooks.list.value
+    },
+    shijihaoPostList(){
+      return this.shijihaoPostHooks.list.value
     },
     // 排列三开奖号码：接口未返回排列三时，取排列五前三位（两者同期开奖）
     pl3DisplayNumbers(){
@@ -558,6 +579,8 @@ export default {
         if (!this.fc3dCollectionLoaded) this.loadFc3dCollection()
       } else if (nav.key === "shijihao") {
         if (!this.shijihaoLoaded) this.loadShijihaoList()
+        if (!this.shijihaoCollectionLoaded) this.loadShijihaoCollection()
+        if (!this.shijihaoPostLoaded) this.loadShijihaoPostList(true)
       }
     },
     // 试机号列表
@@ -566,6 +589,24 @@ export default {
         await this.shijihaoHooks.getList()
       } finally {
         this.shijihaoLoaded = this.shijihaoHooks.isLoaded.value
+      }
+    },
+    // 试机号板块的中奖精彩合集
+    async loadShijihaoCollection(){
+      try {
+        await this.shijihaoCollectionHooks.getList()
+      } finally {
+        this.shijihaoCollectionLoaded = true
+      }
+    },
+    // 试机号板块的预测贴
+    async loadShijihaoPostList(isRefresher = false){
+      try {
+        await this.shijihaoPostHooks.loadLotteryData(isRefresher, "试机号")
+      } catch (error) {
+        console.error("加载试机号预测贴失败:", error)
+      } finally {
+        this.shijihaoPostLoaded = true
       }
     },
     // 各彩种的中奖精彩合集
@@ -632,6 +673,8 @@ export default {
         this.loadPl5List()
       } else if (nav.key === "fc3d") {
         this.loadFc3dList()
+      } else if (nav.key === "shijihao") {
+        this.loadShijihaoPostList()
       }
     },
     // 下拉刷新（由各 tab 的 scroll-view 触发）
@@ -656,6 +699,8 @@ export default {
           await this.loadFc3dCollection()
         } else if (nav.key === "shijihao") {
           await this.loadShijihaoList()
+          await this.loadShijihaoCollection()
+          await this.loadShijihaoPostList(true)
         }
       } catch (error) {
         console.error("刷新失败:", error)

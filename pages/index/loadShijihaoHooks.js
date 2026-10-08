@@ -20,7 +20,6 @@ const GROUPS = [
 // MOCK 数据
 const MOCK = {
   pl3: { issueno: "26250", opendate: "2026-09-17", number: "449" },
-  pl5: { issueno: "26250", opendate: "2026-09-17", number: "44937" },
   fc3d: { issueno: "26250", opendate: "2026-09-17", number: "360" },
 };
 
