@@ -75,6 +75,11 @@ export default {
       type: String,
       default: "",
     },
+    // 从大师榜单进入时，发布页默认开启收费
+    defaultPaid: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -107,6 +112,8 @@ export default {
 
       const urlParams = tool.formatUrlParams({
         lotteryType: this.lotteryType,
+        // 空串会被 formatUrlParams 过滤掉
+        paid: this.defaultPaid ? "1" : "",
       });
 
       const routes = {

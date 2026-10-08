@@ -87,11 +87,13 @@ const id = ref(null);
 const lotteryType = ref("");
 const isLoadCompner = ref(false);
 const from = ref("");
+const paid = ref("");
 onLoad(async (options) => {
   options = tool.optionsParamsDecode(options);
 
   lotteryType.value = options.lotteryType;
   from.value = options.from || "";
+  paid.value = options.paid || "";
 
   // 按彩种构建标签集（必须在读取已存方案之前）
   tags.value = buildSchemeTags(lotteryType.value);
@@ -280,6 +282,8 @@ const goToConfirm = async () => {
   const urlParams = tool.formatUrlParams({
     lotteryType: lotteryType.value,
     id: id.value,
+    // 从大师榜单进来时带 paid=1，透传到确认页默认开启收费
+    paid: paid.value,
   });
 
   if (from.value === "upload-diagram") {

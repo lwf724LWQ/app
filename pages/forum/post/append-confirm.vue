@@ -5,6 +5,24 @@
 
     <!-- 主要内容区域 -->
     <scroll-view class="main-content" scroll-y>
+      <!-- 收费设置：博主才显示；从大师榜单进入时默认开启收费 -->
+      <view class="charge-card" v-if="isBozhu && !isAppendMode">
+        <view class="charge-row">
+          <text class="charge-label">收费</text>
+          <switch
+            class="charge-switch"
+            color="#ff4757"
+            :checked="chargeEnabled"
+            @change="onChargeChange"
+          />
+        </view>
+        <view class="charge-row" v-if="chargeEnabled">
+          <text class="charge-label">价格</text>
+          <NumberInput v-model="chargePrice" :min="CHARGE_MIN" :max="99999" :step="1" />
+          <text class="charge-unit">金币</text>
+        </view>
+      </view>
+
       <!-- 我的方案标题 -->
       <view class="title-section">
         <text class="title-text">{{ isAppendMode ? "追加方案" : "我的方案" }}</text>
@@ -86,14 +104,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { getAccount } from "@/utils/request.js";
-import { apiPost, apiGetIssueNo, apiPostUpdate, apiPostListQuery } from "@/api/apis.js";
+import { apiCreatePostV2, apiGetIssueNo, apiPostUpdate, apiPostListQuery } from "@/api/apis.js";
 import TopNavigationBar from "@/components/TopNavigationBar.vue";
+import NumberInput from "@/components/number-input.vue";
+import { useUserStore } from "@/stores/userStore";
 import postTool from "./post-tool";
 import { onLoad } from "@dcloudio/uni-app";
 import moment from "moment";
 import tool from "@/utils/tool.js";
+
+// 博身份：agent 非 0 才是博主，只有博主能设置收费
+const userStore = useUserStore();
+const isBozhu = computed(() => Number(userStore.getUserInfo?.agent || 0) !== 0);
+
+// 收费设置
+// 价格默认 7 金币，最低也是 7
+const CHARGE_MIN = 7;
+const chargeEnabled = ref(false);
+const chargePrice = ref(CHARGE_MIN);
+const onChargeChange = (e) => {
+  chargeEnabled.value = e.detail.value;
+};
 
 // 方案数据
 const schemes = ref([]);
@@ -221,6 +254,12 @@ const generateAppendContent = () => {
 // 处理发布逻辑
 const handlePublish = async () => {
   try {
+    // 收费校验：最低 7 金币
+    if (chargeEnabled.value && !(Number(chargePrice.value) >= CHARGE_MIN)) {
+      uni.showToast({ title: `价格最低 ${CHARGE_MIN} 金币`, icon: "none" });
+      return;
+    }
+
     uni.showLoading({
       title: "发布中...",
     });
@@ -235,10 +274,17 @@ const handlePublish = async () => {
       content: content, // 发帖内容
       jsonStr: JSON.stringify(schemes.value),
       account: getAccount() || "", // 账号
-      pimg: "", // 预测帖不需要图片
-      flag: true, // 无需审核
+      timg: "", // 图片：预测帖没有图片
+      flag: chargeEnabled.value ? 1 : 0, // 是否收费：0 免费 1 收费
+      price: chargeEnabled.value ? String(chargePrice.value) : null, // 价格（金币）
+      // 按位提交方案：fa=个位 fb=十位 fc=百位 fd=千位
+      ...postTool.buildPositionFields(schemes.value),
     };
 
+    // ⚠️ 帖子 v2 接口（apiCreatePostV2 → /web/tpost/insert）还未对接，
+    //    这里暂时仍走老接口 apiPost；
+    //    提交字段（timg / flag / price / fa-fhca 等）已按 v2 的接口定义准备好，
+    //    v2 就绪后把下面这行换成 apiCreatePostV2(postData) 即可
     const response = await apiPost(postData);
 
     uni.hideLoading();
@@ -362,6 +408,11 @@ onLoad(async (options) => {
     name: options.lotteryType,
   };
 
+  // 从大师榜单进入时默认收费
+  if (options.paid === "1") {
+    chargeEnabled.value = true;
+  }
+
   // 加载期号信息
   loadIssueInfo();
 
@@ -447,11 +498,43 @@ onLoad(async (options) => {
   overflow: hidden;
 }
 
+/* 收费设置 */
+.charge-card {
+  background-color: #fff;
+  border-radius: 15rpx;
+  padding: 10rpx 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.charge-row {
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+}
+
+.charge-label {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.charge-switch {
+  transform: scale(0.9);
+}
+
+.charge-unit {
+  font-size: 28rpx;
+  color: #666;
+  margin-left: 16rpx;
+}
+
 /* 标题区域 */
 .title-section {
   margin-bottom: 30rpx;
 }
-
 .title-text {
   font-size: 32rpx;
   font-weight: 600;

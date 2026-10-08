@@ -296,6 +296,18 @@ export function apiPost(data = {}) {
     data,
   });
 }
+
+// 彩友圈发帖接口v2
+// ⚠️ 还未对接：目前发帖仍然走上面的 apiPost（/web/post/insert），
+//    这个 v2 接口只是先定义好，等后端就绪后把 append-confirm.vue 里的 apiPost 换成本接口
+export function apiCreatePostV2(data = {}) {
+  return request({
+    url: "/web/tpost/insert",
+    method: "POST",
+    data,
+  });
+}
+
 // 查询订单支付状态接口
 export function apiGetOrderPayStatus(data = {}) {
   return request({

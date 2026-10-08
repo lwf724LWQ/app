@@ -121,7 +121,8 @@
     </view>
 
     <!-- 发布弹窗（与彩友圈共用，规范勾选逻辑只保留一份） -->
-    <postPublishPopup ref="publishPopup" :lotteryType="tname" />
+    <!-- 从大师榜单进入发布，默认打开收费 -->
+    <postPublishPopup ref="publishPopup" :lotteryType="tname" :defaultPaid="true" />
   </view>
 </template>
 

@@ -331,8 +331,11 @@ const handlePublish = async () => {
       issueno: parseInt(issueNumber.value) || 0, // 期号转换为数字
       content: generatePostContent(), // 发帖内容
       account: getAccount() || "", // 账号
-      pimg: uploadedImageUrls.value.join(","), // 多张图片URL用逗号分隔
-      flag: true, // 需要审核
+      timg: uploadedImageUrls.value.join(","), // 图片，多张用逗号分隔
+      flag: 0, // 是否收费：0 免费 1 收费（规律帖不提供收费设置）
+      price: null, // 价格（金币）
+      // 按位提交方案：fa=个位 fb=十位 fc=百位 fd=千位
+      ...postTool.buildPositionFields(schemes.value),
     };
     // 检查必要参数
     if (!postData.account) {
@@ -359,7 +362,7 @@ const handlePublish = async () => {
       return;
     }
 
-    if (!postData.pimg || postData.pimg.trim() === "") {
+    if (!postData.timg || postData.timg.trim() === "") {
       uni.showToast({
         title: "请至少上传一张图片",
         icon: "none",
